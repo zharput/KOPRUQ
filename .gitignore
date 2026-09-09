@@ -1,0 +1,38 @@
+## Java / Maven
+target/
+*.class
+
+## Node / Vite
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+## Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+## .NET (archived generation)
+bin/
+obj/
+*.user
+*.suo
+
+## IDE
+.vs/
+.idea/
+.vscode/
+*.DotSettings.user
+
+## Test results
+TestResults/
+
+## Secrets / local-only config - never commit credentials
+application-local.properties
+*.local.properties
+
+## OS
+Thumbs.db
+.DS_Store

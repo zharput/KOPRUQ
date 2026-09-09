@@ -1,0 +1,21 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Spanova.Allplan/Spanova.Allplan.csproj" />
+    <Project Path="src/Spanova.Analysis/Spanova.Analysis.csproj" />
+    <Project Path="src/Spanova.App.Avalonia/Spanova.App.Avalonia.csproj" />
+    <Project Path="src/Spanova.Carbon/Spanova.Carbon.csproj" />
+    <Project Path="src/Spanova.Core/Spanova.Core.csproj" />
+    <Project Path="src/Spanova.Cost/Spanova.Cost.csproj" />
+    <Project Path="src/Spanova.Data/Spanova.Data.csproj" />
+    <Project Path="src/Spanova.Generative/Spanova.Generative.csproj" />
+    <Project Path="src/Spanova.Geometry/Spanova.Geometry.csproj" />
+    <Project Path="src/Spanova.Optimization/Spanova.Optimization.csproj" />
+    <Project Path="src/Spanova.Reporting/Spanova.Reporting.csproj" />
+    <Project Path="src/Spanova.Rules/Spanova.Rules.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Spanova.Core.Tests/Spanova.Core.Tests.csproj" />
+    <Project Path="tests/Spanova.Generative.Tests/Spanova.Generative.Tests.csproj" />
+    <Project Path="tests/Spanova.Rules.Tests/Spanova.Rules.Tests.csproj" />
+  </Folder>
+</Solution>

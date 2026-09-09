@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.spanova</groupId>
+    <artifactId>spanova-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>midas-adapter</artifactId>
+  <packaging>jar</packaging>
+
+  <!--
+    MIDAS Civil NX adapter (architecture amendment v2 - replaces the
+    original ALLPLAN-first plan for P06/P07). Canonical BridgeAlternative
+    -> MIDAS Civil NX model via the MAPI cloud API
+    (https://moa-engineers.midasit.com/civil - see this project's
+    session history for a verified working example: node/element/
+    material/section creation, load application, running an analysis,
+    and pulling reaction/displacement results). ALL MIDAS-specific code
+    must live here, never in bridge-core/rules-engine/generative-engine.
+
+    "Separate Windows worker boundary" per the engineer's architecture
+    table: this module may end up packaged/deployed as its own process
+    rather than embedded in the `api` Spring Boot app, once P06 defines
+    real request/response shapes - not decided yet (P00 foundation only).
+  -->
+
+  <dependencies>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>bridge-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>analysis-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <!-- JSON only - not a framework dependency. HTTP itself uses the
+           JDK's own java.net.http.HttpClient (Java 11+), no extra library. -->
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+  </dependencies>
+</project>

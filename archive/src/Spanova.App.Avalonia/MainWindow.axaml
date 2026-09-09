@@ -1,0 +1,577 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Spanova.App.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="1000"
+        x:Class="Spanova.App.Avalonia.MainWindow"
+        x:DataType="local:MainViewModel"
+        Title="SPANOVA - Computational Bridge Design"
+        Width="1600" Height="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#F1F5F9">
+
+    <Window.Resources>
+        <local:ValueToTrackXConverter x:Key="ValueToTrackXConverter"/>
+        <local:RangeToTrackWidthConverter x:Key="RangeToTrackWidthConverter"/>
+
+        <SolidColorBrush x:Key="SidebarBg" Color="#0F172A"/>
+        <SolidColorBrush x:Key="SidebarText" Color="#CBD5E1"/>
+        <SolidColorBrush x:Key="SidebarTextMuted" Color="#64748B"/>
+        <SolidColorBrush x:Key="SidebarSelectedBg" Color="#1E293B"/>
+        <SolidColorBrush x:Key="Accent" Color="#2563EB"/>
+        <SolidColorBrush x:Key="AccentSoft" Color="#DBEAFE"/>
+        <SolidColorBrush x:Key="CardBorder" Color="#E2E8F0"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#0F172A"/>
+        <SolidColorBrush x:Key="TextMuted" Color="#64748B"/>
+    </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="TextBlock.cardTitle">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+        <Style Selector="TextBlock.fieldLabel">
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Margin" Value="0,8,0,2"/>
+        </Style>
+        <Style Selector="TextBox.fieldBox">
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="TextBox.inlineNumber">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+        <Style Selector="Border.placeholder">
+            <Setter Property="Background" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        <Style Selector="TextBlock.notAvailable">
+            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBlock.navItem">
+            <Setter Property="Foreground" Value="{StaticResource SidebarText}"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Border.navRow">
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Margin" Value="10,1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Border.navRow:pointerover">
+            <Setter Property="Background" Value="{StaticResource SidebarSelectedBg}"/>
+        </Style>
+        <Style Selector="Border.navRowSelected">
+            <Setter Property="Background" Value="{StaticResource SidebarSelectedBg}"/>
+        </Style>
+        <Style Selector="Button.accentBtn">
+            <Setter Property="Background" Value="{StaticResource Accent}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+        </Style>
+        <Style Selector="Button.plainBtn">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource CardBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+        </Style>
+        <Style Selector="Ellipse.stepBadge">
+            <Setter Property="Width" Value="18"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Fill" Value="{StaticResource Accent}"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="220,*">
+
+        <!-- ============================= SIDEBAR ============================= -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBg}">
+            <DockPanel>
+
+                <StackPanel DockPanel.Dock="Top" Margin="16,20,16,16">
+                    <Image Source="avares://Spanova.App.Avalonia/Assets/SPANOVA_LOGO.png" Height="70" Stretch="Uniform" HorizontalAlignment="Left"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,16">
+                    <Border BorderThickness="0,1,0,0" BorderBrush="#1E293B" Margin="16,0,16,10"/>
+                    <Border Classes="navRow"><TextBlock Text="&#9881;  Settings" Classes="navItem" FontSize="12"/></Border>
+                    <Border Classes="navRow"><TextBlock Text="&#63;  Help" Classes="navItem" FontSize="12"/></Border>
+                    <Border Classes="navRow" Margin="10,6,10,10">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="24" Height="24" Fill="{StaticResource Accent}" Margin="0,0,8,0"/>
+                            <StackPanel>
+                                <TextBlock Text="Engineer" Classes="navItem" FontSize="12"/>
+                                <TextBlock Text="Project Team" Foreground="{StaticResource SidebarTextMuted}" FontSize="10"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Margin="16,10,16,0">
+                        <TextBlock Text="BETTER BRIDGES" Foreground="White" FontSize="10" FontWeight="Bold"/>
+                        <TextBlock Text="A MORE SUSTAINABLE TOMORROW" Foreground="{StaticResource SidebarTextMuted}" FontSize="9" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel>
+                    <Border Classes="navRow navRowSelected" Tag="SectionHero" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#127968;  Project" Classes="navItem" Foreground="White"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionHero" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#8623;  Geometry" Classes="navItem"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionDesignSpace" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#128202;  Design Space" Classes="navItem"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionGenerate" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#9889;  Generate" Classes="navItem"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionResults" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#128200;  Analyze" Classes="navItem"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionDesignSpace" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#127919;  Optimize" Classes="navItem"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionResults" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#128202;  Results" Classes="navItem"/>
+                    </Border>
+                    <Border Classes="navRow" Tag="SectionResults" PointerPressed="OnNavItemClick">
+                        <TextBlock Text="&#128196;  Report" Classes="navItem"/>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- ============================= MAIN AREA ============================= -->
+        <DockPanel Grid.Column="1">
+
+            <!-- Top bar -->
+            <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource CardBorder}" BorderThickness="0,0,0,1" Padding="20,10">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="Project" Foreground="{StaticResource TextMuted}" FontSize="12" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <Border BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Classes="inlineNumber" Width="100" Text="{Binding ProjectName}"/>
+                                <TextBlock Text="&#9662;" Foreground="{StaticResource TextMuted}" FontSize="10" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock Text="&#128190;" FontSize="12" Margin="14,0,4,0" VerticalAlignment="Center" Foreground="{StaticResource TextMuted}"/>
+                        <TextBlock Text="{Binding LastSavedText}" Foreground="{StaticResource TextMuted}" FontSize="11" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                        <Button Classes="plainBtn" Content="Save" Command="{Binding SaveProjectCommand}" Margin="0,0,8,0"/>
+                        <Button Classes="plainBtn" Content="Open" Command="{Binding OpenProjectCommand}" Margin="0,0,8,0"/>
+                        <Button Classes="plainBtn" Content="New" Command="{Binding NewProjectCommand}" Margin="0,0,14,0"/>
+                        <Button Classes="accentBtn" Content="&#9654; Generate" Command="{Binding GenerateCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Status bar -->
+            <Border DockPanel.Dock="Bottom" Background="#1F2937" Padding="20,6">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Text="{Binding StatusMessage}" Foreground="White" FontSize="11"/>
+                    <TextBlock Grid.Column="1" Text="SPANOVA v0.1.0 (Avalonia) | Computational Bridge Design Platform" Foreground="#94A3B8" FontSize="11"/>
+                </Grid>
+            </Border>
+
+            <!-- Single scrollable page -->
+            <ScrollViewer x:Name="MainScroll" Padding="20">
+                <StackPanel Spacing="16">
+
+                    <!-- ===== Hero + Site/Terrain ===== -->
+                    <Grid x:Name="SectionHero" ColumnDefinitions="*,320">
+                        <Border Grid.Column="0" Classes="card" Padding="0" Margin="0,0,12,0" ClipToBounds="True">
+                            <Grid>
+                                <Border CornerRadius="10" ClipToBounds="True">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                                            <GradientStop Color="#BFE3F5" Offset="0"/>
+                                            <GradientStop Color="#DDEFD9" Offset="0.5"/>
+                                            <GradientStop Color="#7FA36B" Offset="0.62"/>
+                                            <GradientStop Color="#5B7A4E" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Canvas Height="380">
+                                        <Rectangle Canvas.Left="130" Canvas.Top="230" Width="20" Height="150" Fill="#8892A0"/>
+                                        <Rectangle Canvas.Left="430" Canvas.Top="230" Width="20" Height="150" Fill="#8892A0"/>
+                                        <Rectangle Canvas.Left="730" Canvas.Top="230" Width="20" Height="150" Fill="#8892A0"/>
+                                        <Rectangle Canvas.Left="1030" Canvas.Top="230" Width="20" Height="150" Fill="#8892A0"/>
+                                        <Rectangle Canvas.Left="60" Canvas.Top="212" Width="1080" Height="20" Fill="#5B6472"/>
+                                    </Canvas>
+                                </Border>
+
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="16">
+                                    <Border Background="#EEFFFFFF" CornerRadius="6" Padding="2">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Background="{StaticResource Accent}" CornerRadius="4" Padding="10,5"><TextBlock Text="3D" Foreground="White" FontSize="11"/></Border>
+                                            <TextBlock Text="Plan" Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Profile" Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Cross Section" Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+
+                                <Border Background="#B3000000" CornerRadius="8" Padding="16,12" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="16">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding BridgeName}" Foreground="White" FontSize="20" FontWeight="Bold"/>
+                                        <TextBlock Text="Precast Girder Viaduct" Foreground="#CBD5E1" FontSize="12" Margin="0,0,0,8"/>
+                                        <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto" >
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Length" Foreground="#94A3B8" FontSize="11" Margin="0,0,20,2"/>
+                                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalLengthM, StringFormat={}{0} m}" Foreground="White" FontSize="12" Margin="0,0,0,2"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Spans" Foreground="#94A3B8" FontSize="11" Margin="0,0,20,0"/>
+                                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding HeroSpansText}" Foreground="White" FontSize="12"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <StackPanel Grid.Column="1">
+                            <Border Classes="card" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="Alignment &amp; Site" Classes="cardTitle" Margin="0,0,0,10"/>
+                                    <Border Classes="placeholder" Height="140"><TextBlock Text="map placeholder" Classes="notAvailable"/></Border>
+                                </StackPanel>
+                            </Border>
+                            <Border Classes="card">
+                                <StackPanel>
+                                    <TextBlock Text="Terrain Profile" Classes="cardTitle" Margin="0,0,0,10"/>
+                                    <Border Classes="placeholder" Height="120"><TextBlock Text="terrain chart placeholder" Classes="notAvailable"/></Border>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ===== 4-card row: Project Info | Design Space | Objectives/Constraints | Generate ===== -->
+                    <Grid x:Name="SectionDesignSpace" ColumnDefinitions="*,*,*,300">
+
+                        <!-- Card 1: Project Information -->
+                        <Border Grid.Column="0" Classes="card" Margin="0,0,12,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Ellipse Classes="stepBadge"/>
+                                    <TextBlock Text="1" Foreground="White" FontSize="10" FontWeight="Bold" Margin="-14,0,0,0" HorizontalAlignment="Center" Width="18" TextAlignment="Center"/>
+                                    <TextBlock Text="Project Information" Classes="cardTitle" Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Project Name" Classes="fieldLabel"/>
+                                <TextBox Classes="fieldBox" Text="{Binding ProjectName}"/>
+                                <TextBlock Text="Location" Classes="fieldLabel"/>
+                                <TextBox Classes="fieldBox" Text="{Binding Location}"/>
+                                <TextBlock Text="Total Length (m)" Classes="fieldLabel"/>
+                                <TextBox Classes="fieldBox" Text="{Binding TotalLengthM}"/>
+                                <TextBlock Text="Deck Width (m)" Classes="fieldLabel"/>
+                                <TextBox Classes="fieldBox" Text="{Binding DeckWidthM}"/>
+                                <TextBlock Text="Design Standard" Classes="fieldLabel"/>
+                                <TextBox Classes="fieldBox" Text="{Binding DesignStandard}"/>
+                                <TextBlock Text="Project Phase" Classes="fieldLabel"/>
+                                <TextBox Classes="fieldBox" Text="{Binding ProjectPhase}"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 2: Design Space -->
+                        <Border Grid.Column="1" Classes="card" Margin="0,0,12,0">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Ellipse Classes="stepBadge"/>
+                                    <TextBlock Text="2" Foreground="White" FontSize="10" FontWeight="Bold" Margin="-14,0,0,0" HorizontalAlignment="Center" Width="18" TextAlignment="Center"/>
+                                    <TextBlock Text="Design Space" Classes="cardTitle" Margin="8,0,0,0"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Span Length (m)" Classes="fieldLabel"/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0,4,0,0">
+                                    <TextBox Grid.Column="0" Classes="inlineNumber" Text="{Binding MinSpanM}"/>
+                                    <Canvas Grid.Column="1" Width="120" Height="20" Margin="8,0">
+                                        <Border Canvas.Top="8" Width="120" Height="4" CornerRadius="2" Background="{StaticResource CardBorder}"/>
+                                        <Border Canvas.Top="8" Height="4" CornerRadius="2" Background="{StaticResource Accent}"
+                                                Canvas.Left="{Binding MinSpanM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,80,120'}">
+                                            <Border.Width>
+                                                <MultiBinding Converter="{StaticResource RangeToTrackWidthConverter}" ConverterParameter="0,80,120">
+                                                    <Binding Path="MinSpanM"/>
+                                                    <Binding Path="MaxSpanM"/>
+                                                </MultiBinding>
+                                            </Border.Width>
+                                        </Border>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource Accent}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding MinSpanM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,80,120'}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource Accent}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding MaxSpanM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,80,120'}"/>
+                                    </Canvas>
+                                    <TextBox Grid.Column="2" Classes="inlineNumber" Text="{Binding MaxSpanM}"/>
+                                </Grid>
+
+                                <TextBlock Text="Girder Count" Classes="fieldLabel"/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0,4,0,0">
+                                    <TextBox Grid.Column="0" Classes="inlineNumber" Text="{Binding MinGirderCount}"/>
+                                    <Canvas Grid.Column="1" Width="120" Height="20" Margin="8,0">
+                                        <Border Canvas.Top="8" Width="120" Height="4" CornerRadius="2" Background="{StaticResource CardBorder}"/>
+                                        <Border Canvas.Top="8" Height="4" CornerRadius="2" Background="{StaticResource Accent}"
+                                                Canvas.Left="{Binding MinGirderCount, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,14,120'}">
+                                            <Border.Width>
+                                                <MultiBinding Converter="{StaticResource RangeToTrackWidthConverter}" ConverterParameter="0,14,120">
+                                                    <Binding Path="MinGirderCount"/>
+                                                    <Binding Path="MaxGirderCount"/>
+                                                </MultiBinding>
+                                            </Border.Width>
+                                        </Border>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource Accent}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding MinGirderCount, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,14,120'}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource Accent}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding MaxGirderCount, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,14,120'}"/>
+                                    </Canvas>
+                                    <TextBox Grid.Column="2" Classes="inlineNumber" Text="{Binding MaxGirderCount}"/>
+                                </Grid>
+
+                                <TextBlock Text="Girder Depth (m)" Classes="fieldLabel"/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0,4,0,0">
+                                    <TextBox Grid.Column="0" Classes="inlineNumber" Text="{Binding MinGirderDepthM}"/>
+                                    <Canvas Grid.Column="1" Width="120" Height="20" Margin="8,0">
+                                        <Border Canvas.Top="8" Width="120" Height="4" CornerRadius="2" Background="{StaticResource CardBorder}"/>
+                                        <Border Canvas.Top="8" Height="4" CornerRadius="2" Background="{StaticResource Accent}"
+                                                Canvas.Left="{Binding MinGirderDepthM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,4,120'}">
+                                            <Border.Width>
+                                                <MultiBinding Converter="{StaticResource RangeToTrackWidthConverter}" ConverterParameter="0,4,120">
+                                                    <Binding Path="MinGirderDepthM"/>
+                                                    <Binding Path="MaxGirderDepthM"/>
+                                                </MultiBinding>
+                                            </Border.Width>
+                                        </Border>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource Accent}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding MinGirderDepthM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,4,120'}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource Accent}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding MaxGirderDepthM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,4,120'}"/>
+                                    </Canvas>
+                                    <TextBox Grid.Column="2" Classes="inlineNumber" Text="{Binding MaxGirderDepthM}"/>
+                                </Grid>
+
+                                <TextBlock Text="Slab Thickness (m) - visual only" Classes="fieldLabel"/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0,4,0,0" IsEnabled="False" Opacity="0.55">
+                                    <TextBox Grid.Column="0" Classes="inlineNumber" Text="{Binding SlabThicknessMinM}"/>
+                                    <Canvas Grid.Column="1" Width="120" Height="20" Margin="8,0">
+                                        <Border Canvas.Top="8" Width="120" Height="4" CornerRadius="2" Background="{StaticResource CardBorder}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource TextMuted}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding SlabThicknessMinM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,0.5,120'}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource TextMuted}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding SlabThicknessMaxM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,0.5,120'}"/>
+                                    </Canvas>
+                                    <TextBox Grid.Column="2" Classes="inlineNumber" Text="{Binding SlabThicknessMaxM}"/>
+                                </Grid>
+
+                                <TextBlock Text="Pier Diameter (m) - visual only" Classes="fieldLabel"/>
+                                <Grid ColumnDefinitions="Auto,Auto,Auto" Margin="0,4,0,0" IsEnabled="False" Opacity="0.55">
+                                    <TextBox Grid.Column="0" Classes="inlineNumber" Text="{Binding PierDiameterMinM}"/>
+                                    <Canvas Grid.Column="1" Width="120" Height="20" Margin="8,0">
+                                        <Border Canvas.Top="8" Width="120" Height="4" CornerRadius="2" Background="{StaticResource CardBorder}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource TextMuted}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding PierDiameterMinM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,4,120'}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource TextMuted}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding PierDiameterMaxM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,4,120'}"/>
+                                    </Canvas>
+                                    <TextBox Grid.Column="2" Classes="inlineNumber" Text="{Binding PierDiameterMaxM}"/>
+                                </Grid>
+
+                                <TextBlock Text="Pier Height (max, m) - visual only" Classes="fieldLabel"/>
+                                <Grid ColumnDefinitions="Auto,Auto" Margin="0,4,0,0" IsEnabled="False" Opacity="0.55">
+                                    <Canvas Grid.Column="0" Width="120" Height="20">
+                                        <Border Canvas.Top="8" Width="120" Height="4" CornerRadius="2" Background="{StaticResource CardBorder}"/>
+                                        <Ellipse Width="12" Height="12" Canvas.Top="4" Fill="{StaticResource TextMuted}" Stroke="White" StrokeThickness="2"
+                                                  Canvas.Left="{Binding PierHeightMaxM, Converter={StaticResource ValueToTrackXConverter}, ConverterParameter='0,60,120'}"/>
+                                    </Canvas>
+                                    <TextBox Grid.Column="1" Classes="inlineNumber" Margin="8,0,0,0" Text="{Binding PierHeightMaxM}"/>
+                                </Grid>
+
+                                <TextBlock Text="Bridge Systems" Classes="fieldLabel"/>
+                                <StackPanel Margin="0,4,0,0" Opacity="0.55" IsEnabled="False">
+                                    <CheckBox Content="Precast Girder" IsChecked="{Binding BridgeSystemPrecastGirder}" Margin="0,2"/>
+                                    <CheckBox Content="PSC Box Girder" IsChecked="{Binding BridgeSystemPscBoxGirder}" Margin="0,2"/>
+                                    <CheckBox Content="Balanced Cantilever" IsChecked="{Binding BridgeSystemBalancedCantilever}" Margin="0,2"/>
+                                </StackPanel>
+                                <TextBlock Text="Only Precast Girder is generated in this prototype (spec section 12)." Foreground="{StaticResource TextMuted}" FontSize="10" FontStyle="Italic" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 3: Objectives + Constraints (visual only) -->
+                        <Border Grid.Column="2" Classes="card" Margin="0,0,12,0">
+                            <StackPanel Opacity="0.6" IsEnabled="False">
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Ellipse Classes="stepBadge"/>
+                                    <TextBlock Text="3" Foreground="White" FontSize="10" FontWeight="Bold" Margin="-14,0,0,0" HorizontalAlignment="Center" Width="18" TextAlignment="Center"/>
+                                    <TextBlock Text="Objectives" Classes="cardTitle" Margin="8,0,0,0"/>
+                                </StackPanel>
+                                <CheckBox Content="Minimize Cost" IsChecked="{Binding ObjectiveMinimizeCost}" Margin="0,2"/>
+                                <CheckBox Content="Minimize CO2" IsChecked="{Binding ObjectiveMinimizeCo2}" Margin="0,2"/>
+                                <CheckBox Content="Minimize Weight" IsChecked="{Binding ObjectiveMinimizeWeight}" Margin="0,2"/>
+                                <CheckBox Content="Minimize Construction Time" IsChecked="{Binding ObjectiveMinimizeConstructionTime}" Margin="0,2"/>
+
+                                <TextBlock Text="Constraints" Classes="cardTitle" Margin="0,16,0,10"/>
+                                <CheckBox Content="River (No Pier)" IsChecked="{Binding ConstraintRiverNoPier}" Margin="0,2"/>
+                                <CheckBox Content="Existing Road" IsChecked="{Binding ConstraintExistingRoad}" Margin="0,2"/>
+                                <CheckBox Content="Protected Area" IsChecked="{Binding ConstraintProtectedArea}" Margin="0,2"/>
+                                <CheckBox Content="Max Pier Height" IsChecked="{Binding ConstraintMaxPierHeight}" Margin="0,2"/>
+                                <CheckBox Content="Constructability Limits" IsChecked="{Binding ConstraintConstructabilityLimits}" Margin="0,2"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Card 4: Generate -->
+                        <Border x:Name="SectionGenerate" Grid.Column="3" Classes="card" Background="#EFF6FF">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Width="56" Height="56" CornerRadius="12" Background="{StaticResource AccentSoft}" HorizontalAlignment="Center" Margin="0,0,0,14">
+                                    <TextBlock Text="&#9881;" FontSize="24" Foreground="{StaticResource Accent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Generate Alternatives" Classes="cardTitle" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                                <TextBlock Text="Ready to generate bridge alternatives based on the defined design space and constraints." Foreground="{StaticResource TextMuted}" FontSize="11" TextWrapping="Wrap" TextAlignment="Center" Margin="0,0,0,16"/>
+                                <Button Classes="accentBtn" Content="&#9654; Generate" Command="{Binding GenerateCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,0,0,8"/>
+                                <TextBlock Text="Advanced Settings (not implemented)" Foreground="{StaticResource TextMuted}" FontSize="10" HorizontalAlignment="Center"/>
+
+                                <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource CardBorder}" Margin="0,16,0,12"/>
+                                <UniformGrid Columns="3">
+                                    <StackPanel Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding CandidateCount}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource Accent}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Generated" FontSize="9" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding FeasibleCount}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource Accent}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Feasible" FontSize="9" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding RejectedCount}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Rejected" FontSize="9" Foreground="{StaticResource TextMuted}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- ===== Results ===== -->
+                    <Grid x:Name="SectionResults" ColumnDefinitions="*,300">
+
+                        <Border Grid.Column="0" Classes="card" Margin="0,0,12,0" Padding="0">
+                            <DockPanel>
+                                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="12,10,12,0">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                        <Border Background="{StaticResource Accent}" CornerRadius="6" Padding="10,5" Margin="0,0,6,0"><TextBlock Text="Alternatives" Foreground="White" FontSize="11"/></Border>
+                                        <TextBlock Text="Performance Chart" Foreground="{StaticResource TextMuted}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Pareto Front" Foreground="{StaticResource TextMuted}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                        <TextBlock Text="Cost Breakdown" Foreground="{StaticResource TextMuted}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                        <TextBlock Text="CO2 Emissions" Foreground="{StaticResource TextMuted}" FontSize="11" Padding="10,5" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <TextBox Grid.Column="1" Classes="fieldBox" Width="160" PlaceholderText="Search..." Text="{Binding SearchText}"/>
+                                </Grid>
+
+                                <DataGrid Margin="0,10,0,0"
+                                          ItemsSource="{Binding Alternatives}"
+                                          SelectedItem="{Binding SelectedRow}"
+                                          AutoGenerateColumns="False"
+                                          IsReadOnly="True"
+                                          GridLinesVisibility="Horizontal"
+                                          HeadersVisibility="Column"
+                                          RowHeight="30"
+                                          FontSize="11"
+                                          CanUserResizeColumns="True">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="#" Binding="{Binding DisplayId}" Width="50"/>
+                                        <DataGridTextColumn Header="System" Binding="{Binding System}" Width="70"/>
+                                        <DataGridTextColumn Header="Spans (m)" Binding="{Binding SpansText}" Width="90"/>
+                                        <DataGridTextColumn Header="Total Length (m)" Binding="{Binding TotalLengthM}" Width="120"/>
+                                        <DataGridTextColumn Header="Girder Count" Binding="{Binding GirderCount}" Width="100"/>
+                                        <DataGridTextColumn Header="Girder Depth (m)" Binding="{Binding GirderDepthM}" Width="120"/>
+                                        <DataGridTextColumn Header="Pier &#8960; (m)" Binding="{Binding PierDiameter}" Width="80"/>
+                                        <DataGridTextColumn Header="Cost (M€)" Binding="{Binding Cost}" Width="80"/>
+                                        <DataGridTextColumn Header="CO2 (t)" Binding="{Binding CarbonEmissions}" Width="80"/>
+                                        <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="60"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DockPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Classes="card">
+                            <StackPanel>
+                                <TextBlock Text="Selected Alternative" Classes="cardTitle" Margin="0,0,0,10"/>
+
+                                <StackPanel IsVisible="{Binding HasSelectedRow}">
+                                    <TextBlock Text="{Binding SelectedRow.DisplayId}" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
+
+                                    <Border Classes="placeholder" Height="70" Margin="0,0,0,12">
+                                        <TextBlock Text="preview placeholder" Classes="notAvailable" FontSize="10"/>
+                                    </Border>
+
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="System" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedRow.System}" FontSize="11"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Spans" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedRow.SpansText, StringFormat={}{0} m}" FontSize="11"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Total Length" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedRow.TotalLengthM, StringFormat={}{0} m}" FontSize="11"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Deck Width" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding DeckWidthM, StringFormat={}{0} m}" FontSize="11"/>
+                                    </Grid>
+
+                                    <TextBlock Text="Sustainability &amp; Cost" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,8"/>
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,12">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Cost" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedRow.Cost}" FontSize="11"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="CO2" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedRow.CarbonEmissions}" FontSize="11"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Concrete" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding SelectedRow.ConcreteVolume}" FontSize="11"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Rebar" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding SelectedRow.Rebar}" FontSize="11"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Prestressing" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding SelectedRow.PostTensioning}" FontSize="11"/>
+                                    </Grid>
+
+                                    <TextBlock Text="Performance" FontWeight="SemiBold" FontSize="11" Margin="0,0,0,8"/>
+                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,0,0,4">
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="ULS" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedRow.Uls}" FontSize="11"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="SLS" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SelectedRow.Sls}" FontSize="11"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Fatigue" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="2" Grid.Column="1" Text="—" FontSize="11"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Seismic" Foreground="{StaticResource TextMuted}" FontSize="11"/>
+                                        <TextBlock Grid.Row="3" Grid.Column="1" Text="—" FontSize="11"/>
+                                    </Grid>
+                                    <TextBlock Text="Cost/CO2/Performance figures require Spanova.Analysis, Cost and Carbon - not implemented yet." Foreground="{StaticResource TextMuted}" FontSize="10" FontStyle="Italic" TextWrapping="Wrap" Margin="0,4,0,12"/>
+
+                                    <Button Classes="accentBtn" Content="Open in ALLPLAN (draft Tcl)" Command="{Binding ExportSelectedCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"/>
+                                </StackPanel>
+
+                                <TextBlock Text="Select a row in the results table." Classes="notAvailable" IsVisible="{Binding !HasSelectedRow}" Margin="0,20,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
+</Window>

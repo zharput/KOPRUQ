@@ -1,0 +1,84 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Spanova.App"
+        mc:Ignorable="d" d:DesignWidth="560" d:DesignHeight="820"
+        x:Class="Spanova.App.MainWindow"
+        x:DataType="local:MainViewModel"
+        Title="SPANOVA (P03 - basic UI + generation)"
+        Width="560" Height="860">
+
+    <ScrollViewer>
+    <StackPanel Margin="20" Spacing="4">
+
+        <TextBlock Text="SPANOVA - P02 basic UI" FontWeight="Bold" FontSize="16" Margin="0,0,0,4"/>
+        <TextBlock Text="This is intentionally plain (spec section 20, P02: no dashboard yet)."
+                   FontSize="11" Foreground="Gray" Margin="0,0,0,12"/>
+
+        <TextBlock Text="Bridge Name"/>
+        <TextBox Text="{Binding BridgeName}"/>
+
+        <TextBlock Text="Bridge Length (m)" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding BridgeLengthM}"/>
+
+        <TextBlock Text="Deck Width (m)" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding DeckWidthM}"/>
+
+        <TextBlock Text="Minimum Span (m)" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding MinSpanM}"/>
+
+        <TextBlock Text="Maximum Span (m)" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding MaxSpanM}"/>
+
+        <TextBlock Text="Minimum Girder Count" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding MinGirderCount}"/>
+
+        <TextBlock Text="Maximum Girder Count" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding MaxGirderCount}"/>
+
+        <TextBlock Text="Minimum Girder Depth (m)" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding MinGirderDepthM}"/>
+
+        <TextBlock Text="Maximum Girder Depth (m)" Margin="0,8,0,0"/>
+        <TextBox Text="{Binding MaxGirderDepthM}"/>
+
+        <Button Content="GENERATE" Command="{Binding GenerateCommand}"
+                Margin="0,16,0,0" HorizontalAlignment="Left" Padding="16,6"/>
+
+        <TextBlock Text="Bridge Kernel state (proof the data reached Spanova.Core):"
+                   FontWeight="SemiBold" Margin="0,20,0,4"/>
+        <Border BorderBrush="Gray" BorderThickness="1" Padding="10">
+            <TextBlock Text="{Binding KernelStateSummary}" FontFamily="Consolas,monospace" FontSize="12"/>
+        </Border>
+
+        <TextBlock Text="{Binding ResultSummary}" FontWeight="SemiBold" Margin="0,20,0,4"/>
+        <DataGrid x:Name="ResultsGrid"
+                  ItemsSource="{Binding Alternatives}"
+                  SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  Height="200"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Span count" Binding="{Binding SpanCount}"/>
+                <DataGridTextColumn Header="Span length (m)" Binding="{Binding SpanLengthM}"/>
+                <DataGridTextColumn Header="Total length (m)" Binding="{Binding TotalLengthM}"/>
+                <DataGridTextColumn Header="Girder count" Binding="{Binding GirderCount}"/>
+                <DataGridTextColumn Header="Girder depth (m)" Binding="{Binding GirderDepthM}"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <TextBlock Text="Selected alternative - elevation preview (spec section 20, P05: schematic only, not photorealistic):"
+                   FontWeight="SemiBold" Margin="0,20,0,4"/>
+        <TextBlock Text="Pier positions are shown as markers only - pier height is not modeled by any milestone yet (Pier is still null on generated alternatives), so no height is drawn or implied. Vertical scale (girder depth) is exaggerated relative to the horizontal scale for legibility - this is not to true scale."
+                   FontSize="10" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,6"/>
+        <Border BorderBrush="Gray" BorderThickness="1" Height="170">
+            <Canvas x:Name="ElevationCanvas" Background="White" ClipToBounds="True"/>
+        </Border>
+
+    </StackPanel>
+    </ScrollViewer>
+</Window>

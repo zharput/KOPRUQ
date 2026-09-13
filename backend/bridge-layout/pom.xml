@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.spanova</groupId>
+    <artifactId>spanova-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>bridge-layout</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Bridge Layout Engine - LAYOUT-P01 (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+       sections D, G, M, addendum Q): generates candidate bridge layouts
+       (abutment/pier chainages, span arrangement) within a BridgeSite,
+       respecting NoPierZone constraints. No FEM, no terrain, no
+       geotechnical/hydraulic, no cost/quantities yet. -->
+
+  <dependencies>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>alignment</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>constraints</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</project>

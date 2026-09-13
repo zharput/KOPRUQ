@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.spanova</groupId>
+    <artifactId>spanova-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>constraints</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Site/layout spatial constraints (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+       section C). LAYOUT-P01 scope only: chainage-range no-pier zones, no
+       dependency yet. Will gain a spatial-core/JTS dependency once real
+       2D/3D constraint shapes (roads, rivers, exclusion volumes) are
+       needed - not before. -->
+</project>

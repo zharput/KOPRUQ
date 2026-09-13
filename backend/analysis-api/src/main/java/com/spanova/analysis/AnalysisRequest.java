@@ -16,13 +16,22 @@ import java.util.List;
  * populated - no load combinations, construction stages, moving loads,
  * tendons or seismic yet (see docs/MIDAS_INTEGRATION_ANALYSIS.md for the
  * full staged plan).
+ *
+ * <p>{@code elasticLinks}/{@code uniformLoads} added for the native
+ * {@code spanova-analysis-engine} (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * addendum P) - bearings modelled as {@link ElasticLinkElement}s,
+ * externally-supplied UDLs (e.g. SDL) as {@link UniformElementLoad}s -
+ * neither MIDAS-specific. Empty lists = existing MIDAS-P01 requests
+ * unaffected.
  */
 public record AnalysisRequest(
         List<AnalysisNode> nodes,
         List<AnalysisElement> elements,
+        List<ElasticLinkElement> elasticLinks,
         List<AnalysisMaterial> materials,
         List<AnalysisSection> sections,
         List<BoundaryCondition> supports,
         List<LoadCase> loadCases,
-        List<SelfWeight> selfWeights) {
+        List<SelfWeight> selfWeights,
+        List<UniformElementLoad> uniformLoads) {
 }

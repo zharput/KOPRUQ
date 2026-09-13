@@ -35,13 +35,15 @@ class MidasCivilNxAnalysisEngineTest {
     private static final AnalysisRequest SIMPLE_BEAM = new AnalysisRequest(
             List.of(new AnalysisNode(1, 0, 0, 0), new AnalysisNode(2, 20, 0, 0)),
             List.of(new AnalysisElement(1, 1, 1, 1, 2)),
+            List.of(),
             List.of(new AnalysisMaterial(1, "CONC", "C30", 30_000_000, 0.2, 0.00001, 24.5, 2.5)),
             List.of(new SolidRectangleSection(1, "GIRDER-1", 2.0, 1.0)),
             List.of(
                     new BoundaryCondition(1, true, true, true, true, false, false),
                     new BoundaryCondition(2, false, true, true, true, false, false)),
             List.of(new LoadCase("SelfWeight", "D")),
-            List.of(new SelfWeight("SelfWeight", 0, 0, -1)));
+            List.of(new SelfWeight("SelfWeight", 0, 0, -1)),
+            List.of());
 
     @Test
     void submit_runsTheFullRoundTrip_andReturnsACompletedJobWithParsedResults() throws Exception {

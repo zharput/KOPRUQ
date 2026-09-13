@@ -1,0 +1,119 @@
+import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { MapPin, Upload } from 'lucide-react'
+import BigMenuPanel from './components/BigMenuPanel'
+import PlaceholderPanel from './components/PlaceholderPanel'
+import type { SectionId } from './navigation/sections'
+import { BIG_MENU_ITEMS, WORKING_SECTIONS } from './navigation/sections'
+import HomePanel from '../pages/home/HomePanel'
+import ImportActionScreen from '../shared/ui/ImportActionScreen'
+import { ProjectPanel, ProjectDashboardPanel, type BridgeRow } from '../features/project'
+import { SiteLayoutPanel, type LayoutSeed } from '../features/layout-generator'
+import { FastSolverPanel } from '../features/spanova-fast-solver'
+import { LoadsPanel } from '../features/loads'
+import { MaterialsPanel } from '../features/materials'
+import { SuperstructureFamiliesPanel } from '../features/superstructure-families'
+import { PierFamiliesPanel } from '../features/pier-families'
+import { GirderLibraryPanel } from '../features/girder-library'
+import { GenerateWorkflow, type GenerationSummary } from '../features/bridge-alternatives'
+import { CostDatabasePanel } from '../features/cost-database'
+import type { Dispatch, SetStateAction } from 'react'
+
+/**
+ * URL-based route table (Milestone 2 of the architecture migration,
+ * 2026-09-12) - replaces `App.tsx`'s previous manual `active` state
+ * switch with real routing: `/` redirects to `/home`, `/:section`
+ * renders whichever screen that SectionId maps to (a working feature,
+ * a BigMenuPanel card grid, or an honest PlaceholderPanel), exactly the
+ * same branching `App.tsx` used to do inline. The engineer can now
+ * deep-link/bookmark/refresh any section, and browser back/forward
+ * moves between them - none of that existed with local `useState`.
+ *
+ * <p>Cross-feature state that isn't URL-shaped (`bridges`, `designCode`,
+ * the last `GenerationSummary`, `layoutSeed`) is still owned by `App.tsx`
+ * and passed down here as props - the router only decides *which*
+ * section is active, it doesn't own any of this session's existing
+ * "lift shared state" data.
+ */
+export default function AppRoutes(props: {
+  summary: GenerationSummary | null
+  onGenerated: (summary: GenerationSummary) => void
+  layoutSeed: LayoutSeed | null
+  setLayoutSeed: Dispatch<SetStateAction<LayoutSeed | null>>
+  bridges: BridgeRow[]
+  setBridges: Dispatch<SetStateAction<BridgeRow[]>>
+  designCode: string
+  setDesignCode: Dispatch<SetStateAction<string>>
+}) {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path=":section" element={<SectionRoute {...props} />} />
+      <Route path="*" element={<Navigate to="/home" replace />} />
+    </Routes>
+  )
+}
+
+function SectionRoute({
+  summary,
+  onGenerated,
+  layoutSeed,
+  setLayoutSeed,
+  bridges,
+  setBridges,
+  designCode,
+  setDesignCode,
+}: {
+  summary: GenerationSummary | null
+  onGenerated: (summary: GenerationSummary) => void
+  layoutSeed: LayoutSeed | null
+  setLayoutSeed: Dispatch<SetStateAction<LayoutSeed | null>>
+  bridges: BridgeRow[]
+  setBridges: Dispatch<SetStateAction<BridgeRow[]>>
+  designCode: string
+  setDesignCode: Dispatch<SetStateAction<string>>
+}) {
+  const { section } = useParams<{ section: string }>()
+  const navigate = useNavigate()
+  const active = (section ?? 'home') as SectionId
+  const bigMenuItems = BIG_MENU_ITEMS[active]
+
+  if (active === 'home') return <HomePanel summary={summary} />
+  if (active === 'project-dashboard') return <ProjectDashboardPanel bridges={bridges} designCode={designCode} />
+  if (active === 'project-information') {
+    return <ProjectPanel bridges={bridges} setBridges={setBridges} designCode={designCode} setDesignCode={setDesignCode} />
+  }
+  if (active === 'layout-generator') {
+    return (
+      <SiteLayoutPanel
+        onUseLayout={(seed) => {
+          setLayoutSeed(seed)
+          navigate('/bridge-alternatives')
+        }}
+      />
+    )
+  }
+  if (active === 'spanova-fast-solver') return <FastSolverPanel />
+  if (active === 'loads') return <LoadsPanel />
+  if (active === 'materials') return <MaterialsPanel />
+  if (active === 'cost-database') return <CostDatabasePanel />
+  if (active === 'superstructure-families') return <SuperstructureFamiliesPanel />
+  if (active === 'girder-library') return <GirderLibraryPanel />
+  if (active === 'pier-families') return <PierFamiliesPanel />
+  if (active === 'alignment') {
+    return <ImportActionScreen title="Alignment" actionLabel="Import Alignment" icon={Upload} availableFrom="P07" />
+  }
+  if (active === 'terrain-dtm') {
+    return (
+      <ImportActionScreen
+        title="3D Terrain / DTM"
+        note="Deactivated for now (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md addendum Q) - pier/abutment heights are entered externally until real terrain data arrives."
+        actionLabel="Import Terrain"
+        icon={MapPin}
+        availableFrom="P07"
+      />
+    )
+  }
+  if (bigMenuItems) return <BigMenuPanel section={active} items={bigMenuItems} />
+  if (WORKING_SECTIONS.has(active)) return <GenerateWorkflow onGenerated={onGenerated} layoutSeed={layoutSeed} />
+  return <PlaceholderPanel section={active} />
+}

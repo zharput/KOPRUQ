@@ -1,0 +1,808 @@
+.spn-shell {
+  display: flex;
+  min-height: 100svh;
+}
+
+/* Sidebar */
+
+.spn-sidebar {
+  width: 248px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  padding: 18px 14px;
+}
+
+/* The sidebar now follows the app's own dark/light theme (2026-09-13,
+   engineer's own correction - "açık moda aldığın zaman yandaki menüde
+   açık olsun, o koyu kalıyor" - a deliberate fixed-dark-sidebar choice
+   from the previous round, reversed here per direct instruction). The
+   logo PNG still has a dark navy background baked into the image
+   itself, so it gets its own small fixed-dark badge behind it
+   (`--sidebar-bg`, still a non-themed constant, now used only for this
+   one spot) - otherwise it would show as a mismatched dark rectangle
+   sitting on a light sidebar. */
+.spn-sidebar-logo {
+  padding: 10px;
+  background: var(--sidebar-bg);
+  border-radius: 8px;
+}
+
+/* Crops the logo image to its bridge-graphic + wordmark portion only,
+   hiding the tagline underneath ("COMPUTATIONAL & GENERATIVE BRIDGE
+   DESIGN") - it renders too small to read clearly at sidebar width, and
+   the engineer asked to either fix its legibility or drop it (2026-09-12).
+   The source PNG is 1536x1024; its bridge+wordmark content ends around
+   74% of the height, so the crop keeps a 1536:758 window and relies on
+   overflow:hidden to clip the rest - no image re-export needed. */
+.spn-sidebar-logo-crop {
+  width: 100%;
+  max-width: 160px;
+  aspect-ratio: 1536 / 758;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.spn-sidebar-logo-crop img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.spn-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.spn-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.spn-nav-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.spn-nav-group-header svg {
+  transition: transform 0.15s ease;
+}
+
+.spn-nav-group-header svg.spn-chevron-collapsed {
+  transform: rotate(-90deg);
+}
+
+.spn-nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spn-nav-standalone {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.spn-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.spn-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spn-nav-item:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+.spn-nav-item-active {
+  background: rgba(47, 123, 246, 0.12);
+  border-color: rgba(47, 123, 246, 0.4);
+  color: var(--text-primary);
+}
+
+.spn-sidebar-tagline {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 14px 12px 4px;
+}
+
+/* Main column */
+
+.spn-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.spn-topbar {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+}
+
+.spn-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px;
+}
+
+.spn-topbar-spacer {
+  flex: 1;
+}
+
+.spn-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.spn-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.spn-icon-button:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.spn-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.spn-steps-row {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  overflow-x: auto;
+  /* Still scrollable (wheel/trackpad/touch/drag) when tabs overflow -
+     just hides the visible scrollbar track/thumb (2026-09-13, engineer's
+     own instruction: "en altta slider olmasın"). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.spn-steps-row::-webkit-scrollbar {
+  display: none;
+}
+
+.spn-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.spn-step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.spn-step:hover {
+  color: var(--text-primary);
+}
+
+.spn-step-active {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+  box-shadow: 0 2px 8px -1px rgba(47, 123, 246, 0.55);
+}
+
+.spn-step-active .spn-step-index {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.spn-step-disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.spn-step-disabled:hover {
+  color: var(--text-muted);
+}
+
+.spn-steps-row-sub {
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+}
+
+.spn-step-sub {
+  padding: 7px 14px;
+  font-size: 12.5px;
+}
+
+.spn-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+/* Placeholder panel */
+
+.spn-placeholder {
+  max-width: 480px;
+  margin: 48px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.spn-placeholder h1 {
+  font-size: 16px;
+}
+
+.spn-placeholder p {
+  font-size: 13px;
+}
+
+/* Project panel */
+
+.spn-project {
+  max-width: 640px;
+}
+
+.spn-project-location {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.spn-project-note {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.spn-project-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+/* Home panel */
+
+.spn-home {
+  max-width: 720px;
+}
+
+.spn-home-empty {
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.spn-bridge-summary,
+.spn-funnel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.spn-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+}
+
+.spn-stat-label {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.spn-stat-value {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.spn-home-intro {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+.spn-home-section-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-top: 28px;
+}
+
+.spn-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.spn-quick-actions-single {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 320px;
+}
+
+.spn-quick-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: not-allowed;
+}
+
+.spn-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* Cross-section "shape card" layout (Pier Families, Girder Library,
+   Superstructure Families > Precast): diagram as a full-width row on
+   top, parameters below - not side by side (2026-09-13, engineer's own
+   instruction: "üstyapı şekli üstte tam satır olsun, parametrik
+   değerler onun altında olsun"). Replaces the earlier side-by-side
+   `.spn-pier-row`/`.spn-pier-params` layout - the diagram no longer
+   squeezes the parameter table into a narrow column, which is also
+   what let the min/max/delta table fit its full width without needing
+   to horizontally scroll. */
+.spn-shape-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.spn-shape-card-header .spn-card-title {
+  margin: 0;
+}
+
+.spn-shape-card-diagram {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.spn-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.spn-slider-row input[type='range'] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+
+.spn-slider-value {
+  min-width: 56px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.spn-checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.spn-checklist-item input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+/* Shared form controls (GenerateWorkflow) */
+
+.spn-input {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+}
+
+.spn-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Plain, wide number edit boxes (no native spin-button UI) - used for
+   Pier Families' min/max/delta inputs, per the engineer's own
+   instruction ("direkt edit_box olsun ve daha geniş olsun, slider'a
+   gerek yok"). */
+.spn-input-number {
+  width: 100%;
+  min-width: 84px;
+  -moz-appearance: textfield;
+}
+
+.spn-input-number::-webkit-inner-spin-button,
+.spn-input-number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.spn-button-primary {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 500;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.spn-button-primary:hover {
+  background: var(--accent-strong);
+}
+
+.spn-button-secondary {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 12.5px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.spn-button-secondary:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+/* GenerateWorkflow layout */
+
+.spn-workflow {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spn-hero {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  padding: 20px 22px;
+  overflow: hidden;
+}
+
+.spn-hero-graphic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.spn-hero-text {
+  position: relative;
+}
+
+.spn-hero-text h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.spn-hero-text p {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.spn-hero-stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.spn-hero-stats .spn-stat {
+  background: var(--surface-2);
+}
+
+.spn-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  padding: 18px 20px;
+}
+
+.spn-card-title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.spn-card-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.spn-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.spn-card-header-row .spn-card-title {
+  flex: 1;
+}
+
+.spn-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.spn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+.spn-range-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.spn-range-field:first-of-type {
+  border-top: none;
+}
+
+.spn-range-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.spn-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spn-range-inputs .spn-input {
+  width: 88px;
+  margin-top: 0;
+}
+
+.spn-range-dash {
+  color: var(--text-muted);
+}
+
+.spn-error {
+  color: #f87171;
+  font-size: 13px;
+}
+
+.spn-hint {
+  color: var(--accent);
+  font-size: 12.5px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(47, 123, 246, 0.08);
+}
+
+.spn-pre {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+  background: var(--surface-0);
+}
+
+.spn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.spn-table th,
+.spn-table td {
+  border: 1px solid var(--border);
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.spn-table th {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.spn-table tbody tr {
+  cursor: pointer;
+}
+
+.spn-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+/* Fixed-width columns for the min/max/delta parameter tables (Pier
+   Families, Girder Library) - table-layout:auto let each shape/card's
+   own table pick its own column widths from its own content (label
+   text length, "Not configured yet" vs a long value list), so the
+   Min/Max/Delta edit boxes landed at different X positions from card
+   to card ("kayıklık", reported 2026-09-11). A fixed colgroup keeps
+   Dimension/Min/Max/Delta the same width in every card; only the
+   trailing "Values" column absorbs the remaining space.
+
+   The table also gets a min-width and lives inside a horizontally
+   scrollable wrapper (.spn-param-table-wrap): on a narrower window the
+   Dimension/Min/Max/Delta columns' fixed widths could out-squeeze the
+   last "Values" column to almost nothing, wrapping short text like
+   "Not configured yet" into 2-3 cramped lines (reported 2026-09-11,
+   still visible on the Oval card). Scrolling the table instead of
+   crushing its last column keeps every column readable regardless of
+   how narrow the surrounding card gets. */
+.spn-param-table-wrap {
+  overflow-x: auto;
+}
+
+.spn-param-table {
+  table-layout: fixed;
+  min-width: 620px;
+}
+
+.spn-param-table col.spn-col-label {
+  width: 100px;
+}
+
+.spn-param-table col.spn-col-value {
+  width: 84px;
+}
+
+.spn-param-table col.spn-col-result {
+  width: auto;
+}
+
+.spn-param-table td.spn-col-result-cell {
+  white-space: nowrap;
+}
+
+/* No vertical grid lines (2026-09-13, engineer's own instruction:
+   "düşey çizgileri kaldır") - only horizontal row separators remain
+   (from the base .spn-table th/td border). A cell's own left/right
+   border used to visually clash with the edit box's own rounded border
+   sitting right against it, especially at narrow column widths (e.g.
+   the bf/tf rows in Girder Library) - dropping the vertical lines
+   removes that overlap instead of trying to align two separate borders
+   pixel-perfectly. */
+.spn-param-table th,
+.spn-param-table td {
+  border-left: none;
+  border-right: none;
+}
+
+.spn-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+}
+
+.spn-row-selected {
+  background: rgba(47, 123, 246, 0.12) !important;
+}

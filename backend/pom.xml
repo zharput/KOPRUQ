@@ -20,10 +20,15 @@
     as REST/JSON to the frontend.
   -->
   <modules>
+    <module>spatial-core</module>
+    <module>alignment</module>
+    <module>constraints</module>
+    <module>bridge-layout</module>
     <module>bridge-core</module>
     <module>rules-engine</module>
     <module>generative-engine</module>
     <module>analysis-api</module>
+    <module>analysis-engine</module>
     <module>midas-adapter</module>
     <module>api</module>
   </modules>

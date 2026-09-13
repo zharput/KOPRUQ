@@ -1779,6 +1779,167 @@ and feature changes.
   console errors throughout. `npm run build`/`lint`/`test` clean, 16/16
   tests, no new warnings.
 
+## Root `README.md` added, `frontend/README.md` rewritten (`frontend/`, 2026-09-13, same day)
+
+A new root-level `README.md` (project overview, doc index, repository
+layout, `start-dev.bat`/manual quick start, build status summary).
+`frontend/README.md` was still the unedited Vite template text (never
+mentioned SPANOVA) - rewritten with the real feature-sliced
+architecture, the actual `npm` commands, notable dependencies (React
+Router/TanStack Query/RHF+Zod/`xlsx` from the official SheetJS CDN/
+Radix Tabs/the still-unused TanStack Table+Recharts+Radix Dialog), and
+what the Vitest suite actually covers. Doc-only change - no build/test/
+lint re-run needed beyond confirming the repo still built clean from
+the prior round.
+
+## Loads > Self Weight & Permanent real load-breakdown calculator + Superstructure Carriageway, cross-feature reactivity (`frontend/`, 2026-09-13, same day)
+
+The engineer's own numbered spec (2 reference images: the Loads tab
+row, and the Precast deck cross-section diagram) turned Loads'
+"Permanent" tab from an honest placeholder into a real permanent-load
+breakdown, and added a computed field to Superstructure Families'
+Precast cross section that feeds it - the first genuine cross-feature
+*reactive* data flow in the app (one feature's edit live-updates
+another feature's calculation, no page reload).
+
+- **Superstructure Families > Precast gets Carriageway**
+  (`features/superstructure-families/components/PrecastCrossSection.tsx`) -
+  a new computed, read-only field: horizontal distance at the base of
+  the sidewalk, `platformWidthM - leftWalkwayM - rightWalkwayM`
+  (`carriagewayWidthM`, `features/superstructure-families/model/types.ts`
+  - the engineer's own given definition, spec section 22). This is also
+  the first Superstructure Families value another feature needs live,
+  so `CrossSectionValues` moved out of `PrecastCrossSection`'s local
+  `useState` into `App.tsx` (`crossSectionValues`/`setCrossSectionValues`),
+  threaded through `router.tsx` to both the `superstructure-families`
+  and `loads` routes - the same "lift shared state" pattern already used
+  for `bridges`/`designCode`/`summary`/`layoutSeed`, applied for the
+  first time across a feature boundary rather than within one screen's
+  own sub-panels.
+- **Loads' "Permanent" tab renamed "Self Weight & Permanent"** and
+  rebuilt as a real calculator
+  (`features/loads/components/SelfWeightPermanent.tsx`), implementing
+  the engineer's 8 rows exactly as given (spec section 22 - no invented
+  formula):
+  - Concrete Self Weight = 25 kN/m&sup3; - flat, passive, no edit box (the
+    engineer's own explicit instruction).
+  - Asphalt = thickness (edit) x Carriageway (passive, cross-fed live
+    from Superstructure) x unit weight (edit) kN/m.
+  - Kaldirim (Sidewalk) = thickness (edit) x (Left walkway + Right
+    walkway) (passive, cross-fed live from Superstructure, displayed as
+    e.g. "1.00 + 1.50") x unit weight (edit) kN/m.
+  - Precast facia, Guardrail, Pedestrian railing, Protective fence,
+    Sound panel - each exactly the engineer's given formula
+    (`count x width x thickness x unit weight` or `count x unit load`),
+    every term a live edit box (no exception was given for these rows,
+    so - consistent with Asphalt's own explicit "all 3 values in edit
+    boxes" instruction - every term stays editable except the three
+    the engineer named passive).
+  - TOTAL = sum of the 7 kN/m line-load rows (Concrete Self Weight is a
+    kN/m&sup3; material property, not a line load, so it's excluded from
+    the sum - the engineer's own "45.67 kN/m"-style example only sums
+    line loads).
+  - New `.spn-formula-row`/`.spn-formula-input`/`.spn-formula-total`
+    etc. CSS (`app/styles/App.css`) - a label + "x"-joined term boxes +
+    "= result" row, reusing the existing `.spn-input`/`.spn-input-number`
+    control styling rather than inventing a new input look.
+- **Verified live in the browser** (fresh tab, dev server cold-start
+  avoided per established practice): with the default Superstructure
+  values (platform 13.8 m, walkways 1.00/1.50 m -> Carriageway 11.30 m),
+  every row's live-computed result matched a hand check (Asphalt 27.12,
+  Kaldirim 15.63, facia 2.80, guardrail 4.00, pedestrian railing 3.00,
+  fence 2.00, sound panel 1.00, TOTAL 55.55 kN/m). Then, via real in-app
+  `<Link>` navigation (not the Browser tool's hard `navigate()`, which
+  would reset in-memory state and produce a false negative): changed
+  Left walkway 1.00 -> 2.00 m in Superstructure Families, confirmed
+  Carriageway updated to 10.30 m there, then navigated to Loads and
+  confirmed Asphalt (24.72), Kaldirim (21.88, width now "2.00 + 1.50"),
+  and TOTAL (59.39 kN/m) all updated with no reload - the cross-feature
+  reactivity the engineer asked for. No console errors. `npm run
+  build`/`lint`/`test` clean, 16/16 tests, no new warnings.
+
+## Loads/Superstructure follow-up: dynamic girder diagram, Carriageway label, dark-green walkways, 2-decimal formatting (`frontend/`, 2026-09-13, same day)
+
+The engineer sent 4 more reference images (the Self Weight & Permanent
+table and the Precast field grid, each with red/blue circles marking
+which fields are exceptions; two versions of a redrawn target deck
+cross section) with 7 numbered follow-ups to the round above.
+
+- **Diagram is dynamic again** - reverses this same day's earlier
+  "keep the diagram static" decision. `PrecastCrossSection.tsx`'s
+  `DeckCrossSectionDiagram` now derives girder count/positions,
+  walkway widths, and the Carriageway/Overhang dimension lines from
+  `values` on every render, using the *same* overhang formula already
+  shown numerically below the diagram (girder `i` centered at
+  `overhangM + spaceOfGirderM x (i + 0.5)` from the left edge - derived
+  from, not separate from, the existing formula) - so the drawing and
+  the numbers can never disagree, including the "NOT OK" case (girders
+  drawn past the deck edge when overhang goes negative, an honest
+  visual warning rather than a hidden one). Girder render scale shrinks
+  adaptively with spacing to reduce overlap at high girder counts,
+  floored/capped so it never vanishes or exceeds the original look.
+- **New "Carriageway: X m" dimension line** in the middle of the
+  diagram (between the walkway row and the deck), and two new
+  "Overhang: X m" dimension lines below the girders (one each side,
+  from the deck edge to the outermost girder center) - both the
+  engineer's own requested additions, both reusing the existing `HDim`
+  helper, no new diagram primitive needed.
+- **Walkway zones are dark green and resize live** (`#1f6f40` fill,
+  literal hex - "koyu yeşil" is a specific color choice, not a
+  theme-driven one) - width is now `leftWalkwayM`/`rightWalkwayM`
+  scaled to the diagram's pixels-per-meter, so a wider walkway visibly
+  extends inward and a narrower one shrinks, instead of the previous
+  fixed 150px.
+- **New shared `shared/ui/DecimalInput.tsx`** - a text input that shows
+  2 decimals (`value.toFixed(2)`) while unfocused and the user's raw
+  typed text while focused (so "0.1" doesn't snap to "0.10" mid-
+  keystroke and block further typing), reformatting on blur. Used for
+  every editable decimal field in both `PrecastCrossSection.tsx`
+  (Platform width/Left walkway/Right walkway/Space of girder) and
+  `SelfWeightPermanent.tsx` (every editable term except the integer
+  "count" fields). `Number of girders` and the 5 count fields
+  (facia/guardrail/pedestrian-railing/protective-fence/sound-panel)
+  stay plain `<input type="number">`, unformatted - the engineer's own
+  circled exception ("kırmızı işaretli sayılar dışındakilerin hepsi 2
+  desimalli olsun").
+- **New `.spn-input-passive` CSS class** (`app/styles/App.css`) -
+  grayed-out background/text/cursor for every computed, read-only
+  field (Concrete Self Weight, Asphalt's and Kaldırım's width terms in
+  `SelfWeightPermanent.tsx`; Carriageway and Overhang in
+  `PrecastCrossSection.tsx`) so a passive field visually reads as "not
+  enterable" instead of looking identical to a live edit box - the
+  engineer's own circled distinction ("mavi işaretli sayıların edit
+  box'ını gri görünümlü yap").
+- **Verified live** (fresh tab): Superstructure's diagram confirmed
+  redrawing correctly at girder count 5 -> 8 (including the NOT OK
+  negative-overhang case, girders visibly spilling past the deck) and
+  Left walkway 1.00 -> 3.00 m (green zone widened inward, Carriageway
+  label updated 11.30 -> 9.30 m live in the diagram itself, not just
+  the field grid); typing "3.00" into a `DecimalInput` worked
+  character-by-character with no mid-keystroke reformatting fighting
+  the input. Loads' Self Weight & Permanent then correctly showed the
+  same 3.00+1.50 walkway
+  sum (gray Kaldırım width term) and 9.30 m gray Asphalt width term,
+  both results recomputed. No console errors. `npm run build`/`lint`/
+  `test` clean, 16/16 tests, no new warnings.
+
+### Update, same day: Space of girder moved to the bottom row, between the 2nd and 3rd girder
+
+A follow-up reference image showed "Space of girder" at the bottom of
+the diagram, alongside the two Overhang labels. First pass added it
+there as a *second* label (kept the original one above the girders
+too, spanning the first two girder centers) - the engineer then
+clarified: remove the top one, keep only the bottom one, and anchor it
+between the 2nd and 3rd girder specifically (not the 1st/2nd). Final:
+one `HDim` at `overhangDimY` (same row as the two Overhang labels)
+spanning `girderCentersPx[1]` to `girderCentersPx[2]` - reuses the
+existing live `spaceOfGirderM` value and the same `HDim` helper, no
+new state or formula; only rendered when there are at least 3 girders
+(guards the array access). Verified live: reads "Overhang: 1.90 m ...
+Space of girder: 2.00 m ... Overhang: 1.90 m" along the bottom row,
+centered between girders 2 and 3, with no duplicate label above the
+girders anymore. `npm run build`/`lint`/`test` clean, 16/16 tests.
+
 ## Open questions carried into P07+
 
 - Whether `midas-adapter` ends up embedded in the `api` process or

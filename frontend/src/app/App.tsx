@@ -8,6 +8,7 @@ import AppRoutes from './router'
 import { INITIAL_BRIDGES, type BridgeRow } from '../features/project'
 import type { GenerationSummary } from '../features/bridge-alternatives'
 import type { LayoutSeed } from '../features/layout-generator'
+import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../features/superstructure-families'
 
 /**
  * P10 shell (spec section 20), navigation matching the engineer's full
@@ -33,6 +34,7 @@ function App() {
   const [layoutSeed, setLayoutSeed] = useState<LayoutSeed | null>(null)
   const [bridges, setBridges] = useState<BridgeRow[]>(INITIAL_BRIDGES)
   const [designCode, setDesignCode] = useState('Eurocode')
+  const [crossSectionValues, setCrossSectionValues] = useState<CrossSectionValues>(INITIAL_CROSS_SECTION_VALUES)
 
   return (
     <AppProviders>
@@ -51,6 +53,8 @@ function App() {
                 setBridges={setBridges}
                 designCode={designCode}
                 setDesignCode={setDesignCode}
+                crossSectionValues={crossSectionValues}
+                setCrossSectionValues={setCrossSectionValues}
               />
             </main>
           </div>

@@ -521,6 +521,19 @@
   margin: 0;
 }
 
+/* Passive/computed read-only fields (2026-09-13, engineer's own
+   instruction - "mavi işaretli sayıların edit box'ını gri görünümlü
+   yap, orada bir değer girilemiyeceğini anlasın kullanıcı"): visibly
+   grayed out so it reads as "computed, not enterable" at a glance,
+   distinct from the live edit boxes around it. Used for Loads' Self
+   Weight & Permanent passive terms and Superstructure's computed
+   Carriageway/Overhang fields. */
+.spn-input-passive {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 .spn-button-primary {
   padding: 9px 20px;
   border-radius: 8px;
@@ -686,6 +699,82 @@
 .spn-error {
   color: #f87171;
   font-size: 13px;
+}
+
+/* Loads > Self Weight & Permanent formula rows (SelfWeightPermanent.tsx,
+   2026-09-13) - a label, a row of "x"-separated terms (each an edit box
+   or a passive/computed readOnly box), then "= result". */
+.spn-formula-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.spn-formula-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-1);
+  font-size: 13px;
+}
+
+.spn-formula-label {
+  min-width: 150px;
+  color: var(--text-secondary);
+}
+
+.spn-formula-eq {
+  color: var(--text-muted);
+}
+
+.spn-formula-term {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spn-formula-op {
+  color: var(--text-muted);
+}
+
+.spn-formula-input {
+  width: 76px;
+  min-width: 0;
+  margin-top: 0;
+  text-align: center;
+}
+
+.spn-formula-unit {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.spn-formula-result {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.spn-formula-total {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.spn-formula-total .spn-formula-label {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.spn-formula-total .spn-formula-result {
+  font-size: 15px;
+  color: var(--accent);
 }
 
 .spn-hint {

@@ -11,7 +11,7 @@ import { SiteLayoutPanel, type LayoutSeed } from '../features/layout-generator'
 import { FastSolverPanel } from '../features/spanova-fast-solver'
 import { LoadsPanel } from '../features/loads'
 import { MaterialsPanel } from '../features/materials'
-import { SuperstructureFamiliesPanel } from '../features/superstructure-families'
+import { SuperstructureFamiliesPanel, type CrossSectionValues } from '../features/superstructure-families'
 import { PierFamiliesPanel } from '../features/pier-families'
 import { GirderLibraryPanel } from '../features/girder-library'
 import { GenerateWorkflow, type GenerationSummary } from '../features/bridge-alternatives'
@@ -43,6 +43,8 @@ export default function AppRoutes(props: {
   setBridges: Dispatch<SetStateAction<BridgeRow[]>>
   designCode: string
   setDesignCode: Dispatch<SetStateAction<string>>
+  crossSectionValues: CrossSectionValues
+  setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>
 }) {
   return (
     <Routes>
@@ -62,6 +64,8 @@ function SectionRoute({
   setBridges,
   designCode,
   setDesignCode,
+  crossSectionValues,
+  setCrossSectionValues,
 }: {
   summary: GenerationSummary | null
   onGenerated: (summary: GenerationSummary) => void
@@ -71,6 +75,8 @@ function SectionRoute({
   setBridges: Dispatch<SetStateAction<BridgeRow[]>>
   designCode: string
   setDesignCode: Dispatch<SetStateAction<string>>
+  crossSectionValues: CrossSectionValues
+  setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>
 }) {
   const { section } = useParams<{ section: string }>()
   const navigate = useNavigate()
@@ -93,10 +99,12 @@ function SectionRoute({
     )
   }
   if (active === 'spanova-fast-solver') return <FastSolverPanel />
-  if (active === 'loads') return <LoadsPanel />
+  if (active === 'loads') return <LoadsPanel crossSectionValues={crossSectionValues} />
   if (active === 'materials') return <MaterialsPanel />
   if (active === 'cost-database') return <CostDatabasePanel />
-  if (active === 'superstructure-families') return <SuperstructureFamiliesPanel />
+  if (active === 'superstructure-families') {
+    return <SuperstructureFamiliesPanel crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues} />
+  }
   if (active === 'girder-library') return <GirderLibraryPanel />
   if (active === 'pier-families') return <PierFamiliesPanel />
   if (active === 'alignment') {

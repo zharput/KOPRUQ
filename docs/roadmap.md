@@ -621,6 +621,57 @@ breakdown).
       confirmed interactive, sidebar/top bar both correctly show the
       trimmed PROJECT group. No console errors.
 
+## Loads/Superstructure follow-up: dynamic girder diagram, Carriageway diagram label, dark-green walkways, 2-decimal formatting (2026-09-13, same day)
+
+Follow-up round right after the one below, from 4 more marked-up
+reference images - see `docs/architecture.md`'s matching section for
+the full breakdown.
+
+- [x] Precast's deck diagram is dynamic again (reverses this same
+      day's earlier "keep it static" instruction) - girder count/
+      positions and the Carriageway/Overhang dimension lines all
+      redraw live, derived from the same overhang formula already
+      shown numerically (not a second invented layout rule).
+      Walkway zones are dark green and resize live with Left/Right
+      walkway.
+- [x] New shared `DecimalInput` (`shared/ui/`) - editable numeric
+      fields show 2 decimals without fighting the user mid-keystroke;
+      used everywhere except the engineer's own excluded integer
+      "count" fields (Number of girders, and the 5 count fields in
+      Self Weight & Permanent). New `.spn-input-passive` CSS grays out
+      every computed/read-only field so it reads as non-enterable.
+- [x] **Verified live**: girder count 5 -> 8 (including the NOT OK
+      negative-overhang case) and Left walkway 1.00 -> 3.00 m both
+      redrew the diagram correctly, live-updated the Carriageway label
+      in the diagram itself, and correctly propagated to Loads' Self
+      Weight & Permanent (Kaldırım/Asphalt width terms). `npm run
+      build`/`lint`/`test` clean, 16/16 tests.
+
+## Loads > Self Weight & Permanent real calculator + Superstructure Carriageway, cross-feature reactivity (2026-09-13, same day)
+
+The engineer's own numbered spec (2 reference images) - see
+`docs/architecture.md`'s matching section for the full breakdown.
+
+- [x] `PrecastCrossSection.tsx` gets a computed, read-only Carriageway
+      field (platform width minus both walkways); its `CrossSectionValues`
+      state was lifted from local `useState` to `App.tsx` - the first
+      cross-*feature* (not just cross-screen) use of this session's
+      "lift shared state" pattern.
+- [x] Loads' "Permanent" tab renamed "Self Weight & Permanent", rebuilt
+      as a real breakdown calculator (`SelfWeightPermanent.tsx`):
+      Concrete Self Weight (flat, passive), Asphalt/Kaldirim (Sidewalk)/
+      Precast facia/Guardrail/Pedestrian railing/Protective fence/Sound
+      panel, each the engineer's own exact formula, plus a TOTAL row.
+      Only the 3 values the engineer explicitly named passive (Concrete
+      Self Weight, Asphalt's and Kaldirim's width terms) are read-only;
+      every other term is a live edit box.
+- [x] **Verified live**: default values hand-checked against every row's
+      live result (TOTAL 55.55 kN/m); changing Left walkway in
+      Superstructure Families via real in-app navigation correctly
+      updated Carriageway there, then Asphalt/Kaldirim/TOTAL in Loads
+      with no reload. No console errors. `npm run build`/`lint`/`test`
+      clean, 16/16 tests.
+
 ## Menu reorg, sidebar theme reversal, real map, Bridge Information CRUD (2026-09-13, same day)
 
 Another same-day round from 3 marked-up screenshots (see

@@ -1940,6 +1940,432 @@ Space of girder: 2.00 m ... Overhang: 1.90 m" along the bottom row,
 centered between girders 2 and 3, with no duplicate label above the
 girders anymore. `npm run build`/`lint`/`test` clean, 16/16 tests.
 
+## Design System reorder, Load Combination rename, real Terrain/DTM import (`frontend/`, 2026-09-14)
+
+Three small, independent asks from the engineer's own screenshots.
+
+- **Design System's Materials/Loads moved to the end** of the group
+  (`app/navigation/sections.ts`'s `SIDEBAR_GROUPS`) - previously first,
+  now after Standardization Rules. `TopBar.tsx` reads the same array
+  (no separate ordering to maintain), so both the sidebar and the top
+  tab row updated together.
+- **"Load Cases & Combinations" -> "Load Combination"**
+  (`features/loads/components/LoadsPanel.tsx`) - label only, the
+  category's placeholder content is unchanged.
+- **3D Terrain / DTM's Import Terrain button is real now**
+  (`features/terrain-dtm/components/TerrainDtmPanel.tsx`, new feature,
+  replaces the disabled `shared/ui/ImportActionScreen` placeholder on
+  this route only - Alignment keeps its own disabled placeholder,
+  untouched). Terrain itself is still explicitly deactivated
+  (`docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` addendum Q - no
+  `TerrainModel`, pier/abutment heights stay external), so this screen
+  only *ingests and summarizes* whatever DTM/point file is uploaded -
+  it does not generate a surface, TIN, or contours, which would be real
+  unbuilt engineering functionality, not a side effect of "activating
+  the button." A text point file (`.xyz`/`.csv`/`.txt`, X/Y/Z per line,
+  comma- or whitespace-separated) is parsed client-side: point count,
+  X/Y/Z bounding box, and a row preview (first 10) - same "generic
+  import, no invented schema" discipline as Cost Database's/Bridge
+  Information's Excel imports, and a non-numeric header row is silently
+  skipped rather than aborting the import. A file that doesn't parse as
+  a plain point list (e.g. a binary GeoTIFF) is still accepted and
+  recorded (filename/size) but honestly labeled as not previewable yet,
+  not faked or silently dropped.
+- Verified live (fresh tab): sidebar and TopBar both show Materials/
+  Loads last; Loads' tab row reads "Load Combination"; Alignment
+  confirmed still disabled/untouched; a real 5-point `.xyz` test file
+  (header row + 5 data rows), injected via the browser's File/
+  DataTransfer APIs (no native file-picker automation in this harness),
+  correctly parsed to "5 point(s). Bounds: X [100.00, 106.00], Y
+  [200.00, 201.50], Z [15.50, 16.90]" with all 5 rows in the preview
+  table; Clear correctly reset the screen to empty. No console errors.
+  `npm run build`/`lint`/`test` clean, 16/16 tests, no new warnings.
+
+## TERRAIN-P01: real 3D terrain from DTM import (`backend/`, `frontend/`, 2026-09-14)
+
+The engineer asked for a full research-then-plan pass before any code (a
+large architecture prompt covering DTM import through corridor-scale
+tiling/LOD) and, in the plan-approval step, scoped the *first*
+milestone tightly: **DTM -> Java `TerrainModel` -> elevation query ->
+React Three Fiber mesh -> alignment overlay** - no satellite imagery,
+no 50-bridge corridor, no LOD, no automatic bridge-layout placement.
+Research (3 parallel Explore agents over backend/frontend/docs) found
+that `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` sections C-F/L had already
+designed almost exactly this `TerrainModel`/coordinate/GIS architecture
+once, then deliberately deactivated it in "addendum Q" purely because
+no real DTM data existed yet - so this round **reactivates and extends
+that already-agreed design**, it is not a redesign. One deliberate
+deviation from that older doc: its roadmap sequenced a 2D map
+(MapLibre) before 3D (Three.js); the engineer's own instruction this
+round skips straight to Three.js/React Three Fiber, so no MapLibre was
+added - flagged explicitly, not silently contradicted.
+
+- **New backend module `backend/terrain`** (Spring-free, depends only
+  on `spatial-core` + JTS Topology Suite `jts-core:1.20.0` - JTS's
+  license was already checked and confirmed clear in the docs; not
+  exposed anywhere in this module's own public API):
+  - `TerrainModel` (record: id/projectId/`CoordinateSystem` label/
+    bounds/min-max elevation/`vertices`/`triangles`/`localOrigin`/
+    version/status) - solver- and rendering-independent, same
+    discipline as `bridge-core`.
+  - `XyzTerrainParser` - tolerant whitespace/comma X/Y/Z parsing,
+    silently skips a non-numeric header row, mirroring the client-side
+    prototype from the 2026-09-14 "Import Terrain" round exactly.
+  - `TerrainImportService` - dedupes points sharing an (x,y) (a TIN is
+    single-valued), triangulates via JTS's `DelaunayTriangulationBuilder`
+    (2D Delaunay over x,y; z reattached per site afterwards - the
+    standard "2.5D" TIN approach), computes bounds/`localOrigin`
+    (= bounds min).
+  - `TerrainQueryService.getElevation(terrain, x, y)` - barycentric
+    interpolation over whichever triangle contains (x,y), a plain
+    linear scan (fast enough at single-bridge-site scale; a spatial
+    index is deferred to the corridor-scale/tiling milestone where it
+    would actually matter).
+  - `InMemoryTerrainRepository` - no persistence layer exists anywhere
+    else in this app yet either (`BridgeLayoutEngine`/`GenerateWorkflow`
+    results aren't persisted server-side today), so this matches the
+    rest of the codebase rather than introducing a database decision
+    nobody asked for.
+- **New `backend/api` endpoints**: `com.spanova.api.terrain.TerrainController`
+  (`POST /api/terrain/import`, `GET /api/terrain/{id}/mesh` - a flat,
+  indexed-buffer-friendly payload, "do not send one object per
+  triangle", vertices already translated by `localOrigin` so real-world
+  coordinates never reach the frontend; `GET /api/terrain/{id}/elevation`)
+  and `com.spanova.api.alignment.AlignmentController`
+  (`POST /api/alignment/sample`) - a thin wrapper reusing the existing,
+  already-tested `Alignment.toXYZ` to sample a straight alignment's
+  (x,y) at a chainage step; **deliberately returns no z** (no vertical
+  alignment model exists - see `Alignment`'s own javadoc) so the
+  frontend drapes the overlay onto the terrain via a real elevation
+  query instead of a fabricated value.
+- **New backend tests** (`backend/terrain`, 6 tests): a hand-built
+  planar surface (z = 2 + 0.5x + 0.3y over a 2-triangle quad) where
+  barycentric interpolation of a planar function is exact everywhere,
+  regardless of which triangle a query point falls in - a solid,
+  engineer-independent correctness check ("compare selected terrain
+  elevations against source DTM values"); plus a real parse-triangulate-
+  query round trip confirming a header row is skipped and a known
+  vertex's elevation comes back exactly.
+- **New frontend feature `features/terrain-viewer/`** (wires into the
+  sidebar's already-existing, previously-empty "3D & Visualization"
+  leaf, whose own placeholder text already named Three.js/react-three-
+  fiber as the intended stack): `TerrainViewerPanel.tsx` (Canvas +
+  `@react-three/drei`'s `OrbitControls`/`Bounds`/`Html`), `TerrainMesh.tsx`
+  (builds a `THREE.BufferGeometry` from the flat mesh payload, normals
+  computed client-side via Three's own `computeVertexNormals()` rather
+  than sent by the backend, click-to-inspect elevation via the real
+  query endpoint), `AlignmentOverlay.tsx` (drapes a sampled alignment
+  polyline onto live-queried terrain elevation, drei's `Line`),
+  `lib/coordinateTransform.ts` (the **single** engineering-Z-up ->
+  Three.js-Y-up axis swap point, used nowhere else). The alignment's
+  start/end default to the terrain's own bounding-box diagonal (an
+  honest "corner to corner across the imported data" default, editable)
+  since there is still no dedicated alignment-definition screen.
+- **`features/terrain-dtm/components/TerrainDtmPanel.tsx` now round-
+  trips through the real backend** instead of only parsing client-side:
+  a new "Coordinate system" text field (honest label, spec section 22 -
+  "if coordinate system cannot be reliably determined, ASK THE USER",
+  no silent EPSG guess, no reprojection math anywhere in this
+  milestone), and a "View in 3D" link once import succeeds. The preview
+  table now sources from the backend's own deduplicated vertex list
+  (`TerrainImportResponse.previewPoints`), not a second client-side
+  parse.
+- **New dependencies**: `three`, `@react-three/fiber`, `@react-three/drei`,
+  `@types/three` - installed with `--legacy-peer-deps` because
+  `@react-three/fiber@9.7.0`'s published peer range (`react >=19 <19.3`)
+  is stale against this project's React 19.3.0 (confirmed via `npm
+  view`); no other peer conflicts. That flag also revealed
+  `@testing-library/dom` had been an implicit, undeclared peer of
+  `@testing-library/react` - added explicitly as a devDependency so the
+  test suite doesn't depend on npm's legacy auto-peer-install behavior.
+- **Verified live** (fresh tab): a real 49-point synthetic `.xyz` grid
+  (7x7, sinusoidal elevation variation, injected via the browser's
+  File/DataTransfer APIs) imported to "49 point(s), 72 triangle(s)";
+  curl-verified every new endpoint directly first (import/mesh/
+  elevation-inside/elevation-outside/alignment-sample) before the
+  browser pass. In the viewer: the terrain rendered as a real undulating
+  3D surface; orbit-drag rotated the camera correctly; clicking the
+  terrain returned "X 55.88 m, Y 19.81 m - elevation 115.06 m" (matches
+  the backend's own query, not a separate client computation); "Fit to
+  Terrain" re-framed the camera with no error; the alignment overlay
+  (orange line, corner-to-corner default) was visible draped across the
+  terrain surface after rotating for a clear view. No console errors
+  throughout. `mvn -B package` clean (6/6 new backend tests, whole
+  reactor green); `npm run build`/`lint`/`test` clean, 16/16 tests, no
+  new warnings.
+- **Explicitly deferred** (not silently dropped - see docs/roadmap.md's
+  TERRAIN-P02-P04 entries): satellite/orthophoto draping, bridge/pier/
+  abutment 3D geometry, terrain longitudinal profile chart, a layer on/
+  off manager, terrain tiling/LOD/corridor-scale streaming, terrain
+  versioning/dependency invalidation, and - separately, the actual
+  addendum-Q reactivation - `AbutmentPlacementEngine`/
+  `PierPlacementEngine` consuming `TerrainQueryService` to *compute*
+  heights instead of reading external input; `BridgeLayoutEngine` is
+  completely untouched by this round.
+
+## LANDXML-P01: LandXML import - terrain TIN + alignment + vertical profile (`backend/`, `frontend/`, 2026-09-14)
+
+While testing TERRAIN-P01 with the engineer's own real DTM file,
+importing it produced a degenerate result (X bounds collapsed to
+0.00/0.00) - the raw XYZ export wasn't a clean 2D terrain point cloud.
+The engineer's own conclusion: import the real source format instead -
+a LandXML file from Civil 3D, carrying a proper pre-triangulated TIN, a
+horizontal alignment, and a vertical profile together as one coherent,
+traceable dataset. Another research-then-plan-then-approve round (this
+time a single, lighter Explore pass, since most of the relevant code
+had just been built this same session): the research confirmed
+`docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` had already anticipated exactly
+this ("LandXML/DEM/TIN import each produce this [TerrainModel]") as a
+later, separate effort from the synthetic-TIN first milestone - so this
+round **extends** TERRAIN-P01's domain objects and the entire
+`features/terrain-viewer` 3D stack rather than rebuilding them.
+
+- **New backend module `backend/landxml-import`** (Spring-free, flat
+  `com.spanova.landxml` package - matches this project's actual module
+  convention, not the deeply-layered domain/application/infrastructure
+  structure the engineer's own reference prompt suggested, which
+  doesn't match how `terrain`/`alignment`/`constraints` are actually
+  built here): `LandXmlParser` (JDK-built-in StAX, `javax.xml.stream` -
+  no new dependency; streams forward-only so a Civil 3D surface export
+  with hundreds of thousands of `<P>`/`<F>` elements doesn't need to be
+  held as an in-memory DOM tree), the `LandXml*` DTOs (never leak past
+  the mappers - anti-corruption layer), `LandXmlTerrainMapper`
+  (preserves the source TIN's own `<F>` faces 1:1 as `TerrainTriangle`s
+  - no JTS re-triangulation, unlike the XYZ import path),
+  `LandXmlAlignmentMapper`/`LandXmlProfileMapper`, and
+  `LandXmlImportService` (the two-step `inspect`/`commit` flow below).
+- **Point ordering caveat, documented prominently in `LandXmlParser`'s
+  own javadoc**: a LandXML `<P>` element's text is "Northing Easting
+  Elevation" per the schema's own documented default - **not** "X Y
+  Z" - a real, known source of import bugs if a given file uses a
+  different convention. No real Civil 3D sample file exists in this
+  repo yet to verify against (confirmed by research); the import
+  preview is expected to be visually sanity-checked against known
+  survey coordinates on a real file before trusting it in production.
+- **`backend/alignment` gains real geometry it never had**:
+  `CurveElement` (circular arcs - standard closed-form geometry, safe
+  without engineer sign-off per spec section 22, unlike spirals/
+  clothoids which stay deferred exactly as `HorizontalElement`'s own
+  javadoc already said) and `VerticalProfile`/`Pvi` (PVI-based,
+  mirroring LandXML's own `<ProfAlign><PVI>` shape directly - linear
+  grade interpolation plus the standard symmetric parabolic vertical-
+  curve equation at any PVI declaring a curve length). `Alignment`
+  itself was refactored from straight-only inline math to a sealed-
+  switch dispatch over `HorizontalElement` (`elementLengthM`/`pointAt`/
+  `rightUnitVectorAt`/`projectOntoElement`, exhaustive and compiler-
+  enforced) - **behavior-preserving**: all 12 pre-existing straight-
+  element tests still pass unchanged. A new additive overload,
+  `Alignment.toXYZ(chainageM, offsetM, VerticalProfile)`, derives
+  elevation from a real profile; the original `toXYZ(ChainagePosition)`
+  (caller-supplied elevation) and every existing caller are untouched.
+- **Two-step import flow** (`docs/roadmap.md` sections 24-26 - never
+  auto-import when a file has multiple surfaces/alignments):
+  `POST /api/landxml/inspect` (multipart, parses only, returns
+  surface/alignment/profile names + units + CRS status/label +
+  warnings - no persistence) and `POST /api/landxml/import` (multipart
+  + the engineer's selection, commits into real `TerrainModel`/
+  `Alignment`/`VerticalProfile`). Multipart from the start, not JSON
+  with the file embedded in a string field - the exact ~20MB-file
+  mistake from TERRAIN-P01, already fixed once, not repeated here.
+- **A real cross-controller bug fixed as part of this wiring**:
+  `TerrainController` previously did `new InMemoryTerrainRepository()`
+  inline - fine when it was the only writer, but `LandXmlController`
+  needed to write into the *same* repository so the existing
+  `/api/terrain/{id}/mesh`/`elevation` endpoints could find a LandXML-
+  imported terrain too. New `com.spanova.api.config.SharedRepositoriesConfig`
+  (`@Configuration`, two `@Bean`s: `TerrainRepository`,
+  `LandXmlImportRepository`) - the only two components in this app that
+  needed Spring-managed singleton sharing; every other service stays a
+  plain per-controller field, unchanged convention.
+- **New `GET /api/alignment/{id}/sample`** (alongside the existing raw-
+  coordinates `POST /api/alignment/sample`) samples a *real*, committed
+  LandXML alignment (arcs included) instead of a manually-typed
+  straight line. **New `GET /api/landxml/{id}/profile`** - ground
+  (terrain-queried) vs. design (`VerticalProfile.elevationAt`)
+  elevation along the alignment, the data behind the new frontend
+  longitudinal profile chart.
+- **New backend tests** (`backend/alignment` +18: `CurveElementTest`
+  hand-verifies a quarter-circle's geometry including offset direction
+  on both cw/ccw curves and `toChainage` round-tripping;
+  `VerticalProfileTest` hand-verifies linear-grade and parabolic-
+  vertical-curve elevations against the standard formula;
+  `backend/landxml-import` +10: a hand-written, schema-compliant
+  `sample.landxml` test fixture, since no real Civil 3D file exists in
+  the repo - parser-level assertions on point/face/line/curve/PVI
+  values, an end-to-end `LandXmlImportServiceTest` confirming the
+  committed `TerrainModel` queries correctly, the committed
+  `Alignment`'s curve geometry matches, and `VerticalProfile` elevations
+  match hand-calculated values).
+- **New frontend feature `features/landxml-import/`**
+  (`LandXmlImportPanel.tsx` - upload, inspect-preview with surface/
+  alignment dropdowns and CRS/units/warnings display, commit) wired
+  into Site & Corridor's **"Alignment" leaf**, whose own disabled
+  placeholder button already said "Import Alignment" - the obvious,
+  already-declared home for this, not a new sidebar leaf. Reuses
+  `features/terrain-viewer`'s `TerrainPreview` directly for the
+  embedded 3D view (zero duplication - both this and
+  `features/terrain-dtm` produce the same `TerrainModel` shape, just
+  from a different source format).
+- **`features/terrain-viewer` learns a second alignment source**:
+  `TerrainViewerPanel` now accepts `landXmlImportId` alongside
+  `terrainId` - when present, the real imported alignment (curves
+  included) is sampled via the new endpoint and the manual start/end
+  (x,y) input fields are hidden entirely; when absent (a plain XYZ-only
+  terrain), the existing manual-straight-line behavior is completely
+  unchanged. `App.tsx`/`router.tsx` lift `landXmlImportId` the same way
+  as `terrainId` - importing a plain XYZ DTM explicitly clears it back
+  to `null` (falls back to manual mode), matching whichever import path
+  the engineer actually used most recently.
+- **New `LongitudinalProfileChart.tsx`** (`recharts` `LineChart`,
+  ground vs. design) - the first real use of the `recharts` dependency,
+  installed since the architecture migration and flagged idle ever
+  since ("available for when one genuinely does [need chartable
+  data]") - this is that need.
+- **Verified live end-to-end** (fresh tab): curled every new endpoint
+  directly against the real test fixture first (inspect, import,
+  cross-controller shared-repo elevation query, imported-alignment
+  sample including the arc, longitudinal profile); then the identical
+  flow through the actual UI - uploaded the fixture via the browser's
+  File/DataTransfer APIs, confirmed the inspect preview listed "Existing
+  Ground"/"Main Alignment"/"Design Profile" with the Spiral-skipped
+  warning, committed the selection, confirmed "4 point(s), 2
+  triangle(s) - alignment length 178.54 m, with a vertical profile"
+  (matches hand-calculated `100 + 50*pi/2`), the embedded 3D preview and
+  the longitudinal profile chart (correct parabolic-curve shape,
+  correct chainage axis) both rendered, and the full "3D &
+  Visualization" viewer showed the real curved alignment overlay with
+  the manual-coordinate fields correctly hidden. No console errors
+  throughout. `mvn -B package` clean (whole reactor, all alignment/
+  landxml-import tests including the refactored `Alignment`'s original
+  12 straight-element tests); `npm run build`/`lint`/`test` clean,
+  16/16 frontend tests, no new warnings.
+- **Explicitly deferred**, matching the approved plan: spiral/clothoid
+  alignment elements (blocked on the engineer's own clothoid
+  convention), real spatial indexing at corridor scale, multiple-
+  alignment semantic classification, terrain/alignment versioning +
+  dependency invalidation, and - still - the actual addendum-Q
+  reactivation (`BridgeLayoutEngine` remains completely untouched).
+
+## TRAFFIC-P01: Traffic Loads module, EN 1991-2 road bridges (`backend/`, `frontend/`, 2026-09-14)
+
+The engineer sent a large architecture prompt for a "Traffic Loads"
+screen to replace the Loads > Traffic placeholder tab, with explicit,
+self-imposed scope limits stated up front: road bridges only
+(pedestrian bridges excluded), LM1 active, LM2 visible in the menu but
+non-functional, Load Groups its own section, and EN 1990 load
+combinations explicitly out of scope for this module - a separate,
+future Combination Engine that will merge traffic groups with permanent/
+temperature/wind loads later, chosen deliberately for a cleaner future
+MIDAS NX load export path. Researched (one Explore pass over
+`bridge-core`'s domain model, existing traffic/EN1991/National-Annex/
+load-combination code - none existed - `Alignment`'s curvature-query
+capability, and `MaterialsPanel`'s provenance-UI precedent - none
+existed either, so the CODE/NA/OVERRIDE badge UI here is new), planned,
+approved, then implemented.
+
+- **New backend module `backend/traffic-loads`** (Spring-free, flat
+  `com.spanova.trafficloads` package - same convention as `terrain`/
+  `landxml-import`): `ParameterProvenance` (`CODE_DEFAULT`/
+  `NATIONAL_ANNEX`/`PROJECT_OVERRIDE`) and `ParameterValue<T>` (a
+  generic record with a *nullable* `value` - represents "genuinely
+  unconfirmed EN value," never a fabricated placeholder number, and
+  Jackson correctly serializes/deserializes this generic shape nested
+  inside concretely-typed containing records, confirmed via curl).
+  `CarriagewayInput.carriagewayWidthM()` mirrors the frontend's own
+  formula exactly (deck width - left walkway - right walkway).
+  `NotionalLaneGenerator` implements only the single engineer-confirmed
+  EN 1991-2 Table 4.1 data point (3.00 m/lane, floor division) -
+  deliberately does **not** implement the narrow-carriageway special
+  cases (<5.4 m, 5.4-6 m two-lane split), since those exact thresholds
+  were never confirmed in this project's history; a runtime validation
+  warning flags a narrow carriageway instead of guessing. `LaneFactor`
+  (characteristic value x adjustment factor -> nullable effective value,
+  propagating `null` naturally rather than defaulting to 0).
+  `Lm1DefaultsFactory` seeds up to 3 lanes' worth of tandem/UDL rows,
+  each starting `CODE_DEFAULT`/unconfirmed (characteristic) and
+  `NATIONAL_ANNEX`/1.00 (adjustment factor - the P07-round-confirmed
+  alphaQi=alphaqi=1.0, base EN, no National Annex adjustment).
+- **`TrafficLoadGroupCatalog` - a deliberate self-correction while
+  writing it**: the first draft wrote EN 1991-2 Table 4.4a-style group
+  descriptions (gr1a/gr1b/gr2/etc.) from memory; caught before
+  finalizing that this directly violated the engineer's own explicit
+  instruction ("DO NOT invent group membership from memory" - spec
+  section 22's discipline). Rewritten to return only the six bare group
+  code identifiers (gr1a, gr1b, gr2, gr3, gr4, gr5 - the codes
+  themselves were explicitly named as acceptable to list) with a single
+  generic constant description ("Not yet defined - awaiting validated
+  EN 1991-2 group rules") applied uniformly, empty `components`, and
+  `status = "NOT_DEFINED"`.
+- **One consolidated `POST /api/traffic-loads/resolve` endpoint**
+  (plus `GET /lm1-defaults`, `GET /load-groups`), not one per sub-page -
+  the frontend holds raw editable parameter state locally (matching
+  `SelfWeightPermanent.tsx`'s established local-state pattern) and this
+  single call returns computed notional lanes, resolved LM1 effective
+  values, and validation - all "engineering computation" stays
+  server-side, never in a React component (the engineer's own repeated
+  instruction, principle #18 of the approved plan).
+- **16 new backend tests** (`NotionalLaneGeneratorTest`,
+  `LaneFactorTest`, `Lm1DefaultsFactoryTest`, `TrafficLoadsServiceTest`)
+  - all pass; `mvn -B package` clean across the whole reactor.
+- **New frontend `features/loads/components/traffic/`** - `TrafficLoadsPanel.tsx`
+  is the orchestrator: owns `lm1` edit state (seeded once from
+  `useLm1Defaults(3)` via an effect scoped to `[lm1Defaults]` only - the
+  same "seed once, don't fight later edits" pattern already used in
+  `TerrainViewerPanel.tsx`), computes `carriageway` from the
+  already-lifted `crossSectionValues` prop (no duplicate geometry
+  entry), and renders a *second-level* nested `TabDetailPanel` (Traffic
+  itself is a tab inside Loads' own tab row, and now contains 10 more
+  sub-tabs of its own) - `General`, `Carriageway & Notional Lanes`
+  (a live cross-section preview SVG using the `HDim` helper from
+  `PrecastCrossSection.tsx`'s own convention), `LM1`, `LM2` (a distinct,
+  visibly-disabled component, not a placeholder - it reads differently
+  from "not built yet," since it's deferred by design), `LM3/LM4/
+  Braking/Centrifugal` (a new small reusable `TrafficPlaceholder.tsx`,
+  the same honest-status convention as `app/components/PlaceholderPanel.tsx`
+  scoped to a single sub-tab), `Load Groups`, and `Preview & Validation`
+  (a read-only summary, deliberately with no "Generate ULS Combinations"
+  action - non-negotiable per the engineer's own plan).
+- **New reusable `shared/ui/ParameterProvenanceTable.tsx`** -
+  Parameter/Value/Unit/Source/Effective/Restore columns, CODE/NA/OVERRIDE
+  badges (new `.spn-badge-code`/`.spn-badge-na`/`.spn-badge-override`
+  CSS classes extending the pre-existing but previously-unused
+  `.spn-badge` base). A `null` characteristic value renders as a blank
+  input with a "not confirmed" placeholder via a new
+  `NullableDecimalCell` (deliberately not `DecimalInput`, which always
+  formats to a real number and would show a misleading "0.00").
+  Editing a value flips that row's provenance to `PROJECT_OVERRIDE`
+  client-side; "Restore" resets it back to the code default and its
+  original provenance. Generic enough to be reused by any future
+  code-value-with-provenance screen, not Traffic-specific.
+- **Verified live** (fresh tab, backend curl-verified first): all three
+  endpoints matched expected values exactly (13.8/1.0/1.5 m cross
+  section -> 3 lanes @ 3.00 m + 2.30 m remaining area). Through the UI:
+  all 10 Traffic sub-tabs render; Carriageway & Notional Lanes reflects
+  the live 11.30 m carriageway (13.80 - 1.00 - 1.50) and the same
+  3-lane breakdown with no duplicate geometry entry; editing LM1's Q1k
+  to 300 flipped its badge Code -> Override, the adjustment-factor row's
+  Effective column updated live to 300.00 (300 x 1.00, backend-computed,
+  confirmed via the real DOM `value`, since `get_page_text` doesn't
+  surface `<input>` values as text), and Restore reverted both the value
+  and the badge back to Code/unconfirmed; Load Groups listed all six
+  codes as `NOT_DEFINED` with no invented membership; Preview &
+  Validation showed the correct summary and the expected "LM1 not
+  resolved" warning, with no combination/export action present. No
+  console errors at any step. `npm run build`/`lint`/`test` clean, 16/16
+  frontend tests (two new oxlint warnings introduced during development
+  - a `set-state-in-effect` and a variable-reassignment-during-render
+  warning - were both fixed before finalizing, matching this project's
+  existing zero-new-warnings bar).
+- **Explicitly deferred**, matching the approved plan: EN 1990 load
+  combinations (separate future module, never touched here), real LM2/
+  LM3/LM4/Braking/Centrifugal calculations, Load Group membership
+  population, National Annex tables beyond the single "EN Base" option,
+  project-vs-bridge parameter inheritance (no multi-bridge backend model
+  exists yet - `Project` still owns exactly one `Bridge`), and
+  alignment-aware centrifugal radius (`Alignment` has `CurveElement.radiusM()`
+  but no public query method yet, and no Bridge-to-alignment-chainage
+  link exists either - both are additive, not built now).
+
 ## Open questions carried into P07+
 
 - Whether `midas-adapter` ends up embedded in the `api` process or

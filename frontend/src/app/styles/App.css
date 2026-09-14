@@ -892,6 +892,26 @@
   color: #34c759;
 }
 
+/* Parameter-provenance badges (TRAFFIC-P01, ParameterProvenanceTable.tsx)
+   - CODE/NA neutral (this value is exactly what the standard/National
+   Annex gives), OVERRIDE amber (deliberately draws the eye - this value
+   has been changed from the code/NA default and needs the "Restore"
+   action to be visible next to it). */
+.spn-badge-code {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+
+.spn-badge-na {
+  background: rgba(90, 150, 255, 0.15);
+  color: #6ca4ff;
+}
+
+.spn-badge-override {
+  background: rgba(255, 159, 10, 0.18);
+  color: #ff9f0a;
+}
+
 .spn-row-selected {
   background: rgba(47, 123, 246, 0.12) !important;
 }

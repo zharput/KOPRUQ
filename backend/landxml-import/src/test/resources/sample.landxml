@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  A minimal, hand-written LandXML test fixture (LANDXML-P01) - no real
+  Civil 3D sample exists in this repo yet, so this file is written
+  directly against the public LandXML schema's documented structure for
+  the sections this project supports. Point/Start/End/Center text is
+  "Northing Easting Elevation"/"Northing Easting" per LandXML's own
+  default convention - see LandXmlParser's javadoc.
+
+  Surface "Existing Ground": a planar quad z = 2 + 0.5x + 0.3y (same
+  hand-verifiable planar-interpolation test shape already used for
+  backend/terrain's TerrainQueryServiceTest).
+
+  Alignment "Main Alignment": a 100 m Line due east from (0,0), then a
+  50 m-radius counterclockwise quarter-circle Curve, plus a Spiral
+  (deliberately unsupported - tests the "skipped with a warning" path).
+
+  Profile "Design Profile": the same 3-PVI parabolic-vertical-curve
+  scenario already hand-verified in VerticalProfileTest (g1=+5%,
+  g2=-5%, 40 m curve centered on the PVI at chainage 100).
+-->
+<LandXML xmlns="http://www.landxml.org/schema/LandXML-1.2" version="1.2">
+  <Units>
+    <Metric areaUnit="squareMeter" linearUnit="meter" volumeUnit="cubicMeter" temperatureUnit="celsius" pressureUnit="milliBars"/>
+  </Units>
+  <CoordinateSystem name="Local/Unknown" epsgCode="32635"/>
+  <Surfaces>
+    <Surface name="Existing Ground">
+      <Definition surfType="TIN">
+        <Pnts>
+          <P id="1">0 0 2.0</P>
+          <P id="2">0 10 7.0</P>
+          <P id="3">10 10 10.0</P>
+          <P id="4">10 0 5.0</P>
+        </Pnts>
+        <Faces>
+          <F>1 2 3</F>
+          <F>1 3 4</F>
+        </Faces>
+      </Definition>
+    </Surface>
+  </Surfaces>
+  <Alignments>
+    <Alignment name="Main Alignment" length="178.5398" staStart="0">
+      <CoordGeom>
+        <Line>
+          <Start>0 0</Start>
+          <End>0 100</End>
+        </Line>
+        <Curve rot="ccw" length="78.5398" radius="50">
+          <Start>0 100</Start>
+          <Center>50 100</Center>
+          <End>50 150</End>
+        </Curve>
+        <Spiral length="30" radiusEnd="INF" radiusStart="50" rot="ccw">
+          <Start>50 150</Start>
+          <End>60 180</End>
+        </Spiral>
+      </CoordGeom>
+      <Profile>
+        <ProfAlign name="Design Profile">
+          <PVI>0 100</PVI>
+          <PVI>100 105</PVI>
+          <CircCurve length="40"/>
+          <PVI>200 100</PVI>
+        </ProfAlign>
+      </Profile>
+    </Alignment>
+  </Alignments>
+</LandXML>

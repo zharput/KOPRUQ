@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.spanova</groupId>
+    <artifactId>spanova-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>landxml-import</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- LandXML anti-corruption import layer - LANDXML-P01 (docs/roadmap.md):
+       parses a LandXML file (Civil 3D et al.) and maps it into SPANOVA's
+       own domain types (spatial-core/terrain/alignment) - LandXML DTOs
+       never leak past this module's mappers. Parsing uses the JDK's
+       built-in StAX (javax.xml.stream) - no new XML library dependency.
+       No dependency on Spring. -->
+
+  <dependencies>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>spatial-core</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>alignment</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>terrain</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</project>

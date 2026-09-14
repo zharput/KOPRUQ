@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.spanova</groupId>
+    <artifactId>spanova-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>traffic-loads</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Road-bridge traffic loads, EN 1991-2 - TRAFFIC-P01 (docs/roadmap.md):
+       notional lane generation, LM1 (active), LM2 (visible, deliberately
+       not implemented), Load Groups (architecture only, no membership
+       populated - spec section 22, never invented). EN 1990 load
+       combinations are explicitly a separate, future module - not
+       touched here. No dependency on Spring. -->
+</project>

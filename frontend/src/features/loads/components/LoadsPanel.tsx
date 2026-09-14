@@ -10,6 +10,7 @@ import {
 import TabDetailPanel, { type DetailCategory } from '../../../shared/ui/TabDetailPanel'
 import DisabledItemGrid from '../../../shared/ui/DisabledItemGrid'
 import SelfWeightPermanent from './SelfWeightPermanent'
+import TrafficLoadsPanel from './traffic/TrafficLoadsPanel'
 import type { CrossSectionValues } from '../../superstructure-families'
 
 /**
@@ -38,13 +39,19 @@ import type { CrossSectionValues } from '../../superstructure-families'
  * state from `App.tsx` (Superstructure Families' Precast cross
  * section) - so it stays live when the engineer edits a walkway/
  * platform width there.
+ *
+ * <p>"Traffic" (TRAFFIC-P01, 2026-09-14) is now a real EN 1991-2
+ * road-bridge traffic-loads screen with its own 10-leaf sub-tab row -
+ * see `traffic/TrafficLoadsPanel.tsx`. LM1 active, LM2 visible but
+ * disabled, Load Groups kept separate from EN 1990 combinations (a
+ * different, future module), per the engineer's explicit scope.
  */
 const SEISMIC_ITEMS = ['Hazard Data', 'PGA / Spectral Data', 'Site Class', 'Design Spectrum']
 
 export default function LoadsPanel({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
   const categories: DetailCategory[] = [
     { label: 'Self Weight & Permanent', icon: Anchor, content: <SelfWeightPermanent crossSectionValues={crossSectionValues} /> },
-    { label: 'Traffic', icon: Car, status: 'EN 1991-2 LM1 - method for simplifying it onto the 1D-frame model not decided yet (addendum P). Detail parameters not provided yet.' },
+    { label: 'Traffic', icon: Car, content: <TrafficLoadsPanel crossSectionValues={crossSectionValues} /> },
     { label: 'Temperature', icon: Thermometer, status: 'Not started. Detail parameters not provided yet.' },
     { label: 'Wind', icon: Wind, status: 'Not started. Detail parameters not provided yet.' },
     {
@@ -61,7 +68,7 @@ export default function LoadsPanel({ crossSectionValues }: { crossSectionValues:
       ),
     },
     { label: 'Accidental', icon: AlertTriangle, status: 'Not started. Detail parameters not provided yet.' },
-    { label: 'Load Cases & Combinations', icon: ListChecks, status: 'Not started - no combination model exists yet. Detail parameters not provided yet.' },
+    { label: 'Load Combination', icon: ListChecks, status: 'Not started - no combination model exists yet. Detail parameters not provided yet.' },
   ]
 
   return <TabDetailPanel categories={categories} />

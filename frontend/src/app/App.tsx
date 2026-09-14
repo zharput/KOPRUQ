@@ -35,6 +35,8 @@ function App() {
   const [bridges, setBridges] = useState<BridgeRow[]>(INITIAL_BRIDGES)
   const [designCode, setDesignCode] = useState('Eurocode')
   const [crossSectionValues, setCrossSectionValues] = useState<CrossSectionValues>(INITIAL_CROSS_SECTION_VALUES)
+  const [terrainId, setTerrainId] = useState<string | null>(null)
+  const [landXmlImportId, setLandXmlImportId] = useState<string | null>(null)
 
   return (
     <AppProviders>
@@ -55,6 +57,10 @@ function App() {
                 setDesignCode={setDesignCode}
                 crossSectionValues={crossSectionValues}
                 setCrossSectionValues={setCrossSectionValues}
+                terrainId={terrainId}
+                setTerrainId={setTerrainId}
+                landXmlImportId={landXmlImportId}
+                setLandXmlImportId={setLandXmlImportId}
               />
             </main>
           </div>

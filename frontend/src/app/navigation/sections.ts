@@ -51,6 +51,14 @@
  * (Superstructure/Girder/Preferred Span/Pier/Abutment/Foundation/
  * Bearing) - the `SectionId`/route values themselves are unchanged,
  * only the displayed label text.
+ *
+ * <p>Design System reordered again (2026-09-14, engineer's own
+ * instruction - "BU MENÜDE material ve loads en sonda olsun"):
+ * Materials/Loads moved from first to LAST in this group (after
+ * Standardization Rules), reversing the "first two leaves" ordering
+ * from the note above. `TopBar.tsx` reads this same array, so both the
+ * sidebar and the top tab row picked up the new order automatically -
+ * no separate ordering to keep in sync.
  */
 export type SectionId =
   | 'home'
@@ -178,8 +186,6 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
     id: 'design-system',
     label: 'Design System',
     sections: [
-      { id: 'materials', label: 'Materials' },
-      { id: 'loads', label: 'Loads' },
       { id: 'superstructure-families', label: 'Superstructure' },
       { id: 'girder-library', label: 'Girder' },
       { id: 'preferred-span-families', label: 'Preferred Span' },
@@ -189,6 +195,8 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
       { id: 'bearing-families', label: 'Bearing' },
       { id: 'expansion-joints', label: 'Expansion Joints' },
       { id: 'standardization-rules', label: 'Standardization Rules' },
+      { id: 'materials', label: 'Materials' },
+      { id: 'loads', label: 'Loads' },
     ],
   },
   {

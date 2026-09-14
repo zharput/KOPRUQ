@@ -22,6 +22,9 @@
   <modules>
     <module>spatial-core</module>
     <module>alignment</module>
+    <module>terrain</module>
+    <module>landxml-import</module>
+    <module>traffic-loads</module>
     <module>constraints</module>
     <module>bridge-layout</module>
     <module>bridge-core</module>

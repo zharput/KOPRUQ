@@ -1,11 +1,9 @@
 import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
-import { MapPin, Upload } from 'lucide-react'
 import BigMenuPanel from './components/BigMenuPanel'
 import PlaceholderPanel from './components/PlaceholderPanel'
 import type { SectionId } from './navigation/sections'
 import { BIG_MENU_ITEMS, WORKING_SECTIONS } from './navigation/sections'
 import HomePanel from '../pages/home/HomePanel'
-import ImportActionScreen from '../shared/ui/ImportActionScreen'
 import { ProjectPanel, ProjectDashboardPanel, type BridgeRow } from '../features/project'
 import { SiteLayoutPanel, type LayoutSeed } from '../features/layout-generator'
 import { FastSolverPanel } from '../features/spanova-fast-solver'
@@ -16,6 +14,9 @@ import { PierFamiliesPanel } from '../features/pier-families'
 import { GirderLibraryPanel } from '../features/girder-library'
 import { GenerateWorkflow, type GenerationSummary } from '../features/bridge-alternatives'
 import { CostDatabasePanel } from '../features/cost-database'
+import { TerrainDtmPanel } from '../features/terrain-dtm'
+import { TerrainViewerPanel } from '../features/terrain-viewer'
+import { LandXmlImportPanel } from '../features/landxml-import'
 import type { Dispatch, SetStateAction } from 'react'
 
 /**
@@ -45,6 +46,10 @@ export default function AppRoutes(props: {
   setDesignCode: Dispatch<SetStateAction<string>>
   crossSectionValues: CrossSectionValues
   setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>
+  terrainId: string | null
+  setTerrainId: Dispatch<SetStateAction<string | null>>
+  landXmlImportId: string | null
+  setLandXmlImportId: Dispatch<SetStateAction<string | null>>
 }) {
   return (
     <Routes>
@@ -66,6 +71,10 @@ function SectionRoute({
   setDesignCode,
   crossSectionValues,
   setCrossSectionValues,
+  terrainId,
+  setTerrainId,
+  landXmlImportId,
+  setLandXmlImportId,
 }: {
   summary: GenerationSummary | null
   onGenerated: (summary: GenerationSummary) => void
@@ -77,6 +86,10 @@ function SectionRoute({
   setDesignCode: Dispatch<SetStateAction<string>>
   crossSectionValues: CrossSectionValues
   setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>
+  terrainId: string | null
+  setTerrainId: Dispatch<SetStateAction<string | null>>
+  landXmlImportId: string | null
+  setLandXmlImportId: Dispatch<SetStateAction<string | null>>
 }) {
   const { section } = useParams<{ section: string }>()
   const navigate = useNavigate()
@@ -108,19 +121,26 @@ function SectionRoute({
   if (active === 'girder-library') return <GirderLibraryPanel />
   if (active === 'pier-families') return <PierFamiliesPanel />
   if (active === 'alignment') {
-    return <ImportActionScreen title="Alignment" actionLabel="Import Alignment" icon={Upload} availableFrom="P07" />
-  }
-  if (active === 'terrain-dtm') {
     return (
-      <ImportActionScreen
-        title="3D Terrain / DTM"
-        note="Deactivated for now (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md addendum Q) - pier/abutment heights are entered externally until real terrain data arrives."
-        actionLabel="Import Terrain"
-        icon={MapPin}
-        availableFrom="P07"
+      <LandXmlImportPanel
+        onImported={(result) => {
+          setTerrainId(result.terrainId)
+          setLandXmlImportId(result.hasAlignment ? result.landXmlImportId : null)
+        }}
       />
     )
   }
+  if (active === 'terrain-dtm') {
+    return (
+      <TerrainDtmPanel
+        onImported={(newTerrainId) => {
+          setTerrainId(newTerrainId)
+          setLandXmlImportId(null)
+        }}
+      />
+    )
+  }
+  if (active === '3d-visualization') return <TerrainViewerPanel terrainId={terrainId} landXmlImportId={landXmlImportId} />
   if (bigMenuItems) return <BigMenuPanel section={active} items={bigMenuItems} />
   if (WORKING_SECTIONS.has(active)) return <GenerateWorkflow onGenerated={onGenerated} layoutSeed={layoutSeed} />
   return <PlaceholderPanel section={active} />

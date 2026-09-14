@@ -57,6 +57,21 @@
     </dependency>
     <dependency>
       <groupId>com.spanova</groupId>
+      <artifactId>terrain</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>landxml-import</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
+      <artifactId>traffic-loads</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.spanova</groupId>
       <artifactId>constraints</artifactId>
       <version>${project.version}</version>
     </dependency>

@@ -43,7 +43,6 @@ const MILESTONE_BY_SECTION: Partial<Record<SectionId, string>> = {
   'corridor-optimization': 'needs a real Corridor with multiple bridges first (analysis document section I) - not started',
   standardization: 'not started - the corridor-level standardization objective (analysis document section I/17)',
   'pareto-explorer': 'P09 (Pareto front)',
-  '3d-visualization': 'Three.js/react-three-fiber (analysis document section F) - deliberately deferred until a milestone actually needs 3D, after the 2D map',
   reports: 'P08+ (once there are real results to report on)',
   settings: 'not scoped yet',
   help: 'not scoped yet',

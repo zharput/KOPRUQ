@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Box, Component, Layers } from 'lucide-react'
 import { ParamSweepCard, HDim, VDim, type Dimension } from '../../../shared/ui/ParamSweepCard'
 import { BulbTeeGirderShape } from '../../../shared/ui/BulbTeeGirderShape'
 import TabDetailPanel, { type DetailCategory } from '../../../shared/ui/TabDetailPanel'
+import { PRECAST_DIMENSIONS } from '../model/variants'
 
 /**
  * Design System > Girder Library (2026-09-11, restructured 2026-09-13
@@ -54,20 +55,14 @@ import TabDetailPanel, { type DetailCategory } from '../../../shared/ui/TabDetai
  * (tf/H/th1/th2/w/bh2/bh1/bf) stay local to this file, they're specific
  * to this fully-dimensioned reference drawing.
  */
-const PRECAST_DIMENSIONS: Dimension[] = [
-  { key: 'H', label: 'H (cm)', min: 190, max: 190, delta: 0 },
-  { key: 'tf', label: 'tf (cm)', min: 150, max: 150, delta: 0 },
-  { key: 'bf', label: 'bf (cm)', min: 80, max: 80, delta: 0 },
-  { key: 'w', label: 'w (cm)', min: 20, max: 20, delta: 0 },
-  { key: 'th1', label: 'th1 (cm)', min: 12, max: 12, delta: 0 },
-  { key: 'th2', label: 'th2 (cm)', min: 10, max: 10, delta: 0 },
-  { key: 'bh1', label: 'bh1 (cm)', min: 28, max: 28, delta: 0 },
-  { key: 'bh2', label: 'bh2 (cm)', min: 15, max: 15, delta: 0 },
-]
-
 function PrecastGirderTab() {
-  const [enabled, setEnabled] = useState(false)
-  const [dimensions, setDimensions] = useState<Dimension[]>(PRECAST_DIMENSIONS)
+  const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('spanova.girder-library.precast') ?? 'null') as { enabled?: boolean; dimensions?: Dimension[] } | null : null
+  const [enabled, setEnabled] = useState(saved?.enabled ?? false)
+  const [dimensions, setDimensions] = useState<Dimension[]>(saved?.dimensions ?? PRECAST_DIMENSIONS)
+
+  useEffect(() => {
+    localStorage.setItem('spanova.girder-library.precast', JSON.stringify({ enabled, dimensions }))
+  }, [enabled, dimensions])
 
   function updateDimension(key: string, patch: Partial<Dimension>) {
     setDimensions((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)))

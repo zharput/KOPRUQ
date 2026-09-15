@@ -12,6 +12,7 @@ import { MaterialsPanel } from '../features/materials'
 import { SuperstructureFamiliesPanel, type CrossSectionValues } from '../features/superstructure-families'
 import { PierFamiliesPanel } from '../features/pier-families'
 import { GirderLibraryPanel } from '../features/girder-library'
+import { PreferredSpanPanel } from '../features/preferred-span'
 import { GenerateWorkflow, type GenerationSummary } from '../features/bridge-alternatives'
 import { CostDatabasePanel } from '../features/cost-database'
 import { TerrainDtmPanel } from '../features/terrain-dtm'
@@ -119,6 +120,7 @@ function SectionRoute({
     return <SuperstructureFamiliesPanel crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues} />
   }
   if (active === 'girder-library') return <GirderLibraryPanel />
+  if (active === 'preferred-span-families') return <PreferredSpanPanel />
   if (active === 'pier-families') return <PierFamiliesPanel />
   if (active === 'alignment') {
     return (

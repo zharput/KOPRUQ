@@ -1,184 +1,51 @@
-import { useState } from 'react'
-import { ParamSweepCard, HDim, VDim, type Dimension } from '../../../shared/ui/ParamSweepCard'
+import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import { generateValues, type Dimension } from '../../../shared/ui/ParamSweepCard'
+import { defaultDimensions, generatePierVariants, statusOfPierFamily } from '../model/service'
+import type { PierConfiguration, PierFamily, PierType } from '../model/types'
 
-/**
- * Design System > Pier Families (2026-09-11): the 4 pier cross-section
- * shapes from the engineer's own diagram (Rectangular B/H; Circular D;
- * Oval H/B/R; Box B/H/tw1/tw2 - simplified from an initial B/H/tw/tf1/
- * tf2/C set, per the engineer's own follow-up: a box only needs 2 wall
- * thicknesses, tw1 for top/bottom and tw2 for left/right, no separate
- * inner-width C), redrawn as cleaner inline SVGs than the source sketch.
- * Per the engineer's own instructions:
- *
- * <p>- A checkbox left of each shape: "SPANOVA'nın analizlerinde o kolon
- *   kesitini kullanacağı" - whether this shape is used at all.
- * <p>- Each dimension gets min/max/delta (not a single value) - SPANOVA
- *   analyzes/optimizes across the resulting stepped value set (the
- *   engineer's own worked example: D 200-300cm step 25cm -&gt;
- *   200,225,250,275,300cm - shown live below each dimension's inputs,
- *   not just described).
- * <p>- **Crucial scoping note, stated explicitly in the UI** (the
- *   engineer's own instruction - "bununla ilgili bir açıklama olması
- *   lazım"): this min/max/delta sweep only applies to bridges whose Pier
- *   Shape (Project Information's per-bridge additional details) is set
- *   to this exact shape - a bridge using Circular piers is never swept
- *   through Rectangular's range, and vice versa.
- *
- * <p>The checkbox + diagram + min/max/delta table card is the shared
- * {@link ParamSweepCard} (shared/ui/ParamSweepCard.tsx) - extracted
- * 2026-09-11 once Girder Library needed the exact same pattern; its
- * fixed colgroup is also what fixed this screen's own edit-box
- * misalignment across shape cards.
- *
- * <p>Presentation/local state only - not wired into any backend
- * generation/optimization yet (same discipline as the rest of this
- * session's screens). No default min/max/delta are invented for
- * Rectangular/Oval/Box (spec section 22) - only Circular has the
- * engineer's own given example values; the others start at 0/0/0
- * ("not configured yet") until the engineer provides real ranges.
- */
-interface PierSection {
-  shape: 'Rectangular' | 'Circular' | 'Oval' | 'Box'
-  enabled: boolean
-  dimensions: Dimension[]
+const STORAGE_KEY = 'spanova.project-design-system.pier-families'
+const emptyHeight = { minimumHeight: null, preferredHeightMin: null, preferredHeightMax: null, maximumHeight: null }
+const INITIAL: PierFamily[] = [{ id: 'RECT-M', name: 'RECT-M', pierType: 'RECTANGULAR', enabled: false, dimensions: defaultDimensions('RECTANGULAR'), allowedConfigurations: ['SINGLE_COLUMN', 'TWO_COLUMNS'], twoColumnSpacing: { key: 'spacing', label: 'Transverse Spacing (m)', min: 6, max: 10, delta: 1 }, heightApplicability: emptyHeight, source: 'PROJECT_DESIGN_SYSTEM' }]
+
+function readFamilies() {
+  if (typeof window === 'undefined') return INITIAL
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as PierFamily[] | null
+    return saved?.map((family) => ({ ...family, pierType: family.pierType === ('H_TYPE' as PierType) || family.pierType === ('WALL' as PierType) ? 'H_SECTION' : family.pierType, allowedConfigurations: family.allowedConfigurations.filter((value) => value === 'SINGLE_COLUMN' || value === 'TWO_COLUMNS') })) ?? INITIAL
+  } catch { return INITIAL }
 }
-
-const INITIAL_SECTIONS: PierSection[] = [
-  {
-    shape: 'Rectangular',
-    enabled: false,
-    dimensions: [
-      { key: 'B', label: 'B (cm)', min: 0, max: 0, delta: 0 },
-      { key: 'H', label: 'H (cm)', min: 0, max: 0, delta: 0 },
-    ],
-  },
-  {
-    shape: 'Circular',
-    enabled: false,
-    dimensions: [{ key: 'D', label: 'D (cm)', min: 200, max: 300, delta: 25 }],
-  },
-  {
-    shape: 'Oval',
-    enabled: false,
-    dimensions: [
-      { key: 'H', label: 'H (cm)', min: 0, max: 0, delta: 0 },
-      { key: 'B', label: 'B (cm)', min: 0, max: 0, delta: 0 },
-      { key: 'R', label: 'R (cm)', min: 0, max: 0, delta: 0 },
-    ],
-  },
-  {
-    shape: 'Box',
-    enabled: false,
-    dimensions: [
-      { key: 'B', label: 'B (cm)', min: 0, max: 0, delta: 0 },
-      { key: 'H', label: 'H (cm)', min: 0, max: 0, delta: 0 },
-      { key: 'tw1', label: 'tw1 (cm)', min: 0, max: 0, delta: 0 },
-      { key: 'tw2', label: 'tw2 (cm)', min: 0, max: 0, delta: 0 },
-    ],
-  },
-]
 
 export default function PierFamiliesPanel() {
-  const [sections, setSections] = useState<PierSection[]>(INITIAL_SECTIONS)
+  const [families, setFamilies] = useState<PierFamily[]>(readFamilies)
+  const [selectedId, setSelectedId] = useState(families[0]?.id ?? '')
+  const family = families.find((item) => item.id === selectedId) ?? families[0]
+  const variants = useMemo(() => family ? generatePierVariants(family) : [], [family])
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(families)) }, [families])
+  if (!family) return <div className="spn-card"><h2 className="spn-card-title">PIER</h2><p className="spn-card-subtitle">Project Design System / User Defined</p><button className="spn-button-primary" onClick={() => addFamily(createFamily('RECTANGULAR'), setFamilies, setSelectedId)}>Add Pier</button></div>
 
-  function updateSection(shape: PierSection['shape'], patch: Partial<PierSection>) {
-    setSections((prev) => prev.map((s) => (s.shape === shape ? { ...s, ...patch } : s)))
-  }
+  const update = (patch: Partial<PierFamily>) => setFamilies((items) => items.map((item) => item.id === family.id ? { ...item, ...patch } : item))
+  const updateDimension = (key: string, patch: Partial<Dimension>) => update({ dimensions: family.dimensions.map((dimension) => dimension.key === key ? { ...dimension, ...patch } : dimension) })
+  const status = statusOfPierFamily(family)
 
-  function updateDimension(shape: PierSection['shape'], key: string, patch: Partial<Dimension>) {
-    setSections((prev) =>
-      prev.map((s) =>
-        s.shape === shape
-          ? { ...s, dimensions: s.dimensions.map((d) => (d.key === key ? { ...d, ...patch } : d)) }
-          : s,
-      ),
-    )
-  }
-
-  return (
-    <div className="spn-workflow">
-      <p className="spn-hint">
-        Min/max/delta define the cross-section values SPANOVA will step through during analysis/optimization for
-        this shape (e.g. the Circular example below: 200-300 cm step 25 cm gives 200, 225, 250, 275, 300 cm). This
-        sweep applies only to bridges whose Pier Shape (Project Information's per-bridge additional details) is set
-        to this exact shape - a bridge using Circular piers is never affected by Rectangular's range, and vice versa.
-      </p>
-
-      {sections.map((section) => (
-        <ParamSweepCard
-          key={section.shape}
-          title={section.shape}
-          enabled={section.enabled}
-          onToggleEnabled={(checked) => updateSection(section.shape, { enabled: checked })}
-          diagram={<PierDiagram shape={section.shape} />}
-          dimensions={section.dimensions}
-          onUpdateDimension={(key, patch) => updateDimension(section.shape, key, patch)}
-        />
-      ))}
+  return <div className="spn-workflow">
+    <div className="spn-card">
+      <div className="spn-shape-card-header"><div><h2 className="spn-card-title">PIER</h2><p className="spn-card-subtitle">Project Design System / User Defined</p></div><label className="spn-checklist-item"><input type="checkbox" checked={family.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Use in SPANOVA analyses</label></div>
+      <div className="spn-field-grid" style={{ gridTemplateColumns: '1fr 1fr' }}><label className="spn-field">Family Name<input className="spn-input" value={family.name} onChange={(event) => update({ name: event.target.value })} /></label><label className="spn-field">Pier Type<select className="spn-input" value={family.pierType} onChange={(event) => { const pierType = event.target.value as PierType; update({ pierType, dimensions: defaultDimensions(pierType) }) }}><option value="RECTANGULAR">Rectangular</option><option value="CIRCULAR">Circular</option><option value="OVAL">Oval</option><option value="BOX">Box</option><option value="H_SECTION">H section</option></select></label></div>
+      <PierShapeDiagram type={family.pierType} />
+      <Section title="SECTION GENERATION">{family.dimensions.length ? <table className="spn-table"><thead><tr><th>Dimension</th><th>Min</th><th>Max</th><th>Delta</th><th>Values SPANOVA Will Use</th></tr></thead><tbody>{family.dimensions.map((dimension) => { const values = validValues(dimension); return <tr key={dimension.key}><td>{dimension.label}</td><td><NumberInput value={dimension.min} onChange={(value) => updateDimension(dimension.key, { min: value })} /></td><td><NumberInput value={dimension.max} onChange={(value) => updateDimension(dimension.key, { max: value })} /></td><td><NumberInput value={dimension.delta} onChange={(value) => updateDimension(dimension.key, { delta: value })} /></td><td>{values.length ? values.join(', ') : 'Not configured yet'}</td></tr>})}</tbody></table> : <p className="spn-hint">Not configured yet for this pier type.</p>}</Section>
+      <Section title="CONFIGURATION"><div style={{ display: 'flex', gap: 18, flexWrap: 'wrap' }}>{([['SINGLE_COLUMN', 'Single Column'], ['TWO_COLUMNS', 'Two Columns']] as [PierConfiguration, string][]).map(([value, label]) => <label className="spn-checklist-item" key={value}><input type="checkbox" checked={family.allowedConfigurations.includes(value)} onChange={(event) => update({ allowedConfigurations: event.target.checked ? [...family.allowedConfigurations, value] : family.allowedConfigurations.filter((item) => item !== value) })} /> {label}</label>)}</div>{family.allowedConfigurations.includes('TWO_COLUMNS') && <SpacingSection family={family} update={update} />}</Section>
+      <Section title="HEIGHT APPLICABILITY"><div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(130px, 1fr))', gap: 12 }}>{([['minimumHeight', 'Minimum Height'], ['preferredHeightMin', 'Preferred Height Min'], ['preferredHeightMax', 'Preferred Height Max'], ['maximumHeight', 'Maximum Height']] as const).map(([key, label]) => <label className="spn-field" key={key}>{label}<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><NumberInput value={family.heightApplicability[key] ?? ''} onChange={(value) => update({ heightApplicability: { ...family.heightApplicability, [key]: value } })} /><span>m</span></div></label>)}</div><HeightRangeVisualization family={family} /><p className="spn-hint">Actual pier height is supplied later from project geometry; no height candidates or rounding are generated here.</p></Section>
+      <p>Generated Section Variants: <strong>{variants.length}</strong></p><p>Status: <strong>{status}</strong></p><div style={{ display: 'flex', gap: 8 }}><button className="spn-button-primary" disabled={status !== 'VALID'} onClick={() => addFamily(family, setFamilies, setSelectedId)}>Add Pier</button><button className="spn-button-secondary" onClick={() => { const next = families.filter((item) => item.id !== family.id); setFamilies(next); setSelectedId(next[0]?.id ?? '') }}>Delete Pier</button></div>
     </div>
-  )
+    <div className="spn-card"><h3 className="spn-card-title">PIER FAMILY CATALOG</h3><table className="spn-table"><thead><tr><th>Family</th><th>Type</th><th>Section Variants</th><th>Configurations</th><th>Height Range</th><th>Preferred Range</th><th>Enabled</th><th>Status</th><th /></tr></thead><tbody>{families.map((item) => <tr key={item.id}><td>{item.name}</td><td>{item.pierType}</td><td>{generatePierVariants(item).length}</td><td>{item.allowedConfigurations.join(', ') || '—'}</td><td>{item.heightApplicability.minimumHeight ?? '—'}–{item.heightApplicability.maximumHeight ?? '—'}</td><td>{item.heightApplicability.preferredHeightMin ?? '—'}–{item.heightApplicability.preferredHeightMax ?? '—'}</td><td>{item.enabled ? 'Yes' : 'No'}</td><td>{statusOfPierFamily(item)}</td><td><button className="spn-button-secondary" onClick={() => setSelectedId(item.id)}>Edit</button></td></tr>)}</tbody></table></div>
+  </div>
 }
 
-/* ---- Cross-section diagrams ---- */
-
-function PierDiagram({ shape }: { shape: PierSection['shape'] }) {
-  const fill = 'var(--accent)'
-  const fillOpacity = 0.22
-
-  if (shape === 'Rectangular') {
-    return (
-      <svg viewBox="0 0 160 150" width="150" height="140">
-        <rect x={40} y={35} width={80} height={80} rx={3} fill={fill} fillOpacity={fillOpacity} stroke={fill} strokeWidth={2} />
-        <HDim x1={40} x2={120} y={22} label="B" />
-        <VDim y1={35} y2={115} x={26} label="H" />
-      </svg>
-    )
-  }
-
-  if (shape === 'Circular') {
-    return (
-      <svg viewBox="0 0 160 150" width="150" height="140">
-        <circle cx={80} cy={75} r={45} fill={fill} fillOpacity={fillOpacity} stroke={fill} strokeWidth={2} />
-        <VDim y1={30} y2={120} x={80} label="D" labelX={96} />
-      </svg>
-    )
-  }
-
-  if (shape === 'Oval') {
-    return (
-      <svg viewBox="0 0 180 150" width="168" height="140">
-        <rect x={30} y={40} width={120} height={60} rx={30} ry={30} fill={fill} fillOpacity={fillOpacity} stroke={fill} strokeWidth={2} />
-        <HDim x1={30} x2={150} y={118} label="B" />
-        <VDim y1={40} y2={100} x={16} label="H" />
-        <g stroke="var(--text-secondary)" fill="var(--text-secondary)">
-          <line x1={140} y1={45} x2={160} y2={28} strokeWidth={1} />
-          <path d="M160,28 l-8,1 l3,7 Z" />
-          <text x={166} y={26} fontSize={10} stroke="none">
-            R
-          </text>
-        </g>
-      </svg>
-    )
-  }
-
-  // Box - simplified to just 2 wall thicknesses (2026-09-11, engineer's own
-  // instruction): tw1 = top/bottom wall thickness, tw2 = left/right wall
-  // thickness - no separate inner width (C) or top/bottom-specific (tf1/tf2)
-  // dimensions anymore.
-  return (
-    <svg viewBox="0 0 190 160" width="168" height="141">
-      <path
-        d="M30,30 H150 V130 H30 Z M46,42 H134 V118 H46 Z"
-        fillRule="evenodd"
-        fill={fill}
-        fillOpacity={fillOpacity}
-        stroke={fill}
-        strokeWidth={2}
-      />
-      <HDim x1={30} x2={150} y={18} label="B" />
-      <VDim y1={30} y2={130} x={16} label="H" />
-      <HDim x1={30} x2={46} y={148} label="tw2" />
-      <VDim y1={30} y2={42} x={162} label="tw1" labelX={178} />
-    </svg>
-  )
-}
+function Section({ title, children }: { title: string; children: ReactNode }) { return <section style={{ marginTop: 22 }}><h3 className="spn-card-title">{title}</h3>{children}</section> }
+function NumberInput({ value, onChange }: { value: number | string; onChange: (value: number) => void }) { return <input className="spn-input" type="number" value={value} onChange={(event) => onChange(Number(event.target.value))} style={{ width: 105 }} /> }
+function validValues(dimension: Dimension) { return dimension.min > 0 && dimension.max >= dimension.min && dimension.delta > 0 ? generateValues(dimension.min, dimension.max, dimension.delta).map((value) => Number(value.toFixed(10))) : [] }
+function createFamily(type: PierType): PierFamily { return { id: `PIER-${Date.now()}`, name: 'New Pier Family', pierType: type, enabled: false, dimensions: defaultDimensions(type), allowedConfigurations: ['SINGLE_COLUMN'], twoColumnSpacing: null, heightApplicability: emptyHeight, source: 'PROJECT_DESIGN_SYSTEM' } }
+function PierShapeDiagram({ type }: { type: PierType }) { return <div className="spn-shape-card-diagram"><svg viewBox="0 0 220 155" width="220" height="155" role="img" aria-label={`${type} pier section`}><line x1="20" y1="130" x2="200" y2="130" stroke="var(--accent)" strokeWidth="2" /><text x="110" y="145" textAnchor="middle" fill="var(--text-secondary)" fontSize="10">Bridge Axis</text>{type === 'CIRCULAR' && <circle cx="110" cy="60" r="38" fill="var(--accent)" fillOpacity=".2" stroke="var(--accent)" strokeWidth="2" />}{type === 'OVAL' && <rect transform="rotate(90 110 60)" x="55" y="35" width="110" height="50" rx="25" fill="var(--accent)" fillOpacity=".2" stroke="var(--accent)" strokeWidth="2" />}{type === 'BOX' && <path transform="rotate(90 110 60)" d="M55 28 H165 V92 H55 Z M70 43 H150 V77 H70 Z" fill="var(--accent)" fillOpacity=".2" fillRule="evenodd" stroke="var(--accent)" strokeWidth="2" />}{type === 'H_SECTION' && <path transform="rotate(90 110 60)" d="M70 28 H150 V45 H122 V85 H150 V102 H70 V85 H98 V45 H70 Z" fill="var(--accent)" fillOpacity=".2" stroke="var(--accent)" strokeWidth="2" />}{type === 'RECTANGULAR' && <rect x="70" y="25" width="80" height="70" fill="var(--accent)" fillOpacity=".2" stroke="var(--accent)" strokeWidth="2" />}</svg></div> }
+function SpacingSection({ family, update }: { family: PierFamily; update: (patch: Partial<PierFamily>) => void }) { const spacing = family.twoColumnSpacing; if (!spacing) return <p className="spn-hint">Not configured yet.</p>; const values = validValues(spacing); return <div style={{ marginTop: 14, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end' }}><p className="spn-field-label" style={{ width: '100%' }}>Two-Column Spacing</p>{(['min', 'max', 'delta'] as const).map((key) => <label className="spn-field" key={key}>{key[0].toUpperCase() + key.slice(1)}<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}><NumberInput value={spacing[key]} onChange={(value) => update({ twoColumnSpacing: { ...spacing, [key]: value } })} /><span>m</span></div></label>)}<div><div className="spn-field-label">Values SPANOVA Will Use</div><div>{values.length ? `${values.join(', ')} m` : 'Not configured yet'}</div></div></div> }
+function HeightRangeVisualization({ family }: { family: PierFamily }) { const h = family.heightApplicability; if ([h.minimumHeight, h.preferredHeightMin, h.preferredHeightMax, h.maximumHeight].some((value) => value == null || !Number.isFinite(value))) return null; const range = h.maximumHeight! - h.minimumHeight! || 1; const position = (value: number) => `${((value - h.minimumHeight!) / range) * 100}%`; return <div style={{ marginTop: 18 }}><div style={{ position: 'relative', height: 48, margin: '0 8px' }}><div style={{ position: 'absolute', top: 18, left: 0, right: 0, borderTop: '2px solid var(--border)' }} /><div style={{ position: 'absolute', top: 13, left: position(h.preferredHeightMin!), width: `${((h.preferredHeightMax! - h.preferredHeightMin!) / range) * 100}%`, borderTop: '6px solid var(--accent)' }} />{[h.minimumHeight!, h.preferredHeightMin!, h.preferredHeightMax!, h.maximumHeight!].map((value, index) => <span key={`${value}-${index}`} style={{ position: 'absolute', left: position(value), top: 8, transform: 'translateX(-50%)' }}>│</span>)}<span style={{ position: 'absolute', left: 0, top: 28 }}>{h.minimumHeight} m</span><span style={{ position: 'absolute', left: position(h.preferredHeightMin!), top: 28, transform: 'translateX(-50%)' }}>{h.preferredHeightMin} m</span><span style={{ position: 'absolute', left: position(h.preferredHeightMax!), top: 28, transform: 'translateX(-50%)' }}>{h.preferredHeightMax} m</span><span style={{ position: 'absolute', right: 0, top: 28 }}>{h.maximumHeight} m</span></div><small>APPLICABLE &nbsp;&nbsp;&nbsp;&nbsp; PREFERRED &nbsp;&nbsp;&nbsp;&nbsp; APPLICABLE</small></div> }
+function addFamily(source: PierFamily, setFamilies: Dispatch<SetStateAction<PierFamily[]>>, setSelectedId: (id: string) => void) { const id = `PIER-${Date.now()}`; setFamilies((items) => [...items, { ...source, id, name: `${source.name}-COPY`, dimensions: source.dimensions.map((dimension) => ({ ...dimension })), allowedConfigurations: [...source.allowedConfigurations], twoColumnSpacing: source.twoColumnSpacing ? { ...source.twoColumnSpacing } : null, heightApplicability: { ...source.heightApplicability } }]); setSelectedId(id) }

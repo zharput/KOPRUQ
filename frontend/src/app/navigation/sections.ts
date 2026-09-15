@@ -66,6 +66,7 @@ export type SectionId =
   | 'project-information'
   | 'materials'
   | 'loads'
+  | 'load-combinations'
   | 'cost-database'
   | 'corridor-dashboard'
   | 'alignment'
@@ -197,6 +198,7 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
       { id: 'standardization-rules', label: 'Standardization Rules' },
       { id: 'materials', label: 'Materials' },
       { id: 'loads', label: 'Loads' },
+      { id: 'load-combinations', label: 'Load Combinations' },
     ],
   },
   {

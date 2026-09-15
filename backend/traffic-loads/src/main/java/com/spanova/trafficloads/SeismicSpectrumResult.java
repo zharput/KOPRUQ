@@ -1,0 +1,1 @@
+package com.spanova.trafficloads; import java.util.List; public record SeismicSpectrumResult(String status,double ag,double s,double tb,double tc,double td,double peakElasticAcceleration,List<Point> points){ public record Point(double period,double acceleration){} }

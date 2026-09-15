@@ -46,7 +46,7 @@ interface PierSection {
 const INITIAL_SECTIONS: PierSection[] = [
   {
     shape: 'Rectangular',
-    enabled: true,
+    enabled: false,
     dimensions: [
       { key: 'B', label: 'B (cm)', min: 0, max: 0, delta: 0 },
       { key: 'H', label: 'H (cm)', min: 0, max: 0, delta: 0 },
@@ -54,12 +54,12 @@ const INITIAL_SECTIONS: PierSection[] = [
   },
   {
     shape: 'Circular',
-    enabled: true,
+    enabled: false,
     dimensions: [{ key: 'D', label: 'D (cm)', min: 200, max: 300, delta: 25 }],
   },
   {
     shape: 'Oval',
-    enabled: true,
+    enabled: false,
     dimensions: [
       { key: 'H', label: 'H (cm)', min: 0, max: 0, delta: 0 },
       { key: 'B', label: 'B (cm)', min: 0, max: 0, delta: 0 },
@@ -68,7 +68,7 @@ const INITIAL_SECTIONS: PierSection[] = [
   },
   {
     shape: 'Box',
-    enabled: true,
+    enabled: false,
     dimensions: [
       { key: 'B', label: 'B (cm)', min: 0, max: 0, delta: 0 },
       { key: 'H', label: 'H (cm)', min: 0, max: 0, delta: 0 },

@@ -74,11 +74,11 @@ export default function TrafficLoadsPanel({ crossSectionValues }: { crossSection
       content: <TrafficPlaceholder title="LM4 / Crowd Loading" note="deferred to a future Traffic Loads milestone" />,
     },
     {
-      label: 'Braking & Acceleration',
+      label: 'Braking & Acc.',
       content: <TrafficPlaceholder title="Braking & Acceleration" note="deferred to a future Traffic Loads milestone" />,
     },
     {
-      label: 'Centrifugal Forces',
+      label: 'Centrifugal',
       content: (
         <TrafficPlaceholder
           title="Centrifugal Forces"

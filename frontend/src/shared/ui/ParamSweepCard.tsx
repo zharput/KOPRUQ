@@ -109,7 +109,7 @@ export function ParamSweepCard({
 
       <div className="spn-shape-card-diagram">{diagram}</div>
 
-      <div className="spn-param-table-wrap">
+      {enabled && <div className="spn-param-table-wrap">
         <table className="spn-table spn-param-table">
           <colgroup>
             <col className="spn-col-label" />
@@ -161,7 +161,7 @@ export function ParamSweepCard({
             })}
           </tbody>
         </table>
-      </div>
+      </div>}
     </div>
   )
 }

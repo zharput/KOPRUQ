@@ -27,12 +27,12 @@ class Lm1DefaultsFactoryTest {
     }
 
     @Test
-    void codeDefaults_leavesCharacteristicValuesUnconfirmed() {
+    void codeDefaults_containsEnBaseValues() {
         Lm1Parameters lm1 = factory.codeDefaults(3);
 
         for (LaneFactor factorRow : lm1.tandemSystem()) {
-            assertNull(factorRow.characteristicValue().value(), "EN 1991-2 Table 4.2 values must not be invented");
-            assertNull(factorRow.effectiveValue());
+            assertEquals(300.0 - (factorRow.label().startsWith("Q2") ? 100.0 : factorRow.label().startsWith("Q3") ? 200.0 : 0.0), factorRow.characteristicValue().value(), 1e-9);
+            assertEquals(factorRow.characteristicValue().value(), factorRow.effectiveValue(), 1e-9);
         }
     }
 
@@ -42,7 +42,7 @@ class Lm1DefaultsFactoryTest {
 
         for (LaneFactor factorRow : lm1.tandemSystem()) {
             assertEquals(1.0, factorRow.adjustmentFactor().value(), 1e-9);
-            assertEquals(ParameterProvenance.NATIONAL_ANNEX, factorRow.adjustmentFactor().provenance());
+            assertEquals(ParameterProvenance.CODE_DEFAULT, factorRow.adjustmentFactor().provenance());
         }
         assertTrue(lm1.remainingAreaUdl().adjustmentFactor().value() == 1.0);
     }

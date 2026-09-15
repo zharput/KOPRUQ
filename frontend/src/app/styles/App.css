@@ -275,6 +275,8 @@
 .spn-steps-row-sub {
   background: var(--surface-1);
   border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  overflow-x: visible;
 }
 
 .spn-step-sub {
@@ -660,6 +662,19 @@
   gap: 4px;
   font-size: 12.5px;
   color: var(--text-secondary);
+}
+
+/* Compact numeric engineering inputs: keep the unit on the same row. */
+.spn-field:has(input[type='number']) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px auto;
+  align-items: center;
+  column-gap: 6px;
+}
+
+.spn-field:has(input[type='number']) > input[type='number'] {
+  width: 140px;
+  margin-top: 0;
 }
 
 .spn-range-field {

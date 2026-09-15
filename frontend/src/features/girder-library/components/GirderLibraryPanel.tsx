@@ -66,7 +66,7 @@ const PRECAST_DIMENSIONS: Dimension[] = [
 ]
 
 function PrecastGirderTab() {
-  const [enabled, setEnabled] = useState(true)
+  const [enabled, setEnabled] = useState(false)
   const [dimensions, setDimensions] = useState<Dimension[]>(PRECAST_DIMENSIONS)
 
   function updateDimension(key: string, patch: Partial<Dimension>) {

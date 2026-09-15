@@ -13,7 +13,7 @@ class TrafficLoadsServiceTest {
     private final Lm1DefaultsFactory lm1DefaultsFactory = new Lm1DefaultsFactory();
 
     @Test
-    void validate_flagsUnresolvedLm1_withAWarning() {
+    void validate_acceptsEnBaseLm1_withoutWarning() {
         NotionalLaneResult lanes = laneGenerator.generate(new CarriagewayInput(13.80, 1.00, 1.50));
         Lm1Parameters unconfirmedLm1 = lm1DefaultsFactory.codeDefaults(3);
 
@@ -21,8 +21,8 @@ class TrafficLoadsServiceTest {
 
         assertTrue(result.carriagewayDefined());
         assertTrue(result.notionalLanesGenerated());
-        assertFalse(result.lm1Resolved());
-        assertTrue(result.warnings().stream().anyMatch(w -> w.contains("LM1")));
+        assertTrue(result.lm1Resolved());
+        assertFalse(result.warnings().stream().anyMatch(w -> w.contains("LM1")));
     }
 
     @Test

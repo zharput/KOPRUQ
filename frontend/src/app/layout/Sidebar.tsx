@@ -51,6 +51,7 @@ const ICONS: Record<SectionId, LucideIcon> = {
   'project-information': FolderOpen,
   materials: Package,
   loads: ClipboardList,
+  'load-combinations': ListChecks,
   'cost-database': DollarSign,
   'corridor-dashboard': Map,
   alignment: Route,

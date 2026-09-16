@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { GenerationTable } from './DesignSystemUi'
+import type { Dimension } from './generation'
 
 /**
  * Shared "checkbox + cross-section diagram + min/max/delta parameter
@@ -16,22 +18,8 @@ import type { ReactNode } from 'react'
  * range) and is shown as exactly that one number, regardless of delta.
  * Only when min &lt; max does delta produce a real stepped sweep.
  */
-export interface Dimension {
-  key: string
-  label: string
-  min: number
-  max: number
-  delta: number
-}
-
-export function generateValues(min: number, max: number, delta: number): number[] {
-  if (min === 0 && max === 0 && delta === 0) return []
-  if (min === max) return [Math.round(min * 100) / 100]
-  if (delta <= 0 || max < min) return []
-  const values: number[] = []
-  for (let v = min; v <= max + 1e-9; v += delta) values.push(Math.round(v * 100) / 100)
-  return values
-}
+export type { Dimension } from './generation'
+export { generateValues } from './generation'
 
 /** Horizontal dimension line with arrowheads, for cross-section SVG diagrams. */
 export function HDim({ x1, x2, y, label }: { x1: number; x2: number; y: number; label: string }) {
@@ -109,59 +97,7 @@ export function ParamSweepCard({
 
       <div className="spn-shape-card-diagram">{diagram}</div>
 
-      {enabled && <div className="spn-param-table-wrap">
-        <table className="spn-table spn-param-table">
-          <colgroup>
-            <col className="spn-col-label" />
-            <col className="spn-col-value" />
-            <col className="spn-col-value" />
-            <col className="spn-col-value" />
-            <col className="spn-col-result" />
-          </colgroup>
-          <thead>
-            <tr>
-              {['Dimension', 'Min', 'Max', 'Delta', 'Values SPANOVA will use'].map((h) => (
-                <th key={h}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {dimensions.map((dim) => {
-              const values = generateValues(dim.min, dim.max, dim.delta)
-              return (
-                <tr key={dim.key}>
-                  <td>{dim.label}</td>
-                  <td>
-                    <input
-                      type="number"
-                      className="spn-input spn-input-number"
-                      value={dim.min}
-                      onChange={(e) => onUpdateDimension(dim.key, { min: Number(e.target.value) })}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      className="spn-input spn-input-number"
-                      value={dim.max}
-                      onChange={(e) => onUpdateDimension(dim.key, { max: Number(e.target.value) })}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      className="spn-input spn-input-number"
-                      value={dim.delta}
-                      onChange={(e) => onUpdateDimension(dim.key, { delta: Number(e.target.value) })}
-                    />
-                  </td>
-                  <td className="spn-col-result-cell">{values.length > 0 ? values.join(', ') : notConfiguredLabel}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>}
+      {enabled && <GenerationTable dimensions={dimensions} onUpdateDimension={onUpdateDimension} notConfiguredLabel={notConfiguredLabel} />}
     </div>
   )
 }

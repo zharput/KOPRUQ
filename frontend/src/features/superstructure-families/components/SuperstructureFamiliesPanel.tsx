@@ -31,5 +31,5 @@ export default function SuperstructureFamiliesPanel({
     { label: 'Steel / Composite', icon: Layers, status: 'Span/girder-depth alternatives are entered per bridge in Project Information for now - a dedicated parametric editor here is not built yet.' },
   ]
 
-  return <TabDetailPanel categories={categories} />
+  return <TabDetailPanel categories={categories} className="ds-design-system-content" />
 }

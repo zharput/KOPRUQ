@@ -30,11 +30,11 @@ export interface DetailCategory {
   content?: ReactNode
 }
 
-export default function TabDetailPanel({ categories }: { categories: DetailCategory[] }) {
+export default function TabDetailPanel({ categories, className = '' }: { categories: DetailCategory[]; className?: string }) {
   const [active, setActive] = useState<string>(categories[0]?.label ?? '')
 
   return (
-    <Tabs.Root className="spn-workflow" value={active} onValueChange={setActive}>
+    <Tabs.Root className={`spn-workflow ${className}`.trim()} value={active} onValueChange={setActive}>
       <Tabs.List className="spn-steps-row spn-steps-row-sub" style={{ margin: '0 -24px', padding: '0 24px' }}>
         {categories.map((category) => (
           <Tabs.Trigger

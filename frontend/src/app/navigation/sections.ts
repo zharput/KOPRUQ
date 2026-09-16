@@ -82,8 +82,10 @@ export type SectionId =
   | 'abutment-families'
   | 'foundation-families'
   | 'bearing-families'
-  | 'expansion-joints'
   | 'standardization-rules'
+  | 'system-assembly'
+  | 'pier-cap-families'
+  | 'pile-families'
   | 'bridge-inventory'
   | 'bridge-site'
   | 'layout-generator'
@@ -142,6 +144,7 @@ export const WORKING_SECTIONS: ReadonlySet<SectionId> = new Set([
   'superstructure-families',
   'girder-library',
   'pier-families',
+  'pier-cap-families',
   'layout-generator',
   'bridge-alternatives',
   'spanova-fast-solver',
@@ -187,17 +190,25 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
     id: 'design-system',
     label: 'Design System',
     sections: [
+      { id: 'system-assembly', label: 'System Assembly' },
       { id: 'superstructure-families', label: 'Superstructure' },
       { id: 'girder-library', label: 'Girder' },
       { id: 'preferred-span-families', label: 'Preferred Span' },
-      { id: 'pier-families', label: 'Pier' },
-      { id: 'abutment-families', label: 'Abutment' },
-      { id: 'foundation-families', label: 'Foundation' },
       { id: 'bearing-families', label: 'Bearing' },
-      { id: 'expansion-joints', label: 'Expansion Joints' },
+      { id: 'pier-cap-families', label: 'Pier Cap' },
+      { id: 'pier-families', label: 'Pier' },
+      { id: 'foundation-families', label: 'Foundation' },
+      { id: 'pile-families', label: 'Pile' },
+      { id: 'abutment-families', label: 'Abutment' },
       { id: 'standardization-rules', label: 'Standardization Rules' },
+    ],
+  },
+  {
+    id: 'loads-combinations',
+    label: 'Loads & Combinations',
+    sections: [
       { id: 'materials', label: 'Materials' },
-      { id: 'loads', label: 'Loads' },
+      { id: 'loads', label: 'Load Models' },
       { id: 'load-combinations', label: 'Load Combinations' },
     ],
   },

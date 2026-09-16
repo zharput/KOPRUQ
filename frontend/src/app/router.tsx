@@ -18,6 +18,8 @@ import { CostDatabasePanel } from '../features/cost-database'
 import { TerrainDtmPanel } from '../features/terrain-dtm'
 import { TerrainViewerPanel } from '../features/terrain-viewer'
 import { LandXmlImportPanel } from '../features/landxml-import'
+import { PierCapFamiliesPanel } from '../features/pier-cap-families'
+import { SystemAssemblyPanel } from '../features/system-assembly'
 import type { Dispatch, SetStateAction } from 'react'
 
 /**
@@ -115,6 +117,7 @@ function SectionRoute({
   if (active === 'spanova-fast-solver') return <FastSolverPanel />
   if (active === 'loads') return <LoadsPanel crossSectionValues={crossSectionValues} />
   if (active === 'materials') return <MaterialsPanel />
+  if (active === 'system-assembly') return <SystemAssemblyPanel />
   if (active === 'cost-database') return <CostDatabasePanel />
   if (active === 'superstructure-families') {
     return <SuperstructureFamiliesPanel crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues} />
@@ -122,6 +125,7 @@ function SectionRoute({
   if (active === 'girder-library') return <GirderLibraryPanel />
   if (active === 'preferred-span-families') return <PreferredSpanPanel />
   if (active === 'pier-families') return <PierFamiliesPanel />
+  if (active === 'pier-cap-families') return <PierCapFamiliesPanel />
   if (active === 'alignment') {
     return (
       <LandXmlImportPanel

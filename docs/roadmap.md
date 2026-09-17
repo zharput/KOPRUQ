@@ -1298,3 +1298,110 @@ which is easy to miss). Worth reading for *how* a problem was solved
 (e.g. `Spanova.Generative.AlternativeGenerator`'s uniform-span
 combinatorics, the schematic elevation-preview approach) even though the
 code itself is not reused.
+
+## Workspace shell Phase 1 (2026-09-17)
+
+- [x] Added URL-backed `/<workspace-id>` navigation for all nine primary
+      workspaces, including Loads between Graph and Analysis, and a shared
+      collapsible three-panel layout. `/workspace/<workspace-id>` remains
+      a compatibility alias.
+- [x] Bridge Definition contains only Span Arrangement and
+      Superstructure. Family Tables mounts the existing Assembly,
+      Superstructure, Girder, Preferred Span, Pier, Pier Cap, Foundation,
+      Bearing, and Materials screens; Pile opens Foundation with PILED
+      selected, not a separate pile-family catalog. Loads mounts the
+      existing Loads screen. Unimplemented entries remain placeholders.
+- [x] Graph, Project, Bridge Definition, Analysis, Optimization, Results,
+      and BIM / Export use temporary Phase 1 workspace content where no
+      corresponding screen was mounted.
+- [x] Kept the current application providers and lifted engineering
+      state above workspace routing. No React Flow or graph editor was
+      added; see `docs/architecture.md` for the implementation boundary.
+- [x] Verification: frontend production build and all 32 frontend tests
+      passed. Phase 2 remains gated and has not been started.
+
+## Workspace shell Phase 2A: remove legacy Home entry (2026-09-17)
+
+- [x] `/` and `/home` redirect to `/project`; the SPANOVA logo opens
+      Project Overview. Removed old Home/sidebar shell rendering without
+      deleting its components or existing feature routes.
+- [x] Legacy feature routes render their existing screen inside the shared
+      TopWorkspaceNav + WorkspaceLayout shell. Added the legacy
+      route-to-workspace map to `docs/architecture.md`.
+- [x] Browser navigation/refresh, unified-shell route tests, and
+      Foundation-family regressions pass; Graph remains a placeholder and
+      Phase 2 graph work has not started.
+
+## Project workspace Phase 2B (2026-09-17)
+
+- [x] Replaced the Project placeholder with a project overview, hierarchical
+      Project Information / Design Settings / Site & Environment / Data
+      navigation, and editable Project Properties inspector.
+- [x] Centralized project metadata, project-level design selections, unit
+      preferences, coordinate data, criteria, and the existing bridge inventory
+      in app-owned state persisted through one localStorage record. Save/Cancel,
+      workspace navigation and reload behavior have dedicated frontend tests.
+- [x] Reused existing Bridge Information and Cost Database components; site /
+      environment entries and Files & Documents remain explicit shells. The old
+      Project Dashboard route redirects to canonical Project Overview, and
+      legacy Project Information / Cost Database URLs redirect to their
+      canonical Project sections.
+- [ ] Phase 2C Bridge Definition migration remains a separately requested
+      phase and is not started here.
+
+## Bridge Definition workspace Phase 2C (2026-09-17)
+
+- [x] Added hierarchical Bridge Definition navigation, inventory bridge selector, persistent per-bridge instance state, explicit span sequence, derived support axes, bridge-level assignments/constraints and shared Project terrain/import references.
+- [x] Reused LandXML import, terrain DTM/viewer, profile chart and existing family catalogs by ID. Added Plan/Profile schematics tied to the same instance state. Legacy alignment/terrain/bridge routes now enter canonical workspace locations; inventory routes to Project.
+- [x] Kept Layout Generator/Alternatives outside Bridge Definition and retained System Assembly as a Family Tables composition template. No Graph engine, solver, bridge model generator, engineering validation or Phase 2D work was added. Abutment family selection remains unavailable until stable catalog IDs exist.
+- [x] Frontend tests and production build pass. Lint reports existing warnings; Bridge Definition has a state-sync/deps warning for initializing its span editor text.
+
+## Family Tables consolidation Phase 2D (2026-09-17)
+
+- [x] Added the Family Tables workspace and its supported category navigation, central reused family editors/previews, and context-sensitive Inspector.
+- [x] Added a read-through `family-registry` adapter over the existing family stores; no second family database/store was created. Bridge Definition family ID usage appears in the Inspector, and deleting a referenced Pier, Pier Cap, Foundation, or Bearing is blocked with the bridge/axis listed.
+- [x] Unified Foundation shallow and piled editing under one category; retained existing generators/formulas and previews. Added stable element keys and local persistence for the existing material class assignments.
+- [x] Removed redundant Design System and Materials links from the old sidebar after the new workspace mounted those existing screens. Legacy routes and source modules remain.
+- [x] Abutment and Superstructure reusable family IDs remain unavailable because those catalogs/models do not exist. The Abutment category is disabled; no replacement geometry or synthetic catalog was introduced. System Assembly and Preferred Span remain accessible through their existing routes but are not labeled as family categories.
+- [x] Full frontend tests and build are the completion checks; no Graph implementation is started.
+
+## Architecture realignment / Family Repository Phase 2E (2026-09-17)
+
+- [x] Removed Bridge Definition from primary navigation; preserved the `/bridge-definition` route and all existing bridge/geometry/import modules for compatibility and future generated-model inspection.
+- [x] Added a central repository access boundary over existing persisted catalogs and a shared subscription hook for Pier, Pier Cap, Foundation and Bearing. Existing localStorage keys and stable IDs remain unchanged.
+- [x] Routed legacy Girder Library persistence and Bridge Definition/System Assembly family reads through repository adapters. Graph-facing family references resolve current records by category + stable ID and expose available parameter descriptors.
+- [x] Added the Generated Bridge Model output type and architecture ownership/reuse documentation. Kept Family Tables in primary navigation.
+- [x] Preserved the shared piled Foundation Lx/Ly domain calculation. No Graph nodes, generation engine, FEM, optimization or family data migration was introduced.
+- [ ] Before Phase 3A, define stable-ID domain models for Girder and Superstructure, an Abutment family model, and a true material catalog. Alignment/constraint ownership migration also remains to be designed.
+
+## Phase 3A — Graph Foundation (2026-09-17)
+
+- [x] Add independent graph domain, registry, execution/validation engine, persisted multi-document store, undo/redo and XYFlow adapter.
+- [x] Mount the searchable node library, canvas toolbar, Watch/log and inspector in the existing workspace shell.
+- [x] Keep engineering and family nodes unimplemented; prepare reserved port types for later integration.
+- [x] Supersede the earlier read-only Family Repository node proposal; the Phase 3A.1 architecture lock now defines Graph-authored engineering nodes.
+
+## Phase 3A.1 - Connection Stability and Architecture Lock (2026-09-17)
+
+- [x] Reproduce the render-loop failure in headless Chrome, identify React Flow `StoreUpdater` re-entry, and stabilize selected-ID updates and graph-to-canvas projections.
+- [x] Make interactive port validation pure and lightweight; leave cycles and graph readiness to Run-time validation.
+- [x] Ensure Watch has a centrally typed display wildcard, duplicate/invalid edges do not mutate state, and committed connections are undoable once.
+- [x] Verify real handle drags, 30 x 2 -> Watch = 60, Range -> Watch, invalid Boolean -> Multiply rejection, and 50 committed connections in tests.
+- [x] Lock architecture: Graph becomes the future primary authoring environment; Family Tables is transitional and remains for now; domain logic is shared; Graph execution is headless; generated bridge models are outputs.
+- [ ] Phase 3B: define/reuse domain contracts and implement Material, Pier and Foundation engineering nodes. The former proposal to add read-only Family Repository nodes is superseded.
+
+## Phase 3B.1 - Engineering Types, Units and Material Nodes (2026-09-17)
+
+- [x] Add a UI-independent QuantityKind/unit registry, canonical conversion functions and immutable quantity values; preserve old dimensionless Range documents.
+- [x] Add Quantity and unit-aware Range inputs, finite/precision-safe range generation, Project unit defaults and typed numeric math with execution-time dimension checks.
+- [x] Extend Graph runtime values, Watch, Inspector and ports for quantities and material objects without adding React/DOM dependencies to execution.
+- [x] Reuse existing concrete class IDs and the EurocodeConcrete source through a focused API resolver; expose only properties supported by that source.
+- [x] Register Concrete, Reinforcement Steel, Prestressing Steel and Structural Steel node types. Steel nodes remain unconfigured until approved grade/property catalogs exist.
+- [x] Keep Family Tables behavior and storage unchanged. No Pier, Foundation, Girder, Bearing, Bridge Generator, Analysis or Optimization nodes were added.
+- [x] Run quantity, Graph, frontend and backend validation.
+## Phase 3A.2 - Graph Connection Display Style (2026-09-17)
+
+- [x] Add a persisted canvas-only preference for Smooth (default Bezier) and Orthogonal (step) edge rendering.
+- [x] Keep display preference outside graph documents, connection records, and undo/redo history.
+- [x] Verify rendering projection preserves graph topology, node positions, and connection IDs across repeated style changes.
+- [x] Verify preference restoration, frontend tests and production build.

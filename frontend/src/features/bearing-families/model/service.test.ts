@@ -24,4 +24,10 @@ describe('bearing family geometry generation', () => {
     expect(statusOf({ ...family, enabled: false })).toBe('VALID')
     expect(generateBearingVariants({ ...family, enabled: false })).toHaveLength(27)
   })
+
+  it('produces the requested B1 acceptance case and rejects non-positive minima', () => {
+    const b1 = { ...family, length: { min: 300, max: 400, delta: 50 }, width: { min: 300, max: 400, delta: 50 }, height: { min: 200, max: 400, delta: 50 } }
+    expect(generateBearingVariants(b1)).toHaveLength(45)
+    expect(statusOf({ ...b1, length: { min: -100, max: 400, delta: 100 } })).toBe('INVALID')
+  })
 })

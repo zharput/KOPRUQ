@@ -22,7 +22,6 @@ const MILESTONE_BY_SECTION: Partial<Record<SectionId, string>> = {
   'foundation-families': 'only pile count/diameter are modelled in bridge-core today - no library screen yet',
   'bearing-families': 'elastomeric bearings via externally-supplied Kx/Ky/Kz are agreed (P07) and used in the SPANOVA Fast Solver - not modelled as a reusable library yet',
   'pier-cap-families': 'family concept is represented by System Assembly; engineering parameters are not configured yet',
-  'pile-families': 'family concept is represented by System Assembly; pile length/capacity remain derived engineering outputs',
   'standardization-rules': 'not started - this is the corridor-level standardization objective from the analysis document section I/17',
   'bridge-inventory': 'needs a Corridor/multi-BridgeSite aggregate (analysis document section L step 4) - not built yet, only a single BridgeSite exists today',
   'bridge-site': 'covered by the Layout Generator screen for now - a dedicated Bridge Site definition screen (separate from generation) is later',

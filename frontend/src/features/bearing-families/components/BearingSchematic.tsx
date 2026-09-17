@@ -1,8 +1,8 @@
 import { HDim, VDim } from '../../../shared/ui/ParamSweepCard'
 
 export default function BearingSchematic() {
-  return <div className="spn-shape-card-diagram"><svg viewBox="0 0 460 230" width="460" height="230" role="img" aria-label="Bearing plan and side elevation schematic" style={{ maxWidth: '100%', height: 'auto' }}>
-    <text x="108" y="18" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">PLAN</text><rect x="48" y="48" width="120" height="52" fill="var(--accent)" fillOpacity=".12" stroke="var(--accent)" strokeWidth="1.5" /><HDim x1={48} x2={168} y={36} label="Bearing Length — L" /><VDim y1={48} y2={100} x={185} label="Bearing Width — B" labelX={204} />
-    <text x="310" y="132" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">SIDE ELEVATION</text><rect x="250" y="160" width="120" height="38" fill="var(--accent)" fillOpacity=".12" stroke="var(--accent)" strokeWidth="1.5" /><HDim x1={250} x2={370} y={150} label="Bearing Length — L" /><VDim y1={160} y2={198} x={386} label="Bearing Height — H" labelX={408} />
-  </svg></div>
+  return <div className="bearing-schematic-grid">
+    <svg className="bearing-schematic-view" viewBox="0 0 280 190" width="280" height="190" role="img" aria-label="Bearing plan view"><text x="140" y="16" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">PLAN</text><rect x="38" y="65" width="170" height="70" fill="var(--accent)" fillOpacity=".12" stroke="var(--accent)" strokeWidth="1.5" /><HDim x1={38} x2={208} y={49} label="Bearing Length — L" /><VDim y1={65} y2={135} x={224} label="B" labelX={241} /><text x="140" y="164" textAnchor="middle" fill="var(--text-secondary)" fontSize="10">Bearing Width — B</text></svg>
+    <svg className="bearing-schematic-view" viewBox="0 0 280 190" width="280" height="190" role="img" aria-label="Bearing side elevation"><text x="140" y="16" textAnchor="middle" fill="var(--text-secondary)" fontSize="11">SIDE ELEVATION</text><rect x="38" y="84" width="170" height="50" fill="var(--accent)" fillOpacity=".12" stroke="var(--accent)" strokeWidth="1.5" /><HDim x1={38} x2={208} y={68} label="Bearing Length — L" /><VDim y1={84} y2={134} x={224} label="H" labelX={241} /><text x="140" y="164" textAnchor="middle" fill="var(--text-secondary)" fontSize="10">Bearing Height — H</text></svg>
+  </div>
 }

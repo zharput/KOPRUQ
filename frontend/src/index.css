@@ -1,3 +1,5 @@
+@import '@xyflow/react/dist/style.css';
+
 :root {
   --bg-page: #0b0e14;
   --surface-0: #0b0e14;

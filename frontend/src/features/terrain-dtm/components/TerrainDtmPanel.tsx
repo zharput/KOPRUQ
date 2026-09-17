@@ -40,10 +40,10 @@ import LandXmlImportPanel from '../../landxml-import/components/LandXmlImportPan
  * `App.tsx` (`onImported`) - the same pattern already used for
  * `crossSectionValues` - so the full viewer can find this terrain too.
  */
-export default function TerrainDtmPanel({ onImported }: { onImported: (terrainId: string) => void }) {
+export default function TerrainDtmPanel({ onImported, projectId = 'default', coordinateSystemLabel: initialCoordinateSystemLabel = 'Local / Unknown' }: { onImported: (terrainId: string) => void; projectId?: string; coordinateSystemLabel?: string }) {
   const [landXmlFile, setLandXmlFile] = useState<File | null>(null)
   const [sourceFileName, setSourceFileName] = useState<string | null>(null)
-  const [coordinateSystemLabel, setCoordinateSystemLabel] = useState('Local / Unknown')
+  const [coordinateSystemLabel, setCoordinateSystemLabel] = useState(initialCoordinateSystemLabel)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const importMutation = useMutation({ mutationFn: importTerrain })
@@ -56,7 +56,7 @@ export default function TerrainDtmPanel({ onImported }: { onImported: (terrainId
     importMutation.reset()
     setSourceFileName(file.name)
     importMutation.mutate(
-      { file, projectId: 'default', coordinateSystemLabel },
+      { file, projectId, coordinateSystemLabel },
       { onSuccess: (result) => onImported(result.id) },
     )
   }

@@ -1,4 +1,4 @@
-# SPANOVA Architecture
+﻿# SPANOVA Architecture
 
 Status: **P06's MIDAS-P01 round trip + real VIA-35 model done; P10's UI
 shell also done, out of milestone order; SITE-P01's `spatial-core` +
@@ -44,28 +44,28 @@ modules.
 
 ```
 SPANOVA/
-├── frontend/                      React + TypeScript (Vite), web app (browser-based)
-├── backend/                       Maven multi-module, Java 21
-│   ├── pom.xml                     parent (dependency management: Spring Boot 3.5.16 BOM, JUnit 5 BOM)
-│   ├── spatial-core/                 coordinate/point primitives (site/layout domain) - no deps
-│   ├── alignment/                    chainage <-> XYZ geometry - depends on spatial-core
-│   ├── constraints/                  NoPierZone (chainage-range, LAYOUT-P01 scope) - no deps
-│   ├── bridge-layout/                Bridge Layout Engine (LAYOUT-P01) - depends on alignment, constraints
-│   ├── bridge-core/                 solver-independent domain model - no deps
-│   ├── rules-engine/                deterministic feasibility - depends on bridge-core
-│   ├── generative-engine/           alternative generation - depends on bridge-core, rules-engine
-│   ├── analysis-api/                job/status/result ports - depends on bridge-core
-│   ├── midas-adapter/               MIDAS-specific code - depends on bridge-core, analysis-api
-│   └── api/                         Spring Boot app - depends on all of the above
-├── services/                       Python, deferred to after P01
-│   ├── optimization-service/        placeholder only
-│   └── ai-service/                  placeholder only
-├── docs/
-│   ├── SPANOVA_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
-│   ├── ARCHITECTURE_AMENDMENT_V2.md  supersedes spec sections 3/4/12-14/19-20's tech choices
-│   ├── architecture.md              this file
-│   └── roadmap.md                   milestone status
-└── archive/                        two earlier build generations - reference only
+â”œâ”€â”€ frontend/                      React + TypeScript (Vite), web app (browser-based)
+â”œâ”€â”€ backend/                       Maven multi-module, Java 21
+â”‚   â”œâ”€â”€ pom.xml                     parent (dependency management: Spring Boot 3.5.16 BOM, JUnit 5 BOM)
+â”‚   â”œâ”€â”€ spatial-core/                 coordinate/point primitives (site/layout domain) - no deps
+â”‚   â”œâ”€â”€ alignment/                    chainage <-> XYZ geometry - depends on spatial-core
+â”‚   â”œâ”€â”€ constraints/                  NoPierZone (chainage-range, LAYOUT-P01 scope) - no deps
+â”‚   â”œâ”€â”€ bridge-layout/                Bridge Layout Engine (LAYOUT-P01) - depends on alignment, constraints
+â”‚   â”œâ”€â”€ bridge-core/                 solver-independent domain model - no deps
+â”‚   â”œâ”€â”€ rules-engine/                deterministic feasibility - depends on bridge-core
+â”‚   â”œâ”€â”€ generative-engine/           alternative generation - depends on bridge-core, rules-engine
+â”‚   â”œâ”€â”€ analysis-api/                job/status/result ports - depends on bridge-core
+â”‚   â”œâ”€â”€ midas-adapter/               MIDAS-specific code - depends on bridge-core, analysis-api
+â”‚   â””â”€â”€ api/                         Spring Boot app - depends on all of the above
+â”œâ”€â”€ services/                       Python, deferred to after P01
+â”‚   â”œâ”€â”€ optimization-service/        placeholder only
+â”‚   â””â”€â”€ ai-service/                  placeholder only
+â”œâ”€â”€ docs/
+â”‚   â”œâ”€â”€ SPANOVA_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
+â”‚   â”œâ”€â”€ ARCHITECTURE_AMENDMENT_V2.md  supersedes spec sections 3/4/12-14/19-20's tech choices
+â”‚   â”œâ”€â”€ architecture.md              this file
+â”‚   â””â”€â”€ roadmap.md                   milestone status
+â””â”€â”€ archive/                        two earlier build generations - reference only
 ```
 
 ## Dependency graph (Maven)
@@ -144,17 +144,17 @@ adapter's boundary).
 
 ```
 Project (mutable)
-├── Bridge                 (bridgeName, totalLengthM, deckWidthM)
-├── DesignSpace              (Min/Max ranges + girderDepthStepM - see below)
-├── generatedAlternatives : List<BridgeAlternative>
-└── selectedAlternativeId : UUID?
+â”œâ”€â”€ Bridge                 (bridgeName, totalLengthM, deckWidthM)
+â”œâ”€â”€ DesignSpace              (Min/Max ranges + girderDepthStepM - see below)
+â”œâ”€â”€ generatedAlternatives : List<BridgeAlternative>
+â””â”€â”€ selectedAlternativeId : UUID?
 
 BridgeAlternative           (P01's success-criterion type - spec section 20)
-├── spanLayout : SpanLayout { spans: List<Span> }, Span = { lengthM }   (required)
-├── girder : Girder (count, depthM, spacingM)                          (required)
-├── deck : Deck? (slabThicknessM)                                      (nullable - not sized until Deck enumeration is approved)
-├── pier : Pier? (diameterM, heightM, pierType: String)                (nullable - not sized until Pier enumeration is approved)
-└── foundation : Foundation? (type: SPREAD|PILE, pileCount?, pileDiameterM?) (nullable - ditto)
+â”œâ”€â”€ spanLayout : SpanLayout { spans: List<Span> }, Span = { lengthM }   (required)
+â”œâ”€â”€ girder : Girder (count, depthM, spacingM)                          (required)
+â”œâ”€â”€ deck : Deck? (slabThicknessM)                                      (nullable - not sized until Deck enumeration is approved)
+â”œâ”€â”€ pier : Pier? (diameterM, heightM, pierType: String)                (nullable - not sized until Pier enumeration is approved)
+â””â”€â”€ foundation : Foundation? (type: SPREAD|PILE, pileCount?, pileDiameterM?) (nullable - ditto)
 
 DesignSpace: Min/Max for Span, GirderCount, GirderSpacing, GirderDepth,
              SlabThickness, PierDiameter, PierHeight, plus
@@ -328,7 +328,7 @@ yet) - explicitly flagged simplifications, not invented values.
 ## P10 UI shell (`frontend/`, out of milestone order)
 
 The engineer chose to skip P07-P09 for now and build the professional UI
-shell early, matching the target mockup (`Spanova_menü.jpg`). `App.tsx`
+shell early, matching the target mockup (`Spanova_menÃ¼.jpg`). `App.tsx`
 is now `Sidebar` + `TopBar` + a content area that swaps between
 `GenerateWorkflow` (P02-P05's form/GENERATE/table/preview, relocated
 unchanged) for "Design Space"/"Generate", `HomePanel` (only the Quick
@@ -777,7 +777,7 @@ not a nested sidebar tree) and a "Layout Design Space" screen
 
 Eighth step, same session: the engineer posted the complete, final tree
 for Site & Corridor, Design System, Bridges, Analysis, and Optimization
-("SITE CORRIDOR bu şekilde olacak... diğerleride aynı mantıkta" - Site &
+("SITE CORRIDOR bu ÅŸekilde olacak... diÄŸerleride aynÄ± mantÄ±kta" - Site &
 Corridor will be like this, the others follow the same pattern) -
 replacing every remaining group wholesale, not incrementally.
 
@@ -886,7 +886,7 @@ groups at the top, with a second row revealing a clicked group's leaves
 
 Tenth step, same session: the engineer posted a "Bridge Information"
 mockup (Name/Chainage/Crossing Type/Estimated Length/Road Width/
-Terrain/Status, one row per bridge - "50 köprü varsa, 50 satırda") and
+Terrain/Status, one row per bridge - "50 kÃ¶prÃ¼ varsa, 50 satÄ±rda") and
 asked for `Design Codes`/`Units`/`Design Criteria` to move from their
 own sidebar leaves into three dropdowns at the top of Project
 Information instead.
@@ -906,7 +906,7 @@ Information instead.
   Middle card = the new "Bridge Information" table, exactly the
   engineer's column set, one row per bridge: **VIA-35** (using the real
   fields already known - total length, deck width; fields never given
-  for VIA-35 - Chainage, Crossing Type, Terrain, Status - shown as "—"
+  for VIA-35 - Chainage, Crossing Type, Terrain, Status - shown as "â€”"
   rather than invented) and **VIA-24** (the engineer's own mockup values,
   taken as real given data the same way VIA-35's original facts were -
   chainage 24+320, River + Highway, 280 m, 28.0 m, Valley, "In Design"
@@ -949,7 +949,7 @@ dropdowns with a specific option set.
 - **`ProjectPanel.tsx` rewritten again**: the Bridge Information table
   now holds the engineer's real 12-row dataset (transcribed exactly -
   chainage, crossing type, length, road width; Terrain/Status columns
-  stay "—" since the spreadsheet itself shows "-" there, not invented).
+  stay "â€”" since the spreadsheet itself shows "-" there, not invented).
   Clicking a row opens an "additional details" card below with: **Bridge
   Type** dropdown (Precast Girder / Steel Composite Girder / Cantilever
   Bridge - VIA-01's spreadsheet label "Balanced Cantilever" mapped to
@@ -970,7 +970,7 @@ dropdowns with a specific option set.
   engineer's exact EN 1992-1-1/EN 206 concrete-class-by-structural-
   element table (9 rows, bilingual RO/EN element names, exposure class,
   concrete class). **Row 1's values were illegible in the source image**
-  (obscured by a highlight bar) - shown as "—" with an explicit on-page
+  (obscured by a highlight bar) - shown as "â€”" with an explicit on-page
   note asking for confirmation, not guessed (spec section 22).
 - **`Pier Families`/`Bridges > Piers` placeholder text updated** to
   record the 4 shapes and their dimension parameters (B, H, tw, tf1,
@@ -1003,7 +1003,7 @@ illegible "Foundation levelling" row entirely - resolving that open
 item by removing it, not by supplying the value), asked for each
 element's concrete class to become an EN-class dropdown, asked for Loads
 to gain a top tab row (one tab per load category, detail parameters
-"daha sonra vereceğim" - given later), and asked for a real "From Excel"
+"daha sonra vereceÄŸim" - given later), and asked for a real "From Excel"
 import button on Bridge Information.
 
 - **`MaterialsPanel.tsx` rewritten**: 8 rows (No., Structural Element,
@@ -1098,7 +1098,7 @@ explicitly to only the bridges that selected that shape.
   ranges.
 - **The scoping rule is stated explicitly in the UI**, not just in code
   comments (the engineer's own explicit ask - "bununla ilgili bir
-  açıklama olması lazım"): a `.spn-hint` banner at the top of the page
+  aÃ§Ä±klama olmasÄ± lazÄ±m"): a `.spn-hint` banner at the top of the page
   says the min/max/delta sweep for each shape only applies to bridges
   whose Pier Shape (Project Information's per-bridge additional details)
   is set to that exact shape.
@@ -1175,7 +1175,7 @@ Dashboard from the engineer's own mockup.
 
 Same day, two more follow-ups from the engineer's own screenshots: fix a
 reported edit-box misalignment across Pier Families' shape cards
-("kayıklık"), and build a real Girder Library screen with a Precast
+("kayÄ±klÄ±k"), and build a real Girder Library screen with a Precast
 Girder parametric cross-section from the engineer's own detailed
 drawing.
 
@@ -1223,8 +1223,8 @@ drawing.
     not silently "correct" a number it cannot re-verify against the
     source image in this session.
   - **Steel Girder** and **Box Girder** (below it, per the engineer's
-    own instruction - "onların bilgisini sonra vereceğim, ama şimdiden
-    yerini düzenleyebilirsin"): honest placeholder rows
+    own instruction - "onlarÄ±n bilgisini sonra vereceÄŸim, ama ÅŸimdiden
+    yerini dÃ¼zenleyebilirsin"): honest placeholder rows
     (`GirderPlaceholderRow`) - checkbox present but disabled/unchecked,
     a dashed "No drawing yet" box in place of a diagram, and a note
     that no parameters are invented for these two - not even
@@ -1495,7 +1495,7 @@ smaller/cropped sidebar logo.
   `TopBar` is now: row 1 (search, theme toggle, notifications, user),
   then a single leaf row showing the *active* sidebar group's own
   leaves, only rendered when the active section actually belongs to a
-  group ("sadece alt menüler olacak").
+  group ("sadece alt menÃ¼ler olacak").
 - **Real bug found and fixed while verifying this**: `Sidebar`/`TopBar`
   used `useParams()` to read the active section, but they are *siblings*
   of `<Routes>` in `App.tsx`, not descendants of the matched `:section`
@@ -1503,7 +1503,7 @@ smaller/cropped sidebar logo.
   that subtree, so it silently always returned `{}` there, and both
   components permanently fell back to `'home'` regardless of the real
   URL. This is exactly what the engineer was reporting
-  ("hangi menüde olduğumuz belli olmuyor"): the sidebar/topbar active
+  ("hangi menÃ¼de olduÄŸumuz belli olmuyor"): the sidebar/topbar active
   highlight never actually tracked navigation - only the routed
   *content* did (via `SectionRoute`, which is genuinely inside the
   matched subtree and was never affected). Fixed by switching both to
@@ -1547,7 +1547,7 @@ smaller/cropped sidebar logo.
   `overflow: hidden`) clips the image to just the top portion, and
   `max-width` dropped from 180px to 160px.
 - **Home page's Quick Actions removed entirely** (engineer's own words -
-  "HOME sayfasındaki butonların hepsini siilelim"). "Import Alignment"
+  "HOME sayfasÄ±ndaki butonlarÄ±n hepsini siilelim"). "Import Alignment"
   and "Import Terrain" moved into their matching Site & Corridor leaves
   rather than being deleted outright: a new `shared/ui/
   ImportActionScreen.tsx` (title + one disabled action button, same
@@ -1590,14 +1590,14 @@ and a round of smaller shell/menu instructions.
   interactive content OR a plain status string, never both.
   - **Overhang is computed from the engineer's own given formula**, not
     invented or "corrected" to standard girder-spacing convention:
-    `girderSpanWidth = spaceOfGirder × numberOfGirders`,
-    `overhang = (platformWidth − girderSpanWidth) / 2`. Validated live
-    against the engineer's own check (`overhang ≥ spaceOfGirder / 2`)
+    `girderSpanWidth = spaceOfGirder Ã— numberOfGirders`,
+    `overhang = (platformWidth âˆ’ girderSpanWidth) / 2`. Validated live
+    against the engineer's own check (`overhang â‰¥ spaceOfGirder / 2`)
     with a green "OK..."/red "NOT OK!" indicator next to the (read-only,
     computed) value. The default values (13.80/1.00/1.50/2.00/5) give
     overhang = 1.90 m, OK.
   - The diagram's girder positions use this **exact same formula** (the
-    girder group is `spaceOfGirder × numberOfGirders` wide, centered in
+    girder group is `spaceOfGirder Ã— numberOfGirders` wide, centered in
     the platform width) - the drawing and the computed number always
     agree, never independently fudged. Layer thicknesses and girder
     shapes are schematic/not to scale, same convention as
@@ -1608,14 +1608,14 @@ and a round of smaller shell/menu instructions.
   instruction, this info block moved to the **top** of the page (was
   below the stats before); the stats block (Route Length/Number of
   Bridges/Design Code) is now second. The card title's "1." prefix was
-  dropped ("Project Summary'deki '1.' yazısını sil").
+  dropped ("Project Summary'deki '1.' yazÄ±sÄ±nÄ± sil").
 - **Menu prunes** (`app/navigation/sections.ts`) - cancelled outright,
   not left as placeholders: `carbon-database` (Project group) and
   `construction-methods` (Design System group) removed from `SectionId`,
   `SIDEBAR_GROUPS`, `Sidebar.tsx`'s icon map, and `PlaceholderPanel`'s
   milestone map. `Construction` removed from `LoadsPanel`'s
   `LOAD_CATEGORIES` (engineer's own instruction, "LOAD's da construction
-  load'u kaldır").
+  load'u kaldÄ±r").
 - **Cost Database is real now**
   (`features/cost-database/components/CostDatabasePanel.tsx`) - a
   generic "From Excel" import, not a specific cost-data schema (no
@@ -1627,7 +1627,7 @@ and a round of smaller shell/menu instructions.
 - **Verified live in the browser** (fresh tab, no console errors):
   Precast's diagram/fields render and react correctly to input changes -
   tested both the default OK case (overhang 1.90 m) and a forced NOT-OK
-  case (7 girders → overhang −0.10 m, red "NOT OK!", diagram degrades
+  case (7 girders â†’ overhang âˆ’0.10 m, red "NOT OK!", diagram degrades
   gracefully, no crash); Project Dashboard shows the 3 real values in
   the right fields, "Project Summary" title has no "1."; Cost Database's
   "From Excel" imports a generic 4-column test sheet and renders it
@@ -1644,13 +1644,13 @@ UI pattern in general.
 
 - **Precast cross section simplified**: Height of deck/asphalt/
   waterproofing and Prefabricated cap B x H removed entirely
-  ("şekildeki bilgileri superstructuras menü'den kaldır") - only
+  ("ÅŸekildeki bilgileri superstructuras menÃ¼'den kaldÄ±r") - only
   Platform width, Left/Right walkway, Space of girder, Number of
   girders, and the computed Overhang remain.
 - **Shape-card layout unified across Pier Families/Girder Library/
   Superstructure Families > Precast**: diagram is now a full-width row
-  on top, parameters below it - not side by side as before ("üstyapı
-  şekli üstte tam satır olsun, parametrik değerler onun altında olsun").
+  on top, parameters below it - not side by side as before ("Ã¼styapÄ±
+  ÅŸekli Ã¼stte tam satÄ±r olsun, parametrik deÄŸerler onun altÄ±nda olsun").
   `shared/ui/ParamSweepCard.tsx` (used by Pier Families and Girder
   Library) restructured accordingly: new `.spn-shape-card-header`
   (title + checkbox) and `.spn-shape-card-diagram` (centered, full
@@ -1659,7 +1659,7 @@ UI pattern in general.
   its full 620px width without needing to horizontally scroll anymore -
   it's no longer squeezed into a narrow column next to a diagram.
 - **Precast's diagram is now static, not reactive to girder count/
-  spacing** ("aralık ve kiriş sayısına göre şekli değiştirme, sadece
+  spacing** ("aralÄ±k ve kiriÅŸ sayÄ±sÄ±na gÃ¶re ÅŸekli deÄŸiÅŸtirme, sadece
   hesap yap, uyar"): it always draws the same fixed 5-girder
   arrangement, using the *real* bulb-tee outline extracted from Girder
   Library (`shared/ui/BulbTeeGirderShape.tsx`, a new reusable geometry
@@ -1670,7 +1670,7 @@ UI pattern in general.
   check still use the live values exactly as before - only the artwork
   is fixed, not the engineering.
 - **Girder Library restructured onto top tabs** ("girder library'de 3
-  tip için 3 farklı üst menü olsun, aynı superstructure familie'deki
+  tip iÃ§in 3 farklÄ± Ã¼st menÃ¼ olsun, aynÄ± superstructure familie'deki
   gibi"): now built on the same `shared/ui/TabDetailPanel.tsx` as
   Superstructure Families - Precast Girder/Steel Girder/Box Girder tabs,
   each rendering its own `content`. Precast Girder's `ParamSweepCard`
@@ -1679,13 +1679,13 @@ UI pattern in general.
   Steel/Box Girder's placeholder cards moved to their own tabs too
   (same honest "awaiting engineer input" text as before).
 - **No visible scrollbar on overflowing tab rows** ("en altta slider
-  olmasın", both for Loads and implicitly TopBar's own leaf row/Girder
+  olmasÄ±n", both for Loads and implicitly TopBar's own leaf row/Girder
   Library's tabs): `.spn-steps-row` gained `scrollbar-width: none` +
   `::-webkit-scrollbar { display: none }` - still scrollable via wheel/
   trackpad/touch/drag, just no visible track/thumb.
-- **No vertical grid lines in parameter tables** ("edit box'larda düşey
-  çizgiler ile edit box sınırı üst üste gelmesin... düşey çizgileri
-  kaldır" - a screenshot showed a table cell's own vertical border
+- **No vertical grid lines in parameter tables** ("edit box'larda dÃ¼ÅŸey
+  Ã§izgiler ile edit box sÄ±nÄ±rÄ± Ã¼st Ã¼ste gelmesin... dÃ¼ÅŸey Ã§izgileri
+  kaldÄ±r" - a screenshot showed a table cell's own vertical border
   visually clashing with an edit box's rounded border sitting right
   against it, e.g. Girder Library's bf/tf rows): `.spn-param-table th`/
   `td` now get `border-left: none; border-right: none` (only the
@@ -1710,7 +1710,7 @@ and feature changes.
 
 - **Menu reorganized** (`app/navigation/sections.ts`): Materials/Loads
   moved from the Project group into Design System (now its first two
-  leaves, in that order - "Material ilk sırada olsun"). `seismic`
+  leaves, in that order - "Material ilk sÄ±rada olsun"). `seismic`
   removed from Site & Corridor entirely - its 4 items (Hazard Data/PGA-
   Spectral Data/Site Class/Design Spectrum) now render as real content
   inside Loads' own "Seismic" tab (`features/loads/components/
@@ -1726,8 +1726,8 @@ and feature changes.
   updating.
 - **Sidebar theme reversed back to following the app theme** - a
   deliberate fixed-dark-sidebar decision from the *previous* round was
-  explicitly corrected by the engineer ("açık moda aldığın zaman
-  yandaki menüde açık olsun, o koyu kalıyor"). `.spn-sidebar`/
+  explicitly corrected by the engineer ("aÃ§Ä±k moda aldÄ±ÄŸÄ±n zaman
+  yandaki menÃ¼de aÃ§Ä±k olsun, o koyu kalÄ±yor"). `.spn-sidebar`/
   `.spn-nav-item`/`.spn-nav-group-header`/etc. now use the themed
   `var(--surface-1)`/`var(--text-secondary)`/etc. variables again, not
   the fixed `--sidebar-*` constants. The one thing kept fixed: the logo
@@ -1885,7 +1885,7 @@ cross section) with 7 numbered follow-ups to the round above.
   engineer's own requested additions, both reusing the existing `HDim`
   helper, no new diagram primitive needed.
 - **Walkway zones are dark green and resize live** (`#1f6f40` fill,
-  literal hex - "koyu yeşil" is a specific color choice, not a
+  literal hex - "koyu yeÅŸil" is a specific color choice, not a
   theme-driven one) - width is now `leftWalkwayM`/`rightWalkwayM`
   scaled to the diagram's pixels-per-meter, so a wider walkway visibly
   extends inward and a narrower one shrinks, instead of the previous
@@ -1900,16 +1900,16 @@ cross section) with 7 numbered follow-ups to the round above.
   "count" fields). `Number of girders` and the 5 count fields
   (facia/guardrail/pedestrian-railing/protective-fence/sound-panel)
   stay plain `<input type="number">`, unformatted - the engineer's own
-  circled exception ("kırmızı işaretli sayılar dışındakilerin hepsi 2
+  circled exception ("kÄ±rmÄ±zÄ± iÅŸaretli sayÄ±lar dÄ±ÅŸÄ±ndakilerin hepsi 2
   desimalli olsun").
 - **New `.spn-input-passive` CSS class** (`app/styles/App.css`) -
   grayed-out background/text/cursor for every computed, read-only
-  field (Concrete Self Weight, Asphalt's and Kaldırım's width terms in
+  field (Concrete Self Weight, Asphalt's and KaldÄ±rÄ±m's width terms in
   `SelfWeightPermanent.tsx`; Carriageway and Overhang in
   `PrecastCrossSection.tsx`) so a passive field visually reads as "not
   enterable" instead of looking identical to a live edit box - the
-  engineer's own circled distinction ("mavi işaretli sayıların edit
-  box'ını gri görünümlü yap").
+  engineer's own circled distinction ("mavi iÅŸaretli sayÄ±larÄ±n edit
+  box'Ä±nÄ± gri gÃ¶rÃ¼nÃ¼mlÃ¼ yap").
 - **Verified live** (fresh tab): Superstructure's diagram confirmed
   redrawing correctly at girder count 5 -> 8 (including the NOT OK
   negative-overhang case, girders visibly spilling past the deck) and
@@ -1919,7 +1919,7 @@ cross section) with 7 numbered follow-ups to the round above.
   character-by-character with no mid-keystroke reformatting fighting
   the input. Loads' Self Weight & Permanent then correctly showed the
   same 3.00+1.50 walkway
-  sum (gray Kaldırım width term) and 9.30 m gray Asphalt width term,
+  sum (gray KaldÄ±rÄ±m width term) and 9.30 m gray Asphalt width term,
   both results recomputed. No console errors. `npm run build`/`lint`/
   `test` clean, 16/16 tests, no new warnings.
 
@@ -2376,3 +2376,172 @@ approved, then implemented.
   result caching/fingerprinting, and engineering QA post-MIDAS are all
   designed in `docs/MIDAS_INTEGRATION_ANALYSIS.md` but not built - next
   MIDAS milestones, not yet scheduled against the P00-P12 numbering.
+
+## Workspace shell, Phase 1 (`frontend/src/app/`, 2026-09-17)
+
+- Added a permanent top workspace navigation for Project, Bridge
+  Definition, Family Tables, Graph, Loads, Analysis, Optimization,
+  Results, and BIM / Export. Workspace selection is URL-backed at
+  `/<workspace-id>` (for example `/project`); the Phase 1
+  `/workspace/<workspace-id>` path remains a compatibility alias.
+- `app/workspaces/registry.ts` is the shared workspace configuration for
+  labels, icons, left navigation, center titles, and inspector headings.
+  `TopWorkspaceNav.tsx` and `WorkspacePage.tsx` consume that registry;
+  `WorkspaceLayout.tsx` supplies independently scrollable, collapsible
+  left and right panels around a flexible center.
+- Bridge Definition currently lists only Span Arrangement and
+  Superstructure. Family Tables mounts existing Assembly, Superstructure,
+  Girder, Preferred Span, Pier, Pier Cap, Foundation, Bearing, and
+  Materials components. Its Pile entry opens the Foundation editor with
+  PILED selected; it does not define a separate pile catalog. Abutment
+  and Standardization Rules have no corresponding current editor and
+  remain Phase 1 placeholders. Loads mounts the existing Loads panel.
+  Existing one-segment feature routes continue to render their original
+  feature screen in the new shell's center panel. The old sidebar and
+  section toolbar source files remain temporarily for migration/reference
+  but are no longer mounted.
+- Existing cross-feature React state and the shared QueryClient remain
+  above workspace routing in `App.tsx`/`AppProviders.tsx`. No React Flow,
+  graph engine, new analysis behavior, or optimization behavior was
+  introduced. The existing terrain 3D viewer remains on its current
+  legacy route and was not duplicated or migrated.
+- Next: Phase 2 may define the engineer-approved graph/node model and
+  interaction scope, then mount it in the Graph workspace; this Phase 1
+  shell does not pre-implement that editor.
+
+## Unified application shell, Phase 2A (`frontend/src/app/`, 2026-09-17)
+
+- `/` and `/home` now redirect to `/project`; the SPANOVA wordmark also
+  navigates to `/project`. The legacy Home screen is no longer a separate
+  application entry point.
+- Every path renders the permanent TopWorkspaceNav. Workspace routes use
+  the same three-panel WorkspaceLayout. Existing one-segment feature
+  routes render through the retained `AppRoutes` router inside the center
+  panel, so they no longer mount the old full-height Sidebar/TopBar shell.
+- Cross-feature state remains owned by `App.tsx`; BrowserRouter links,
+  browser back/forward, and refresh retain the active workspace URL.
+- Legacy-to-workspace migration map (components remain in place):
+  - Project: Project Dashboard, Project Information, Cost Database.
+  - Bridge Definition: Alignment, Terrain/DTM, GIS & Satellite,
+    Geotechnical, Hydrology & Hydraulic, Constraints, bridge inventory/
+    layout routes, and 3D Visualization.
+  - Family Tables: System Assembly, Superstructure, Girder, Preferred
+    Span, Pier, Pier Cap, Abutment, Foundation, Bearing, Materials, and
+    Standardization Rules. Pile remains a Foundation type/shortcut.
+  - Loads: Loads and Load Combinations.
+  - Analysis: Model Reduction, Fast Solver, Analysis Queue, and solver
+    verification routes.
+  - Optimization: layout/structural/bridge/corridor optimization and
+    Pareto routes.
+  - Results: results and alternatives. BIM / Export: Reports and export
+    destinations.
+  - Settings and Help remain in Project for now.
+- This is routing and shell unification only. Legacy feature source,
+  HomePanel source, Sidebar, and TopBar have not been deleted; Graph,
+  React Flow, and feature migration work remain deferred.
+
+## Project workspace, Phase 2B (`frontend/src/features/project/`, 2026-09-17)
+
+- The Project workspace provides Overview, hierarchical Project Information /
+  Design Settings / Site & Environment / Data navigation, and a Project
+  Properties inspector inside the shared top navigation.
+- `ProjectWorkspaceData` is the canonical frontend project metadata/settings
+  shape. It stores identity, stakeholder/date/description, location, design
+  code selections, units, coordinate system fields and extensible criteria.
+  Existing `BridgeRow[]` remains the bridge inventory model. Both are held in
+  app-owned state and persisted together in `spanova.project-workspace.v1`;
+  no second project persistence mechanism was added.
+- Edit Project uses an inspector draft. Save updates shared app state and
+  persistence; Cancel discards the draft. Workspace navigation preserves
+  state and reload restores it from localStorage.
+- Overview derives bridge count, total listed bridge length and bridge types
+  from existing `BridgeRow[]`. Alternatives remain `â€”` because no active
+  alternatives source exists. Empty metadata and unavailable last-modified
+  data are not fabricated. The new workspace does not seed a real project name.
+- Existing Bridge Information and Cost Database components are reused.
+  Bridge Information remains reachable under Project Information; Cost
+  Database import behavior is unchanged and remains component-session state.
+  Files & Documents is a UI shell only.
+- Terrain/GIS, geotechnical, hydrology, seismic and climate entries are
+  integration placeholders. No GIS engine, calculations, document store or
+  Bridge Definition migration was introduced.
+- Legacy `/project-dashboard` redirects to `/project`, avoiding its former
+  local sample identity values. Its source is retained. Legacy
+  `/project-information` and `/cost-database` URLs redirect to their
+  canonical Project workspace sections. The bridge inventory source remains
+  mounted at Project Information > Bridge Information.
+- Unit preferences use SI display defaults (`m`, `kN`, `kNÂ·m`, `MPa`, `t`,
+  `Â°C`) without implementing conversions. Eurocode carries forward the
+  existing app-level design-standard selection.
+
+## Bridge Definition workspace, Phase 2C (2026-09-17)
+
+- Added the canonical Bridge Definition workspace with the requested hierarchical Alignment, Span Arrangement, Superstructure, Supports, Foundations, Bearings, Construction, Constraints and Assembly navigation. A selector reuses the existing project bridge inventory; selection and each bridge definition are persisted in `spanova.bridge-definitions.v1`.
+- Bridge-instance spans are explicitly entered as individual lengths. Existing `BridgeRow.spansM` values remain inventory alternatives and are shown as such; they are not silently copied into a selected layout. Support axes and chainages are derived from the explicit sequence. Family relationships are stored as existing catalog IDs, including girder variant/family IDs and pier, pier cap, foundation and bearing IDs. Bridge-specific heights, elevations, bearing arrangement, deck override, constraints, method and descriptive stage note stay on the bridge definition.
+- Project terrain dataset and LandXML import references were added to the existing Project workspace record, so multiple bridges can share source data. Existing LandXML import, terrain DTM, terrain viewer and profile chart components are mounted in the new workspace. Plan/Profile drawings are schematic views of the same entered span/axis data; the 3D viewer currently displays the existing terrain/alignment content and does not generate a bridge model.
+- Migration map: `/alignment`, `/terrain-dtm`, `/3d-visualization`, `/constraints`, `/bridge-site`, and existing bridge component URLs now enter Bridge Definition. `/bridge-inventory` enters Project > Bridge Information. GIS/Satellite, Geotechnical and Hydrology remain Project-level integrations. Layout Generator, Layout Alternatives, Selected Layout and Bridge Alternatives remain generation workflows (Graph workspace/legacy feature routes), and were not moved into Bridge Definition.
+- Code inspection found the Layout Generator creates candidate alternatives, while Project Information span values are alternatives, not an instance sequence. Preferred Span uses girder variant IDs. System Assembly is a reusable family-composition/template screen, not an instance assembly or engineering validator, so its template logic remains in Family Tables. The existing constraint screen did not expose a reusable bridge-instance constraint model; Bridge Definition therefore stores bridge-local named chainage references only and does not claim clearance/feasibility checks.
+- The current source has no stable Abutment Family catalog IDs or bridge model geometry generator. A1/A2 family references are reserved in instance state, but cannot be selected until the catalog supplies stable IDs. No Graph, Analysis, Optimization, geometry duplication, or legacy module deletion was included; Phase 2D remains deferred.
+
+## Family Tables consolidation, Phase 2D (2026-09-17)
+
+### Existing family audit / migration map
+
+| Category | Existing model and editor | Preview / persistence / identity | Phase 2D destination |
+|---|---|---|---|
+| Superstructure | `SuperstructureFamiliesPanel` with existing Precast cross-section inputs; PSC and Steel/Composite are placeholders | Existing diagram; values stay in app-owned cross-section state; no stable superstructure family ID | Reused under Family Tables. No new family record or ID invented. |
+| Girder | `GirderLibraryPanel`; Precast parameter sweep and generated variants; Steel/Box remain placeholders | Existing girder shape; dimensions/enabled persisted at `spanova.girder-library.precast`; canonical `PG-200`, generated variant IDs `PG-Hâ€¦` | Reused; registry adapter maps existing definition to `PG-200`, without another store. |
+| Pier | Most complete existing family workflow, used as interaction reference | Existing section generator, shape preview, height applicability and persisted stable IDs at `spanova.project-design-system.pier-families` | Reused unchanged in its engineering calculations; catalog selection also updates Family Inspector. |
+| Pier Cap | Existing Pier Cap rule model, variant generator, schematic and catalog | Persisted stable IDs at `spanova.project-design-system.pier-cap-families` | Reused; Bridge Definition usage is indexed for delete protection. |
+| Abutment | No reusable Abutment family model/editor/catalog found; prior route is a placeholder | No stable family IDs or reusable geometry/persistence to migrate | Shown disabled with an explicit unavailable state; no fake family created. |
+| Foundation | Existing shallow/piled family model, generator, validation and plan/elevation schematic | Persisted stable IDs at `spanova.project-design-system.foundation-families`; current service derives piled Lx/Ly using X/Y spacing independently | Reused in one Foundation editor; clicking a catalog row loads it for editing. |
+| Bearing | Existing Elastomeric family/rule model, generator, validation and schematic | Persisted stable IDs at `spanova.project-design-system.bearing-families` | Reused; Bridge Definition usage is indexed for delete protection. |
+| Material | Existing concrete class by structural element table, using EN 1992-1-1 class names | Previously transient; assignments now persist under `spanova.project-design-system.material-assignments` with stable element keys. This is still a class assignment table, not a full material property model. | Reused under Family Tables; class-code adapters identify the shown material entries. No mechanical properties invented. |
+
+- Added a Family Tables workspace with the supported categories above, central existing editors/tables/previews and a context Inspector. Foundation replaces the separate Pile shortcut with its existing Shallow/Piled type selector. Existing `SystemAssemblyPanel` is a family-composition template, Preferred Span is a girder rule, and Standardization Rules are not reusable component families; their source/legacy routes remain, but they are not shown as family categories.
+- The new `family-registry` module is a read-through adapter over feature-owned stores, not a second database. It supplies stable-ID lookup and bridge-usage references. Pier, Pier Cap, Foundation and Bearing deletion is blocked while an ID is referenced by a bridge definition; the error lists bridge and axis. Girder, Superstructure and Material have no family deletion operation in their existing editors.
+- Selecting a catalog family updates a shared category/ID selection event consumed by the right Inspector. Existing feature-owned generators and previews remain the source of geometry. Family data are not copied into Bridge Definition; family IDs remain in bridge assignment state.
+- Old Design System sidebar entries and the separate Materials entry were removed after mounting the existing screens in Family Tables. Legacy family URLs and source components are retained for compatibility. No import/export format existed to migrate; disabled Import/Export affordances are shown, without adding a new package format.
+- Superstructure currently has no family identity or its own catalog, only app-level cross-section input. Abutment has no family model. Material has class selections but no material property registry. These remain explicit gaps before Graph work; this phase did not implement Graph, Analysis, Optimization, or engineering design checks.
+
+## Architecture realignment and Family Repository, Phase 2E (2026-09-17)
+
+- Removed Bridge Definition from primary top navigation while retaining `/bridge-definition` as an internal compatibility/development route. Existing bridge definitions and UI modules remain intact. See `docs/spanova-data-architecture.md` for the ownership boundary and reuse inventory.
+- Added `family-registry/model/familyRepository.ts` as the shared access boundary over existing catalog keys, plus `useFamilyCatalog` for the supported editable family catalogs. Pier, Pier Cap, Foundation and Bearing editors now publish edits through the shared repository subscription. Existing keys, payload formats and IDs are preserved.
+- Bridge Definition and System Assembly resolve those family records through the repository. Girder Library's existing singleton payload is read/written through a repository adapter without changing its storage shape. Family selection/Inspector records remain projections, not another catalog.
+- Added a Graph family reference/parameter-schema adapter. References contain category and stable `familyId`; resolution reads the current persisted family data. Added the `GeneratedBridgeModel` output boundary only; no Graph nodes, generation, FEM or optimization were implemented.
+- Piled foundation Lx/Ly remain calculated only by `derivePiledFoundationDimensions`; UI previews and variants consume the same domain calculation. Ly uses pile spacing Y.
+- Remaining pre-Graph gaps: Girder and Superstructure lack the same stable family domain model; Abutment has no family catalog; Material remains a concrete-class assignment table rather than a material-property catalog. These were not converted into synthetic engineering families. Alignment import/terrain references remain in Project environment state; bridge-local spans, axes, assignments and constraints remain in the retained legacy Bridge Definition store pending a deliberate migration.
+
+## Visual Graph Foundation, Phase 3A (2026-09-17)
+
+- The Graph workspace uses the existing `WorkspaceLayout`; its left panel is the registry-driven Node Library, the center is the XYFlow canvas, and the right panel is the node Inspector. The canvas adapter translates between XYFlow view nodes/edges and the independent, serializable SPANOVA graph domain.
+- The graph registry currently exposes only Number, Integer, Boolean, Range, Add, Subtract, Multiply, Divide and Watch. Registry schemas define ports, parameters, defaults, validation and execution. Engineering, family, bridge, loads and analysis nodes are reserved types only and are not exposed or executable in this phase.
+- The graph engine validates node types, parameter keys and values, port compatibility, single-input connections, required inputs and cycles before topological execution. It reports per-node results and errors to Watch, node states and Graph Log.
+- `GraphStore` persists multiple graph documents at `spanova.graph.documents.v1`, with per-document edit history and JSON round-trip. React Flow remains a replaceable UI adapter and does not own authoritative graph data.
+- Phase boundary: no Family Repository, Loads, Bridge Definition, generated bridge model or Analysis integration was added. The next integration point is Phase 3B family data nodes.
+
+## Graph Connection Stability and Authoring Architecture Lock, Phase 3A.1 (2026-09-17)
+
+- Live browser reproduction identified a React Flow `StoreUpdater` update-depth loop. `onSelectionChange` unconditionally created new selected-ID arrays; those arrays rebuilt the controlled node objects, React Flow synchronized them back into its store, and repeated selection updates re-entered the cycle. The development console reported `Maximum update depth exceeded` from `StoreUpdater` / `setNodes`.
+- The Graph Store is now the sole persistent topology source. Node and edge props are memoized projections; selection updates are ignored when IDs did not change. Only in-progress node drag positions live temporarily in UI state and commit once at drag end. Interactive connection checks are pure Level 1 port/existence/type/multiplicity checks; cycles and readiness are checked by full validation on Run. A valid connection causes one store update and one undo entry; duplicate/invalid connections are ignored.
+- Watch uses the explicit `display:any` sink type for supported display values (number, integer, boolean, string, and numeric arrays). Engineering port types remain domain-specific and cannot connect to this display sink.
+- **Architecture lock:** Graph is SPANOVA's future primary engineering definition and authoring environment. Engineering values and candidate families will be node-driven; Family Tables remains transitional UI and stays in primary navigation for now. Reuse validated domain calculations from existing features as one implementation, called by nodes, rather than copying calculations into UI or graph code. Graph execution remains headless and independent from React/XYFlow. Generated bridge models are outputs of Graph generation, not manually authored Bridge Definition state.
+- Future node classes are Data, Engineering, and Logic/Generator. Future ports are typed domain values and candidate lists (materials, girders, piers, caps, piles, foundations, bearings, alignments, terrain, bridges, analysis, design and optimization results); these are documented direction only and are not implemented in Phase 3A.1. Scalar/list propagation and candidate pairing semantics must be specified before engineering-node implementation. Project environmental data remains Project-owned; Loads workspace remains unchanged in this phase.
+- Phase 3B replaces the former read-only Family Repository node proposal: begin the engineering node library for Material, Pier and Foundation, with exact domain contracts and reuse boundaries defined before implementation. No engineering nodes were added in this stability phase.
+
+## Engineering quantities and material references, Phase 3B.1 (2026-09-17)
+
+- Graph value type, physical `QuantityKind`, and display `UnitId` are separate. `EngineeringQuantity` stores a canonical numeric value plus its quantity kind and selected display unit. Canonical units are `-`, m, m², m³, rad, kN, kN·m, MPa, t, t/m³, kN/m³, °C, °C difference, m/s², kN/m and kN·m/rad. Conversions live in `graph/domain/quantities.ts` and are applied at node input/output boundaries.
+- Quantity and Range carry kind/unit parameters in the existing JSON node parameter record. Existing Range documents without those new keys remain dimensionless. New node defaults read the existing Project units; no unit preferences are duplicated in Graph document state.
+- Math ports accept number/quantity values. Add/Subtract require two quantities of the same kind; Multiply permits a quantity and dimensionless number; Divide permits quantity divided by dimensionless number. Derived dimensions and multiplication of two quantities are deliberately unsupported.
+- Watch and Inspector display quantities and explicit material value objects. The material node contracts are ConcreteMaterial, ReinforcementMaterial, PrestressingSteelMaterial and StructuralSteelMaterial. Only the existing concrete class IDs are configured; steel nodes stay unavailable until project-owned grade/property data exists.
+- The existing Materials UI class IDs are shared from `materials/model/materialCatalog.ts`. Graph does not create a second material catalog. Family Tables and their persisted data remain unchanged.
+- Concrete graph execution resolves through `/api/materials/concrete?materialId=...`, which invokes the existing `EurocodeConcrete` utility. The endpoint exposes only properties supported there: fck, fcm, Ecm, reinforced-concrete unit weight, derived mass density and uncracked Poisson ratio. Unsupported fctm and thermal data are omitted. Graph Engine remains headless; a resolver service is injected by the workspace and can be replaced in tests.
+- No Pier, Foundation, Girder, Bearing, Bridge Generator, Analysis or Optimization nodes are implemented in this phase.
+
+## Graph connection display styles, Phase 3A.2 (2026-09-17)
+
+- The Graph canvas exposes Smooth and Orthogonal connection rendering. With installed `@xyflow/react` 12.11.3, Smooth maps to its built-in `default` Bezier edge and Orthogonal maps to built-in `step` routing.
+- The preference is stored separately from graph documents at `spanova.graph.view-preferences.v1`, defaults to Smooth, and is restored when the Graph workspace opens. It is not part of `SpanovaConnection` or graph undo history.
+- Switching style only remaps the memoized React Flow edge projection. It does not write GraphStore, alter IDs/topology/node positions, validate or execute the graph, or serialize connections.

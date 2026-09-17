@@ -4,6 +4,8 @@ import { ParamSweepCard, HDim, VDim, type Dimension } from '../../../shared/ui/P
 import { BulbTeeGirderShape } from '../../../shared/ui/BulbTeeGirderShape'
 import TabDetailPanel, { type DetailCategory } from '../../../shared/ui/TabDetailPanel'
 import { PRECAST_DIMENSIONS } from '../model/variants'
+import { publishFamilySelection } from '../../family-registry/model/registry'
+import { getPrecastGirderDefinition, savePrecastGirderDefinition } from '../../family-registry/model/familyRepository'
 
 /**
  * Design System > Girder Library (2026-09-11, restructured 2026-09-13
@@ -56,12 +58,13 @@ import { PRECAST_DIMENSIONS } from '../model/variants'
  * to this fully-dimensioned reference drawing.
  */
 function PrecastGirderTab() {
-  const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('spanova.girder-library.precast') ?? 'null') as { enabled?: boolean; dimensions?: Dimension[] } | null : null
+  const saved = typeof window !== 'undefined' ? getPrecastGirderDefinition<{ enabled?: boolean; dimensions?: Dimension[] } | null>(null) : null
   const [enabled, setEnabled] = useState(saved?.enabled ?? false)
   const [dimensions, setDimensions] = useState<Dimension[]>(saved?.dimensions ?? PRECAST_DIMENSIONS)
 
   useEffect(() => {
-    localStorage.setItem('spanova.girder-library.precast', JSON.stringify({ enabled, dimensions }))
+    savePrecastGirderDefinition({ enabled, dimensions })
+    publishFamilySelection('GIRDER', 'PG-200')
   }, [enabled, dimensions])
 
   function updateDimension(key: string, patch: Partial<Dimension>) {

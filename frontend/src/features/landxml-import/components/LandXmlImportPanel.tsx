@@ -7,13 +7,15 @@ import { TerrainPreview } from '../../terrain-viewer'
 import LongitudinalProfileChart from './LongitudinalProfileChart'
 
 /** Shared terrain/alignment import: explicit surface and coordinate mapping, one canonical pipeline. */
-export default function LandXmlImportPanel({ onImported, initialFile, title = 'Alignment / LandXML' }: {
+export default function LandXmlImportPanel({ onImported, initialFile, title = 'Alignment / LandXML', projectId = 'default', coordinateSystemLabel: initialCoordinateSystemLabel = 'Local / Unknown' }: {
   onImported: (result: { terrainId: string; landXmlImportId: string; hasAlignment: boolean }) => void
   initialFile?: File
   title?: string
+  projectId?: string
+  coordinateSystemLabel?: string
 }) {
   const [file, setFile] = useState<File | null>(initialFile ?? null)
-  const [coordinateSystemLabel, setCoordinateSystemLabel] = useState('Local / Unknown')
+  const [coordinateSystemLabel, setCoordinateSystemLabel] = useState(initialCoordinateSystemLabel)
   const [coordinateOrder, setCoordinateOrder] = useState<CoordinateOrder | ''>('')
   const [surface, setSurface] = useState('')
   const [alignment, setAlignment] = useState('')
@@ -44,7 +46,7 @@ export default function LandXmlImportPanel({ onImported, initialFile, title = 'A
 
   function importSelection() {
     if (!file || !surface || !coordinateOrder) return
-    commit.mutate({ file, projectId: 'default', coordinateSystemLabel, surfaceName: surface,
+    commit.mutate({ file, projectId, coordinateSystemLabel, surfaceName: surface,
       alignmentName: alignment || null, coordinateOrder }, {
       onSuccess: (value) => onImported({ terrainId: value.terrainId, landXmlImportId: value.id, hasAlignment: value.hasAlignment }),
     })

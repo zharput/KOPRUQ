@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+﻿import { useEffect, useMemo, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { generateValues, type Dimension } from '../../../shared/ui/ParamSweepCard'
 import { defaultDimensions, generatePierVariants, statusOfPierFamily } from '../model/service'
 import { DesignSystemSection, EngineeringInput, GenerationTable } from '../../../shared/ui/DesignSystemUi'
 import type { PierConfiguration, PierFamily, PierType } from '../model/types'
+import { getFamilyReferences, publishFamilySelection } from '../../family-registry/model/registry'
+import { useFamilyCatalog } from '../../family-registry/hooks/useFamilyCatalog'
 
 const STORAGE_KEY = 'spanova.project-design-system.pier-families'
 const emptyHeight = { minimumHeight: null, preferredHeightMin: null, preferredHeightMax: null, maximumHeight: null }
@@ -17,16 +19,23 @@ function readFamilies() {
 }
 
 export default function PierFamiliesPanel() {
-  const [families, setFamilies] = useState<PierFamily[]>(readFamilies)
+  const [families, setFamilies] = useFamilyCatalog<PierFamily>('PIER', readFamilies)
   const [selectedId, setSelectedId] = useState(families[0]?.id ?? '')
   const family = families.find((item) => item.id === selectedId) ?? families[0]
   const variants = useMemo(() => family ? generatePierVariants(family) : [], [family])
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(families)) }, [families])
+  useEffect(() => { publishFamilySelection('PIER', selectedId || null) }, [selectedId])
+  const [deleteError, setDeleteError] = useState('')
   if (!family) return <div className="spn-card"><h2 className="spn-card-title">PIER</h2><p className="spn-card-subtitle">Project Design System / User Defined</p><button className="spn-button-primary" onClick={() => addFamily(createFamily('RECTANGULAR'), setFamilies, setSelectedId)}>Add Pier</button></div>
 
   const update = (patch: Partial<PierFamily>) => setFamilies((items) => items.map((item) => item.id === family.id ? { ...item, ...patch } : item))
   const updateDimension = (key: string, patch: Partial<Dimension>) => update({ dimensions: family.dimensions.map((dimension) => dimension.key === key ? { ...dimension, ...patch } : dimension) })
   const status = statusOfPierFamily(family)
+  const deleteFamily = (id: string) => {
+    const references = getFamilyReferences('PIER', id)
+    if (references.length) { setDeleteError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeId} / ${item.location}`).join(', ')}.`); return }
+    const next = families.filter((item) => item.id !== id)
+    setFamilies(next); setSelectedId(next[0]?.id ?? '') ; setDeleteError('')
+  }
 
   return <div className="spn-workflow">
     <div className="spn-card">
@@ -38,7 +47,7 @@ export default function PierFamiliesPanel() {
       <Section title="HEIGHT APPLICABILITY"><div className="pier-height-applicability-grid">{([['minimumHeight', 'Minimum Height'], ['preferredHeightMin', 'Preferred Height Min'], ['preferredHeightMax', 'Preferred Height Max'], ['maximumHeight', 'Maximum Height']] as const).map(([key, label]) => <div className="pier-height-field" key={key}><label>{label}</label><div className="pier-height-input-row"><NumberInput value={family.heightApplicability[key] ?? ''} onChange={(value) => update({ heightApplicability: { ...family.heightApplicability, [key]: value } })} /><span>m</span></div></div>)}</div><HeightRangeVisualization family={family} /><p className="spn-hint">Actual pier height is supplied later from project geometry; no height candidates or rounding are generated here.</p></Section>
       <p>Generated Section Variants: <strong>{variants.length}</strong></p><p>Status: <strong>{status}</strong></p><div style={{ display: 'flex', gap: 8 }}><button className="spn-button-primary" disabled={status !== 'VALID'} onClick={() => addFamily(family, setFamilies, setSelectedId)}>Add Pier</button></div>
     </div>
-    <div className="spn-card"><h3 className="spn-card-title">PIER FAMILY CATALOG</h3><table className="spn-table"><thead><tr><th>Family</th><th>Type</th><th>Section Variants</th><th>Configurations</th><th>Height Range</th><th>Preferred Range</th><th>Enabled</th><th>Status</th><th>Delete</th></tr></thead><tbody>{families.map((item) => <tr key={item.id} onClick={() => setSelectedId(item.id)} className={item.id === selectedId ? 'spn-row-selected' : ''} style={{ cursor: 'pointer' }}><td>{item.name}</td><td>{item.pierType}</td><td>{generatePierVariants(item).length}</td><td>{item.allowedConfigurations.join(', ') || '-'}</td><td>{item.heightApplicability.minimumHeight ?? '-'} - {item.heightApplicability.maximumHeight ?? '-'} m</td><td>{item.heightApplicability.preferredHeightMin ?? '-'} - {item.heightApplicability.preferredHeightMax ?? '-'} m</td><td>{item.enabled ? 'Yes' : 'No'}</td><td>{statusOfPierFamily(item)}</td><td><button className="spn-button-secondary" onClick={(event) => { event.stopPropagation(); const next = families.filter((familyItem) => familyItem.id !== item.id); setFamilies(next); setSelectedId(next[0]?.id ?? '') }}>Delete</button></td></tr>)}</tbody></table></div>
+    <div className="spn-card"><h3 className="spn-card-title">PIER FAMILY CATALOG</h3><table className="spn-table"><thead><tr><th>Family</th><th>Type</th><th>Section Variants</th><th>Configurations</th><th>Height Range</th><th>Preferred Range</th><th>Enabled</th><th>Status</th><th>Delete</th></tr></thead><tbody>{families.map((item) => <tr key={item.id} onClick={() => { setSelectedId(item.id); publishFamilySelection('PIER', item.id) }} className={item.id === selectedId ? 'spn-row-selected' : ''} style={{ cursor: 'pointer' }}><td>{item.name}</td><td>{item.pierType}</td><td>{generatePierVariants(item).length}</td><td>{item.allowedConfigurations.join(', ') || '-'}</td><td>{item.heightApplicability.minimumHeight ?? '-'} - {item.heightApplicability.maximumHeight ?? '-'} m</td><td>{item.heightApplicability.preferredHeightMin ?? '-'} - {item.heightApplicability.preferredHeightMax ?? '-'} m</td><td>{item.enabled ? 'Yes' : 'No'}</td><td>{statusOfPierFamily(item)}</td><td><button className="spn-button-secondary" onClick={(event) => { event.stopPropagation(); deleteFamily(item.id) }}>Delete</button></td></tr>)}</tbody></table>{deleteError && <p role="alert" className="spn-validation-error">{deleteError}</p>}</div>
   </div>
 }
 

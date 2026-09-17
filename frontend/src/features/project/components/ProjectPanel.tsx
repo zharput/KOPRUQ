@@ -89,11 +89,13 @@ export default function ProjectPanel({
   setBridges,
   designCode,
   setDesignCode,
+  showProjectSettings = true,
 }: {
   bridges: BridgeRow[]
   setBridges: Dispatch<SetStateAction<BridgeRow[]>>
   designCode: string
   setDesignCode: Dispatch<SetStateAction<string>>
+  showProjectSettings?: boolean
 }) {
   const [units, setUnits] = useState('kN-m')
   const [designCriteria, setDesignCriteria] = useState('None')
@@ -158,7 +160,7 @@ export default function ProjectPanel({
 
   return (
     <div className="spn-workflow">
-      <div className="spn-card">
+      {showProjectSettings && <div className="spn-card">
         <h2 className="spn-card-title">Project settings</h2>
         <div className="spn-field-grid">
           <label className="spn-field">
@@ -181,7 +183,7 @@ export default function ProjectPanel({
             </select>
           </label>
         </div>
-      </div>
+      </div>}
 
       <div className="spn-card">
         <div className="spn-card-header-row">

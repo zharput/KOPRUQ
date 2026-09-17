@@ -25,6 +25,7 @@ import { SIDEBAR_GROUPS, WORKING_SECTIONS } from '../navigation/sections'
  * URL - this is what made the active leaf/underline never actually
  * track navigation).
  */
+/** Legacy section toolbar retained temporarily for route migration; App.tsx does not mount it. */
 export default function TopBar() {
   const location = useLocation()
   const active = (location.pathname.slice(1) || 'home') as SectionId

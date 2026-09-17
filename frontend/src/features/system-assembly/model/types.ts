@@ -26,7 +26,6 @@ export const PIER_ASSEMBLY: VerticalSystemDefinition = {
     { id: 'pier-cap', label: 'Pier Cap', familyRoute: 'pier-cap-families', status: 'NOT_CONFIGURED' },
     { id: 'pier', label: 'Pier', familyRoute: 'pier-families', status: 'CATALOG', note: 'Height applicability stays on Pier Family.' },
     { id: 'foundation', label: 'Foundation', familyRoute: 'foundation-families', status: 'NOT_CONFIGURED' },
-    { id: 'piles', label: 'Pile System', familyRoute: 'pile-families', status: 'NOT_CONFIGURED', note: 'Length is derived from geotechnical/design context.' },
   ],
 }
 
@@ -42,6 +41,5 @@ export const ABUTMENT_ASSEMBLY: VerticalSystemDefinition = {
     { id: 'backwall', label: 'Backwall', status: 'NOT_CONFIGURED', note: 'Derived later from girder, bearing, joint and clearance rules.' },
     { id: 'front-wall', label: 'Front Wall', familyRoute: 'abutment-families', status: 'NOT_CONFIGURED', note: 'Front wall height is a future geometry parameter.' },
     { id: 'foundation', label: 'Foundation', familyRoute: 'foundation-families', status: 'NOT_CONFIGURED' },
-    { id: 'piles', label: 'Pile System', familyRoute: 'pile-families', status: 'NOT_CONFIGURED' },
   ],
 }

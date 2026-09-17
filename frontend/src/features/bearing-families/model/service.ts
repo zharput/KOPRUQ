@@ -1,7 +1,11 @@
 import { generateValues } from '../../../shared/ui/ParamSweepCard'
 import type { BearingFamily, BearingVariant, BearingRule } from './types'
 
-export function candidates(rule: BearingRule): number[] { return rule.min == null || rule.max == null || rule.delta == null ? [] : generateValues(rule.min, rule.max, rule.delta).filter((value) => value > 0) }
+export function candidates(rule: BearingRule): number[] {
+  if (rule.min == null || rule.max == null || rule.delta == null || rule.min <= 0 || rule.max < rule.min) return []
+  if (rule.min !== rule.max && rule.delta <= 0) return []
+  return generateValues(rule.min, rule.max, rule.delta)
+}
 export function validFamily(family: BearingFamily) { return Boolean(family.name.trim() && candidates(family.length).length && candidates(family.width).length && candidates(family.height).length) }
 export function statusOf(family: BearingFamily) { return !family.name.trim() ? 'INCOMPLETE' as const : validFamily(family) ? 'VALID' as const : 'INVALID' as const }
 export function generateBearingVariants(family: BearingFamily): BearingVariant[] {

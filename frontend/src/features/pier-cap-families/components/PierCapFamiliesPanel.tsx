@@ -4,18 +4,18 @@ import { GenerationTable } from '../../../shared/ui/DesignSystemUi'
 import { generatePierCapVariants, statusOf, structuralSystem } from '../model/service'
 import type { PierCapFamily, PierCapType, PierCapConfiguration, Rule } from '../model/types'
 import PierCapSchematic from './PierCapSchematic'
+import { getFamilyReferences, publishFamilySelection } from '../../family-registry/model/registry'
+import { useFamilyCatalog } from '../../family-registry/hooks/useFamilyCatalog'
 
-const KEY = 'spanova.project-design-system.pier-cap-families'
-function read(): PierCapFamily[] { try { return JSON.parse(localStorage.getItem(KEY) ?? '[]') as PierCapFamily[] } catch { return [] } }
 function newId() { return globalThis.crypto?.randomUUID?.() ?? `PC-${Date.now()}-${Math.random().toString(36).slice(2)}` }
 
 export default function PierCapFamiliesPanel() {
-  const [families, setFamilies] = useState<PierCapFamily[]>(read)
+  const [families, setFamilies] = useFamilyCatalog<PierCapFamily>('PIER_CAP')
   const [selectedId, setSelectedId] = useState('')
   const family = families.find((item) => item.id === selectedId) ?? families[0]
   const variants = useMemo(() => family ? generatePierCapVariants(family) : [], [family])
   const [error, setError] = useState('')
-  useEffect(() => { localStorage.setItem(KEY, JSON.stringify(families)); window.dispatchEvent(new Event('spanova:pier-cap-catalog-changed')) }, [families])
+  useEffect(() => { publishFamilySelection('PIER_CAP', family?.id ?? null) }, [family?.id])
 
   const update = (patch: Partial<PierCapFamily>) => { if (!family) return; setFamilies((items) => items.map((item) => item.id === family.id ? { ...item, ...patch } : item)) }
   const updateRule = (key: 'capTransverseLength' | 'capStructuralHeight' | 'stemWidth', patch: Partial<Rule>) => update({ [key]: { ...(family?.[key] ?? { min: null, max: null, delta: null }), ...patch } })
@@ -25,7 +25,11 @@ export default function PierCapFamiliesPanel() {
     const copy = { ...family, id: newId(), name: `${family.name}-COPY`, capTransverseLength: { ...family.capTransverseLength }, capStructuralHeight: { ...family.capStructuralHeight }, stemWidth: family.stemWidth ? { ...family.stemWidth } : null }
     setFamilies((items) => [...items, copy]); setSelectedId(copy.id); setError('')
   }
-  const remove = (id: string) => { const next = families.filter((item) => item.id !== id); setFamilies(next); if (selectedId === id) setSelectedId(next[0]?.id ?? '') }
+  const remove = (id: string) => {
+    const references = getFamilyReferences('PIER_CAP', id)
+    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeId} / ${item.location}`).join(', ')}.`); return }
+    const next = families.filter((item) => item.id !== id); setFamilies(next); if (selectedId === id) setSelectedId(next[0]?.id ?? '')
+  }
   const dimensions = family ? [dimension('capTransverseLength', 'Cap Transverse Length (m)', family.capTransverseLength), dimension('capStructuralHeight', 'Cap Structural Height (m)', family.capStructuralHeight), ...(family.capType === 'T_CAP' ? [dimension('stemWidth', 'Stem Width (m)', family.stemWidth)] : [])] : []
   if (!family) return <div className="spn-card"><h2 className="spn-card-title">PIER CAP</h2><p className="spn-card-subtitle">Project Design System / canonical family definition</p></div>
 

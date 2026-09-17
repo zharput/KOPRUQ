@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "SPANOVA → GitHub",
+            "type": "shell",
+            "command": "git add .; $changes = git status --porcelain; if ($changes) { $date = Get-Date -Format 'yyyy-MM-dd HH:mm'; git commit -m \"SPANOVA backup - $date\"; git push } else { Write-Host 'SPANOVA: GitHub''a gonderilecek yeni degisiklik yok.' }",
+            "options": {
+                "shell": {
+                    "executable": "powershell.exe",
+                    "args": [
+                        "-NoProfile",
+                        "-Command"
+                    ]
+                }
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": true
+            }
+        }
+    ]
+}

@@ -67,7 +67,6 @@ const ICONS: Record<SectionId, LucideIcon> = {
   'pier-cap-families': Building2,
   'abutment-families': Anchor,
   'foundation-families': Building2,
-  'pile-families': Ruler,
   'bearing-families': Anchor,
   'standardization-rules': ListOrdered,
   'bridge-inventory': Warehouse,
@@ -117,6 +116,7 @@ const ICONS: Record<SectionId, LucideIcon> = {
  * position, so parsing the section straight out of `pathname` works
  * correctly for every route.
  */
+/** Legacy full application sidebar retained temporarily for route migration; App.tsx does not mount it. */
 export default function Sidebar() {
   const location = useLocation()
   const active = (location.pathname.slice(1) || 'home') as SectionId

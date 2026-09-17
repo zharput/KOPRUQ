@@ -3,7 +3,6 @@ import BigMenuPanel from './components/BigMenuPanel'
 import PlaceholderPanel from './components/PlaceholderPanel'
 import type { SectionId } from './navigation/sections'
 import { BIG_MENU_ITEMS, WORKING_SECTIONS } from './navigation/sections'
-import HomePanel from '../pages/home/HomePanel'
 import { ProjectPanel, ProjectDashboardPanel, type BridgeRow } from '../features/project'
 import { SiteLayoutPanel, type LayoutSeed } from '../features/layout-generator'
 import { FastSolverPanel } from '../features/spanova-fast-solver'
@@ -21,12 +20,13 @@ import { LandXmlImportPanel } from '../features/landxml-import'
 import { PierCapFamiliesPanel } from '../features/pier-cap-families'
 import { SystemAssemblyPanel } from '../features/system-assembly'
 import { BearingFamiliesPanel } from '../features/bearing-families'
+import { FoundationFamiliesPanel } from '../features/foundation-families'
 import type { Dispatch, SetStateAction } from 'react'
 
 /**
  * URL-based route table (Milestone 2 of the architecture migration,
  * 2026-09-12) - replaces `App.tsx`'s previous manual `active` state
- * switch with real routing: `/` redirects to `/home`, `/:section`
+ * switch with real routing: `/` redirects to `/project`, `/:section`
  * renders whichever screen that SectionId maps to (a working feature,
  * a BigMenuPanel card grid, or an honest PlaceholderPanel), exactly the
  * same branching `App.tsx` used to do inline. The engineer can now
@@ -57,15 +57,14 @@ export default function AppRoutes(props: {
 }) {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/home" replace />} />
+      <Route path="/" element={<Navigate to="/project" replace />} />
       <Route path=":section" element={<SectionRoute {...props} />} />
-      <Route path="*" element={<Navigate to="/home" replace />} />
+      <Route path="*" element={<Navigate to="/project" replace />} />
     </Routes>
   )
 }
 
 function SectionRoute({
-  summary,
   onGenerated,
   layoutSeed,
   setLayoutSeed,
@@ -80,7 +79,6 @@ function SectionRoute({
   landXmlImportId,
   setLandXmlImportId,
 }: {
-  summary: GenerationSummary | null
   onGenerated: (summary: GenerationSummary) => void
   layoutSeed: LayoutSeed | null
   setLayoutSeed: Dispatch<SetStateAction<LayoutSeed | null>>
@@ -100,7 +98,7 @@ function SectionRoute({
   const active = (section ?? 'home') as SectionId
   const bigMenuItems = BIG_MENU_ITEMS[active]
 
-  if (active === 'home') return <HomePanel summary={summary} />
+  if (active === 'home') return <Navigate to="/project" replace />
   if (active === 'project-dashboard') return <ProjectDashboardPanel bridges={bridges} designCode={designCode} />
   if (active === 'project-information') {
     return <ProjectPanel bridges={bridges} setBridges={setBridges} designCode={designCode} setDesignCode={setDesignCode} />
@@ -128,6 +126,7 @@ function SectionRoute({
   if (active === 'pier-families') return <PierFamiliesPanel />
   if (active === 'pier-cap-families') return <PierCapFamiliesPanel />
   if (active === 'bearing-families') return <BearingFamiliesPanel />
+  if (active === 'foundation-families') return <FoundationFamiliesPanel />
   if (active === 'alignment') {
     return (
       <LandXmlImportPanel

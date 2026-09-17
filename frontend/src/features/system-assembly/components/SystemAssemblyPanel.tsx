@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import EngineeringWorkspace from '../../../shared/ui/EngineeringWorkspace'
 import { ABUTMENT_ASSEMBLY, PIER_ASSEMBLY, type VerticalSystemDefinition } from '../model/types'
@@ -26,8 +26,9 @@ export default function SystemAssemblyPanel() {
   void PierInspector
   const [kind, setKind] = useState<'PIER' | 'ABUTMENT'>('PIER')
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [pierCapFamilies, setPierCapFamilies] = useState<PierCapFamily[]>(readPierCapFamilies)
+  useEffect(() => { const refresh = () => setPierCapFamilies(readPierCapFamilies()); window.addEventListener('storage', refresh); window.addEventListener('spanova:pier-cap-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('spanova:pier-cap-catalog-changed', refresh) } }, [])
   const definition = kind === 'PIER' ? PIER_ASSEMBLY : ABUTMENT_ASSEMBLY
-  const pierCapFamilies = readPierCapFamilies()
   const hasPierCapCatalog = pierCapFamilies.some((family) => generatePierCapVariants(family).length > 0)
   const selected = definition.nodes.find((node) => node.id === selectedId)
   const girderVariants = generatePrecastGirderVariants(readGirderDimensions())
@@ -70,6 +71,7 @@ function PierCapInspector({ families }: { families: PierCapFamily[] }) {
   const usableFamilies = families.filter((family) => generatePierCapVariants(family).length > 0)
   const [selectedId, setSelectedId] = useState(usableFamilies[0]?.id ?? '')
   const family = usableFamilies.find((item) => item.id === selectedId) ?? usableFamilies[0]
+  useEffect(() => { if (!usableFamilies.some((item) => item.id === selectedId)) setSelectedId(usableFamilies[0]?.id ?? '') }, [families, selectedId])
   if (!family) return <><div className="spn-inspector-title">PIER CAP</div><p className="spn-inspector-note">No enabled Pier Cap Family configured.</p><button className="spn-button-secondary spn-inspector-open" onClick={() => navigate('/pier-cap-families')}>Open Pier Cap</button></>
   const variants = generatePierCapVariants(family)
   return <><div className="spn-inspector-title">PIER CAP</div><div className="spn-inspector-label">Pier Cap Family</div><select className="spn-input" value={family.id} onChange={(event) => setSelectedId(event.target.value)}>{usableFamilies.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><h3 className="spn-inspector-section">TYPE / STATUS</h3><div className="spn-inspector-row"><span>Type</span><strong>{family.capType}</strong></div><div className="spn-inspector-row"><span>Configuration</span><strong>{family.compatiblePierConfiguration}</strong></div><div className="spn-inspector-row"><span>Structural System</span><strong>{structuralSystem(family.compatiblePierConfiguration)}</strong></div><div className="spn-inspector-row"><span>Status</span><strong>{family.enabled ? 'ENABLED' : 'DISABLED'}</strong></div><h3 className="spn-inspector-section">SECTION VARIANTS ({variants.length})</h3><table className="spn-inspector-table spn-pier-variant-table"><thead><tr><th>Variant</th><th>Transverse Length</th><th>Structural Height</th></tr></thead><tbody>{variants.map((variant) => <tr key={variant.id}><td>{`${family.name}-L${formatEngineeringValue(variant.capTransverseLength)}-H${formatEngineeringValue(variant.capStructuralHeight)}`}</td><td>{formatEngineeringValue(variant.capTransverseLength)} m</td><td>{formatEngineeringValue(variant.capStructuralHeight)} m</td></tr>)}</tbody></table><button className="spn-button-secondary spn-inspector-open" onClick={() => navigate('/pier-cap-families')}>Open Pier Cap</button></>

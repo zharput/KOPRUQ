@@ -20,6 +20,7 @@ import { TerrainViewerPanel } from '../features/terrain-viewer'
 import { LandXmlImportPanel } from '../features/landxml-import'
 import { PierCapFamiliesPanel } from '../features/pier-cap-families'
 import { SystemAssemblyPanel } from '../features/system-assembly'
+import { BearingFamiliesPanel } from '../features/bearing-families'
 import type { Dispatch, SetStateAction } from 'react'
 
 /**
@@ -126,6 +127,7 @@ function SectionRoute({
   if (active === 'preferred-span-families') return <PreferredSpanPanel />
   if (active === 'pier-families') return <PierFamiliesPanel />
   if (active === 'pier-cap-families') return <PierCapFamiliesPanel />
+  if (active === 'bearing-families') return <BearingFamiliesPanel />
   if (active === 'alignment') {
     return (
       <LandXmlImportPanel

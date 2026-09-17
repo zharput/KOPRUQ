@@ -3,17 +3,15 @@
     "tasks": [
         {
             "label": "SPANOVA → GitHub",
-            "type": "shell",
-            "command": "git add .; $changes = git status --porcelain; if ($changes) { $date = Get-Date -Format 'yyyy-MM-dd HH:mm'; git commit -m \"SPANOVA backup - $date\"; git push } else { Write-Host 'SPANOVA: GitHub''a gonderilecek yeni degisiklik yok.' }",
-            "options": {
-                "shell": {
-                    "executable": "powershell.exe",
-                    "args": [
-                        "-NoProfile",
-                        "-Command"
-                    ]
-                }
-            },
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "git add .; if (git status --porcelain) { $branch = git branch --show-current; $date = Get-Date -Format 'yyyy-MM-dd_HH-mm'; git commit -m ('SPANOVA_backup_' + $date); if ($LASTEXITCODE -eq 0) { git push origin $branch; if ($LASTEXITCODE -eq 0) { Write-Host ''; Write-Host ('SPANOVA successfully pushed to GitHub [' + $branch + ']') } } } else { Write-Host ''; Write-Host 'SPANOVA: No new changes to push.' }"
+            ],
             "problemMatcher": [],
             "presentation": {
                 "reveal": "always",

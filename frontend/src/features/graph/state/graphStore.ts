@@ -66,7 +66,7 @@ export function subscribeGraphStore(listener: () => void) {
 export function getActiveGraph() { const state = getDocuments(); return state.graphs.find((graph) => graph.id === state.activeGraphId) ?? state.graphs[0] }
 function replaceActiveGraph(next: SpanovaGraph, history = true) {
   const previous = getActiveGraph()
-  if (history && !dragStart) { undo.set(previous.id, [...(undo.get(previous.id) ?? []), structuredClone(previous)].slice(-100)); redo.set(previous.id, []) }
+  if (history && !dragStart) { if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] history commit'); undo.set(previous.id, [...(undo.get(previous.id) ?? []), structuredClone(previous)].slice(-100)); redo.set(previous.id, []) }
   documents = { ...getDocuments(), graphs: getDocuments().graphs.map((graph) => graph.id === previous.id ? next : graph) }
   notify()
 }
@@ -75,6 +75,7 @@ export function addNode(type: string, position: { x: number; y: number }) {
   const graph = getActiveGraph(), count = graph.nodes.filter((node) => node.type === type).length + 1
   const projectUnits = typeof localStorage === 'undefined' ? undefined : readProjectState([]).project.units
   const node: SpanovaNode = { id: globalThis.crypto?.randomUUID?.() ?? `node-${Date.now()}-${Math.random().toString(36).slice(2)}`, type, name: `${definition.label}-${count}`, position, parameters: definition.createDefaultParameters(projectUnits) }
+  if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] node insertion')
   replaceActiveGraph({ ...graph, nodes: [...graph.nodes, node] })
   return node.id
 }
@@ -83,9 +84,37 @@ export function setNodeParameter(id: string, key: string, value: GraphParameterV
 export function deleteNodes(ids: string[]) { const graph = getActiveGraph(), selected = new Set(ids); replaceActiveGraph({ ...graph, nodes: graph.nodes.filter((node) => !selected.has(node.id)), connections: graph.connections.filter((edge) => !selected.has(edge.sourceNodeId) && !selected.has(edge.targetNodeId)) }) }
 export function addConnection(connection: SpanovaConnection) {
   const graph = getActiveGraph()
-  if (validateConnection(graph, connection) || graph.connections.some((item) => item.id === connection.id || (item.sourceNodeId === connection.sourceNodeId && item.sourcePortId === connection.sourcePortId && item.targetNodeId === connection.targetNodeId && item.targetPortId === connection.targetPortId))) return false
-  replaceActiveGraph({ ...graph, connections: [...graph.connections, connection] })
+  if (graph.connections.some(item => item.id === connection.id || (item.sourceNodeId === connection.sourceNodeId && item.sourcePortId === connection.sourcePortId && item.targetNodeId === connection.targetNodeId && item.targetPortId === connection.targetPortId))) return false
+  const validationGraph = { ...graph, connections: graph.connections.filter(item => item.targetNodeId !== connection.targetNodeId || item.targetPortId !== connection.targetPortId) }
+  if (validateConnection(validationGraph, connection)) return false
+  if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] edge insertion')
+  replaceActiveGraph({ ...graph, connections: [...validationGraph.connections, connection] })
   return true
+}
+/** Replace or remove an existing edge as one authoring/history transaction. */
+export function reconnectConnection(edgeId: string, replacement?: Omit<SpanovaConnection, 'id'>) {
+  const graph = getActiveGraph(), existing = graph.connections.find(edge => edge.id === edgeId)
+  if (!existing) return false
+  const withoutEdge = graph.connections.filter(edge => edge.id !== edgeId)
+  if (!replacement || (replacement.sourceNodeId === existing.sourceNodeId && replacement.sourcePortId === existing.sourcePortId && replacement.targetNodeId === existing.targetNodeId && replacement.targetPortId === existing.targetPortId)) {
+    replaceActiveGraph({ ...graph, connections: withoutEdge })
+    return true
+  }
+  const candidate = { ...replacement, id: existing.id }
+  const validationGraph = { ...graph, connections: withoutEdge.filter(edge => edge.targetNodeId !== candidate.targetNodeId || edge.targetPortId !== candidate.targetPortId) }
+  if (validateConnection(validationGraph, candidate)) return false
+  replaceActiveGraph({ ...graph, connections: [...validationGraph.connections, candidate] })
+  return true
+}
+/** Commit a pasted subgraph in one GraphStore history operation. */
+export function pasteGraphSelection(nodes: SpanovaNode[], connections: SpanovaConnection[]) {
+  if (!nodes.length) return []
+  const graph = getActiveGraph()
+  const ids = new Set(nodes.map(node => node.id))
+  const internalConnections = connections.filter(edge => ids.has(edge.sourceNodeId) && ids.has(edge.targetNodeId))
+  if (graphDiagnosticsEnabled()) { console.count('[graph diagnostics] node batch insertion'); console.count('[graph diagnostics] edge batch insertion') }
+  replaceActiveGraph({ ...graph, nodes: [...graph.nodes, ...structuredClone(nodes)], connections: [...graph.connections, ...structuredClone(internalConnections)] })
+  return nodes.map(node => node.id)
 }
 export function deleteConnections(ids: string[]) { const graph = getActiveGraph(), selected = new Set(ids); replaceActiveGraph({ ...graph, connections: graph.connections.filter((edge) => !selected.has(edge.id)) }) }
 export function updatePositions(positions: Record<string, { x: number; y: number }>) {
@@ -118,3 +147,5 @@ export function redoGraph() {
 export function renameActiveGraph(name: string) { const graph = getActiveGraph(); documents = { ...getDocuments(), graphs: getDocuments().graphs.map((item) => item.id === graph.id ? { ...item, name } : item) }; notify() }
 export function createGraphDocument(name = 'Untitled Graph') { const graph = createEmptyGraph(name); documents = { ...getDocuments(), activeGraphId: graph.id, graphs: [...getDocuments().graphs, graph] }; notify(); return graph.id }
 export function selectGraphDocument(id: string) { if (!getDocuments().graphs.some((graph) => graph.id === id)) return; documents = { ...getDocuments(), activeGraphId: id }; notify() }
+
+function graphDiagnosticsEnabled() { return import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('graphDiagnostics') }

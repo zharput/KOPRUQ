@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
-import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, MiniMap, useReactFlow, type Connection, type EdgeChange, type NodeChange } from '@xyflow/react'
+import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, MiniMap, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange } from '@xyflow/react'
 import { Activity, CircleStop, Maximize2, Minus, Plus, Redo2, Save, Trash2, Undo2 } from 'lucide-react'
 import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
-import type { GraphExecutionState, GraphValue, SpanovaGraph } from '../domain/types'
-import { fromReactFlowEdge, moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
+import type { GraphExecutionState, GraphValue, MaterialValue, SpanovaGraph } from '../domain/types'
+import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'
 import { getNodeDefinition } from '../registry/nodeRegistry'
-import { addConnection, addNode, beginMoveHistory, createGraphDocument, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, persistGraphStore, redoGraph, renameActiveGraph, selectGraphDocument, setNodeParameter, undoGraph, updateNode, updatePositions } from '../state/graphStore'
+import { addConnection, addNode, beginMoveHistory, createGraphDocument, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, setNodeParameter, undoGraph, updateNode, updatePositions } from '../state/graphStore'
 import { useGraphStore } from '../state/useGraphStore'
+import { cloneGraphSelection, copyGraphSelection, sameGraphSelection, type GraphClipboard } from '../state/graphClipboard'
 import BaseNode from './BaseNode'
 import GraphLog, { type GraphLogEntry } from './GraphLog'
 import NodeInspector from './NodeInspector'
 import NodeLibrary from './NodeLibrary'
 import { graphMaterialServices } from '../api/graphMaterialService'
+import { readProjectState } from '../../project/model/projectWorkspace'
+import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { readGraphViewPreferences, writeGraphViewPreferences, type ConnectionStyle } from '../state/graphViewPreferences'
 
 const NODE_TYPES = { spanova: BaseNode }
@@ -25,33 +28,56 @@ export default function GraphWorkspace() {
 function GraphWorkspaceContent() {
   const snapshot = useGraphStore()
   const graph = snapshot.graphs.find((item) => item.id === snapshot.activeGraphId) ?? snapshot.graphs[0] ?? getActiveGraph()
+  const projectUnitLabels = useMemo(() => readProjectState([]).project.units, [])
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([])
   const [states, setStates] = useState<Record<string, GraphExecutionState>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [nodeOutputs, setNodeOutputs] = useState<Record<string, Record<string, GraphValue>>>({})
+  const [resolvedInputs, setResolvedInputs] = useState<Record<string, Record<string, GraphValue>>>({})
+  const [executedSignature, setExecutedSignature] = useState<string | undefined>(undefined)
+  const currentSignature = useMemo(() => graphExecutionSignature(graph), [graph])
+  const isDirty = executedSignature !== undefined && executedSignature !== currentSignature
+  const executionDisplay = useMemo(() => isDirty ? { states: {} as Record<string, GraphExecutionState>, errors: {} as Record<string, string>, resolvedInputs: {} as Record<string, Record<string, GraphValue>> } : { states, errors, resolvedInputs }, [isDirty, states, errors, resolvedInputs])
   const [log, setLog] = useState<GraphLogEntry[]>([])
   const [feedback, setFeedback] = useState('')
   const [isRunning, setIsRunning] = useState(false)
   const [connectionStyle, setConnectionStyle] = useState<ConnectionStyle>(() => readGraphViewPreferences().connectionStyle)
+  const [inspectorMaterial, setInspectorMaterial] = useState<MaterialValue>()
   const addRef = useRef<((type: string) => string | undefined) | undefined>(undefined)
   const controller = useRef<AbortController | null>(null)
+  const clipboard = useRef<GraphClipboard | undefined>(undefined)
+  const pasteCount = useRef(0)
+  const diagnostics = import.meta.env.DEV && new URLSearchParams(window.location.search).has('graphDiagnostics')
   const selected = graph.nodes.find((node) => node.id === selectedNodeId)
 
+  useEffect(() => {
+    if (selected?.type !== 'material.concrete' || typeof selected.parameters.materialId !== 'string') { setInspectorMaterial(undefined); return }
+    let active = true
+    setInspectorMaterial(undefined)
+    const resolveMaterial = graphMaterialServices.resolveConcreteMaterial
+    if (!resolveMaterial) return () => { active = false }
+    void resolveMaterial(selected.parameters.materialId).then(material => { if (active) setInspectorMaterial(material) }).catch(() => { if (active) setInspectorMaterial(undefined) })
+    return () => { active = false }
+  }, [selected?.id, selected?.parameters.materialId])
+
   useEffect(() => { persistGraphStore() }, [])
-  useEffect(() => { setStates({}); setErrors({}); setNodeOutputs({}); setLog([]) }, [graph.id])
+  useEffect(() => { setStates({}); setErrors({}); setNodeOutputs({}); setResolvedInputs({}); setExecutedSignature(undefined); setLog([]) }, [graph.id])
   useEffect(() => { if (!graph.nodes.some((node) => node.id === selectedNodeId)) { setSelectedNodeId(null); setSelectedNodeIds([]) } }, [graph.nodes, selectedNodeId])
   const onParameterChange = useCallback((id: string, key: string, value: number | boolean | string | number[]) => { setNodeParameter(id, key, value) }, [])
+  const inspectorPreviewInputs = useMemo(() => selected ? toReactFlowNodes(graph,{projectUnits:projectUnitLabels,isDirty,onParameterChange}).find(item=>item.id===selected.id)?.data.connectedInputs : undefined,[graph,selected?.id,projectUnitLabels,isDirty,onParameterChange])
   const onAdd = useCallback((type: string) => { const id = addRef.current?.(type); if (id) setSelectedNodeId(id) }, [])
   const addDocument = () => { createGraphDocument(`Graph ${snapshot.graphs.length + 1}`); setSelectedNodeId(null); setLog([]); setStates({}); setErrors({}); setNodeOutputs({}) }
   const removeSelected = () => { if (selectedNodeIds.length) deleteNodes(selectedNodeIds); if (selectedEdgeIds.length) deleteConnections(selectedEdgeIds); setSelectedNodeId(null); setSelectedNodeIds([]); setSelectedEdgeIds([]) }
   const run = async () => {
     controller.current?.abort()
     const abort = new AbortController(); controller.current = abort
-    setIsRunning(true); setFeedback(''); setErrors({}); setStates(Object.fromEntries(graph.nodes.map((node) => [node.id, 'running'])))
-    const result = await executeGraph(graph, abort.signal, graphMaterialServices)
-    setLog(result.logs); setErrors(result.errors); setNodeOutputs(result.values)
+    setIsRunning(true); setFeedback(''); setErrors({}); setResolvedInputs({}); setStates(Object.fromEntries(graph.nodes.map((node) => [node.id, 'running'])))
+    const projectUnits = readProjectState([]).project.units
+    const result = await executeGraph(graph, abort.signal, { ...graphMaterialServices, projectUnits })
+    setLog(result.logs); setErrors(result.errors); setNodeOutputs(result.values); setResolvedInputs(result.resolvedInputs)
+    setExecutedSignature(currentSignature)
     setStates(Object.fromEntries(graph.nodes.map((node) => [node.id, result.errors[node.id] ? 'error' : result.values[node.id] ? 'success' : 'idle'])))
     setIsRunning(false); controller.current = null
   }
@@ -59,24 +85,79 @@ function GraphWorkspaceContent() {
   const changeConnectionStyle = (style: ConnectionStyle) => { setConnectionStyle(style); writeGraphViewPreferences({ connectionStyle: style }) }
 
   const onConnectionCreated = (message: string) => setLog((entries) => [...entries, { level: 'INFO', message: `Connection created: ${message}` }])
-  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={states} errors={errors} nodeOutputs={nodeOutputs} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} stop={stop} onDelete={removeSelected} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} connectionStyle={connectionStyle} onConnectionStyleChange={changeConnectionStyle} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} states={states} errors={errors} outputs={nodeOutputs} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
+  const selectedForClipboard = () => selectedNodeIds.length ? selectedNodeIds : selectedNodeId ? [selectedNodeId] : []
+  const copySelection = () => {
+    const ids = selectedForClipboard()
+    if (!ids.length) return false
+    clipboard.current = copyGraphSelection(graph, ids)
+    pasteCount.current = 0
+    return true
+  }
+  const pasteClipboard = (source = clipboard.current) => {
+    if (!source?.nodes.length) return false
+    if (diagnostics) console.count('[graph diagnostics] paste transaction')
+    const cloned = cloneGraphSelection(source, 30 * (pasteCount.current + 1))
+    pasteGraphSelection(cloned.nodes, cloned.connections)
+    pasteCount.current += 1
+    return true
+  }
+  const handleGraphShortcut = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const target = event.target
+    const gradeSelector = target instanceof HTMLElement && Boolean(target.closest('[aria-label="Concrete Class"]'))
+    if (target instanceof HTMLElement && (target.isContentEditable || target.matches('input, textarea, select, [role="listbox"], [role="option"]') || target.closest('[role="listbox"], [role="option"]')) && !gradeSelector) return
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return
+    const key = event.key.toLowerCase()
+    if (gradeSelector && (key === 'y' || (key === 'z' && event.shiftKey))) { event.preventDefault(); redoGraph() }
+    else if (key === 'z' && gradeSelector) { event.preventDefault(); undoGraph() }
+    else if (key === 'c' && copySelection()) event.preventDefault()
+    else if (key === 'v' && pasteClipboard()) event.preventDefault()
+    else if (key === 'd') { const ids = selectedForClipboard(); if (ids.length) { event.preventDefault(); pasteClipboard(copyGraphSelection(graph, ids)) } }
+  }
+  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} stop={stop} onDelete={removeSelected} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} connectionStyle={connectionStyle} onConnectionStyleChange={changeConnectionStyle} diagnostics={diagnostics} isDirty={isDirty} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} states={executionDisplay.states} errors={executionDisplay.errors} outputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} nodes={graph.nodes} connections={graph.connections} concreteMaterial={inspectorMaterial} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
 }
 
-function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, connectionStyle, onConnectionStyleChange }: {
-  graph: SpanovaGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; connectionStyle: ConnectionStyle; onConnectionStyleChange: (style: ConnectionStyle) => void
+function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, connectionStyle, onConnectionStyleChange, diagnostics, isDirty }: {
+  graph: SpanovaGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; onGraphShortcut: (event: React.KeyboardEvent<HTMLDivElement>) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; resolvedInputs: Record<string, Record<string, GraphValue>>; projectUnits: ProjectUnitPreferences; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; connectionStyle: ConnectionStyle; onConnectionStyleChange: (style: ConnectionStyle) => void; diagnostics: boolean; isDirty: boolean
 }) {
-  const { screenToFlowPosition, fitView, zoomIn, zoomOut } = useReactFlow<FlowGraphNode>()
+  const { screenToFlowPosition, fitView, zoomIn, zoomOut, getViewport, setViewport } = useReactFlow<FlowGraphNode>()
+  const flowStore = useStoreApi()
   const [dragPositions, setDragPositions] = useState<Record<string, { x: number; y: number }>>({})
+  const selectedNodeIdsRef = useRef(selectedNodeIds)
+  const selectedEdgeIdsRef = useRef(selectedEdgeIds)
+  selectedNodeIdsRef.current = selectedNodeIds
+  selectedEdgeIdsRef.current = selectedEdgeIds
   const canvasRef = useRef<HTMLDivElement>(null)
-  const flowNodeData = useMemo(() => ({ selectedIds: selectedNodeIds, states, errors, outputs: nodeOutputs, onParameterChange }), [selectedNodeIds, states, errors, nodeOutputs, onParameterChange])
-  const flowNodes = useMemo(() => toReactFlowNodes(graph, flowNodeData).map((node) => dragPositions[node.id] ? { ...node, position: dragPositions[node.id] } : node), [graph, flowNodeData, dragPositions])
-  const flowEdges = useMemo(() => toReactFlowEdges(graph, connectionStyle).map((edge) => selectedEdgeIds.includes(edge.id) ? { ...edge, selected: true } : edge), [graph, selectedEdgeIds, connectionStyle])
+  const reconnecting = useRef<{ edgeId: string; mode: 'edge' | 'input' } | undefined>(undefined)
+  const ctrlMiddleZoom = useRef<{ lastY: number; x: number; y: number } | undefined>(undefined)
+  const flowNodeData = useMemo(() => ({ states, errors, outputs: nodeOutputs, resolvedInputs, projectUnits, isDirty, onParameterChange }), [states, errors, nodeOutputs, resolvedInputs, projectUnits, isDirty, onParameterChange])
+  const projectedNodes = useMemo(() => { if (diagnostics) console.count('[graph diagnostics] node projection'); return toReactFlowNodes(graph, flowNodeData) }, [graph, flowNodeData, diagnostics])
+  const selectedNodeSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds])
+  const flowNodes = useMemo(() => projectedNodes.map(node => {
+    const position = dragPositions[node.id]
+    const selected = selectedNodeSet.has(node.id)
+    if (!position && Boolean(node.selected) === selected) return node
+    return { ...node, ...(position ? { position } : {}), selected }
+  }), [projectedNodes, dragPositions, selectedNodeSet])
+  const projectedEdges = useMemo(() => { if (diagnostics) console.count('[graph diagnostics] edge projection'); return toReactFlowEdges(graph, connectionStyle) }, [graph, connectionStyle, diagnostics])
+  const selectedEdgeSet = useMemo(() => new Set(selectedEdgeIds), [selectedEdgeIds])
+  const flowEdges = useMemo(() => projectedEdges.map(edge => Boolean(edge.selected) === selectedEdgeSet.has(edge.id) ? edge : { ...edge, selected: selectedEdgeSet.has(edge.id) }), [projectedEdges, selectedEdgeSet])
+  useEffect(() => { if (diagnostics) console.count('[graph diagnostics] selection state effect') }, [selectedNodeIds, selectedEdgeIds, diagnostics])
   const addAtCenter = useCallback((type: string) => {
     const rect = canvasRef.current?.getBoundingClientRect()
     const position = rect ? screenToFlowPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }) : { x: 120, y: 100 }
     return addNode(type, { x: Math.round(position.x / 20) * 20, y: Math.round(position.y / 20) * 20 })
   }, [screenToFlowPosition])
   useEffect(() => { addRef.current = addAtCenter }, [addRef, addAtCenter])
+  const cancelReconnect = useCallback(() => {
+    if (!reconnecting.current) return
+    reconnecting.current = undefined
+    flowStore.getState().cancelConnection()
+  }, [flowStore])
+  useEffect(() => {
+    const cancelOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') cancelReconnect() }
+    window.addEventListener('keydown', cancelOnEscape)
+    return () => window.removeEventListener('keydown', cancelOnEscape)
+  }, [cancelReconnect])
   const onNodesChange = (changes: NodeChange<FlowGraphNode>[]) => {
     if (changes.some((change) => change.type === 'position')) setDragPositions((positions) => {
       const next = { ...positions }
@@ -91,22 +172,53 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, selectedN
     if (removed.length) deleteConnections(removed)
   }
   const isValidConnection = useCallback((connection: Connection | import('@xyflow/react').Edge) => {
-    if (!connection.source || !connection.sourceHandle || !connection.target || !connection.targetHandle) return false
-    return !validateConnection(graph, { sourceNodeId: connection.source, sourcePortId: connection.sourceHandle, targetNodeId: connection.target, targetPortId: connection.targetHandle })
+    const candidate = normalizeConnection(graph, connection)
+    if (!candidate) return false
+    const active = reconnecting.current
+    const validationGraph = { ...graph, connections: graph.connections.filter(edge => edge.id !== active?.edgeId && (edge.targetNodeId !== candidate.targetNodeId || edge.targetPortId !== candidate.targetPortId)) }
+    return !validateConnection(validationGraph, candidate)
   }, [graph])
+  const reconnect = (_oldEdge: import('@xyflow/react').Edge, connection: Connection) => {
+    const active = reconnecting.current
+    const candidate = normalizeConnection(graph, connection)
+    if (!active || active.mode !== 'edge' || !candidate) return
+    reconnectConnection(active.edgeId, candidate)
+  }
+  const finishReconnect = (event: MouseEvent | TouchEvent, _edge: import('@xyflow/react').Edge, _handleType: import('@xyflow/react').HandleType, connectionState: import('@xyflow/react').FinalConnectionState) => {
+    const active = reconnecting.current
+    if (!active || active.mode !== 'edge') return
+    if (!connectionState.isValid && !connectionState.toNode) reconnectConnection(active.edgeId)
+    reconnecting.current = undefined
+    void event
+  }
   const connect = (connection: Connection) => {
-    if (!connection.source || !connection.sourceHandle || !connection.target || !connection.targetHandle) return
-    const candidate = { sourceNodeId: connection.source, sourcePortId: connection.sourceHandle, targetNodeId: connection.target, targetPortId: connection.targetHandle }
-    const issue = validateConnection(graph, candidate)
+    const candidate = normalizeConnection(graph, connection)
+    if (!candidate) return
+    const manual = reconnecting.current?.mode === 'input' ? reconnecting.current : undefined
+    const validationGraph = { ...graph, connections: graph.connections.filter(edge => edge.id !== manual?.edgeId && (edge.targetNodeId !== candidate.targetNodeId || edge.targetPortId !== candidate.targetPortId)) }
+    const issue = validateConnection(validationGraph, candidate)
     if (issue) { setFeedback(issue.message); return }
-    const stored = fromReactFlowEdge({ ...connection, id: globalThis.crypto?.randomUUID?.() ?? `edge-${Date.now()}-${Math.random().toString(36).slice(2)}` })
-    if (stored && addConnection(stored)) {
+    const stored = { ...candidate, id: globalThis.crypto?.randomUUID?.() ?? `edge-${Date.now()}-${Math.random().toString(36).slice(2)}` }
+    const committed = manual ? reconnectConnection(manual.edgeId, candidate) : addConnection(stored)
+    if (committed) {
       const sourceNode = graph.nodes.find((node) => node.id === stored.sourceNodeId), targetNode = graph.nodes.find((node) => node.id === stored.targetNodeId)
       const sourcePort = sourceNode && getNodeDefinition(sourceNode.type)?.outputs.find((port) => port.id === stored.sourcePortId)
       const targetPort = targetNode && getNodeDefinition(targetNode.type)?.inputs.find((port) => port.id === stored.targetPortId)
-      onConnectionCreated(`${sourceNode?.name ?? stored.sourceNodeId}.${sourcePort?.label ?? stored.sourcePortId} → ${targetNode?.name ?? stored.targetNodeId}.${targetPort?.label ?? stored.targetPortId}`)
+      onConnectionCreated(`${sourceNode?.name ?? stored.sourceNodeId}.${sourcePort?.label ?? stored.sourcePortId} to ${targetNode?.name ?? stored.targetNodeId}.${targetPort?.label ?? stored.targetPortId}`)
       setFeedback('')
     }
+    if (manual) reconnecting.current = undefined
+  }
+  const finishInputReconnect = (_event: MouseEvent | TouchEvent, connectionState: import('@xyflow/react').FinalConnectionState) => {
+    const active = reconnecting.current
+    if (!active || active.mode !== 'input') return
+    if (!connectionState.isValid && !connectionState.toNode) reconnectConnection(active.edgeId)
+    reconnecting.current = undefined
+  }
+  const startInputReconnect = (event: MouseEvent | TouchEvent, params: { nodeId: string | null; handleId: string | null; handleType: import('@xyflow/react').HandleType | null }) => {
+    if (!('ctrlKey' in event) || !event.ctrlKey || params.handleType !== 'target' || !params.nodeId || !params.handleId) return
+    const incoming = graph.connections.find(edge => edge.targetNodeId === params.nodeId && edge.targetPortId === params.handleId)
+    if (incoming) reconnecting.current = { edgeId: incoming.id, mode: 'input' }
   }
   const dropNode = (event: React.DragEvent) => {
     event.preventDefault()
@@ -115,16 +227,29 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, selectedN
     const position = screenToFlowPosition({ x: event.clientX, y: event.clientY })
     addNode(type, { x: Math.round(position.x / 20) * 20, y: Math.round(position.y / 20) * 20 })
   }
+  const startCtrlMiddleZoom = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 1 || !event.ctrlKey || !canvasRef.current) return
+    event.preventDefault(); event.stopPropagation()
+    const rect=canvasRef.current.getBoundingClientRect()
+    ctrlMiddleZoom.current={lastY:event.clientY,x:event.clientX-rect.left,y:event.clientY-rect.top}
+  }
+  useEffect(() => {
+    const move=(event:MouseEvent)=>{const gesture=ctrlMiddleZoom.current;if(!gesture)return;event.preventDefault();const delta=event.clientY-gesture.lastY;gesture.lastY=event.clientY;const viewport=getViewport(),zoom=Math.min(2,Math.max(.5,viewport.zoom*Math.exp(-delta*.006)));const flowX=(gesture.x-viewport.x)/viewport.zoom,flowY=(gesture.y-viewport.y)/viewport.zoom;void setViewport({x:gesture.x-flowX*zoom,y:gesture.y-flowY*zoom,zoom},{duration:0})}
+    const up=()=>{ctrlMiddleZoom.current=undefined}
+    window.addEventListener('mousemove',move,{passive:false});window.addEventListener('mouseup',up)
+    return()=>{window.removeEventListener('mousemove',move);window.removeEventListener('mouseup',up)}
+  },[getViewport,setViewport])
 
   return <div className="spn-graph-workspace">
-    <header className="spn-graph-toolbar"><div className="spn-graph-name"><label htmlFor="graph-name">GRAPH</label><input id="graph-name" aria-label="Graph name" value={graph.name} onChange={(event) => renameActiveGraph(event.target.value)} /><select aria-label="Graph document" value={graph.id} onChange={(event) => selectGraphDocument(event.target.value)}>{useGraphStore().graphs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" className="spn-graph-icon-button" aria-label="New graph" title="New graph" onClick={onNewGraph}><Plus size={15} /></button></div><div className="spn-graph-tools"><button type="button" onClick={run} disabled={isRunning} title="Run graph"><Activity size={14} /> Run</button><button type="button" onClick={stop} disabled={!isRunning} title="Stop graph"><CircleStop size={14} /> Stop</button><i /><button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} onClick={undoGraph}><Undo2 size={15} /></button><button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} onClick={redoGraph}><Redo2 size={15} /></button><button type="button" aria-label="Delete selected" title="Delete selected" disabled={!selectedNodeIds.length && !selectedEdgeIds.length} onClick={onDelete}><Trash2 size={15} /></button><i /><button type="button" aria-label="Fit View" title="Fit View" onClick={() => fitView({ padding: 0.2, duration: 140 })}><Maximize2 size={15} /></button><button type="button" aria-label="Zoom In" title="Zoom In" onClick={() => zoomIn({ duration: 100 })}><Plus size={15} /></button><button type="button" aria-label="Zoom Out" title="Zoom Out" onClick={() => zoomOut({ duration: 100 })}><Minus size={15} /></button></div><label className="spn-graph-connection-style" title="Connection Style"><span>Connections</span><select aria-label="Connection Style" value={connectionStyle} onChange={(event) => onConnectionStyleChange(event.target.value as ConnectionStyle)}><option value="smooth">Smooth</option><option value="orthogonal">Orthogonal</option></select></label><div className="spn-graph-save-state"><Save size={13} /> Saved</div></header>
-    {feedback && <button className="spn-graph-feedback" type="button" onClick={() => setFeedback('')} aria-label="Dismiss connection feedback">{feedback} ×</button>}
-    <div className="spn-graph-flow" ref={canvasRef} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>
-      <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={NODE_TYPES} isValidConnection={isValidConnection} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={connect} onNodeClick={(_, node) => setSelectedNodeId(node.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedNodeIds([]); setSelectedEdgeIds([]) }} onSelectionChange={({ nodes, edges }) => {
+    <header className="spn-graph-toolbar"><div className="spn-graph-name"><label htmlFor="graph-name">GRAPH</label><input id="graph-name" aria-label="Graph name" value={graph.name} onChange={(event) => renameActiveGraph(event.target.value)} /><select aria-label="Graph document" value={graph.id} onChange={(event) => selectGraphDocument(event.target.value)}>{useGraphStore().graphs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" className="spn-graph-icon-button" aria-label="New graph" title="New graph" onClick={onNewGraph}><Plus size={15} /></button></div><div className="spn-graph-tools"><button type="button" onClick={run} disabled={isRunning} title="Run graph"><Activity size={14} /> Run</button><button type="button" onClick={stop} disabled={!isRunning} title="Stop graph"><CircleStop size={14} /> Stop</button><i /><button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} onClick={undoGraph}><Undo2 size={15} /></button><button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} onClick={redoGraph}><Redo2 size={15} /></button><button type="button" aria-label="Delete selected" title="Delete selected" disabled={!selectedNodeIds.length && !selectedEdgeIds.length} onClick={onDelete}><Trash2 size={15} /></button><i /><button type="button" aria-label="Fit View" title="Fit View" onClick={() => { if (diagnostics) console.count('[graph diagnostics] fitView'); fitView({ padding: 0.2, duration: 140 }) }}><Maximize2 size={15} /></button><button type="button" aria-label="Zoom In" title="Zoom In" onClick={() => zoomIn({ duration: 100 })}><Plus size={15} /></button><button type="button" aria-label="Zoom Out" title="Zoom Out" onClick={() => zoomOut({ duration: 100 })}><Minus size={15} /></button></div><label className="spn-graph-connection-style" title="Connection Style"><span>Connections</span><select aria-label="Connection Style" value={connectionStyle} onChange={(event) => onConnectionStyleChange(event.target.value as ConnectionStyle)}><option value="smooth">Smooth</option><option value="orthogonal">Orthogonal</option></select></label><div className="spn-graph-save-state"><Save size={13} /> Saved</div></header>
+    {feedback && <button className="spn-graph-feedback" type="button" onClick={() => setFeedback('')} aria-label="Dismiss connection feedback">{feedback} x</button>}
+    <div className="spn-graph-flow" ref={canvasRef} tabIndex={0} onMouseDownCapture={startCtrlMiddleZoom} onKeyDown={event => { if (event.key === 'Escape') cancelReconnect(); onGraphShortcut(event) }} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>
+      <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={NODE_TYPES} connectionMode={ConnectionMode.Loose} elevateEdgesOnSelect={false} isValidConnection={isValidConnection} onConnectStart={startInputReconnect} onConnectEnd={finishInputReconnect} onReconnectStart={(_event, edge) => { reconnecting.current = { edgeId: edge.id, mode: 'edge' } }} onReconnect={reconnect} onReconnectEnd={finishReconnect} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={connect} onNodeClick={(_, node) => setSelectedNodeId(node.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedNodeIds([]); setSelectedEdgeIds([]) }} onSelectionChange={({ nodes, edges }) => {
+        if (diagnostics) console.count('[graph diagnostics] onSelectionChange')
         const nodeIds = nodes.map((node) => node.id), edgeIds = edges.map((edge) => edge.id)
-        if (!sameIds(selectedNodeIds, nodeIds)) setSelectedNodeIds(nodeIds)
-        if (!sameIds(selectedEdgeIds, edgeIds)) setSelectedEdgeIds(edgeIds)
-      }} onNodeDragStart={() => beginMoveHistory()} onNodeDragStop={(_, node) => { updatePositions(moveNodePositions([{ id: node.id, position: node.position }])); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; delete next[node.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable proOptions={{ hideAttribution: true }}>
+        if (!sameGraphSelection(selectedNodeIdsRef.current, nodeIds)) { selectedNodeIdsRef.current = nodeIds; setSelectedNodeIds(nodeIds) }
+        if (!sameGraphSelection(selectedEdgeIdsRef.current, edgeIds)) { selectedEdgeIdsRef.current = edgeIds; setSelectedEdgeIds(edgeIds) }
+      }} onMove={diagnostics ? () => console.count('[graph diagnostics] viewport onMove') : undefined} onNodeDragStart={() => beginMoveHistory()} onNodeDragStop={(_, node) => { updatePositions(moveNodePositions([{ id: node.id, position: node.position }])); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; delete next[node.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} zoomOnScroll={false} zoomOnPinch={false} minZoom={.5} maxZoom={2} panOnDrag={[0, 1]} panOnScroll snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable proOptions={{ hideAttribution: true }}>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#354052" />
         <MiniMap pannable zoomable nodeColor={(node) => node.selected ? '#4c91ff' : '#344158'} maskColor="rgba(8,12,18,0.66)" />
       </ReactFlow>
@@ -134,4 +259,21 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, selectedN
   </div>
 }
 
-function sameIds(current: string[], next: string[]) { return current.length === next.length && current.every((id, index) => id === next[index]) }
+function normalizeConnection(graph: SpanovaGraph, connection: Pick<Connection, 'source' | 'target'> & { sourceHandle?: string | null; targetHandle?: string | null }): Omit<import('../domain/types').SpanovaConnection, 'id'> | undefined {
+  if (!connection.source || !connection.sourceHandle || !connection.target || !connection.targetHandle) return undefined
+  const sourceNode = graph.nodes.find(node => node.id === connection.source)
+  const targetNode = graph.nodes.find(node => node.id === connection.target)
+  const sourceDefinition = sourceNode && getNodeDefinition(sourceNode.type)
+  const targetDefinition = targetNode && getNodeDefinition(targetNode.type)
+  if (sourceDefinition?.outputs.some(port => port.id === connection.sourceHandle) && targetDefinition?.inputs.some(port => port.id === connection.targetHandle)) {
+    return { sourceNodeId: connection.source, sourcePortId: connection.sourceHandle, targetNodeId: connection.target, targetPortId: connection.targetHandle }
+  }
+  if (sourceDefinition?.inputs.some(port => port.id === connection.sourceHandle) && targetDefinition?.outputs.some(port => port.id === connection.targetHandle)) {
+    return { sourceNodeId: connection.target, sourcePortId: connection.targetHandle, targetNodeId: connection.source, targetPortId: connection.sourceHandle }
+  }
+  return undefined
+}
+
+function graphExecutionSignature(graph: SpanovaGraph) {
+  return JSON.stringify({ id: graph.id, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })), connections: graph.connections })
+}

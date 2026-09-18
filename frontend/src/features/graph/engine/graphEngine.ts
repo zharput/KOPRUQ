@@ -1,5 +1,6 @@
 import type { GraphExecutionResult, GraphPortType, GraphValue, SpanovaConnection, SpanovaGraph } from '../domain/types'
 import { canConnect, getNodeDefinition, type GraphExecutionServices } from '../registry/nodeRegistry'
+import { resolveEngineeringInput } from '../domain/engineeringInputs'
 
 export type GraphValidationIssue = { nodeId?: string; message: string }
 
@@ -10,14 +11,20 @@ export function validateConnection(graph: SpanovaGraph, connection: Omit<Spanova
   const targetDefinition = target && getNodeDefinition(target.type)
   const targetPort = targetDefinition?.inputs.find((port) => port.id === connection.targetPortId)
   if (!source || !target || !sourcePort || !targetPort) return { message: 'The selected connection ports are unavailable.' }
-  const sourceKind = sourcePort.type === 'quantity' || sourcePort.type === 'quantity[]' ? source.parameters.quantityKind as import('../domain/quantities').QuantityKind : undefined
-  const targetKind = targetPort.type === 'quantity' || targetPort.type === 'quantity[]' ? target.parameters.quantityKind as import('../domain/quantities').QuantityKind : undefined
-  if (!canConnect(sourcePort.type, targetPort.type, sourceKind, targetKind)) return { nodeId: target.id, message: sourceKind && targetKind ? `Cannot connect ${sourceKind} to ${targetKind}.` : `Cannot connect ${sourcePort.type} to ${targetPort.type === 'numeric' ? 'number/quantity' : targetPort.type}.` }
+  const rawSourceKind = ['quantity', 'quantity[]', 'numeric[]', 'number[]'].includes(sourcePort.type) ? source.parameters.quantityKind as import('../domain/quantities').QuantityKind : undefined
+  const sourceKind = rawSourceKind === 'dimensionless' ? undefined : rawSourceKind
+    const integerSource = sourcePort.type === 'integer'
+    const targetKind = targetPort.quantityKind ?? (targetPort.type === 'length' || targetPort.type === 'length[]' ? 'length' : undefined)
+    const rangeKind = target.type === 'input.range' ? target.parameters.quantityKind as import('../domain/quantities').QuantityKind | undefined : undefined
+    if (rangeKind && rawSourceKind && rawSourceKind !== rangeKind) return { nodeId: target.id, message: `Range inputs require ${rangeKind} values.` }
+  const acceptsMathList = target.type.startsWith('math.') && targetPort.type === 'numeric' && ['number[]','integer[]','numeric[]','quantity[]','length[]'].includes(sourcePort.type)
+  if (!(integerSource && !!targetKind) && !acceptsMathList && !canConnect(sourcePort.type, targetPort.type, sourceKind, targetKind)) return { nodeId: target.id, message: sourceKind && targetKind ? `Cannot connect ${sourceKind} to ${targetKind}.` : `Cannot connect ${sourcePort.type} to ${targetPort.type === 'numeric' ? 'number/quantity' : targetPort.type}.` }
   const operation = target.type
   const existingEdge = graph.connections.find(edge => edge.targetNodeId === target.id && edge.targetPortId !== targetPort.id)
   const existingSource = existingEdge && graph.nodes.find(node => node.id === existingEdge.sourceNodeId)
   const existingPort = existingSource && getNodeDefinition(existingSource.type)?.outputs.find(port => port.id === existingEdge.sourcePortId)
-  const existingKind = existingSource && existingPort && (existingPort.type === 'quantity' || existingPort.type === 'quantity[]') ? existingSource.parameters.quantityKind as import('../domain/quantities').QuantityKind : undefined
+  const rawExistingKind = existingSource && existingPort && ['quantity','quantity[]','numeric[]','number[]','integer[]'].includes(existingPort.type) ? existingSource.parameters.quantityKind as import('../domain/quantities').QuantityKind : undefined
+  const existingKind = rawExistingKind === 'dimensionless' ? undefined : rawExistingKind
   if ((operation === 'math.add' || operation === 'math.subtract') && existingEdge && ((sourceKind && !existingKind) || (!sourceKind && existingKind) || (sourceKind && existingKind && sourceKind !== existingKind))) return { nodeId: target.id, message: 'Addition and subtraction require two quantities of the same kind, or two dimensionless numbers.' }
   if ((operation === 'math.multiply' || operation === 'math.divide') && sourceKind && existingKind) return { nodeId: target.id, message: 'Multiplication and division of two quantities are not supported yet.' }
   if (operation === 'math.divide' && targetPort.id === 'a' && existingKind) return { nodeId: target.id, message: 'A quantity divisor is not supported; divide a quantity by a dimensionless number.' }
@@ -34,7 +41,9 @@ export function validateGraph(graph: SpanovaGraph): GraphValidationIssue[] {
     if (!definition) { issues.push({ nodeId: node.id, message: `Unknown node type: ${node.type}.` }); continue }
     const knownParameters = new Set(definition.parameterSchema.map((parameter) => parameter.key))
     for (const key of Object.keys(node.parameters)) if (!knownParameters.has(key)) issues.push({ nodeId: node.id, message: `Unknown parameter: ${key}.` })
-    for (const message of definition.validateParameters(node.parameters)) issues.push({ nodeId: node.id, message })
+    const rangeOverrides = node.type === 'input.range' ? new Set(graph.connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId)) : undefined
+    const parameters = rangeOverrides?.size ? { ...node.parameters, min: 0, max: 0, step: 1 } : node.parameters
+    for (const message of definition.validateParameters(parameters)) issues.push({ nodeId: node.id, message })
     for (const port of definition.inputs) if (port.required && !graph.connections.some((edge) => edge.targetNodeId === node.id && edge.targetPortId === port.id)) issues.push({ nodeId: node.id, message: `Input ${port.label} is not connected.` })
   }
   for (const edge of graph.connections) {
@@ -59,7 +68,7 @@ export function topologicalSort(graph: SpanovaGraph): string[] {
 
 export async function executeGraph(graph: SpanovaGraph, signal?: AbortSignal, services?: GraphExecutionServices): Promise<GraphExecutionResult> {
   const issues = validateGraph(graph)
-  const result: GraphExecutionResult = { values: {}, watchValues: {}, errors: {}, logs: [] }
+  const result: GraphExecutionResult = { values: {}, resolvedInputs: {}, watchValues: {}, errors: {}, logs: [] }
   if (issues.length) {
     for (const issue of issues) { if (issue.nodeId) result.errors[issue.nodeId] = [result.errors[issue.nodeId], issue.message].filter(Boolean).join(' '); result.logs.push({ level: 'ERROR', message: issue.nodeId ? `${graph.nodes.find((node) => node.id === issue.nodeId)?.name ?? issue.nodeId}: ${issue.message}` : issue.message }) }
     return result
@@ -70,12 +79,17 @@ export async function executeGraph(graph: SpanovaGraph, signal?: AbortSignal, se
     if (signal?.aborted) { result.logs.push({ level: 'INFO', message: 'Graph execution stopped.' }); return result }
     const node = graph.nodes.find((item) => item.id === id)!
     const definition = getNodeDefinition(node.type)!
-      const inputs: Record<string, GraphValue> = {}
-    for (const edge of graph.connections.filter((item) => item.targetNodeId === id)) {
-      const value = result.values[edge.sourceNodeId]?.[edge.sourcePortId]
-      if (value !== undefined) inputs[edge.targetPortId] = value
-    }
     try {
+      const inputs: Record<string, GraphValue> = {}
+      for (const edge of graph.connections.filter((item) => item.targetNodeId === id)) {
+        const value = result.values[edge.sourceNodeId]?.[edge.sourcePortId]
+        const targetPort = definition.inputs.find((port) => port.id === edge.targetPortId)
+        if (value !== undefined && targetPort) {
+          const resolved = resolveEngineeringInput(value, targetPort, services?.projectUnits)
+          inputs[edge.targetPortId] = resolved
+          result.resolvedInputs[id] = { ...result.resolvedInputs[id], [edge.targetPortId]: resolved }
+        }
+      }
       const outputs = await definition.executor({ node, inputs, services })
       result.values[id] = outputs
       if (node.type === 'output.watch' && outputs.value !== undefined) result.watchValues[id] = outputs.value
@@ -109,4 +123,4 @@ function findCycle(ids: string[], connections: SpanovaConnection[]): string[] {
   return []
 }
 export function portCanConnect(source: GraphPortType, target: GraphPortType) { return canConnect(source, target) }
-function formatValue(value: GraphValue): string { if(Array.isArray(value))return `[${value.map(formatValue).join(', ')}]`; if(typeof value==='object'&&value!==null&&'quantityKind' in value)return `${value.value} ${value.quantityKind}`; if(typeof value==='object'&&value!==null&&'domainType' in value)return `${value.domainType} ${value.name}`; return String(value) }
+function formatValue(value: GraphValue): string { if(Array.isArray(value))return `[${value.slice(0,5).map(formatValue).join(', ')}${value.length>5?', …':''}]${value.length>5?` (${value.length} items)`:''}`; if(typeof value==='object'&&value!==null&&'quantityKind' in value)return `${value.value} ${value.quantityKind}`; if(typeof value==='object'&&value!==null&&'domainType' in value)return `${value.domainType} ${value.name}`; if(typeof value==='object'&&value!==null&&'pierType' in value)return `${value.pierType} Pier ${JSON.stringify(value.geometry)}`; return String(value) }

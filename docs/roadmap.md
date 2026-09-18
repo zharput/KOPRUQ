@@ -1405,3 +1405,115 @@ code itself is not reused.
 - [x] Keep display preference outside graph documents, connection records, and undo/redo history.
 - [x] Verify rendering projection preserves graph topology, node positions, and connection IDs across repeated style changes.
 - [x] Verify preference restoration, frontend tests and production build.
+## Phase 3B.2 - Pier Engineering Nodes (2026-09-18)
+
+- [x] Add headless PierCandidate generation for Circular, Rectangular, Oval, Box and H sections using the clarified authoritative geometry.
+- [x] Normalize scalar/list Length inputs to canonical metres and generate deterministic Cartesian products with Height varying fastest.
+- [x] Enforce the 10,000-combination cap; filter geometrically invalid Box and H combinations and report generated/invalid/valid counts.
+- [x] Add local defaults with connected-input override, structured concrete references, typed ports, compact Watch preview, Inspector summaries and schematic sections.
+- [x] Preserve Family Tables and Graph serialization/history boundaries; generated candidates remain execution outputs.
+- [x] Run full frontend tests and production TypeScript/Vite build.
+- [x] Completed: Phase 3B.3 / Phase 3C Pier Cap family nodes.
+
+## Phase 3B.2B - Engineering Input Coercion and Layout (2026-09-18)
+
+- [x] Add pure target-aware numeric compatibility and Run-time Quantity resolution using target kind and Project display units.
+- [x] Preserve explicit Quantity unit metadata; reject wrong-kind quantities and Number-to-Integer coercion.
+- [x] Keep connection preview validation free of candidate generation and unit-array conversion.
+- [x] Introduce shared engineering-node shell with separated input/output rows, accessible handles, concise canvas labels, port tooltips and connected/local value display.
+- [x] Keep Pier statistics in execution state/Inspector/footer and Candidates as the sole Pier output port.
+- [x] Verify all five Pier node shells, engine coercion, frontend tests and production build.
+- [ ] Stop before Phase 3B.3; no Pier Cap or other structural family nodes included.
+
+## Phase 3B.2C - Graph Usability and Pier-to-Watch Reliability (2026-09-18)
+
+- [x] Keep nodes visually above edges with opaque node bodies, including selected-edge state.
+- [x] Allow Integer sources at continuous engineering quantity inputs while preserving Integer output type and strict integer count inputs.
+- [x] Add buffered Number/Integer editing with clear, replacement, Enter/blur commit and invalid state handling.
+- [x] Add selected-subgraph copy/paste and duplicate with fresh IDs, internal edges, offset placement and one GraphStore undo step.
+- [x] Remove connected source labels from engineering canvas rows while retaining source/resolved provenance in Inspector.
+- [x] Clarify Columns semantics and verify the full Pier execution-to-Watch rendering path.
+- [x] Run full frontend tests (111 passed) and production build; stop before Pier Cap or other structural families.
+
+## Phase 3B.2D - Graph Interaction Stabilization (2026-09-18)
+
+- [x] Add temporary edge reconnection with atomic reconnect, disconnect-on-empty/original-source, and Escape cancellation.
+- [x] Preview unit-resolved upstream values on engineering inputs without executing Pier candidate generation; show actual run values/errors afterward.
+- [x] Stabilize selection synchronization and stress repeated domain-only clipboard cloning/pasting.
+- [x] Add generic read-only List output with candidate expansion, project-unit formatting, scrolling and 50-row pages.
+- [x] Verify mixed connected/local Rectangular Pier inputs and Range ? Pier ? List topological execution.
+- [x] Run complete frontend suite (121 tests passed) and production build; stop before any other engineering family.
+
+## Phase 3B.2D.1 - Browser Interaction Hotfix (2026-09-18)
+
+- [x] Replace occupied scalar input connections and support Ctrl-drag disconnect/reconnect, including Escape cancellation and atomic undoable graph updates.
+- [x] Guard selection updates against re-entrant callback delivery; batch paste insertion and verify paste x10 and duplicate x10 in headless Chrome with no exceptions or blank canvas.
+- [x] Show execution results as DIRTY after authoring values or topology change.
+- [x] Verify mixed connected/local Pier Run output and candidate display inside List; verify Range-to-Pier-to-List renders all three candidates.
+- [x] Complete browser, automated test and production build verification; stop before Pier Cap.
+
+## Phase 3B.2D.2 - Material Selector and Watch/List UX (2026-09-18)
+
+- [x] Make the existing Concrete node directly select among the shared EN concrete class IDs, default new nodes to C40/50, preserve typed ConcreteMaterial output and GraphStore serialization/history.
+- [x] Reuse existing ConcreteMaterial API properties in a read-only Inspector; do not add values absent from the authoritative API.
+- [x] Preview directly resolvable Number/Integer/Range/Concrete values in Watch/List and identify execution-dependent values as Run required.
+- [x] Keep stale candidate results out of List after authoring edits; show Results outdated - Run required until Run.
+- [x] Show compact candidate counts in Watch and candidate geometry/material/columns in canvas List rows.
+- [x] Verify real-browser selector, previews, execution, dirty handling, reload, copy/paste and undo/redo; stop before Pier Cap.
+
+## Phase 3B.2D.3 - Canvas Select Hotfix (2026-09-18)
+
+- [x] Replace browser-managed native Concrete select with reusable controlled, portaled CanvasSelect<T> using the shared 14-grade catalog.
+- [x] Support pointer selection, selected-value marker, keyboard navigation, Escape/outside dismissal, contained menu scrolling and graph gesture boundaries.
+- [x] Keep the existing material parameter/history/persistence path; remove raw output type labels from the normal node canvas.
+- [x] Pass complete frontend suite (134 tests) and TypeScript/production Vite build.
+- [ ] Required real-browser acceptance tests for list visibility, selection, connected Pier preview, wheel/drag, clipboard, history and save/reload; Graph loaded and Concrete was clicked, but DOM inspection did not complete and screenshot was not captured.
+- [x] Stop here; do not start Pier Cap.
+
+## Phase 3B.2E - Node Category Visual System (2026-09-18)
+
+- [x] Add shared, registry-owned NodeCategory values and category visual theme tokens for all current and planned node families; current definitions retain their existing categories and saved graphs need no migration.
+- [x] Apply subtle category accents to BaseNode, engineering node shells, Watch/List, selected borders and Node Library category headings while preserving dark neutral bodies and independent status indicators.
+- [x] Keep data-type colors in an independent registry used by source-port type for edges; retain Smooth/Orthogonal connection modes and graph behavior.
+- [x] Verify rendered current-node mapping and Concrete dropdown open/close in headless Chrome; automated suite passed (138 tests / 29 files), TypeScript and production build passed.
+- [x] Stop before Pier Cap; no new engineering nodes or execution behavior.
+
+## Phase 3B.2F - Generative Numeric Pipeline (2026-09-18)
+
+- [x] Rebuild Range with editable Start/End/Step, optional scalar input ports, live values count and deterministic ascending/descending generation with a 10,000-value cap.
+- [x] Add shared scalar/list Math broadcasting, one-item singleton broadcasting and explicit mismatched-list/divide-by-zero errors.
+- [x] Preview numeric pipelines through Range, Watch and List; pass scalar/list outputs through target-aware quantity resolution into generic Pier geometry inputs.
+- [x] Keep Pier Cartesian candidate order and deterministic IDs; document singleton scalar broadcasting behavior.
+- [x] Add compact structural list display and complete Inspector list details; add pointer-centered Ctrl+middle zoom while retaining pan and wheel behavior.
+- [x] Automated graph-feature suite and TypeScript checks.
+- [x] Pass all 20 required rendered-browser scenarios; full frontend suite passed (153 tests / 29 files), TypeScript and production build passed.
+- [x] Stop here; do not start Pier Cap.
+
+## Phase 3B.2G - Graph UI Cleanup / Node Visual Consistency (2026-09-18)
+
+- [x] Remove raw technical type text from Number, Integer and Math canvas ports while preserving port labels and Inspector/schema data types.
+- [x] Replace malformed List disclosure prefixes with text controls and put candidate material details on a readable second line.
+- [x] Add centralized orange `STRUCTURAL_FAMILY` category theme and route existing Pier family nodes through the engineering shell.
+- [x] Keep edge colors sourced from `DATA_TYPE_THEME_REGISTRY`; verify numeric, integer and candidate collection edge colors in a real browser.
+- [x] Leave adequate room between primitive output labels/handles and execution status; enable middle-button pan with Ctrl+middle pointer-centered zoom.
+- [x] Pass 161 frontend tests, TypeScript and production build. Real-browser regression matrix: 27 assertions passed; visual acceptance: 8 assertions passed.
+- [x] Stop after UI cleanup; do not start Pier Cap or alter Range, Length conversion or execution architecture.- [x] Final browser rerun: 28/28 interaction/regression assertions passed, including occupied-input reconnect; 8/8 visual assertions passed.
+## Phase 3B.3 / Phase 3C - Pier Cap Family Nodes (2026-09-18)
+
+- [x] Add Rectangular Cap and T-Cap generators with canonical metre geometry, ConcreteMaterial references and deterministic candidate IDs/order.
+- [x] Reuse Graph scalar/list resolution, Range/Math preview, Concrete resolution, authoring persistence/history/clipboard and the shared 10,000 candidate limit.
+- [x] Filter invalid non-positive and T-Cap geometric combinations; report raw, invalid and valid counts.
+- [x] Add live Watch/List previews, Inspector provenance/statistics, illustrative SVG sections, Node Library Pier Cap grouping and shared orange structural styling.
+- [x] Chrome acceptance matrix: 28/28 checks passed, including visible handle drags, Cartesian live updates, T-Cap validation/recovery, replacement/disconnect/reconnect, copy/paste, history, reload, pan/zoom, smooth/orthogonal edges and no browser exceptions.
+- [x] Frontend tests: 183 passed / 30 files. TypeScript and production Vite build passed (existing large-chunk advisory).
+- [x] Stop after this milestone. Foundation, Bearing, Abutment, Girder, Superstructure, assemblies, FEM, Design and Optimization remain out of scope.
+
+## Phase 3D - Foundation Family Nodes + Derived Geometry (2026-09-18)
+
+- [x] Add Graph Shallow Foundation and Piled Foundation candidate generators, distinct from the existing Foundation Family Tables catalog workflow.
+- [x] Use typed canonical metre geometry, ConcreteMaterial references, scalar/list Range/Math authoring, deterministic Cartesian IDs/order and the shared 10,000 raw-combination limit.
+- [x] Derive piled footing Lx/Ly from D, integer counts nx/ny and independent spacings ax/ay; reject dimensional quantities on count inputs and filter invalid dimensions/counts.
+- [x] Add Foundation library grouping, live Watch/List previews, resolved-input Inspector, raw/valid/invalid statistics, derived dimensions and illustrative schematics.
+- [x] Verify visible-handle graph interactions, live propagation, Watch/List, input replacement/disconnect/reconnect, invalid count typing, safety-limit failure/recovery in rendered Chrome. Browser clipboard/history keyboard checks were not included in the final verified matrix.
+- [x] Pass frontend tests (202 / 31 files), TypeScript and production build (existing large-chunk advisory).
+- [x] Stop after Phase 3D. No geotechnical/structural foundation checks, pile length, soil or pier connections, bearings, assemblies or later families.

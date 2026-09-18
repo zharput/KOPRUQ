@@ -1,26 +1,116 @@
-import type { Edge, Node } from '@xyflow/react'
-import type { GraphExecutionState, GraphParameterValue, GraphValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
-import { getNodeDefinition } from '../registry/nodeRegistry'
+﻿import type { Edge, Node } from '@xyflow/react'
+import type { GraphExecutionState, GraphParameterValue, GraphValue, MaterialValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
+import { getNodeDefinition, previewDesignOutput, previewPierCapStatistics, previewFoundationStatistics } from '../registry/nodeRegistry'
 import type { ConnectionStyle } from '../state/graphViewPreferences'
+import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
+import { resolveEngineeringInput } from '../domain/engineeringInputs'
+import { getDataTypeColor } from '../domain/nodeVisualThemes'
+import { makeQuantity, type QuantityKind, type UnitId } from '../domain/quantities'
 
 export type GraphNodeViewData = {
   node: SpanovaNode
   executionState: GraphExecutionState
   executionError?: string
   output?: GraphValue
+  previewValue?: GraphValue
+  previewCandidateCount?: number
+  previewFoundationCandidates?: GraphValue
+  previewGeneratedCombinations?: number
+  previewInvalidCombinations?: number
+  rangePreviewValue?: GraphValue
+  rangePreviewError?: string
+  outputAvailability?: 'preview' | 'executed' | 'run-required' | 'dirty' | 'unconnected'
+  outputs?: Record<string, GraphValue>
+  resolvedInputs?: Record<string, GraphValue>
+  connectedInputs?: Record<string, { sourceName: string; value?: GraphValue; error?: string }>
+  projectUnits?: ProjectUnitPreferences
+  isDirty?: boolean
   onParameterChange: (nodeId: string, key: string, value: GraphParameterValue) => void
 }
 export type FlowGraphNode = Node<GraphNodeViewData, 'spanova'>
 
-export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: string[]; states?: Record<string, GraphExecutionState>; errors?: Record<string, string>; outputs?: Record<string, Record<string, GraphValue>>; onParameterChange: GraphNodeViewData['onParameterChange'] }): FlowGraphNode[] {
+export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: string[]; states?: Record<string, GraphExecutionState>; errors?: Record<string, string>; outputs?: Record<string, Record<string, GraphValue>>; resolvedInputs?: Record<string, Record<string, GraphValue>>; projectUnits?: ProjectUnitPreferences; isDirty?: boolean; onParameterChange: GraphNodeViewData['onParameterChange'] }): FlowGraphNode[] {
   const selectedIds = new Set(options.selectedIds ?? [])
-  return graph.nodes.map((node) => ({ id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? 'idle', executionError: options.errors?.[node.id], output: Object.values(options.outputs?.[node.id] ?? {})[0], onParameterChange: options.onParameterChange } }))
+  const previewCache = new Map<string, GraphValue | undefined>()
+  const previewErrors = new Map<string,string>()
+  const resolvePreview = (nodeId:string,portId:string,path = new Set<string>()):GraphValue|undefined => {
+    const cacheKey=`${nodeId}:${portId}`;if(previewCache.has(cacheKey))return previewCache.get(cacheKey)
+    if(path.has(cacheKey))return undefined
+    const node=graph.nodes.find(item=>item.id===nodeId);if(!node)return undefined
+    const nextPath=new Set(path);nextPath.add(cacheKey)
+    const direct=previewOutput(node,portId);if(direct!==undefined){previewCache.set(cacheKey,direct);return direct}
+    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.'))return undefined
+    const definition=getNodeDefinition(node.type),inputs:Record<string,GraphValue>={}
+    for(const edge of graph.connections.filter(item=>item.targetNodeId===nodeId)){
+      const target=definition?.inputs.find(port=>port.id===edge.targetPortId)
+      const raw=resolvePreview(edge.sourceNodeId,edge.sourcePortId,nextPath)
+      if(raw===undefined){previewErrors.set(nodeId,previewErrors.get(edge.sourceNodeId)??'Connected input preview is unavailable.');return undefined}
+      if(raw!==undefined&&target){try{inputs[edge.targetPortId]=resolveEngineeringInput(raw,target,options.projectUnits)}catch{return undefined}}
+    }
+    try{const value=previewDesignOutput(node,portId,inputs);previewCache.set(cacheKey,value);return value}catch(cause){previewErrors.set(nodeId,cause instanceof Error?cause.message:'Preview failed.');previewCache.set(cacheKey,undefined);return undefined}
+  }
+  return graph.nodes.map((node) => {
+    const outputs = options.outputs?.[node.id] ?? {}
+    const outputEdge = (node.type === 'output.watch' || node.type === 'output.list')
+      ? graph.connections.find(edge => edge.targetNodeId === node.id)
+      : undefined
+    const outputSource = outputEdge && graph.nodes.find(item => item.id === outputEdge.sourceNodeId)
+    const previewValue = outputEdge && outputSource ? resolvePreview(outputSource.id, outputEdge.sourcePortId) : undefined
+    const outputValue = outputs.value ?? outputs.candidates ?? Object.values(outputs)[0]
+    const outputAvailability = !outputEdge ? 'unconnected'
+      : previewValue !== undefined ? 'preview'
+        : options.isDirty ? 'dirty'
+          : outputValue !== undefined ? 'executed'
+            : 'run-required'
+    const definition = getNodeDefinition(node.type)
+    const connectedInputs = Object.fromEntries(graph.connections.filter(edge => edge.targetNodeId === node.id).map(edge => {
+      const source = graph.nodes.find(item => item.id === edge.sourceNodeId)
+      const target = definition?.inputs.find(port => port.id === edge.targetPortId)
+      let value = options.resolvedInputs?.[node.id]?.[edge.targetPortId]
+      let error: string | undefined
+      let raw: GraphValue | undefined
+      try { raw = source && resolvePreview(source.id, edge.sourcePortId) }
+      catch (cause) { error = cause instanceof Error ? cause.message : 'Source preview failed.' }
+      if (value === undefined && raw !== undefined && target && options.states?.[node.id] !== 'error') {
+        try { value = resolveEngineeringInput(raw, target, options.projectUnits) }
+        catch (cause) { error = cause instanceof Error ? cause.message : 'Input resolution failed.' }
+      }
+      return [edge.targetPortId, { sourceName: source?.name ?? edge.sourceNodeId, value, error }]
+    }))
+    const rangePreviewValue=node.type==='input.range'?resolvePreview(node.id,'values'):undefined
+    const foundationPreview=node.type.startsWith('substructure.foundation.')?resolvePreview(node.id,'candidates'):undefined
+    const pierPreview=node.type.startsWith('substructure.pier.')?resolvePreview(node.id,'candidates'):undefined
+    const capPreview=node.type.startsWith('substructure.pier-cap.')?resolvePreview(node.id,'candidates'):undefined
+    const previewCandidateCount=Array.isArray(pierPreview)?pierPreview.length:Array.isArray(capPreview)?capPreview.length:Array.isArray(foundationPreview)?foundationPreview.length:undefined
+    let previewGeneratedCombinations:number|undefined,previewInvalidCombinations:number|undefined
+    if(node.type.startsWith('substructure.pier-cap.')&&capPreview!==undefined){
+      const inputs:Record<string,GraphValue>={}
+      for(const edge of graph.connections.filter(item=>item.targetNodeId===node.id)){const raw=resolvePreview(edge.sourceNodeId,edge.sourcePortId),target=definition?.inputs.find(port=>port.id===edge.targetPortId);if(raw!==undefined&&target){try{inputs[edge.targetPortId]=resolveEngineeringInput(raw,target,options.projectUnits)}catch{/* preview error is already represented on the connected row */}}}
+      try{const stats=previewPierCapStatistics(node,inputs,Array.isArray(capPreview)?capPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
+    }
+    if(node.type.startsWith('substructure.foundation.')){
+      const inputs:Record<string,GraphValue>={}
+      for(const edge of graph.connections.filter(item=>item.targetNodeId===node.id)){const raw=resolvePreview(edge.sourceNodeId,edge.sourcePortId),target=definition?.inputs.find(port=>port.id===edge.targetPortId);if(raw!==undefined&&target){try{inputs[edge.targetPortId]=resolveEngineeringInput(raw,target,options.projectUnits)}catch{/* preview error is already represented on the connected row */}}}
+      try{const stats=previewFoundationStatistics(node,inputs,Array.isArray(foundationPreview)?foundationPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=foundationPreview===undefined?undefined:stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
+    }
+    const previewError=previewErrors.get(node.id)
+    return { id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
+  })
+}
+
+function previewOutput(node: SpanovaNode, portId: string): GraphValue | undefined {
+  if (portId === 'value' && (node.type === 'input.number' || node.type === 'input.integer') && typeof node.parameters.value === 'number') return node.parameters.value
+  if (portId === 'values' && node.type === 'input.integer-list') { const values = String(node.parameters.valuesText ?? '').split(',').map(value => Number(value.trim())); return values.length && values.every(value => Number.isFinite(value) && Number.isInteger(value)) ? values : undefined }
+  if (portId === 'value' && node.type === 'input.quantity' && typeof node.parameters.value === 'number') return makeQuantity(node.parameters.value, node.parameters.quantityKind as QuantityKind, node.parameters.unit as UnitId)
+  if (node.type.startsWith('math.')) return undefined
+  if (portId === 'material' && node.type === 'material.concrete' && typeof node.parameters.materialId === 'string' && node.parameters.materialId) return { domainType: 'ConcreteMaterial', id: node.parameters.materialId, name: node.parameters.materialId, properties: {} } satisfies MaterialValue
+  return undefined
 }
 
 export function toReactFlowEdges(graph: SpanovaGraph, connectionStyle: ConnectionStyle = 'smooth'): Edge[] {
   return graph.connections.map((connection) => {
     const type = getNodeDefinition(graph.nodes.find((node) => node.id === connection.sourceNodeId)?.type ?? '')?.outputs.find((port) => port.id === connection.sourcePortId)?.type
-    return { id: connection.id, source: connection.sourceNodeId, sourceHandle: connection.sourcePortId, target: connection.targetNodeId, targetHandle: connection.targetPortId, type: connectionStyle === 'smooth' ? 'default' : 'step', animated: false, style: { stroke: portColor(type), strokeWidth: 1.7 } }
+    return { id: connection.id, source: connection.sourceNodeId, sourceHandle: connection.sourcePortId, target: connection.targetNodeId, targetHandle: connection.targetPortId, type: connectionStyle === 'smooth' ? 'default' : 'step', animated: false, style: { stroke: getDataTypeColor(type as import('../domain/types').GraphPortType | undefined), strokeWidth: 1.7 } }
   })
 }
 
@@ -32,5 +122,3 @@ export function fromReactFlowEdge(edge: Pick<Edge, 'id' | 'source' | 'sourceHand
 export function moveNodePositions(nodes: Pick<FlowGraphNode, 'id' | 'position'>[]): Record<string, { x: number; y: number }> {
   return Object.fromEntries(nodes.map((node) => [node.id, { x: node.position.x, y: node.position.y }]))
 }
-
-function portColor(type?: string) { return type === 'boolean' ? '#c18af7' : type?.endsWith('[]') ? '#e4b65c' : type === 'integer' ? '#6bbcc4' : '#4c91ff' }

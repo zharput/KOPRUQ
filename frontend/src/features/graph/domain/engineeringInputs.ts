@@ -1,4 +1,4 @@
-import { makeQuantity, type QuantityKind, type UnitId, unitsForKind } from './quantities'
+import { CANONICAL_UNITS, makeQuantity, type QuantityKind, type UnitId, unitsForKind } from './quantities'
 import type { EngineeringQuantity } from './quantities'
 import type { GraphPortType, GraphValue } from './types'
 
@@ -31,7 +31,7 @@ export function resolveEngineeringInput(value: GraphValue, target: EngineeringIn
 }
 
 function resolveUnit(kind: QuantityKind, preferred?: string): UnitId {
-  return unitsForKind(kind).find((unit) => unit.id === preferred || unit.label === preferred)?.id ?? unitsForKind(kind)[0].id
+  return unitsForKind(kind).find((unit) => unit.id === preferred || unit.label === preferred)?.id ?? (kind === 'translationalStiffness' || kind === 'rotationalStiffness' ? CANONICAL_UNITS[kind] : unitsForKind(kind)[0].id)
 }
 
 function isEngineeringQuantity(value: unknown): value is EngineeringQuantity {

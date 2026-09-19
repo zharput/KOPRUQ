@@ -1,6 +1,6 @@
 ﻿import type { Edge, Node } from '@xyflow/react'
 import type { GraphExecutionState, GraphParameterValue, GraphValue, MaterialValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
-import { getNodeDefinition, previewDesignOutput, previewPierCapStatistics, previewFoundationStatistics } from '../registry/nodeRegistry'
+import { getNodeDefinition, previewDesignOutput, previewPierCapStatistics, previewFoundationStatistics, previewBearingStatistics } from '../registry/nodeRegistry'
 import type { ConnectionStyle } from '../state/graphViewPreferences'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { resolveEngineeringInput } from '../domain/engineeringInputs'
@@ -15,6 +15,7 @@ export type GraphNodeViewData = {
   previewValue?: GraphValue
   previewCandidateCount?: number
   previewFoundationCandidates?: GraphValue
+  previewBearingCandidates?: GraphValue
   previewGeneratedCombinations?: number
   previewInvalidCombinations?: number
   rangePreviewValue?: GraphValue
@@ -39,7 +40,7 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
     const node=graph.nodes.find(item=>item.id===nodeId);if(!node)return undefined
     const nextPath=new Set(path);nextPath.add(cacheKey)
     const direct=previewOutput(node,portId);if(direct!==undefined){previewCache.set(cacheKey,direct);return direct}
-    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.'))return undefined
+    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.')&&!node.type.startsWith('substructure.bearing.')&&!node.type.startsWith('structural.girder.'))return undefined
     const definition=getNodeDefinition(node.type),inputs:Record<string,GraphValue>={}
     for(const edge of graph.connections.filter(item=>item.targetNodeId===nodeId)){
       const target=definition?.inputs.find(port=>port.id===edge.targetPortId)
@@ -79,9 +80,11 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
     }))
     const rangePreviewValue=node.type==='input.range'?resolvePreview(node.id,'values'):undefined
     const foundationPreview=node.type.startsWith('substructure.foundation.')?resolvePreview(node.id,'candidates'):undefined
+    const bearingPreview=node.type.startsWith('substructure.bearing.')?resolvePreview(node.id,'candidates'):undefined
+    const girderPreview=node.type.startsWith('structural.girder.')?resolvePreview(node.id,'candidates'):undefined
     const pierPreview=node.type.startsWith('substructure.pier.')?resolvePreview(node.id,'candidates'):undefined
     const capPreview=node.type.startsWith('substructure.pier-cap.')?resolvePreview(node.id,'candidates'):undefined
-    const previewCandidateCount=Array.isArray(pierPreview)?pierPreview.length:Array.isArray(capPreview)?capPreview.length:Array.isArray(foundationPreview)?foundationPreview.length:undefined
+    const previewCandidateCount=Array.isArray(pierPreview)?pierPreview.length:Array.isArray(capPreview)?capPreview.length:Array.isArray(foundationPreview)?foundationPreview.length:Array.isArray(bearingPreview)?bearingPreview.length:Array.isArray(girderPreview)?girderPreview.length:undefined
     let previewGeneratedCombinations:number|undefined,previewInvalidCombinations:number|undefined
     if(node.type.startsWith('substructure.pier-cap.')&&capPreview!==undefined){
       const inputs:Record<string,GraphValue>={}
@@ -93,8 +96,13 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
       for(const edge of graph.connections.filter(item=>item.targetNodeId===node.id)){const raw=resolvePreview(edge.sourceNodeId,edge.sourcePortId),target=definition?.inputs.find(port=>port.id===edge.targetPortId);if(raw!==undefined&&target){try{inputs[edge.targetPortId]=resolveEngineeringInput(raw,target,options.projectUnits)}catch{/* preview error is already represented on the connected row */}}}
       try{const stats=previewFoundationStatistics(node,inputs,Array.isArray(foundationPreview)?foundationPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=foundationPreview===undefined?undefined:stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
     }
+    if(node.type.startsWith('substructure.bearing.')){
+      const inputs:Record<string,GraphValue>={}
+      for(const edge of graph.connections.filter(item=>item.targetNodeId===node.id)){const raw=resolvePreview(edge.sourceNodeId,edge.sourcePortId),target=definition?.inputs.find(port=>port.id===edge.targetPortId);if(raw!==undefined&&target){try{inputs[edge.targetPortId]=resolveEngineeringInput(raw,target,options.projectUnits)}catch{/* preview error is already represented on the connected row */}}}
+      try{const stats=previewBearingStatistics(node,inputs,Array.isArray(bearingPreview)?bearingPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=bearingPreview===undefined?undefined:stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
+    }
     const previewError=previewErrors.get(node.id)
-    return { id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
+    return { id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
   })
 }
 

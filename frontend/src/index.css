@@ -12,6 +12,8 @@
   --text-muted: #6b7280;
   --accent: #2f7bf6;
   --accent-strong: #4c8dff;
+  --graph-canvas: #0d1119;
+  --graph-grid-color: #354052;
 
   /* Fixed dark constant, NOT overridden by [data-theme='light'] below -
      the sidebar itself now follows the app theme (2026-09-13, reversed
@@ -50,6 +52,8 @@
   --text-muted: #7b8494;
   --accent: #2f7bf6;
   --accent-strong: #1b5fd6;
+  --graph-canvas: #e6e6e6;
+  --graph-grid-color: #c7d0dc;
 
   color-scheme: light;
   color: var(--text-secondary);

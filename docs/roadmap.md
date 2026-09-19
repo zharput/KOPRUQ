@@ -1517,3 +1517,118 @@ code itself is not reused.
 - [x] Verify visible-handle graph interactions, live propagation, Watch/List, input replacement/disconnect/reconnect, invalid count typing, safety-limit failure/recovery in rendered Chrome. Browser clipboard/history keyboard checks were not included in the final verified matrix.
 - [x] Pass frontend tests (202 / 31 files), TypeScript and production build (existing large-chunk advisory).
 - [x] Stop after Phase 3D. No geotechnical/structural foundation checks, pile length, soil or pier connections, bearings, assemblies or later families.
+## Phase 3E - Elastomeric Bearing Family Node (2026-09-18)
+
+- [x] Add one Structural / Family node: Elastomeric Bearing. No Pot, Spherical or other bearing types.
+- [x] Add deterministic `BearingCandidate` generation for canonical-metre geometry and local-axis stiffness in canonical kN/m and kN·m/rad. Candidate IDs derive only from normalized values; no location, orientation, material or runtime cache is stored.
+- [x] Reuse the existing `translationalStiffness` and `rotationalStiffness` quantity kinds and unit conversions. Geometry and stiffness ports accept typed scalar/list values, explicit matching quantities, Range and target-aware Math results.
+- [x] Generate the Cartesian alternatives live with the shared 10,000 limit. Positive geometry and non-negative stiffness are valid; zero stiffness is preserved. No EN 1337 checks or FEM elements are produced.
+- [x] Add Geometry / Stiffness canvas groups, resolved engineering input display, live Watch, detailed List, Inspector counts and illustrative plan/section SVG. Existing Graph history, clipboard, connection replacement and authoring persistence are reused.
+- [ ] Run the requested real Chrome interaction matrix. No browser automation harness is present in this checkout; automated UI/domain regression is covered, but physical mouse interaction remains unverified.
+- [x] Stop after Phase 3E. Bearing assignments, bearing locations, orientations, quantities, other bearing families, materials, FEM links, design checks and optimization remain out of scope.
+
+## Phase 3E.1 - Graph Inspector Standardization and CAD Selection (2026-09-18)
+
+- [x] Standardize structural Inspector presentation through node-definition metadata and one shared renderer: General, Type / Schematic, Parameters and Family.
+- [x] Move Pier schematics near the top. Render T-Cap with its wide flange above its downward stem and attach dimension labels to the matching parts.
+- [x] Centralize schematic orange and tune Node Library / Node Inspector font sizes through shared CSS tokens.
+- [x] Hide structural Graph ports, implementation types and IDs. Show engineering parameter names/order, editable local values or resolved connected values, and concise candidate counts.
+- [x] Implement left-to-right full-enclosure and right-to-left crossing selection on empty canvas, with Shift-add, Escape cancellation, node-only hit testing and a single selection commit after release.
+- [x] Reuse the existing selected-ID state for copy/paste, delete, undo and supported group movement. Selection itself does not create authoring history entries.
+- [x] Chrome acceptance with 12 nodes verified window selection, partial exclusion, crossing selection, Shift-add, the multiple-selection summary, multi-node Ctrl+C/Ctrl+V and Escape preservation. Inspector checks covered all 10 current structural node types, shared order, orange schematic and no PORTS; no runtime exceptions occurred.
+- [x] Automated tests cover containment/intersection, Shift merge, and coordinate conversion with zoom 0.5, 1.0 and 2.0 plus pan. Full frontend test count and build result are reported after final verification.
+- [x] Stop after Phase 3E.1. Do not start Girder or add other engineering functionality.
+- [x] Final verification: frontend tests passed (240 / 34 files), TypeScript and production build passed (existing >500 kB chunk advisory).
+
+## Phase 3E.2 - Engineering Schematic and Inspector Cleanup (2026-09-19)
+
+- [x] Standardize Inspector labels, values, typography and section order across family and non-family nodes; hide Graph ports, implementation types and source/target IDs.
+- [x] Add live resolved engineering values and candidate ranges with project length units.
+- [x] Dimension Pier and Pier Cap views; show shallow and piled foundation PLAN/SECTION with derived geometry, count and spacing; retain required Oval, H and T section conventions.
+- [x] Use responsive SVG viewBoxes and shared dimension/axis/accent styles; Chrome checked all structural schematic text bounds at the 284 px Inspector width.
+- [x] Chrome regression checked Number/Math -> Watch/List, Range -> Pier width, Concrete -> Pier material, zoom-only wheel, middle pan and Ctrl+middle zoom; no browser exceptions; temporary graph fixture removed.
+- [x] Frontend tests passed (261 / 34 files); TypeScript and production build passed (existing >500 kB chunk advisory).
+- [x] Stop after Phase 3E.2; no Girder or other new structural families started.
+
+## Phase 3E.3 - Inspector Schematics, Theme Toggle and Logo Integration (2026-09-19)
+
+- [x] Complete Shallow and Piled Foundation PLAN/SECTION geometry with resolved dimensions, project units, pile positions and schematic pile extensions where length is undefined.
+- [x] Separate Elastomeric Bearing PLAN dimensions from the title and outline; retain responsive readable sizing.
+- [x] Strengthen the illustrative 90-degree H-section concrete web without changing candidate formulas or engineering geometry.
+- [x] Mount the persisted Dark/Light sun/moon toggle in the active workspace navigation; preserve graph state and structural orange across themes.
+- [x] Serve the original `Spanova_logo.png` unchanged with contain sizing and preserve logo navigation.
+- [x] Chrome smoke checks passed for schematics, logo loading, theme switching/persistence and existing graph state; focused tests passed (54 / 2 files).
+- [x] Stop after Phase 3E.3; do not proceed to Phase 3F or start Girder.
+
+## Phase 3E.4 - Light Mode and Structural Schematic Corrections (2026-09-19)
+
+- [x] Apply Light/Dark theme variables directly to React Flow canvas, grid, minimap, nodes, graph toolbar, menus and shared Inspector inputs.
+- [x] Correct foundation SECTION rendering with explicit solid cap/footing geometry and schematic pile extensions while preserving resolved connected values and candidate formulas.
+- [x] Strengthen the H-section concrete web presentation without changing the engineering data model or candidate generation.
+- [x] Preserve readable bearing PLAN/SECTION dimension placement and project-unit values.
+- [x] Focused tests passed (54 / 2 files); TypeScript and production build passed with the existing large-chunk advisory.
+- [x] Stop after Phase 3E.4; do not proceed to Phase 3F or start Girder.
+
+### Phase 3E.4 revision (2026-09-19)
+
+- [x] Fixed SVG section rectangles using explicit `width`/`height`, restoring visible Shallow footing and Piled cap bodies.
+- [x] H Pier schematic now presents B = 1.50 m transverse and D = 3.00 m longitudinal from the existing width/depth inputs, with a three-times-thicker visual web; generation data remains unchanged.
+- [x] Dark/light graph and node text contrast improved; full suite passed (261 / 34 files) and production build passed.
+
+## Phase 3E.5 - Inspector Unit Conversion and H-Section Geometry (2026-09-19)
+
+- [x] Unit selectors convert local numeric values through the shared quantity conversion service while preserving canonical physical values and node-local unit preferences.
+- [x] Added conversion regression coverage for 0.6 m -> 600 mm and retained connected/candidate behavior.
+- [x] H-section Inspector uses B transverse / D longitudinal display mapping, dynamic tw/tf geometry and a solid reinforced-concrete H silhouette with center Bridge Axis.
+- [x] Full frontend suite passed (262 / 34 files); TypeScript and production build passed with the existing large-chunk advisory.
+- [x] Stop after Phase 3E.5; do not proceed to Girder.
+
+## Phase 3E.6 - Graph Node Headers, Selection and Light Canvas (2026-09-19)
+
+- [x] Fill each node title row with its existing category color through shared theme variables; node bodies remain unchanged.
+- [x] Use a continuous blue selection border/glow independent of category color for single and multi-selection.
+- [x] Set Light graph canvas to #E6E6E6 and tune the shared grid color; Dark canvas remains unchanged.
+- [x] Full frontend suite passed (262 / 34 files); TypeScript and production build passed with the existing large-chunk advisory.
+- [x] Stop after Phase 3E.6; do not start Girder or new engineering nodes.
+
+## Phase 3F - Precast and Steel Girder Family Nodes (2026-09-19)
+
+- [x] Add Graph Precast Girder and Steel Girder Structural/Family nodes with typed geometry/material inputs, preferred/applicable span parameters and shared Inspector order.
+- [x] Reuse the existing Precast Family geometry dimensions (`H`, `tf`, `bf`, `w`, `th1`, `th2`, `bh1`, `bh2`) instead of creating a second Family Tables source.
+- [x] Generate deterministic Cartesian Steel welded-I and Precast I candidates with the 10,000 combination limit and explicit invalid geometry counts.
+- [x] Calculate Steel `hw`, area, centroid, Ix, Iy and elastic section moduli independently of material completeness.
+- [x] Keep missing Structural Steel catalog properties separate: geometry remains visible; mass/self-weight and material-dependent status are `INCOMPLETE` when density is absent.
+- [x] Add domain regression coverage for the acceptance geometry, 12-candidate Range product, deterministic IDs and invalid `hw`.
+- [ ] Complete EN 10025 Structural Steel catalog mechanical properties (E, nu, density, fy, fu and thickness rules) in a subsequent phase; no values were invented here.
+- [x] Full frontend tests passed (266 / 35 files) and TypeScript/production build passed with the existing large-chunk advisory.
+- [x] Stop after Phase 3F; Girder Layout, Superstructure Assembly, FEM and Optimization remain out of scope.
+
+### Phase 3F Node Library integration (2026-09-19)
+
+- [x] Fixed the visibility root cause: Structural/Family Node Library grouping now includes the `structural.girder.*` registry prefix under a Girder subgroup.
+- [x] Precast Girder and Steel Girder remain registered through the existing Graph registry, adapter, Store and execution paths; no domain candidate code was rewritten.
+- [x] Node Library subgroup render and registry tests passed; full frontend suite passed (266 / 35 files), TypeScript and production build passed.
+- [x] Chrome smoke confirmed Girder subgroup plus both node entries are visible on `/graph`.
+
+## Phase 3F.1 - Precast Girder Integration Corrections (2026-09-19)
+
+- [x] Correct independent Precast defaults to the existing Family dimension vocabulary (`H=1.90`, `tf=1.50`, `bf=.80`, `w=.20`, `th1=.12`, `th2=.10`, `bh1=.28`, `bh2=.15` m); no second Family source was created.
+- [x] Preserve centralized unit conversion and candidate output typing; add readable Girder candidate summaries/details to List.
+- [x] Keep Precast candidates connected to Watch/List through the existing display:any path and preserve C40/50 local material fallback.
+- [x] Full frontend suite passed (266 / 35 files) and production build passed.
+
+## Phase 3F.2 - Precast Inspector Geometry and Unit Precision (2026-09-19)
+
+- [x] Normalize display-only quantity conversion precision so 1.90 m converts to exactly 1900 mm without changing calculation precision.
+- [x] Reuse the shared `bulbTeeGirderPath` geometry for Family-style Precast Inspector rendering using H, tf, bf, w, th1, th2, bh1 and bh2.
+- [x] Added regression tests for exact conversion and all eight geometry dimensions.
+- [x] Chrome screenshot and DOM smoke verified Precast Inspector and exact `1900` mm display.
+- [x] Full frontend suite passed (267 / 36 files) and production build passed.
+
+## Phase 3F.3 - Precast Girder Candidate Preview and List Compatibility (2026-09-19)
+
+- [x] Add Precast Girder live candidate preview to the shared graph adapter path.
+- [x] Preserve deterministic Cartesian candidate generation and expose the default one-candidate geometry before RUN.
+- [x] Allow `girderCandidate[]` outputs to connect to `display:any` List and Watch inputs while retaining typed validation for other connections.
+- [x] Keep the existing Girder geometry and material data in candidate previews; use C40/50 only as the existing Precast node default.
+- [x] Validate focused adapter, registry and graph connection tests and the full frontend suite.

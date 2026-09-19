@@ -2607,7 +2607,7 @@ approved, then implemented.
 
 - The Concrete node now uses the reusable generic `CanvasSelect<T>` control. It receives items, value, key/label accessors, change handler, disabled state and placeholder; Concrete supplies the existing `EN_CONCRETE_CLASS_IDS` catalog.
 - The former native `<select>` had complete option data, so an empty catalog or missing adapter was not the failure. Its browser/OS-managed popup is outside the rendered node DOM and cannot be layered, scrolled or keyboard-routed consistently with React Flow. The replacement is a controlled DOM listbox portaled to `document.body`, positioned from the trigger rectangle and outside the React Flow viewport clipping/transform stack.
-- The control explicitly stops pointer, click and wheel propagation at the trigger and portaled menu. The portal places menu gestures outside the canvas subtree; `nodrag`/`nowheel` markers remain on trigger/menu, graph wheel zoom is disabled, and menu scrolling is contained. Escape and outside pointer-down close without changing the value; keyboard arrows/Enter navigate and commit.
+- The control stops pointer and click propagation at the trigger and portaled menu. The closed trigger allows wheel events to reach React Flow for canvas zoom. The menu is portaled outside the canvas subtree so its native list scrolling remains available. Numeric editors retain `nowheel` markers. Escape and outside pointer-down close without changing the value; keyboard arrows/Enter navigate and commit.
 - Committed grade changes still call the existing `onParameterChange` → GraphStore path, so preview values, downstream Pier input preview, dirty state, undo/redo, copy/paste and localStorage persistence use the existing graph authoring model. Opening and dismissing the menu do not write graph state. Normal canvas output rows no longer render developer port type labels.
 - Automated verification: all frontend tests pass (134 tests across 28 files); TypeScript and production Vite build pass. No new catalog or engineering values were introduced.
 - A new dev server returned HTTP 200 for `/graph`; a temporary headless Chrome page opened. The Graph route rendered in headless Chrome and the Concrete library item was located and clicked; however, the follow-up browser DOM query did not return a usable result. The Phase 3B.2D.3 browser interaction matrix and screenshot are therefore not verified; earlier phase tests of the native select do not validate this custom control.
@@ -2641,6 +2641,7 @@ approved, then implemented.
 - `STRUCTURAL_FAMILY` is a presentation category in `NODE_THEME_REGISTRY`; all five existing Pier definitions use its shared muted orange accent, border and header tokens. The dark node body remains neutral. Future structural family definitions can reuse this category; no family generator was added.
 - `DATA_TYPE_THEME_REGISTRY` continues to set connection colors by source port data type. Browser checks confirmed numeric, integer and candidate-list edge colors remain independent from orange family styling.
 - BaseNode now routes the structural family category through the engineering node shell. Number/Integer output rows are raised slightly to leave execution status clear of the output label. React Flow permits middle-button canvas pan while Ctrl+middle remains pointer-centered zoom; GraphStore and execution behavior are unchanged.
+- Graph wheel behavior is corrected in Phase 3D.1A: wheel rotation zooms around the cursor with React Flow (`zoomOnScroll`, `zoomOnPinch` enabled, `panOnScroll` disabled, `panOnDrag={[1]}`, zoom bounds 0.20–2.50). A non-passive capture listener prevents browser scrolling inside the canvas while allowing React Flow to receive the event. Closed Concrete selectors pass wheel events to the canvas; open portaled menus keep native option scrolling, and numeric editors opt out of React Flow wheel handling. Automated regression tests pass; physical-wheel Chrome verification remains outstanding.
 - Headless Chrome verified primitive/Math labels, all five orange Pier family nodes, type-colored edges, List candidate detail/encoding, handle bounds, status spacing and live Watch/List execution (8 visual assertions). The interaction regression browser matrix passed 27 assertions, including numeric editing, Range/Pier, scalar/list Math, quantity conversion, dropdown, connection drag, history, clipboard, save/reload, pan and zoom.
 - Frontend tests: 161 passed across 29 files. TypeScript and production Vite build passed with the existing >500 kB JavaScript chunk advisory. Stop here; do not start Pier Cap.- A final real-browser rerun added occupied Math input reconnection and Number/Integer edit commits; all 28 interaction/regression assertions passed. The 8 visual acceptance assertions also passed.
 ## Pier Cap family nodes, Phase 3B.3 / Phase 3C (2026-09-18)
@@ -2664,3 +2665,83 @@ approved, then implemented.
 - Range/Math authoring previews flow live into the family nodes and Watch/List without Run. Inspector shows resolved sources, candidate statistics, derived Lx/Ly and an illustrative plan schematic. Candidate values are derived and are not persisted in Foundation Family Tables.
 - A raw product beyond 10,000 reports a generation error and does not materialize candidates; the Inspector distinguishes this failure from invalid geometry counts. No bearing/soil/pier connections, foundation checks, geotechnical properties, pile length, structural analysis or design acceptance are implemented in this phase.
 - Real Chrome verified visible-handle connections for shallow dimensions and materials, piled dimensions/counts and materials, Range → Math → piled spacing, live Watch/List outputs, count type rejection, occupied-input replacement, drag-disconnect/reconnect and over-limit/recovery behavior. Frontend automated suite passed (202 tests / 31 files); TypeScript and production build passed with the existing >500 kB chunk advisory.
+
+## Elastomeric Bearing family node, Phase 3E (2026-09-18)
+
+- Graph exposes one Structural / Family node: Elastomeric Bearing. It generates family alternatives for later assembly use and does not assign a bearing to a bridge location.
+- `BearingCandidate` stores a deterministic ID, `ELASTOMERIC` type, canonical metre geometry (`lengthX`, `widthY`, `totalHeight`) and six local-axis canonical stiffness values (`kx`, `ky`, `kz` in kN/m; `krx`, `kry`, `krz` in kN·m/rad). It contains no formatted strings, location, orientation, quantity, material or runtime cache.
+- Geometry uses the existing Project length display unit. Translational and rotational stiffness use the existing typed quantity kinds and conversions; absent project preferences resolve to canonical kN/m and kN·m/rad. Numeric scalars/lists at typed ports are interpreted in those display units, while explicit quantities retain their unit metadata. Math output remains generic numeric authoring data until the bearing port resolves it.
+- Generation is deterministic Cartesian product, last field varying fastest, with a 10,000 raw-combination ceiling. All values must be finite; dimensions must be positive and stiffness values non-negative. Zero stiffness remains exactly zero and valid. Invalid combinations are counted; oversized products fail before candidate materialization.
+- Range/Math inputs preview candidates without Run. Connected canvas rows show resolved engineering values. Watch reports candidate counts; List shows geometry and all stiffness values; Inspector shows input groups, raw/valid/invalid counts and an illustrative plan/section schematic.
+- The stored axes are bearing-local. Bridge Assembly will later assign a candidate to support/girder/location and define orientation; a later FEM stage can map these local stiffness components into link/spring elements.
+- No bearing assignment/location, orientation, count, rubber or steel-plate material, EN 1337 check, bearing design, FEM element, Pot/Spherical family or downstream design/optimization work is part of this phase.
+- Automated tests and the production build cover domain generation, quantity resolution, live previews, Watch/List/Inspector, copy/paste, history and persistence. The requested physical-wheel Chrome acceptance matrix remains outstanding because this checkout has no browser automation harness.
+
+## Graph Inspector Standardization and CAD Selection, Phase 3E.1 (2026-09-18)
+
+- Structural node definitions carry `engineeringInspector` metadata for schematic family and engineering parameter order. A shared `EngineeringNodeInspector` renders General, Type / Schematic, Parameters and Family for Pier, Pier Cap, Foundation and Elastomeric Bearing nodes.
+- Structural Inspectors show editable local values or resolved connected values, and hide Graph ports, data types, source IDs and node IDs. A multiple selection displays type counts. The empty state is minimal. Node Library and Inspector typography use shared sizing rules.
+- Pier schematics appear near the top. The T-Cap schematic explicitly draws a wide upper flange and a stem extending downward, with dimension labels at the corresponding geometry. Structural schematic graphics use `--graph-structural-accent`.
+- Empty-canvas left-to-right selection requires full node enclosure; right-to-left selection includes intersecting or touching node bounds. A temporary box is rendered during drag and only the final ID list is committed at release. Bounds are converted with React Flow `screenToFlowPosition`, so pan and zoom are included. Selection is node-only and does not auto-pan.
+- Shift adds IDs to the existing selected-node state; Escape cancels the rectangle. Selection does not enter graph authoring history. Existing copy/paste, delete, undo and group movement use the same selected-ID state and GraphStore operations. Node clicks and box selection update that state directly; React Flow's selection callback updates edges only to prevent stale node selection from overwriting it.
+- Chrome smoke checks with 12 nodes verified window enclosure, partial-window exclusion, crossing inclusion, Shift-add, the multiple-selection summary, multi-node Ctrl+C/Ctrl+V and Escape preservation. All 10 current structural node types rendered the shared section order, orange schematic and no PORTS. Pure coordinate tests cover zoom scales 0.5, 1.0 and 2.0 plus pan. Physical mouse-device interaction is not covered.
+
+## Engineering Schematics and Inspector Cleanup, Phase 3E.2 (2026-09-19)
+
+- Structural Inspector diagrams are SVG engineering views built from shared dimension, axis, centerline, outline and value-formatting primitives. Geometry uses the centralized `--graph-structural-accent`; dimension and axis graphics use shared secondary tokens.
+- Dimension annotations pair the engineering parameter with its current resolved value and Project display unit. Local values use the same unit preference, connected values use the live preview, and multi-value candidates display the minimum-to-maximum preview range. Schematic scaling clamps display proportions while leaving authoritative candidate geometry untouched.
+- Pier section convention is transverse horizontally and longitudinal vertically: B is transverse and D is longitudinal. Circular Pier uses a diameter; Oval Pier is a B-by-D obround, Box Pier retains its hollow void, and H Pier is drawn in the required 90-degree rotated orientation with B, D, tw and tf.
+- Pier Cap diagrams show length and section dimensions. T-Cap is drawn with its wide flange at the bottom and its stem extending upward. Shallow Foundation and Piled Foundation each show PLAN and SECTION; pile locations use the existing nx, ny, ax, ay and D geometry and the candidate-derived Lx/Ly dimensions. No foundation candidate equations or other engineering rules changed.
+- All current structural family Inspectors, including Elastomeric Bearing, use the shared schematic renderer. Node-definition metadata remains the extension point for future Girder and Abutment diagrams.
+- Every Inspector now uses presentation labels rather than Graph port definitions, internal data-type strings or source/target IDs. Non-family nodes use concise Parameters / Value and Result / Preview sections; family nodes retain the common General, Type / Schematic, Parameters and Family order.
+- Node Library names and Inspector labels/values share `--graph-panel-body-font-size`. SVGs use responsive viewBoxes and separate compact single-view and two-view sizing.
+- Chrome smoke verification at the 284 px Inspector width checked all current structural schematics, unit/value labels, shared orange, text bounds, Inspector/Library font sizing and absence of port/debug text. Browser screenshots also reviewed Pier, T-Cap and both foundation diagrams. Chrome interaction was simulated through DevTools; physical mouse hardware was not tested.
+- A connected live-preview browser fixture linked Number and Math into Watch/List, a Range into Pier width, and Concrete into Pier material. Resolved values and candidate range appeared without implementation IDs or browser exceptions.
+- Graph gesture smoke checks verified wheel zoom without document/viewport vertical scrolling, middle-button pan and Ctrl+middle pointer-centered zoom. The temporary fixture was removed afterwards.
+
+## Inspector Schematics, Theme Toggle and Logo Integration, Phase 3E.3 (2026-09-19)
+
+- Foundation Inspector SVGs now show the actual shallow footing and piled cap bodies in PLAN and SECTION, including pile positions/extensions, dimensions, derived Lx/Ly and Bridge Axis. Pile extension is schematic only when no engineering length exists.
+- Bearing PLAN dimension spacing separates the title, arrows, labels and outline at compact Inspector widths. H-section Pier remains 90-degree oriented and uses a visibly substantial continuous concrete web while reading the unchanged B, D, tw and tf values.
+- The active workspace navigation mounts the shared persisted Dark/Light toggle. Theme variables cover the shell, graph, nodes, Inspector, controls and dialogs while preserving structural orange and connection visibility.
+- The original `Spanova_logo.png` is served unchanged from `frontend/public/Spanova_logo.png` and is displayed with contain sizing in the navigation brand link.
+
+## Light Mode, Foundation, H-Section and Bearing Drawing Corrections, Phase 3E.4 (2026-09-19)
+
+- React Flow canvas, dot grid and minimap now consume theme variables, so Light mode uses a light canvas and contrasting grid while Dark mode retains its existing palette. Node, toolbar, connection and selection styling remains category-aware.
+- Light mode overrides the graph node bodies, numeric edit boxes, unit selectors and canvas menus with readable light surfaces and dark text.
+- Foundation SECTION renderers retain explicit solid footing/cap rectangles and vertical schematic pile extensions; no candidate or dimension formulas changed.
+- H-section visual web thickness is strengthened through SVG presentation constraints only; resolved B, D, tw and tf values remain authoritative.
+- Bearing PLAN/SECTION coordinates remain separated for title, dimensions and geometry.
+
+### Phase 3E.4 revision
+
+The foundation section rendering defect was caused by SVG `<rect>` elements receiving `w` and `h` properties instead of SVG `width` and `height`; both section renderers now use explicit SVG dimensions. H Pier display dimensions intentionally map the existing depth input to transverse B (1.50 m) and width input to longitudinal D (3.00 m), with a presentation-only three-times-thicker web. Candidate generation and authoritative engineering values are unchanged.
+
+## Inspector Unit Conversion and H-Section Geometry, Phase 3E.5 (2026-09-19)
+
+Local numeric unit selectors now use `convertQuantity` to convert the paired value before persisting the new unit. The canonical engineering value therefore remains unchanged when switching display units, while editing the converted value still follows the existing node parameter path. H Pier schematic dimensions map the existing depth input to transverse B and width input to longitudinal D for the requested orientation; tw/tf drive a single solid SVG silhouette and do not alter candidate generation.
+
+## Graph Node Headers, Selection and Light Canvas, Phase 3E.6 (2026-09-19)
+
+Node title rows now use shared category accent variables for their full background while retaining the existing category border. Selection is rendered as a category-independent blue border and glow. The Light graph canvas uses the requested #E6E6E6 variable and a contrasting React Flow dot grid; node positions, graph state and selection logic are unchanged.
+
+## Precast and Steel Girder Family Nodes, Phase 3F (2026-09-19)
+
+Graph now exposes `structural.girder.precast` and `structural.girder.steel`. Both use typed length ports, deterministic Cartesian candidate generation and shared span metadata. Precast candidates use the existing Family dimension vocabulary. Steel candidates model a welded three-plate I-section and calculate geometry-only properties (`hw`, A, centroid, Ix/Iy and elastic moduli). Material completeness is independent: missing Structural Steel density/mechanical properties marks dependent outputs `INCOMPLETE` without suppressing valid geometric candidates. EN 10025 catalog completion remains a later phase; no engineering constants were invented.
+
+### Phase 3F Node Library integration correction
+
+The Phase 3F girder nodes were registered as `structural.girder.precast` and `structural.girder.steel`, but `NodeLibrary.tsx` only rendered Structural/Family subgroups for `substructure.pier`, `substructure.pier-cap`, `substructure.foundation` and `substructure.bearing`. The registry and execution chain were therefore intact while the entries were invisible. A shared prefix filter now renders both definitions under a Girder subgroup with the existing add/drag behavior.
+
+## Precast Girder Integration Corrections, Phase 3F.1 (2026-09-19)
+
+Precast Girder local defaults now use independent existing Family dimension values rather than repeating girder height for every field. Girder candidates are recognized by List output and display geometry, material and preferred span without JSON conversion; the existing typed `girderCandidate[]` output and live Graph execution path remain unchanged.
+
+## Precast Inspector Geometry and Unit Precision, Phase 3F.2 (2026-09-19)
+
+`convertQuantity` now removes binary floating-point presentation noise with a precision-preserving significant-digit normalization. The shared `bulbTeeGirderPath` function is used as the canonical Family/Inspector outline source, with independent H, tf, bf, w, th1, th2, bh1 and bh2 dimensions. Chrome verification captured `%TEMP%/spanova-precast-3f2.png` and confirmed the Girder Height unit switch displays exactly `1900` for `mm`.
+
+## Precast Girder Candidate Preview and List Compatibility, Phase 3F.3 (2026-09-19)
+
+The 0-candidate live display was caused by the React Flow adapter's preview resolver excluding `structural.girder.*` nodes, even though the registry executor and candidate generator were present. The adapter now resolves Girder previews through the same path used by the other structural family nodes and publishes their candidate count before RUN. The typed connection whitelist also includes `girderCandidate[]`, so Candidates can feed List and Watch `display:any` inputs without weakening validation for unrelated types.

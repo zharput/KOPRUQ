@@ -13,6 +13,7 @@ import BaseNode from './BaseNode'
 import GraphLog, { type GraphLogEntry } from './GraphLog'
 import NodeInspector from './NodeInspector'
 import NodeLibrary from './NodeLibrary'
+import { mergeBoxSelection, normalizedBox, selectNodeIdsByBox, selectionMode, transformBox, type BoxRect, type BoxSelectionMode } from './boxSelection'
 import { graphMaterialServices } from '../api/graphMaterialService'
 import { readProjectState } from '../../project/model/projectWorkspace'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
@@ -64,7 +65,7 @@ function GraphWorkspaceContent() {
 
   useEffect(() => { persistGraphStore() }, [])
   useEffect(() => { setStates({}); setErrors({}); setNodeOutputs({}); setResolvedInputs({}); setExecutedSignature(undefined); setLog([]) }, [graph.id])
-  useEffect(() => { if (!graph.nodes.some((node) => node.id === selectedNodeId)) { setSelectedNodeId(null); setSelectedNodeIds([]) } }, [graph.nodes, selectedNodeId])
+  useEffect(() => { if (selectedNodeId !== null && !graph.nodes.some((node) => node.id === selectedNodeId)) { setSelectedNodeId(null); setSelectedNodeIds([]) } }, [graph.nodes, selectedNodeId])
   const onParameterChange = useCallback((id: string, key: string, value: number | boolean | string | number[]) => { setNodeParameter(id, key, value) }, [])
   const inspectorPreviewInputs = useMemo(() => selected ? toReactFlowNodes(graph,{projectUnits:projectUnitLabels,isDirty,onParameterChange}).find(item=>item.id===selected.id)?.data.connectedInputs : undefined,[graph,selected?.id,projectUnitLabels,isDirty,onParameterChange])
   const onAdd = useCallback((type: string) => { const id = addRef.current?.(type); if (id) setSelectedNodeId(id) }, [])
@@ -113,7 +114,7 @@ function GraphWorkspaceContent() {
     else if (key === 'v' && pasteClipboard()) event.preventDefault()
     else if (key === 'd') { const ids = selectedForClipboard(); if (ids.length) { event.preventDefault(); pasteClipboard(copyGraphSelection(graph, ids)) } }
   }
-  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} stop={stop} onDelete={removeSelected} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} connectionStyle={connectionStyle} onConnectionStyleChange={changeConnectionStyle} diagnostics={diagnostics} isDirty={isDirty} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} states={executionDisplay.states} errors={executionDisplay.errors} outputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} nodes={graph.nodes} connections={graph.connections} concreteMaterial={inspectorMaterial} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
+  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} stop={stop} onDelete={removeSelected} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} connectionStyle={connectionStyle} onConnectionStyleChange={changeConnectionStyle} diagnostics={diagnostics} isDirty={isDirty} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} selectedNodes={graph.nodes.filter(item => selectedNodeIds.includes(item.id))} states={executionDisplay.states} errors={executionDisplay.errors} outputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} connections={graph.connections} concreteMaterial={inspectorMaterial} projectUnits={projectUnitLabels} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
 }
 
 function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, connectionStyle, onConnectionStyleChange, diagnostics, isDirty }: {
@@ -128,7 +129,21 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
   selectedEdgeIdsRef.current = selectedEdgeIds
   const canvasRef = useRef<HTMLDivElement>(null)
   const reconnecting = useRef<{ edgeId: string; mode: 'edge' | 'input' } | undefined>(undefined)
-  const ctrlMiddleZoom = useRef<{ lastY: number; x: number; y: number } | undefined>(undefined)
+  const ctrlMiddleZoom = useRef<{ lastY: number; x: number } | undefined>(undefined)
+  const boxStart = useRef<{ clientX: number; clientY: number; shift: boolean; previous: string[] } | undefined>(undefined)
+  const suppressPaneClick = useRef(false)
+  const [selectionBox, setSelectionBox] = useState<{ rect: BoxRect; mode: BoxSelectionMode }>()
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    // React Flow owns wheel zoom. Cancel the browser's default scroll at the
+    // canvas boundary without stopping propagation to React Flow.
+    const preventPageScroll = (event: WheelEvent) => {
+      if (event.cancelable) event.preventDefault()
+    }
+    canvas.addEventListener('wheel', preventPageScroll, { capture: true, passive: false })
+    return () => canvas.removeEventListener('wheel', preventPageScroll, true)
+  }, [])
   const flowNodeData = useMemo(() => ({ states, errors, outputs: nodeOutputs, resolvedInputs, projectUnits, isDirty, onParameterChange }), [states, errors, nodeOutputs, resolvedInputs, projectUnits, isDirty, onParameterChange])
   const projectedNodes = useMemo(() => { if (diagnostics) console.count('[graph diagnostics] node projection'); return toReactFlowNodes(graph, flowNodeData) }, [graph, flowNodeData, diagnostics])
   const selectedNodeSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds])
@@ -228,31 +243,89 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
     addNode(type, { x: Math.round(position.x / 20) * 20, y: Math.round(position.y / 20) * 20 })
   }
   const startCtrlMiddleZoom = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.button !== 1 || !event.ctrlKey || !canvasRef.current) return
+    if (event.button !== 1 || !event.ctrlKey || !canvasRef.current || reconnecting.current || flowStore.getState().connection.inProgress) return
     event.preventDefault(); event.stopPropagation()
     const rect=canvasRef.current.getBoundingClientRect()
-    ctrlMiddleZoom.current={lastY:event.clientY,x:event.clientX-rect.left,y:event.clientY-rect.top}
+    ctrlMiddleZoom.current={lastY:event.clientY,x:event.clientX-rect.left}
   }
   useEffect(() => {
-    const move=(event:MouseEvent)=>{const gesture=ctrlMiddleZoom.current;if(!gesture)return;event.preventDefault();const delta=event.clientY-gesture.lastY;gesture.lastY=event.clientY;const viewport=getViewport(),zoom=Math.min(2,Math.max(.5,viewport.zoom*Math.exp(-delta*.006)));const flowX=(gesture.x-viewport.x)/viewport.zoom,flowY=(gesture.y-viewport.y)/viewport.zoom;void setViewport({x:gesture.x-flowX*zoom,y:gesture.y-flowY*zoom,zoom},{duration:0})}
+    const move=(event:MouseEvent)=>{const gesture=ctrlMiddleZoom.current;if(!gesture)return;event.preventDefault();const delta=event.clientY-gesture.lastY;gesture.lastY=event.clientY;if(delta===0)return;const rect=canvasRef.current?.getBoundingClientRect();if(!rect)return;const x=event.clientX-rect.left,y=event.clientY-rect.top,viewport=getViewport(),zoom=Math.min(2.5,Math.max(.2,viewport.zoom*Math.exp(-delta*.004)));if(zoom===viewport.zoom)return;const flowX=(x-viewport.x)/viewport.zoom,flowY=(y-viewport.y)/viewport.zoom;void setViewport({x:x-flowX*zoom,y:y-flowY*zoom,zoom},{duration:0})}
     const up=()=>{ctrlMiddleZoom.current=undefined}
     window.addEventListener('mousemove',move,{passive:false});window.addEventListener('mouseup',up)
     return()=>{window.removeEventListener('mousemove',move);window.removeEventListener('mouseup',up)}
   },[getViewport,setViewport])
 
+  useEffect(() => {
+    const pointInCanvas = (event: MouseEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (!rect) return { x: event.clientX, y: event.clientY }
+      return { x: Math.min(rect.right, Math.max(rect.left, event.clientX)), y: Math.min(rect.bottom, Math.max(rect.top, event.clientY)) }
+    }
+    const move = (event: MouseEvent) => {
+      const start = boxStart.current
+      if (!start) return
+      const point = pointInCanvas(event)
+      setSelectionBox({ rect: normalizedBox({ x: start.clientX, y: start.clientY }, point), mode: selectionMode(start.clientX, point.x) })
+    }
+    const up = (event: MouseEvent) => {
+      const start = boxStart.current
+      if (!start) return
+      boxStart.current = undefined
+      const point = pointInCanvas(event)
+      const mode = selectionMode(start.clientX, point.x)
+      const screenBox = normalizedBox({ x: start.clientX, y: start.clientY }, point)
+      const toFlowBox = (bounds: Pick<DOMRect, 'left' | 'top' | 'right' | 'bottom'>): BoxRect => transformBox(bounds, screenToFlowPosition)
+      const flowBox = toFlowBox(screenBox)
+      const renderedNodes = Array.from(canvasRef.current?.querySelectorAll<HTMLElement>('.react-flow__node[data-id]') ?? []).flatMap(element => {
+        const id = element.dataset.id
+        return id ? [{ id, bounds: toFlowBox(element.getBoundingClientRect()) }] : []
+      })
+      const hit = selectNodeIdsByBox(renderedNodes, flowBox, mode)
+      const next = mergeBoxSelection(start.previous, hit, start.shift)
+      selectedNodeIdsRef.current = next
+      setSelectedNodeIds(next)
+      setSelectedNodeId(next.length === 1 ? next[0] : null)
+      setSelectionBox(undefined)
+      window.setTimeout(() => { suppressPaneClick.current = false }, 100)
+    }
+    const cancel = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !boxStart.current) return
+      boxStart.current = undefined
+      setSelectionBox(undefined)
+      window.setTimeout(() => { suppressPaneClick.current = false }, 100)
+    }
+    window.addEventListener('mousemove', move)
+    window.addEventListener('mouseup', up)
+    window.addEventListener('keydown', cancel, true)
+    return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); window.removeEventListener('keydown', cancel, true) }
+  }, [screenToFlowPosition, setSelectedNodeId, setSelectedNodeIds])
+
+  const startBoxSelection = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || event.ctrlKey || reconnecting.current || flowStore.getState().connection.inProgress) return
+    const target = event.target instanceof Element ? event.target : null
+    if (!target || target.closest('.react-flow__node, .react-flow__handle, .react-flow__edge, .react-flow__minimap, input, textarea, select, button, [contenteditable="true"], .nopan')) return
+    if (!target.closest('.react-flow__pane, .react-flow__background')) return
+    event.preventDefault()
+    event.stopPropagation()
+    suppressPaneClick.current = true
+    boxStart.current = { clientX: event.clientX, clientY: event.clientY, shift: event.shiftKey, previous: selectedNodeIdsRef.current }
+    const point = { x: event.clientX, y: event.clientY }
+    setSelectionBox({ rect: normalizedBox(point, point), mode: 'window' })
+  }
+
   return <div className="spn-graph-workspace">
     <header className="spn-graph-toolbar"><div className="spn-graph-name"><label htmlFor="graph-name">GRAPH</label><input id="graph-name" aria-label="Graph name" value={graph.name} onChange={(event) => renameActiveGraph(event.target.value)} /><select aria-label="Graph document" value={graph.id} onChange={(event) => selectGraphDocument(event.target.value)}>{useGraphStore().graphs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" className="spn-graph-icon-button" aria-label="New graph" title="New graph" onClick={onNewGraph}><Plus size={15} /></button></div><div className="spn-graph-tools"><button type="button" onClick={run} disabled={isRunning} title="Run graph"><Activity size={14} /> Run</button><button type="button" onClick={stop} disabled={!isRunning} title="Stop graph"><CircleStop size={14} /> Stop</button><i /><button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} onClick={undoGraph}><Undo2 size={15} /></button><button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} onClick={redoGraph}><Redo2 size={15} /></button><button type="button" aria-label="Delete selected" title="Delete selected" disabled={!selectedNodeIds.length && !selectedEdgeIds.length} onClick={onDelete}><Trash2 size={15} /></button><i /><button type="button" aria-label="Fit View" title="Fit View" onClick={() => { if (diagnostics) console.count('[graph diagnostics] fitView'); fitView({ padding: 0.2, duration: 140 }) }}><Maximize2 size={15} /></button><button type="button" aria-label="Zoom In" title="Zoom In" onClick={() => zoomIn({ duration: 100 })}><Plus size={15} /></button><button type="button" aria-label="Zoom Out" title="Zoom Out" onClick={() => zoomOut({ duration: 100 })}><Minus size={15} /></button></div><label className="spn-graph-connection-style" title="Connection Style"><span>Connections</span><select aria-label="Connection Style" value={connectionStyle} onChange={(event) => onConnectionStyleChange(event.target.value as ConnectionStyle)}><option value="smooth">Smooth</option><option value="orthogonal">Orthogonal</option></select></label><div className="spn-graph-save-state"><Save size={13} /> Saved</div></header>
     {feedback && <button className="spn-graph-feedback" type="button" onClick={() => setFeedback('')} aria-label="Dismiss connection feedback">{feedback} x</button>}
-    <div className="spn-graph-flow" ref={canvasRef} tabIndex={0} onMouseDownCapture={startCtrlMiddleZoom} onKeyDown={event => { if (event.key === 'Escape') cancelReconnect(); onGraphShortcut(event) }} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>
-      <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={NODE_TYPES} connectionMode={ConnectionMode.Loose} elevateEdgesOnSelect={false} isValidConnection={isValidConnection} onConnectStart={startInputReconnect} onConnectEnd={finishInputReconnect} onReconnectStart={(_event, edge) => { reconnecting.current = { edgeId: edge.id, mode: 'edge' } }} onReconnect={reconnect} onReconnectEnd={finishReconnect} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={connect} onNodeClick={(_, node) => setSelectedNodeId(node.id)} onPaneClick={() => { setSelectedNodeId(null); setSelectedNodeIds([]); setSelectedEdgeIds([]) }} onSelectionChange={({ nodes, edges }) => {
+    <div className="spn-graph-flow" ref={canvasRef} tabIndex={0} onMouseDownCapture={event => { startCtrlMiddleZoom(event); startBoxSelection(event) }} onKeyDown={event => { if (event.key === 'Escape') cancelReconnect(); onGraphShortcut(event) }} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>
+      <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={NODE_TYPES} connectionMode={ConnectionMode.Loose} selectionKeyCode={null} multiSelectionKeyCode={null} elevateEdgesOnSelect={false} isValidConnection={isValidConnection} onConnectStart={startInputReconnect} onConnectEnd={finishInputReconnect} onReconnectStart={(_event, edge) => { reconnecting.current = { edgeId: edge.id, mode: 'edge' } }} onReconnect={reconnect} onReconnectEnd={finishReconnect} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={connect} onNodeClick={(event, node) => { setSelectedNodeId(node.id); const ids = event.shiftKey ? [...new Set([...selectedNodeIdsRef.current, node.id])] : [node.id]; selectedNodeIdsRef.current = ids; setSelectedNodeIds(ids) }} onPaneClick={() => { if (suppressPaneClick.current) { suppressPaneClick.current = false; return } setSelectedNodeId(null); selectedNodeIdsRef.current = []; selectedEdgeIdsRef.current = []; setSelectedNodeIds([]); setSelectedEdgeIds([]) }} onSelectionChange={({ edges }) => {
         if (diagnostics) console.count('[graph diagnostics] onSelectionChange')
-        const nodeIds = nodes.map((node) => node.id), edgeIds = edges.map((edge) => edge.id)
-        if (!sameGraphSelection(selectedNodeIdsRef.current, nodeIds)) { selectedNodeIdsRef.current = nodeIds; setSelectedNodeIds(nodeIds) }
+        const edgeIds = edges.map((edge) => edge.id)
         if (!sameGraphSelection(selectedEdgeIdsRef.current, edgeIds)) { selectedEdgeIdsRef.current = edgeIds; setSelectedEdgeIds(edgeIds) }
-      }} onMove={diagnostics ? () => console.count('[graph diagnostics] viewport onMove') : undefined} onNodeDragStart={() => beginMoveHistory()} onNodeDragStop={(_, node) => { updatePositions(moveNodePositions([{ id: node.id, position: node.position }])); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; delete next[node.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} zoomOnScroll={false} zoomOnPinch={false} minZoom={.5} maxZoom={2} panOnDrag={[0, 1]} panOnScroll snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable proOptions={{ hideAttribution: true }}>
-        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#354052" />
-        <MiniMap pannable zoomable nodeColor={(node) => node.selected ? '#4c91ff' : '#344158'} maskColor="rgba(8,12,18,0.66)" />
+      }} onMove={diagnostics ? () => console.count('[graph diagnostics] viewport onMove') : undefined} onNodeDragStart={() => beginMoveHistory()} onNodeDragStop={(_, node, movedNodes) => { const moved = movedNodes.length ? movedNodes : [node]; updatePositions(moveNodePositions(moved)); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; for (const item of moved) delete next[item.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} zoomOnScroll zoomOnPinch minZoom={.2} maxZoom={2.5} panOnDrag={[1]} panOnScroll={false} snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable noWheelClassName="nowheel" noPanClassName="nopan" proOptions={{ hideAttribution: true }}>
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--graph-grid-color)" />
+      <MiniMap pannable zoomable nodeColor={(node) => node.selected ? '#4c91ff' : '#344158'} maskColor="rgba(8,12,18,0.66)" />
       </ReactFlow>
+      {selectionBox && <div aria-hidden="true" className={`spn-graph-selection-box is-${selectionBox.mode}`} style={{ left: selectionBox.rect.left - (canvasRef.current?.getBoundingClientRect().left ?? 0), top: selectionBox.rect.top - (canvasRef.current?.getBoundingClientRect().top ?? 0), width: selectionBox.rect.right - selectionBox.rect.left, height: selectionBox.rect.bottom - selectionBox.rect.top }} />}
       {graph.nodes.length === 0 && <div className="spn-graph-empty"><strong>Graph Canvas</strong><span>Add a node from the library or drag it here.</span></div>}
     </div>
     <GraphLog entries={log} />

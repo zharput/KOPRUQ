@@ -115,6 +115,7 @@ describe('SPANOVA Graph engine', () => {
     expect(portCanConnect('integer', 'display:any')).toBe(true)
     expect(portCanConnect('boolean', 'display:any')).toBe(true)
     expect(portCanConnect('number[]', 'display:any')).toBe(true)
+    expect(portCanConnect('girderCandidate[]', 'display:any')).toBe(true)
     expect(portCanConnect('pierFamily', 'display:any')).toBe(false)
     const candidate = { sourceNodeId: 'bool', sourcePortId: 'value', targetNodeId: 'mul', targetPortId: 'a' }
     const invalidGraph = graph([node('bool', 'input.boolean'), node('mul', 'math.multiply')])

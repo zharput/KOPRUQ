@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { EN_CONCRETE_CLASS_IDS } from '../../materials/model/materialCatalog'
-import { getNodeDefinition } from './nodeRegistry'
+import { getNodeDefinition, previewDesignOutput } from './nodeRegistry'
 
 describe('Concrete material node contract', () => {
   it('uses the shared grade catalog, defaults to C40/50, and keeps a typed material output', () => {
@@ -26,5 +26,49 @@ describe('Foundation graph node contracts',()=>{
     expect(list.outputs[0].type).toBe('integer[]')
     expect(list.executor({node:{id:'i',type:list.type,name:'Integers',position:{x:0,y:0},parameters:{valuesText:'3,4,5'}},inputs:{}})).toEqual({values:[3,4,5]})
     expect(list.validateParameters({valuesText:'3,2.5'})).toContain('Values must be a comma-separated list of finite integers.')
+  })
+})
+
+describe('Precast girder live preview contract', () => {
+  it('generates the default geometric candidate before RUN with the full section geometry', () => {
+    const definition = getNodeDefinition('structural.girder.precast')!
+    const node = { id: 'g', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'm' }) }
+    const preview = previewDesignOutput(node, 'candidates', {}) as unknown[]
+    expect(preview).toHaveLength(1)
+    expect(preview[0]).toMatchObject({ geometry: { H: 1.9, tf: 1.5, bf: 0.8, w: 0.2, th1: 0.12, th2: 0.1, bh1: 0.28, bh2: 0.15 }, material: { id: 'C40/50' } })
+  })
+})
+
+describe('Engineering Inspector metadata',()=>{
+  it.each([
+    ['substructure.pier.circular','pier',['diameter','height','material','columns']],
+    ['substructure.pier.rectangular','pier',['width','depth','height','material','columns']],
+    ['substructure.pier.oval','pier',['width','depth','height','material','columns']],
+    ['substructure.pier.box','pier',['outerWidth','outerDepth','wallThickness','height','material','columns']],
+    ['substructure.pier.h_section','pier',['width','depth','webThickness','flangeThickness','height','material','columns']],
+    ['substructure.pier-cap.t','pier-cap',['length','topWidth','stemWidth','totalHeight','flangeThickness','material']],
+    ['substructure.pier-cap.rectangular','pier-cap',['length','width','height','material']],
+    ['substructure.foundation.shallow','foundation',['Lx','Ly','height','material']],
+    ['substructure.foundation.piled','foundation',['pileDiameter','pileCountX','pileSpacingX','pileCountY','pileSpacingY','capHeight','material']],
+    ['substructure.bearing.elastomeric','bearing',['lengthX','widthY','totalHeight','kx','ky','kz','krx','kry','krz']],
+  ])('declares shared Inspector presentation for %s', (type, schematic, order) => {
+    const definition=getNodeDefinition(type)!
+    expect(definition.engineeringInspector).toEqual({schematic,parameterOrder:order})
+    expect(order.every(id=>definition.inputs.some(input=>input.id===id))).toBe(true)
+  })
+})
+
+describe('Elastomeric Bearing graph node contract',()=>{
+  it('uses shared unit-aware geometry and distinct stiffness quantities with live family outputs',async()=>{
+    const bearing=getNodeDefinition('substructure.bearing.elastomeric')!
+    expect(bearing.category).toBe('STRUCTURAL_FAMILY')
+    expect(bearing.createDefaultParameters({length:'mm'})).toMatchObject({lengthXValue:600,lengthXUnit:'mm',widthYValue:700,totalHeightValue:150,kxValue:3000,kxUnit:'kN/m',krxValue:100000,krxUnit:'kNm/rad'})
+    expect(bearing.inputs.map(item=>[item.id,item.quantityKind])).toEqual([['lengthX','length'],['widthY','length'],['totalHeight','length'],['kx','translationalStiffness'],['ky','translationalStiffness'],['kz','translationalStiffness'],['krx','rotationalStiffness'],['kry','rotationalStiffness'],['krz','rotationalStiffness']])
+    expect(bearing.outputs[0].type).toBe('bearingCandidate[]')
+    expect(bearing.validateParameters(bearing.createDefaultParameters())).toEqual([])
+    expect(bearing.validateParameters({...bearing.createDefaultParameters(),kxValue:Number.NaN})).toContain('kxValue must be a valid number.')
+    const generated=await bearing.executor({node:{id:'b',type:bearing.type,name:bearing.label,position:{x:0,y:0},parameters:bearing.createDefaultParameters()},inputs:{kx:0}})
+    expect(generated.candidates).toMatchObject([{bearingType:'ELASTOMERIC',stiffness:{kx:0}}])
+    expect(generated.generatedCombinations).toBe(1)
   })
 })

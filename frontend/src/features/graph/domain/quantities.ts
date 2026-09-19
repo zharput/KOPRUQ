@@ -27,7 +27,9 @@ export interface EngineeringQuantity { readonly value: number; readonly quantity
 export function convertQuantity(value: number, fromUnit: UnitId, toUnit: UnitId) {
   const from = getUnit(fromUnit), to = getUnit(toUnit)
   if (!from || !to || from.kind !== to.kind) throw new Error(`Cannot convert ${fromUnit} to ${toUnit}.`)
-  return to.fromCanonical(from.toCanonical(value))
+  // Remove binary floating point presentation noise without reducing the
+  // canonical engineering precision used by calculations.
+  return Number(to.fromCanonical(from.toCanonical(value)).toPrecision(15))
 }
 export function quantityFromCanonical(value: number, quantityKind: QuantityKind, unit: UnitId) {
   const definition = getUnit(unit)

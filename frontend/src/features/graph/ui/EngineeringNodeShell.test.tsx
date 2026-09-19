@@ -77,4 +77,23 @@ describe('reusable engineering node shell', () => {
     expect(pier.data.outputs?.candidates).toBeUndefined()
     expect(pier.data.connectedInputs?.width?.value).toMatchObject({ value: 3, quantityKind: 'length', unit: 'm' })
   })
+
+  it('shows grouped bearing inputs and the resolved stiffness range instead of its source name',()=>{
+    const definition=getNodeDefinitions('STRUCTURAL_FAMILY').find(item=>item.type==='substructure.bearing.elastomeric')!
+    const graph:SpanovaGraph={id:'bearing-shell',name:'bearing shell',schemaVersion:1,nodes:[
+      {id:'range',type:'input.range',name:'Range-2',position:{x:0,y:0},parameters:{min:2000,max:5000,step:3000,quantityKind:'dimensionless',unit:'1'}},
+      {id:'bearing',type:definition.type,name:definition.label,position:{x:300,y:0},parameters:definition.createDefaultParameters({length:'m'})},
+    ],connections:[{id:'range-kx',sourceNodeId:'range',sourcePortId:'values',targetNodeId:'bearing',targetPortId:'kx'}]}
+    const node=toReactFlowNodes(graph,{projectUnits:{length:'m'},onParameterChange:vi.fn()}).find(item=>item.id==='bearing')!
+    const {container}=render(<ReactFlowProvider><EngineeringNodeShell data={node.data} selected={false} definition={definition}/></ReactFlowProvider>)
+    expect(container.querySelector('.spn-graph-node')).toHaveClass('category-structural-family')
+    expect(container.textContent).toContain('GEOMETRY')
+    expect(container.textContent).toContain('STIFFNESS')
+    expect(container.textContent).toContain('2000.00…5000.00 kN/m')
+    expect(container.textContent).not.toContain('Range-2')
+    expect(container.textContent).not.toContain('translationalStiffness')
+    expect(container.textContent).not.toContain('quantity[]')
+    expect(container.querySelectorAll('.spn-engineering-input-row')).toHaveLength(9)
+    expect(container.querySelector('.spn-engineering-output-value')).toHaveTextContent('2 candidates')
+  })
 })

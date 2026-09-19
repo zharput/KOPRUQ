@@ -28,6 +28,32 @@ describe('React Flow edge style projection',()=>{
  })
 })
 
+describe('live Elastomeric Bearing preview',()=>{
+ it('resolves Range and Math lists at target-specific stiffness quantities without Run',()=>{
+  const graph:SpanovaGraph={id:'bearing-live',name:'bearing preview',schemaVersion:1,nodes:[
+   {id:'range',type:'input.range',name:'Stiffness range',position:{x:0,y:0},parameters:{min:2000,max:3000,step:1000,quantityKind:'dimensionless',unit:'1'}},
+   {id:'one',type:'input.number',name:'One',position:{x:0,y:100},parameters:{value:1}},
+   {id:'math',type:'math.multiply',name:'Multiply',position:{x:180,y:100},parameters:{}},
+   {id:'bearing',type:'substructure.bearing.elastomeric',name:'Elastomeric Bearing',position:{x:420,y:0},parameters:{lengthXValue:.6,lengthXUnit:'m',widthYValue:.7,widthYUnit:'m',totalHeightValue:.15,totalHeightUnit:'m',kxValue:3000,kxUnit:'kN/m',kyValue:30000,kyUnit:'kN/m',kzValue:100000,kzUnit:'kN/m',krxValue:100000,krxUnit:'kNm/rad',kryValue:100000,kryUnit:'kNm/rad',krzValue:100000,krzUnit:'kNm/rad'}},
+   {id:'watch',type:'output.watch',name:'Watch',position:{x:700,y:0},parameters:{}},
+  ],connections:[
+   {id:'range-kx',sourceNodeId:'range',sourcePortId:'values',targetNodeId:'bearing',targetPortId:'kx'},
+   {id:'range-math',sourceNodeId:'range',sourcePortId:'values',targetNodeId:'math',targetPortId:'a'},
+   {id:'one-math',sourceNodeId:'one',sourcePortId:'value',targetNodeId:'math',targetPortId:'b'},
+   {id:'math-ky',sourceNodeId:'math',sourcePortId:'result',targetNodeId:'bearing',targetPortId:'ky'},
+   {id:'bearing-watch',sourceNodeId:'bearing',sourcePortId:'candidates',targetNodeId:'watch',targetPortId:'value'},
+  ]}
+  const nodes=toReactFlowNodes(graph,{projectUnits:{length:'m'},onParameterChange:vi.fn()})
+  const bearing=nodes.find(node=>node.id==='bearing')!,watch=nodes.find(node=>node.id==='watch')!
+  expect(bearing.data).toMatchObject({previewCandidateCount:4,previewGeneratedCombinations:4,previewInvalidCombinations:0})
+  expect(bearing.data.connectedInputs?.kx.value).toEqual([{value:2000,quantityKind:'translationalStiffness',unit:'kN/m'},{value:3000,quantityKind:'translationalStiffness',unit:'kN/m'}])
+  expect(bearing.data.connectedInputs?.ky.value).toEqual([{value:2000,quantityKind:'translationalStiffness',unit:'kN/m'},{value:3000,quantityKind:'translationalStiffness',unit:'kN/m'}])
+  expect((bearing.data.previewBearingCandidates as import('../domain/types').BearingCandidate[]).map(item=>[item.stiffness.kx,item.stiffness.ky])).toEqual([[2000,2000],[2000,3000],[3000,2000],[3000,3000]])
+  expect(watch.data.previewValue).toHaveLength(4)
+  expect(bearing.data.outputs?.candidates).toBeUndefined()
+ })
+})
+
 describe('live output availability projection', () => {
  it('previews Pier candidates from Range, scalar, Integer, Math, and chained Range-to-Math inputs without Run', () => {
   const graph:SpanovaGraph={id:'live-pier',name:'live pier preview',schemaVersion:1,nodes:[

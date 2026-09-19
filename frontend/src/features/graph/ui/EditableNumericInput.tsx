@@ -36,7 +36,7 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
   }
 
   return <input
-    className={`spn-graph-editable-number nodrag${invalid ? ' is-invalid' : ''}`}
+    className={`spn-graph-editable-number nodrag nowheel nopan${invalid ? ' is-invalid' : ''}`}
     aria-label={ariaLabel}
     aria-invalid={invalid}
     disabled={disabled}

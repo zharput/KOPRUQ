@@ -4,14 +4,17 @@ import { EN_CONCRETE_CLASS_IDS } from '../../materials/model/materialCatalog'
 import { generatePierCandidatesWithStats, localLength, normalizeCandidateInput } from '../domain/pierCandidates'
 import { generatePierCapCandidatesWithStats } from '../domain/pierCapCandidates'
 import { generatePiledFoundationCandidates, generateShallowFoundationCandidates } from '../domain/foundationCandidates'
+import { countBearingValues, generateElastomericBearingCandidates } from '../domain/bearingCandidates'
 import type { NodeCategory } from '../domain/nodeVisualThemes'
+import { generateSteelGirderCandidates, generatePrecastGirderCandidates } from '../domain/girderCandidates'
 
 export type { NodeCategory } from '../domain/nodeVisualThemes'
 export type ParameterDescriptor = { key: string; label: string; dataType: 'number' | 'integer' | 'boolean' | 'string' | 'select'; min?: number; step?: number; options?: readonly { value: string; label: string }[]; inputPortId?: string }
-export type NodePortDefinition = { id: string; label: string; type: GraphPortType; quantityKind?: QuantityKind; domainType?: MaterialValue['domainType']; required?: boolean; description?: string }
+export type NodePortDefinition = { id: string; label: string; type: GraphPortType; quantityKind?: QuantityKind; domainType?: MaterialValue['domainType']; required?: boolean; description?: string; group?: string }
 export interface GraphExecutionServices { resolveConcreteMaterial?: (materialId:string)=>Promise<MaterialValue>; projectUnits?: Partial<Record<QuantityKind, string>> }
 export type NodeExecutionContext = { node: SpanovaNode; inputs: Record<string, GraphValue>; services?: GraphExecutionServices }
-export interface NodeDefinition { type: string; label: string; category: NodeCategory; description: string; inputs: NodePortDefinition[]; outputs: NodePortDefinition[]; parameterSchema: ParameterDescriptor[]; createDefaultParameters: (projectUnits?: Record<string,string>) => Record<string,GraphParameterValue>; validateParameters: (parameters: Record<string,GraphParameterValue>) => string[]; executor: (context:NodeExecutionContext)=>Record<string,GraphValue>|Promise<Record<string,GraphValue>> }
+export interface EngineeringInspectorSchema { schematic: 'pier' | 'pier-cap' | 'foundation' | 'bearing' | 'girder'; parameterOrder: readonly string[] }
+export interface NodeDefinition { type: string; label: string; category: NodeCategory; description: string; inputs: NodePortDefinition[]; outputs: NodePortDefinition[]; parameterSchema: ParameterDescriptor[]; engineeringInspector?: EngineeringInspectorSchema; createDefaultParameters: (projectUnits?: Record<string,string>) => Record<string,GraphParameterValue>; validateParameters: (parameters: Record<string,GraphParameterValue>) => string[]; executor: (context:NodeExecutionContext)=>Record<string,GraphValue>|Promise<Record<string,GraphValue>> }
 const classOptions=EN_CONCRETE_CLASS_IDS.map(value=>({value,label:value}))
 const lengthOptions = unitsForKind('length').map(unit => ({ value: unit.id, label: unit.label }))
 const pierDefinitions = [
@@ -30,11 +33,32 @@ const pierCapDefinitions = [
   ]),
 ]
 const foundationDefinitions = [shallowFoundationNode(), piledFoundationNode()]
+const BEARING_FIELDS = [
+  { key: 'lengthX', label: 'Length X', kind: 'length' as const, group: 'GEOMETRY', defaultValue: .6 },
+  { key: 'widthY', label: 'Width Y', kind: 'length' as const, group: 'GEOMETRY', defaultValue: .7 },
+  { key: 'totalHeight', label: 'Total Height', kind: 'length' as const, group: 'GEOMETRY', defaultValue: .15 },
+  { key: 'kx', label: 'Kx', kind: 'translationalStiffness' as const, group: 'STIFFNESS', defaultValue: 3000 },
+  { key: 'ky', label: 'Ky', kind: 'translationalStiffness' as const, group: 'STIFFNESS', defaultValue: 30000 },
+  { key: 'kz', label: 'Kz', kind: 'translationalStiffness' as const, group: 'STIFFNESS', defaultValue: 100000 },
+  { key: 'krx', label: 'Krx', kind: 'rotationalStiffness' as const, group: 'STIFFNESS', defaultValue: 100000 },
+  { key: 'kry', label: 'Kry', kind: 'rotationalStiffness' as const, group: 'STIFFNESS', defaultValue: 100000 },
+  { key: 'krz', label: 'Krz', kind: 'rotationalStiffness' as const, group: 'STIFFNESS', defaultValue: 100000 },
+]
+const elastomericBearingDefinition = elastomericBearingNode()
+const girderLengthOptions = unitsForKind('length').map(unit => ({ value: unit.id, label: unit.label }))
+function girderDefault(kind:'PRECAST'|'STEEL',key:string){if(kind==='STEEL')return ({H:2.5,Btf:.8,ttf:.04,Bbf:.9,tbf:.05,tw:.02} as Record<string,number>)[key] ?? 1.9; return ({H:1.9,tf:1.5,bf:.8,w:.2,th1:.12,th2:.1,bh1:.28,bh2:.15} as Record<string,number>)[key] ?? 1.9}
+function girderNode(kind:'PRECAST'|'STEEL'):NodeDefinition {
+  const steel=kind==='STEEL', fields=steel?['H','Btf','ttf','Bbf','tbf','tw']:['H','tf','bf','w','th1','th2','bh1','bh2'], labels:Record<string,string>={H:'Girder Height',Btf:'Top Flange Width',ttf:'Top Flange Thickness',Bbf:'Bottom Flange Width',tbf:'Bottom Flange Thickness',tw:'Web Thickness',tf:'Top Flange Width',bf:'Bottom Flange Width',w:'Web Width',th1:'Top Cap Thickness',th2:'Top Taper Thickness',bh1:'Bottom Block Thickness',bh2:'Bottom Taper Thickness'}
+  const inputs:NodePortDefinition[]=fields.map(key=>({id:key,label:labels[key],type:'length[]' as const,quantityKind:'length' as const}));inputs.push({id:'material',label:steel?'Structural Steel':'Concrete Material',type:steel?'structuralSteelMaterial':'concreteMaterial',required:true})
+  const parameterSchema:ParameterDescriptor[]=fields.flatMap(key=>[{key:`${key}Value`,label:labels[key],dataType:'number' as const,step:.001,inputPortId:key},{key:`${key}Unit`,label:`${labels[key]} unit`,dataType:'select' as const,options:girderLengthOptions,inputPortId:key}]);parameterSchema.push({key:'familyId',label:'Family Name',dataType:'string'},{key:'preferredSpanValue',label:'Preferred Span',dataType:'number',step:.01},{key:'preferredSpanUnit',label:'Preferred Span unit',dataType:'select',options:girderLengthOptions},{key:'minSpanValue',label:'Minimum Applicable Span',dataType:'number',step:.01},{key:'minSpanUnit',label:'Minimum Span unit',dataType:'select',options:girderLengthOptions},{key:'maxSpanValue',label:'Maximum Applicable Span',dataType:'number',step:.01},{key:'maxSpanUnit',label:'Maximum Span unit',dataType:'select',options:girderLengthOptions},{key:'materialId',label:'Material',dataType:'string'})
+  return {type:`structural.girder.${kind.toLowerCase()}`,label:steel?'Steel Girder':'Precast Girder',category:'STRUCTURAL_FAMILY',description:`Generate deterministic ${steel?'welded steel I':'precast I'} girder section candidates.`,inputs,outputs:[{id:'candidates',label:'Candidates',type:'girderCandidate[]'}],parameterSchema,engineeringInspector:{schematic:'girder',parameterOrder:[...fields,'material','preferredSpan','applicableSpanRange']},createDefaultParameters:prefs=>{const p:Record<string,GraphParameterValue>={};for(const key of fields){p[key + 'Value']=girderDefault(kind,key);p[key + 'Unit']=defaultUnit('length',prefs)}Object.assign(p,{familyId:steel?'SG-01':'PG-200',preferredSpanValue:steel?60:40,preferredSpanUnit:defaultUnit('length',prefs),minSpanValue:30,minSpanUnit:defaultUnit('length',prefs),maxSpanValue:90,maxSpanUnit:defaultUnit('length',prefs),materialId:steel?'':'C40/50'});return p},validateParameters:p=>fields.flatMap(key=>numberParameter(p,`${key}Value`)),executor:({node,inputs})=>{const geometry=Object.fromEntries(fields.map(key=>[key,inputs[key]??localLength(node.parameters[`${key}Value`] as number,node.parameters[`${key}Unit`] as UnitId)]));const material=(inputs.material??{domainType:steel?'StructuralSteelMaterial':'ConcreteMaterial',id:String(node.parameters.materialId??''),name:String(node.parameters.materialId??''),properties:{}}) as MaterialValue;const args={geometry,material,preferredSpan:node.parameters.preferredSpanValue as number,minSpan:node.parameters.minSpanValue as number,maxSpan:node.parameters.maxSpanValue as number,familyId:String(node.parameters.familyId)};return {candidates:(steel ? generateSteelGirderCandidates({H:geometry.H as never,Btf:geometry.Btf as never,ttf:geometry.ttf as never,Bbf:geometry.Bbf as never,tbf:geometry.tbf as never,tw:geometry.tw as never,material,preferredSpan:args.preferredSpan,minSpan:args.minSpan,maxSpan:args.maxSpan,familyId:args.familyId}) : generatePrecastGirderCandidates(args as never)).candidates as unknown as GraphValue}}}
+}
+const girderDefinitions=[girderNode('PRECAST'),girderNode('STEEL')]
 function pierNode(pierType: import('../domain/types').PierCandidate['pierType'], label: string, dimensions: { key: string; label: string; port: string; defaultValue: number }[]): NodeDefinition {
   const inputs: NodePortDefinition[] = [...dimensions.map(item => ({ id: item.port, label: item.label, type: 'length[]' as const })), { id: 'height', label: 'Height', type: 'length[]' }, { id: 'material', label: 'Material', type: 'concreteMaterial', domainType: 'ConcreteMaterial' }, { id: 'columns', label: 'Columns', type: 'integer', description: 'Number of physical columns forming the pier at this support axis. Supported values: 1 or 2.' }]
   const parameterSchema: ParameterDescriptor[] = [...dimensions.flatMap(item => [{ key: `${item.key}Value`, label: `${item.label} local default`, dataType: 'number' as const, min: 0, step: .01, inputPortId: item.port }, { key: `${item.key}Unit`, label: `${item.label} unit`, dataType: 'select' as const, options: lengthOptions, inputPortId: item.port }]), { key: 'heightValue', label: 'Height local default', dataType: 'number', min: 0, step: .01, inputPortId: 'height' }, { key: 'heightUnit', label: 'Height unit', dataType: 'select', options: lengthOptions, inputPortId: 'height' }, { key: 'materialId', label: 'Material local default', dataType: 'select', options: classOptions, inputPortId: 'material' }, { key: 'columns', label: 'Columns local default', dataType: 'integer', min: 1, step: 1, inputPortId: 'columns' }]
   return {
-    type: `substructure.pier.${pierType.toLowerCase()}`, label, category: 'STRUCTURAL_FAMILY', description: `Generate deterministic ${label} geometry candidates from local values and connected design ranges.`, inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'pierCandidate[]' }], parameterSchema,
+    type: `substructure.pier.${pierType.toLowerCase()}`, label, category: 'STRUCTURAL_FAMILY', description: `Generate deterministic ${label} geometry candidates from local values and connected design ranges.`, inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'pierCandidate[]' }], parameterSchema, engineeringInspector: { schematic: 'pier', parameterOrder: [...dimensions.map(item => item.port), 'height', 'material', 'columns'] },
     createDefaultParameters: projectUnits => { const unit = defaultUnit('length', projectUnits); return Object.fromEntries([...dimensions.flatMap(item => [[`${item.key}Value`, quantityFromCanonical(item.defaultValue, 'length', unit)], [`${item.key}Unit`, unit]]), ['heightValue', quantityFromCanonical(10, 'length', unit)], ['heightUnit', unit], ['materialId', classOptions.find(item => item.value === 'C40/50')?.value ?? classOptions[0]?.value ?? ''], ['columns', 1]]) },
     validateParameters: p => [...dimensions.flatMap(item => [...numberParameter(p, `${item.key}Value`), ...(typeof p[`${item.key}Unit`] === 'string' && lengthOptions.some(unit => unit.value === p[`${item.key}Unit`]) ? [] : [`${item.label} requires a valid Length unit.`])]), ...numberParameter(p, 'heightValue'), ...(typeof p.heightValue === 'number' && p.heightValue <= 0 ? ['Height local default must be greater than zero.'] : []), ...(typeof p.heightUnit === 'string' && lengthOptions.some(unit => unit.value === p.heightUnit) ? [] : ['Height requires a valid Length unit.']), ...(typeof p.columns === 'number' && Number.isInteger(p.columns) && p.columns >= 1 && p.columns <= 2 ? [] : ['Column Count must be 1 or 2.']), ...(typeof p.materialId === 'string' && classOptions.some(item => item.value === p.materialId) ? [] : ['Select a supported ConcreteMaterial.'])],
     executor: async ({ node, inputs, services }) => {
@@ -53,7 +77,7 @@ function pierCapNode(capType: import('../domain/pierCapCandidates').PierCapType,
   const inputs: NodePortDefinition[] = [...dimensions.map(item => ({ id: item.key, label: item.label, type: 'length[]' as const, quantityKind: 'length' as const })), { id: 'material', label: 'Material', type: 'concreteMaterial', domainType: 'ConcreteMaterial' }]
   const parameterSchema: ParameterDescriptor[] = [...dimensions.flatMap(item => [{ key: `${item.key}Value`, label: `${item.label} local default`, dataType: 'number' as const, min: 0, step: .01, inputPortId: item.key }, { key: `${item.key}Unit`, label: `${item.label} unit`, dataType: 'select' as const, options: lengthOptions, inputPortId: item.key }]), { key: 'materialId', label: 'Material local default', dataType: 'select', options: classOptions, inputPortId: 'material' }]
   return {
-    type: `substructure.pier-cap.${capType.toLowerCase()}`, label, category: 'STRUCTURAL_FAMILY', description: `Generate deterministic ${label} family candidates from local values and connected design ranges.`, inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'pierCapCandidate[]' }], parameterSchema,
+    type: `substructure.pier-cap.${capType.toLowerCase()}`, label, category: 'STRUCTURAL_FAMILY', description: `Generate deterministic ${label} family candidates from local values and connected design ranges.`, inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'pierCapCandidate[]' }], parameterSchema, engineeringInspector: { schematic: 'pier-cap', parameterOrder: [...dimensions.map(item => item.key), 'material'] },
     createDefaultParameters: projectUnits => { const unit = defaultUnit('length', projectUnits); return Object.fromEntries([...dimensions.flatMap(item => [[`${item.key}Value`, quantityFromCanonical(item.defaultValue, 'length', unit)], [`${item.key}Unit`, unit]]), ['materialId', classOptions.find(item => item.value === 'C40/50')?.value ?? classOptions[0]?.value ?? '']]) },
     validateParameters: p => [...dimensions.flatMap(item => [...numberParameter(p, `${item.key}Value`), ...(typeof p[`${item.key}Unit`] === 'string' && lengthOptions.some(unit => unit.value === p[`${item.key}Unit`]) ? [] : [`${item.label} requires a valid Length unit.`])]), ...(typeof p.materialId === 'string' && classOptions.some(item => item.value === p.materialId) ? [] : ['Select a supported ConcreteMaterial.'])],
     executor: async ({ node, inputs, services }) => {
@@ -76,7 +100,7 @@ function foundationNode(type: 'SHALLOW' | 'PILED', label: string, fields: { key:
   return {
     type: `substructure.foundation.${type.toLowerCase()}`, label, category: 'STRUCTURAL_FAMILY',
     description: `Generate deterministic ${label} geometric candidates. No structural or geotechnical design checks are performed.`,
-    inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'foundationCandidate[]' }], parameterSchema,
+    inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'foundationCandidate[]' }], parameterSchema, engineeringInspector: { schematic: 'foundation', parameterOrder: [...fields.map(field => field.key), 'material'] },
     createDefaultParameters: projectUnits => { const unit = defaultUnit('length', projectUnits); return Object.fromEntries([...fields.flatMap(field => [[`${field.key}Value`, field.integer ? field.defaultValue : quantityFromCanonical(field.defaultValue, 'length', unit)], ...(!field.integer ? [[`${field.key}Unit`, unit]] : [])]), ['materialId', classOptions.find(item => item.value === 'C40/50')?.value ?? classOptions[0]?.value ?? '']]) },
     validateParameters: p => [...fields.flatMap(field => {const value=p[`${field.key}Value`];return [...numberParameter(p, `${field.key}Value`, !!field.integer), ...(!field.integer && typeof p[`${field.key}Unit`] === 'string' && lengthOptions.some(unit => unit.value === p[`${field.key}Unit`]) ? [] : !field.integer ? [`${field.label} requires a valid Length unit.`] : []), ...(typeof value === 'number' && (field.integer ? value < 1 : value <= 0) ? [`${field.label} local default is invalid.`] : [])]}), ...(typeof p.materialId === 'string' && classOptions.some(item => item.value === p.materialId) ? [] : ['Select a supported ConcreteMaterial.'])],
     executor: async ({ node, inputs, services }) => {
@@ -93,6 +117,32 @@ function foundationNode(type: 'SHALLOW' | 'PILED', label: string, fields: { key:
 }
 function shallowFoundationNode() { return foundationNode('SHALLOW', 'Shallow Foundation', [{ key: 'Lx', label: 'Lx', defaultValue: 8 }, { key: 'Ly', label: 'Ly', defaultValue: 6 }, { key: 'height', label: 'Height', defaultValue: 2 }]) }
 function piledFoundationNode() { return foundationNode('PILED', 'Piled Foundation', [{ key: 'pileDiameter', label: 'Pile Diameter D', defaultValue: 1.2 }, { key: 'pileCountX', label: 'Pile Count X nx', defaultValue: 4, integer: true }, { key: 'pileSpacingX', label: 'Pile Spacing X ax', defaultValue: 3.6 }, { key: 'pileCountY', label: 'Pile Count Y ny', defaultValue: 3, integer: true }, { key: 'pileSpacingY', label: 'Pile Spacing Y ay', defaultValue: 3.6 }, { key: 'capHeight', label: 'Cap Height', defaultValue: 2.5 }]) }
+function elastomericBearingNode(): NodeDefinition {
+  const fields = BEARING_FIELDS
+  const inputs: NodePortDefinition[] = fields.map(field => ({ id: field.key, label: field.label, type: field.kind === 'length' ? 'length[]' : 'quantity[]', quantityKind: field.kind, group: field.group }))
+  const parameterSchema: ParameterDescriptor[] = fields.flatMap(field => [
+    { key: `${field.key}Value`, label: `${field.label} local default`, dataType: 'number' as const, step: .01, inputPortId: field.key },
+    { key: `${field.key}Unit`, label: `${field.label} unit`, dataType: 'select' as const, options: unitsForKind(field.kind).map(unit => ({ value: unit.id, label: unit.label })), inputPortId: field.key },
+  ])
+  return {
+    type: 'substructure.bearing.elastomeric', label: 'Elastomeric Bearing', category: 'STRUCTURAL_FAMILY',
+    description: 'Generate reusable elastomeric bearing geometry and local-axis stiffness alternatives. No EN 1337 checks or bearing assignments are performed.',
+    inputs, outputs: [{ id: 'candidates', label: 'Candidates', type: 'bearingCandidate[]' }], parameterSchema, engineeringInspector: { schematic: 'bearing', parameterOrder: fields.map(field => field.key) },
+    createDefaultParameters: projectUnits => Object.fromEntries(fields.flatMap(field => {
+      const unit = defaultUnit(field.kind, projectUnits)
+      return [[`${field.key}Value`, Number(quantityFromCanonical(field.defaultValue, field.kind, unit).toPrecision(12))], [`${field.key}Unit`, unit]]
+    })),
+    validateParameters: parameters => fields.flatMap(field => [
+      ...numberParameter(parameters, `${field.key}Value`),
+      ...(typeof parameters[`${field.key}Unit`] === 'string' && unitsForKind(field.kind).some(unit => unit.id === parameters[`${field.key}Unit`]) ? [] : [`${field.label} requires a valid ${field.kind} unit.`]),
+    ]),
+    executor: ({ node, inputs }) => {
+      const resolved = Object.fromEntries(fields.map(field => [field.key, (inputs[field.key] ?? makeQuantity(node.parameters[`${field.key}Value`] as number, field.kind, node.parameters[`${field.key}Unit`] as UnitId)) as GraphValue])) as Record<string, GraphValue>
+      const generated = generateElastomericBearingCandidates(resolved as unknown as Parameters<typeof generateElastomericBearingCandidates>[0])
+      return { candidates: generated.candidates as GraphValue, generatedCombinations: generated.generatedCombinations, invalidCombinations: generated.invalidCombinations }
+    },
+  }
+}
 const noParameters=(p:Record<string,GraphParameterValue>)=>Object.keys(p).length?['This node does not accept parameters.']:[]
 function numberParameter(p:Record<string,GraphParameterValue>,key:string,integer=false):string[]{const v=p[key];return typeof v!=='number'||!Number.isFinite(v)||(integer&&!Number.isInteger(v))?[`${key} must be a valid ${integer?'integer':'number'}.`]:[]}
 function scalarDefinition(type:string,label:string,dataType:'number'|'integer'|'boolean'):NodeDefinition{return{type,label,category:'INPUT',description:`Provide a ${dataType} value.`,inputs:[],outputs:[{id:'value',label:'Value',type:dataType}],parameterSchema:[{key:'value',label:'Value',dataType,step:dataType==='integer'?1:.01}],createDefaultParameters:()=>({value:dataType==='boolean'?false:0}),validateParameters:p=>dataType==='boolean'?(typeof p.value==='boolean'?[]:['Value must be boolean.']):numberParameter(p,'value',dataType==='integer'),executor:({node})=>({value:node.parameters.value as GraphValue})}}
@@ -132,13 +182,15 @@ const definitions:NodeDefinition[]=[
  ...pierDefinitions,
  ...pierCapDefinitions,
  ...foundationDefinitions,
+ ...girderDefinitions,
+ elastomericBearingDefinition,
  {type:'output.watch',label:'Watch',category:'OUTPUT',description:'Inspect an arbitrary graph value for debugging.',inputs:[{id:'value',label:'Value',type:'display:any',required:true}],outputs:[],parameterSchema:[],createDefaultParameters:()=>({}),validateParameters:noParameters,executor:({inputs})=>({value:inputs.value})},
  {type:'output.list',label:'List',category:'OUTPUT',description:'Display values and engineering alternatives as an indexed read-only list.',inputs:[{id:'items',label:'Items',type:'display:any',required:true}],outputs:[],parameterSchema:[],createDefaultParameters:()=>({}),validateParameters:noParameters,executor:({inputs})=>({value:inputs.items})},
 ]
 function quantityErrors(p:Record<string,GraphParameterValue>,range:boolean):string[]{const kind=(p.quantityKind??'dimensionless') as QuantityKind;const unit=(p.unit??'1') as string;const u=getValidUnit(unit,kind);const errors:string[]=[];if(!UNIT_KINDS.includes(kind))errors.push('Select a valid quantity kind.');if(!u)errors.push(`Unit ${String(p.unit)} is invalid for ${String(kind)}.`);if(!range)errors.push(...numberParameter(p,'value'));return errors}
 function rangeScalar(input:GraphValue|undefined,fallback:number,kind:QuantityKind,unit:UnitId):number {if(input===undefined)return fallback;if(typeof input==='number')return input;if(isQuantity(input)){if(input.quantityKind!==kind)throw new Error(`Range inputs must use ${kind} quantities.`);return quantityFromCanonical(input.value,kind,unit)}throw new Error('Range Start, End and Step require scalar numeric inputs.')}
 function getValidUnit(unit:string,kind:QuantityKind){return unitsForKind(kind).some(u=>u.id===unit)}
-function defaultUnit(kind:string,prefs?:Record<string,string>){const prefKey:Record<string,string>={length:'length',force:'force',moment:'moment',stress:'stress',mass:'mass',temperature:'temperature'};const pref=prefs?.[prefKey[kind]??''];const match=unitsForKind(kind as QuantityKind).find(u=>u.label===pref||u.id===pref);return match?.id??unitsForKind(kind as QuantityKind)[0]?.id??'1'}
+function defaultUnit(kind:string,prefs?:Record<string,string>){const prefKey:Record<string,string>={length:'length',force:'force',moment:'moment',stress:'stress',mass:'mass',temperature:'temperature',translationalStiffness:'translationalStiffness',rotationalStiffness:'rotationalStiffness'};const pref=prefs?.[prefKey[kind]??''];const match=unitsForKind(kind as QuantityKind).find(u=>u.label===pref||u.id===pref);const canonical=kind==='translationalStiffness'?'kN/m':kind==='rotationalStiffness'?'kNm/rad':undefined;return match?.id??(canonical&&unitsForKind(kind as QuantityKind).some(unit=>unit.id===canonical)?canonical:undefined)??unitsForKind(kind as QuantityKind)[0]?.id??'1'}
 export const NODE_REGISTRY:readonly NodeDefinition[]=definitions
 const byType=new Map(definitions.map(d=>[d.type,d]))
 export function getNodeDefinition(type:string){return byType.get(type)}
@@ -182,6 +234,16 @@ export function previewDesignOutput(node:SpanovaNode,portId:string,inputs:Record
     const generated=node.type.endsWith('.shallow')?generateShallowFoundationCandidates({Lx:inputsResolved.Lx as import('../domain/pierCandidates').LengthInput,Ly:inputsResolved.Ly as import('../domain/pierCandidates').LengthInput,height:inputsResolved.height as import('../domain/pierCandidates').LengthInput,material}):generatePiledFoundationCandidates({pileDiameter:inputsResolved.pileDiameter as import('../domain/pierCandidates').LengthInput,pileCountX:inputsResolved.pileCountX as number|number[],pileSpacingX:inputsResolved.pileSpacingX as import('../domain/pierCandidates').LengthInput,pileCountY:inputsResolved.pileCountY as number|number[],pileSpacingY:inputsResolved.pileSpacingY as import('../domain/pierCandidates').LengthInput,capHeight:inputsResolved.capHeight as import('../domain/pierCandidates').LengthInput,material})
     return generated.candidates as GraphValue
   }
+  if(node.type==='substructure.bearing.elastomeric'&&portId==='candidates'){
+    const input=bearingInputValues(node,inputs)
+    return generateElastomericBearingCandidates(input).candidates as GraphValue
+  }
+  if(node.type==='structural.girder.precast'&&portId==='candidates'){
+    const geometry=Object.fromEntries(['H','tf','bf','w','th1','th2','bh1','bh2'].map(key=>[key,inputs[key]??localLength(node.parameters[`${key}Value`] as number,node.parameters[`${key}Unit`] as UnitId)])) as Record<string,import('../domain/pierCandidates').LengthInput>
+    const materialValue=inputs.material??node.parameters.materialId??'C40/50'
+    const material=typeof materialValue==='string'?{domainType:'ConcreteMaterial' as const,id:materialValue,name:materialValue,properties:{}}:materialValue as MaterialValue
+    return generatePrecastGirderCandidates({geometry,material,familyId:String(node.parameters.familyId??'PG-200'),preferredSpan:Number(node.parameters.preferredSpanValue??40),minSpan:Number(node.parameters.minSpanValue??30),maxSpan:Number(node.parameters.maxSpanValue??90)}).candidates as unknown as GraphValue
+  }
   return undefined
 }
 export function previewPierCapStatistics(node:SpanovaNode, inputs:Record<string,GraphValue>, validCandidates:number) {
@@ -198,6 +260,15 @@ export function previewFoundationStatistics(node:SpanovaNode, inputs:Record<stri
   const generatedCombinations=counts.reduce((count,length)=>count*length,1)
   return {generatedCombinations,invalidCombinations:generatedCombinations-validCandidates}
 }
+export function previewBearingStatistics(node:SpanovaNode, inputs:Record<string,GraphValue>, validCandidates:number) {
+  if(node.type!=='substructure.bearing.elastomeric')return undefined
+  const values=bearingInputValues(node,inputs)
+  const generatedCombinations=BEARING_FIELDS.reduce((count,field)=>count*countBearingValues(values[field.key as keyof typeof values],field.kind,field.label),1)
+  return {generatedCombinations,invalidCombinations:generatedCombinations-validCandidates}
+}
+function bearingInputValues(node:SpanovaNode,inputs:Record<string,GraphValue>){
+  return Object.fromEntries(BEARING_FIELDS.map(field=>[field.key,inputs[field.key]??makeQuantity(node.parameters[`${field.key}Value`] as number,field.kind,node.parameters[`${field.key}Unit`] as UnitId)])) as unknown as Parameters<typeof generateElastomericBearingCandidates>[0]
+}
 function parseIntegerList(value:string){const tokens=value.split(',').map(item=>item.trim());const values=tokens.map(Number);const error=!value.trim()||values.some(item=>!Number.isFinite(item)||!Number.isInteger(item))?'Values must be a comma-separated list of finite integers.':undefined;return{values,error}}
 function generateRangeValues(node:SpanovaNode,inputs:Record<string,GraphValue>):GraphValue {
   const p=node.parameters as {min:number;max:number;step:number;quantityKind?:QuantityKind;unit?:UnitId};const kind=p.quantityKind??'dimensionless',unit=p.unit??'1'
@@ -210,7 +281,7 @@ function generateRangeValues(node:SpanovaNode,inputs:Record<string,GraphValue>):
   return kind==='dimensionless'?values:values.map(value=>makeQuantity(value,kind,unit))
 }
 export function canConnect(source:GraphPortType,target:GraphPortType,sourceKind?:QuantityKind,targetKind?:QuantityKind){
-  if(target==='display:any')return ['number','integer','boolean','string','number[]','integer[]','numeric[]','quantity','quantity[]','length','length[]','concreteMaterial','reinforcementMaterial','prestressingSteelMaterial','structuralSteelMaterial','numeric','pierCandidate[]','pierCapCandidate[]','foundationCandidate[]'].includes(source)
+  if(target==='display:any')return ['number','integer','boolean','string','number[]','integer[]','numeric[]','quantity','quantity[]','length','length[]','concreteMaterial','reinforcementMaterial','prestressingSteelMaterial','structuralSteelMaterial','numeric','pierCandidate[]','pierCapCandidate[]','foundationCandidate[]','bearingCandidate[]','girderCandidate[]'].includes(source)
   if(target==='numeric')return ['number','integer','quantity','numeric'].includes(source)
   if(target==='integer[]')return source==='integer'||source==='integer[]'||(['number[]','numeric','numeric[]'].includes(source)&&(sourceKind===undefined||sourceKind==='dimensionless'))
   const requiredKind=targetKind??(target==='length'||target==='length[]'?'length':undefined)
@@ -224,3 +295,13 @@ export function canConnect(source:GraphPortType,target:GraphPortType,sourceKind?
   if(source==='quantity'&&target==='quantity'&&sourceKind&&targetKind)return sourceKind===targetKind
   return source===target||(source==='integer'&&target==='number')
 }
+
+
+
+
+
+
+
+
+
+

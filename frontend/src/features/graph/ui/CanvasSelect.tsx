@@ -75,7 +75,7 @@ export default function CanvasSelect<T>({ items, value, getKey, getLabel, onChan
     } else if (event.key === 'Escape' && open) { event.preventDefault(); setOpen(false) }
   }
 
-  return <div ref={rootRef} className={`spn-canvas-select nodrag nowheel ${className}`} onPointerDown={event => event.stopPropagation()} onMouseDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()} onWheel={event => event.stopPropagation()}>
+  return <div ref={rootRef} className={`spn-canvas-select nodrag ${className}`} onPointerDown={event => event.stopPropagation()} onMouseDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>
     <button ref={buttonRef} type="button" className="spn-canvas-select-trigger nodrag" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined} disabled={disabled} onClick={toggle} onKeyDown={onKeyDown}>
       <span>{items.find(item => getKey(item) === selectedKey) ? getLabel(value) : placeholder}</span><span aria-hidden="true" className="spn-canvas-select-chevron">{open ? '▴' : '▾'}</span>
     </button>

@@ -17,6 +17,14 @@ describe('target-aware engineering input resolution', () => {
     expect(resolveEngineeringInput(5, { type: 'quantity', quantityKind: 'force' }, { force: 'kN' })).toMatchObject({ value: 5, quantityKind: 'force', unit: 'kN' })
   })
 
+  it('uses the established canonical units for both stiffness dimensions when preferences are absent',()=>{
+    expect(resolveEngineeringInput([2000,5000],{type:'quantity[]',quantityKind:'translationalStiffness'})).toEqual([
+      {value:2000,quantityKind:'translationalStiffness',unit:'kN/m'},
+      {value:5000,quantityKind:'translationalStiffness',unit:'kN/m'},
+    ])
+    expect(resolveEngineeringInput(100000,{type:'quantity',quantityKind:'rotationalStiffness'})).toEqual({value:100000,quantityKind:'rotationalStiffness',unit:'kNm/rad'})
+  })
+
   it('resolves integer values at continuous targets without changing the discrete integer boundary', () => {
     expect(resolveEngineeringInput(3, { type: 'length[]' }, { length: 'm' })).toMatchObject({ value: 3, quantityKind: 'length', unit: 'm' })
     expect(resolveEngineeringInput(40, { type: 'quantity', quantityKind: 'stress' }, { stress: 'MPa' })).toMatchObject({ value: 40, quantityKind: 'stress', unit: 'MPa' })

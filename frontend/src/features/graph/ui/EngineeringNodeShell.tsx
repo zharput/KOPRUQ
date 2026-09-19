@@ -1,8 +1,9 @@
 ﻿import { Handle, Position } from '@xyflow/react'
+import { Fragment } from 'react'
 import type { GraphParameterValue, GraphValue } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import type { NodeDefinition, NodePortDefinition, ParameterDescriptor } from '../registry/nodeRegistry'
-import { formatQuantity, getUnit, unitsForKind } from '../domain/quantities'
+import { CANONICAL_UNITS, formatQuantity, getUnit, quantityFromCanonical, unitsForKind } from '../domain/quantities'
 import EditableNumericInput from './EditableNumericInput'
 import { getNodeCategoryLabel, getNodeTheme } from '../domain/nodeVisualThemes'
 
@@ -16,7 +17,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
   return <div className={`spn-graph-node spn-engineering-node ${getNodeTheme(definition.category).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
     <header className="spn-graph-node-title"><span title={definition.label}>{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
     <div className="spn-engineering-inputs">
-      {definition.inputs.map((port) => <EngineeringInputRow key={port.id} port={port} definition={definition} data={data} />)}
+      {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow port={port} definition={definition} data={data} /></Fragment>)}
     </div>
     {data.node.type.startsWith('substructure.foundation.piled') && <FoundationDerivedCanvas data={data} />}
     <div className="spn-engineering-outputs">
@@ -26,7 +27,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
         <Handle type="source" position={Position.Right} id={port.id} isConnectable title={portTooltip(port, data.projectUnits)} />
       </div>)}
     </div>
-    {data.executionError && data.node.type.startsWith('substructure.foundation.') && typeof generated==='number' ? <div className="spn-engineering-node-footer">{generated.toLocaleString()} raw combinations / limit 10,000</div> : typeof generated === 'number' && <div className="spn-engineering-node-footer">{generated} generated / {typeof invalid === 'number' ? invalid : 0} invalid / {displayedCandidateCount} valid</div>}
+    {data.executionError && (data.node.type.startsWith('substructure.foundation.') || data.node.type.startsWith('substructure.bearing.')) && typeof generated==='number' ? <div className="spn-engineering-node-footer">{generated.toLocaleString()} raw combinations / limit 10,000</div> : typeof generated === 'number' && <div className="spn-engineering-node-footer">{generated} generated / {typeof invalid === 'number' ? invalid : 0} invalid / {displayedCandidateCount} valid</div>}
     {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
     <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>
   </div>
@@ -53,7 +54,7 @@ function EngineeringInputRow({ port, definition, data }: { port: NodePortDefinit
   return <div className={`spn-engineering-input-row${connection ? ' is-connected' : ''}${connection?.error ? ' has-input-error' : ''}`} title={connection?.error ?? portTooltip(port, data.projectUnits)}>
     <Handle type="target" position={Position.Left} id={port.id} isConnectable title={portTooltip(port, data.projectUnits)} />
     <span className="spn-engineering-input-label" title={port.label}>{port.label}</span>
-    {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={node.parameters[valueParameter.key]} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => data.onParameterChange(node.id, valueParameter.key, next)} /><small>{port.type === 'length[]' ? getUnit(displayUnit)?.label : ''}</small></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
+    {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={node.parameters[valueParameter.key]} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => data.onParameterChange(node.id, valueParameter.key, next)} /><small>{unitParameter ? getUnit(displayUnit)?.label ?? displayUnit : ''}</small></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
   </div>
 }
 
@@ -61,7 +62,7 @@ function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[]
   const valueParameter = descriptors.find(parameter => parameter.dataType === 'number' || parameter.dataType === 'integer')
   if (valueParameter && typeof parameters[valueParameter.key] === 'number') {
     const value = parameters[valueParameter.key] as number
-    return port.type === 'length[]' ? `${value.toFixed(2)} ${getUnit(unit)?.label ?? unit}` : String(value)
+    return unit ? `${port.quantityKind === 'length' ? value.toFixed(2) : Number(value.toPrecision(10)).toString()} ${getUnit(unit)?.label ?? unit}` : String(value)
   }
   const selection = descriptors.find(parameter => parameter.dataType === 'select')
   if (selection) return String(parameters[selection.key] ?? 'Not selected')
@@ -74,6 +75,8 @@ function portTooltip(port: NodePortDefinition, projectUnits?: FlowGraphNode['dat
     const unit = unitsForKind('length').find(item => item.id === pref || item.label === pref)?.label ?? 'm'
     return `${port.label}\nType: Length or Length[]\nAccepted: Quantity<Length>, Quantity<Length>[], Number, number[]\nDefault Unit: ${unit}`
   }
+  const kind=port.quantityKind
+  if (kind) { const unit = unitsForKind(kind).find(item => item.id === projectUnits?.[kind] || item.label === projectUnits?.[kind]) ?? unitsForKind(kind).find(item=>item.id===CANONICAL_UNITS[kind]) ?? unitsForKind(kind)[0];return `${port.label}\nType: ${kind}\nAccepted: Quantity<${kind}>, Quantity<${kind}>[], Number, number[]\nDisplay unit: ${unit?.label ?? ''}` }
   if (port.type === 'concreteMaterial') return `${port.label}\nType: ConcreteMaterial\nAccepted: ConcreteMaterial`
   if (port.type === 'integer') return `${port.label}\nType: Integer\nAccepted: Integer\n${port.description ?? ''}`
   return `${port.label}\nType: ${port.type}`
@@ -82,7 +85,15 @@ function portTooltip(port: NodePortDefinition, projectUnits?: FlowGraphNode['dat
 function formatValue(value: GraphValue, port: NodePortDefinition, projectUnits?: FlowGraphNode['data']['projectUnits']): string {
   if (Array.isArray(value)) {
     if (!value.length) return '[]'
-    if (port.type === 'length[]' && value.every(item => typeof item === 'object' && item !== null && 'quantityKind' in item)) return `${value.length} values`
+    const kind=port.quantityKind
+    if (kind && value.every(item => typeof item === 'object' && item !== null && 'quantityKind' in item)) {
+      const quantities = value as import('../domain/quantities').EngineeringQuantity[]
+      const unit = unitsForKind(kind).find(item => item.id === projectUnits?.[kind] || item.label === projectUnits?.[kind])?.id ?? quantities[0]?.unit
+      if (!unit) return `${value.length} values`
+      const values = quantities.map(item => item.value), min = Math.min(...values), max = Math.max(...values), label = getUnit(unit)?.label ?? unit
+      const shown = (number: number) => quantityFromCanonical(number, kind, unit).toFixed(2)
+      return min === max ? `${shown(min)} ${label}` : `${shown(min)}…${shown(max)} ${label}`
+    }
     const first = value[0]
     return `${formatValue(first as GraphValue, port, projectUnits)}${value.length > 1 ? ` ... (${value.length} values)` : ''}`
   }

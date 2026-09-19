@@ -54,4 +54,15 @@ describe('CanvasSelect', () => {
     graph.remove()
     expect(onChange).not.toHaveBeenCalled()
   })
+
+  it('lets a closed selector wheel bubble to React Flow so it can zoom', () => {
+    const graph = document.createElement('div')
+    document.body.append(graph)
+    render(<CanvasSelect items={EN_CONCRETE_CLASS_IDS} value="C40/50" getKey={item => item} getLabel={item => item} onChange={vi.fn()} ariaLabel="Concrete Class" />, { container: graph })
+    const wheel = vi.fn()
+    graph.addEventListener('wheel', wheel)
+    fireEvent.wheel(screen.getByRole('button', { name: 'Concrete Class' }), { deltaY: 30 })
+    expect(wheel).toHaveBeenCalledOnce()
+    graph.remove()
+  })
 })

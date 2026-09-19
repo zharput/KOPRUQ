@@ -54,6 +54,27 @@ describe('Graph document store', () => {
     expect(reloaded.getActiveGraph().nodes.find(item=>item.id===foundation)?.parameters).toEqual(current.parameters)
   })
 
+  it('persists Elastomeric Bearing authoring values and wiring without storing generated candidates',async()=>{
+    const {addConnection,addNode,createGraphDocument,getActiveGraph,redoGraph,setNodeParameter,undoGraph}=await import('./graphStore')
+    createGraphDocument('Bearing persistence')
+    const range=addNode('input.range',{x:0,y:0})!,bearing=addNode('substructure.bearing.elastomeric',{x:300,y:0})!,watch=addNode('output.watch',{x:600,y:0})!
+    setNodeParameter(bearing,'kxValue',0)
+    const edges=[{id:'range-kx',sourceNodeId:range,sourcePortId:'values',targetNodeId:bearing,targetPortId:'kx'},{id:'bearing-watch',sourceNodeId:bearing,sourcePortId:'candidates',targetNodeId:watch,targetPortId:'value'}]
+    expect(addConnection(edges[0])).toBe(true);expect(addConnection(edges[1])).toBe(true)
+    const authoring=getActiveGraph().nodes.find(item=>item.id===bearing)!
+    expect(authoring.parameters).toMatchObject({lengthXValue:.6,lengthXUnit:'m',widthYValue:.7,totalHeightValue:.15,kxValue:0,kxUnit:'kN/m',krxValue:100000,krxUnit:'kNm/rad'})
+    const saved=JSON.parse(localStorage.getItem('spanova.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
+    expect(restored.connections).toEqual(edges)
+    expect(restored.nodes.find((item:{id:string})=>item.id===bearing).parameters).toEqual(authoring.parameters)
+    expect(authoring.parameters).not.toHaveProperty('candidates')
+    undoGraph();expect(getActiveGraph().connections).toEqual([edges[0]])
+    redoGraph();expect(getActiveGraph().connections).toEqual(edges)
+    vi.resetModules()
+    const reloaded=await import('./graphStore')
+    expect(reloaded.getActiveGraph().nodes.find(item=>item.id===bearing)?.parameters).toEqual(authoring.parameters)
+    expect(reloaded.getActiveGraph().connections).toEqual(edges)
+  })
+
   it('records one history entry for a connection and retains its ID across undo/redo', async () => {
     const { addConnection, addNode, createGraphDocument, getActiveGraph, subscribeGraphStore, undoGraph, redoGraph } = await import('./graphStore')
     createGraphDocument('Connection Test')

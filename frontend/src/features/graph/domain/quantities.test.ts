@@ -4,6 +4,7 @@ import { convertQuantity, formatQuantity, makeQuantity, quantityFromCanonical } 
 describe('engineering quantities and unit registry',()=>{
  it('converts units through canonical quantities',()=>{
   expect(convertQuantity(2000,'mm','m')).toBe(2)
+  expect(convertQuantity(1.9,'m','mm')).toBe(1900)
   expect(convertQuantity(250,'cm','m')).toBe(2.5)
   expect(convertQuantity(1,'MN','kN')).toBe(1000)
   expect(convertQuantity(40000,'kPa','MPa')).toBe(40)

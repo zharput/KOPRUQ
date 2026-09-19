@@ -4,7 +4,7 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { describe, expect, it, vi } from 'vitest'
 import ListOutputNode from './ListOutputNode'
 import type { GraphNodeViewData } from '../adapters/reactFlowAdapter'
-import type { PierCandidate, PierCapCandidate, FoundationCandidate } from '../domain/types'
+import type { PierCandidate, PierCapCandidate, FoundationCandidate, BearingCandidate } from '../domain/types'
 
 const data = (value: GraphNodeViewData['output'], projectUnits?: GraphNodeViewData['projectUnits'], extra: Partial<GraphNodeViewData> = {}): GraphNodeViewData => ({
   node: { id: 'list', type: 'output.list', name: 'List', position: { x: 0, y: 0 }, parameters: {} },
@@ -12,6 +12,15 @@ const data = (value: GraphNodeViewData['output'], projectUnits?: GraphNodeViewDa
 })
 
 describe('List output node', () => {
+  it('renders the full Elastomeric Bearing candidate geometry and distinct stiffness units',async()=>{
+    const bearing:BearingCandidate={id:'bearing-1',bearingType:'ELASTOMERIC',geometry:{lengthX:.6,widthY:.7,totalHeight:.15},stiffness:{kx:3000,ky:30000,kz:100000,krx:100000,kry:100000,krz:100000}}
+    render(<ReactFlowProvider><ListOutputNode data={data([bearing],{length:'mm'})} selected={false}/></ReactFlowProvider>)
+    expect(screen.getByRole('listitem').textContent).toContain('Lx=600.00 mm')
+    expect(screen.getByRole('listitem').textContent).toContain('Kx=3000 kN/m')
+    await userEvent.click(screen.getByRole('button',{name:'Expand item 0'}))
+    expect(screen.getByText('Length X').nextElementSibling).toHaveTextContent('600.00 mm')
+    expect(screen.getByText('Krx').nextElementSibling).toHaveTextContent('100000 kN·m/rad')
+  })
   it('renders shallow and piled foundation candidates with source candidate-derived Lx/Ly',()=>{
     const shallow:FoundationCandidate={id:'s',foundationType:'SHALLOW',geometry:{Lx:8,Ly:6,height:2},material:{domainType:'ConcreteMaterial',id:'C35/45',name:'C35/45',properties:{}}}
     const piled:FoundationCandidate={id:'p',foundationType:'PILED',geometry:{pileDiameter:1.2,pileCountX:4,pileSpacingX:3.6,pileCountY:3,pileSpacingY:3.6,capHeight:2.5,derived:{Lx:13.2,Ly:9.6}},material:shallow.material}

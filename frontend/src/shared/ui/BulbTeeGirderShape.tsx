@@ -37,3 +37,14 @@ export function BulbTeeGirderShape({
     />
   )
 }
+
+/** Canonical outline shared by Family Tables and Graph Inspector. */
+export function bulbTeeGirderPath(values: { H:number; tf:number; bf:number; w:number; th1:number; th2:number; bh1:number; bh2:number }) {
+  const { H, tf, bf, w, th1, th2, bh1, bh2 } = values
+  const scale = Math.max(H, 1e-9)
+  const top = tf / scale, bottom = bf / scale, web = w / scale
+  const y1 = th1 / scale, y2 = (th1 + th2) / scale, y3 = (H - bh1 - bh2) / scale, y4 = (H - bh1) / scale
+  const x = (width:number) => 0.5 - width / (2 * scale)
+  const X = (width:number) => 0.5 + width / (2 * scale)
+  return `M${x(top)} 0 H${X(top)} V${y1} L${X(web)} ${y2} V${y3} L${X(bottom)} ${y4} V1 H${x(bottom)} V${y4} L${x(web)} ${y3} V${y2} L${x(top)} ${y1} Z`
+}

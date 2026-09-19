@@ -8,6 +8,7 @@ describe('editable numeric input buffer', () => {
     const user = userEvent.setup(), onCommit = vi.fn()
     render(<EditableNumericInput value={12} ariaLabel="Number value" onCommit={onCommit} />)
     const input = screen.getByRole('textbox', { name: 'Number value' })
+    expect(input).toHaveClass('nowheel', 'nopan')
     await user.click(input)
     await user.keyboard('{Control>}a{/Control}{Backspace}15.5{Enter}')
     expect(input).toHaveValue('15.5')

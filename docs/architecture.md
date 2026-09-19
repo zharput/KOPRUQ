@@ -2745,3 +2745,35 @@ Precast Girder local defaults now use independent existing Family dimension valu
 ## Precast Girder Candidate Preview and List Compatibility, Phase 3F.3 (2026-09-19)
 
 The 0-candidate live display was caused by the React Flow adapter's preview resolver excluding `structural.girder.*` nodes, even though the registry executor and candidate generator were present. The adapter now resolves Girder previews through the same path used by the other structural family nodes and publishes their candidate count before RUN. The typed connection whitelist also includes `girderCandidate[]`, so Candidates can feed List and Watch `display:any` inputs without weakening validation for unrelated types.
+
+## Steel Girder Welded I Section and Material Catalog, Phase 3F.4 (2026-09-19)
+
+Steel Girder remains a registry/domain node. Its six length inputs are converted to canonical metres before deterministic Cartesian generation. Valid candidates carry welded-I geometry and section properties; invalid rows are rejected with geometric validation rules. The Structural Steel node now exposes S235, S275, S355, S420 and S460 identifiers. Since verified product-standard and thickness-band strength tables are not present in the current catalog, strength properties are not invented and density-dependent results remain INCOMPLETE when density is absent. This keeps geometry generation independent from material verification.
+
+## Shared Material Inspector Integration, Phase 3F.5 (2026-09-19)
+
+Material display now uses a shared `MaterialProperties` component for material nodes and girder engineering Inspectors. Structural Steel grade options are sourced from the existing catalog; the current verified catalog subset exposes E, ν, density and unit weight, while unverified fy/fu and thermal values remain absent rather than being invented. Connected material values take precedence over local girder defaults, and local S355/C40/50 defaults remain available for live previews.
+
+## Material Selection and Inspector Standardization, Phase 3F.6 (2026-09-19)
+
+Structural family Inspectors now render their material choice inside PARAMETERS and do not duplicate material property tables. Independent Concrete and Structural Steel nodes retain catalog-backed property display and selectors. Connected material ports remain authoritative and disable the local selector while connected; removing a connection restores the local catalog selector and default.
+
+## Structural Steel to Steel Girder Connection Fix, Phase 3F.7 (2026-09-19)
+
+The connection error was in the live preview resolver: `previewOutput` handled Concrete material nodes but not Structural Steel material nodes. A connected Steel Girder therefore received no preview material, entered the error path, and displayed zero candidates before RUN. Structural Steel preview now emits the same `StructuralSteelMaterial` domain shape as the execution registry, preserving the selected material ID. Geometry remains independent of optional material properties.
+
+## Structural Material Selector Standardization, Phase 3F.8 (2026-09-19)
+
+Structural family material selection is rendered by the shared `MaterialSelector` component. It reads the existing concrete or Structural Steel catalog, writes changes through the existing node parameter callback, and renders a disabled source-driven selector when a material connection is active. The selector is present in the common PARAMETERS section with the normalized label `Material`.
+
+## Girder Material Selector Fix, Phase 3F.9 (2026-09-19)
+
+The Inspector had two rendering paths for material inputs. The connected path rendered a status wrapper and `Connected` text, while the local path rendered the selector. Phase 3F.9 keeps the same selector component in both paths, disables it only when a real material edge exists, and removes the status text. Local selection continues through the existing GraphStore callback.
+
+## Global Material Connection and Inspector Synchronization, Phase 3F.11 (2026-09-19)
+
+When a structural node's `material` input is connected, its shared selector now resolves the material edge and writes `materialId` to the source Material node. This preserves a single source of truth while keeping the selector active and allowing all fan-out consumers to update through the existing graph preview and store mechanisms.
+
+## Superstructure Node Foundation, Phase 3G (2026-09-19)
+
+`structural.superstructure` consumes existing `girderCandidate[]` references and never creates a second girder geometry source. Its domain generator computes x-axis positions, flange-based clear edge cantilevers and total structural depth for deterministic Cartesian alternatives. Invalid e <= 0 alternatives are filtered from the valid output while retaining the exact validation message and invalid count.

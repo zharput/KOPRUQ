@@ -8,6 +8,7 @@ import { bulbTeeGirderPath } from '../../../shared/ui/BulbTeeGirderShape'
 type Props = { schema: EngineeringInspectorSchema; node: SpanovaNode; candidates: GraphValue[]; previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string }>; connections: SpanovaConnection[]; projectUnits?: ProjectUnitPreferences }
 
 export function EngineeringSchematic({ schema, node, candidates, previewInputs, connections, projectUnits }: Props) {
+  if (schema.schematic === 'superstructure') return <StaticSuperstructureCard />
   const connected = new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))
   if (schema.schematic === 'pier') return <PierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   if (schema.schematic === 'pier-cap') return <PierCapSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
@@ -15,6 +16,7 @@ export function EngineeringSchematic({ schema, node, candidates, previewInputs, 
   if (schema.schematic === 'girder') return <GirderSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   return <BearingSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
 }
+function StaticSuperstructureCard(){return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 260" role="img" aria-label="Superstructure catalog schematic"><rect x="38" y="55" width="224" height="24" fill="#d8d1c7" stroke="#6b6258"/><g fill="#cfc5b8" stroke="#6b6258">{[65,98,131,164,197,230].map(x=><path key={x} d={`M${x-9} 79h18v18h-5v72h-8V97h-5z`}/>)}</g><path d="M38 42h224M38 42v10M262 42v10M38 38l6 4-6 4M262 38l-6 4 6 4" stroke="#222" fill="none"/><text x="150" y="33" textAnchor="middle" className="engineering-dimension">W = Deck Width</text><text x="150" y="195" textAnchor="middle" className="engineering-dimension">6 × Girder · s = Spacing · t = Slab</text><text x="150" y="218" textAnchor="middle" className="engineering-dimension">e = Clear Edge · Btf = Top Flange · H = Height</text><text x="18" y="244" className="engineering-dimension">Parameters</text><text x="18" y="255" className="engineering-dimension">W  Deck Width   n  Girder Count   s  Girder Spacing   t  Deck Slab Thickness</text></svg></SchematicCard>}
 
 function GirderSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {
   const steel=node.type.endsWith('.steel'), keys=steel?['H','Btf','ttf','Bbf','tbf','tw']:['H','tf','bf','w','th1','th2','bh1','bh2']

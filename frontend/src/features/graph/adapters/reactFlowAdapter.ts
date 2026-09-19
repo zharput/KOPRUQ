@@ -16,6 +16,7 @@ export type GraphNodeViewData = {
   previewCandidateCount?: number
   previewFoundationCandidates?: GraphValue
   previewBearingCandidates?: GraphValue
+  previewSuperstructureCandidates?: GraphValue
   previewGeneratedCombinations?: number
   previewInvalidCombinations?: number
   rangePreviewValue?: GraphValue
@@ -40,7 +41,7 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
     const node=graph.nodes.find(item=>item.id===nodeId);if(!node)return undefined
     const nextPath=new Set(path);nextPath.add(cacheKey)
     const direct=previewOutput(node,portId);if(direct!==undefined){previewCache.set(cacheKey,direct);return direct}
-    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.')&&!node.type.startsWith('substructure.bearing.')&&!node.type.startsWith('structural.girder.'))return undefined
+    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.')&&!node.type.startsWith('substructure.bearing.')&&!node.type.startsWith('structural.girder.')&&node.type!=='structural.superstructure')return undefined
     const definition=getNodeDefinition(node.type),inputs:Record<string,GraphValue>={}
     for(const edge of graph.connections.filter(item=>item.targetNodeId===nodeId)){
       const target=definition?.inputs.find(port=>port.id===edge.targetPortId)
@@ -82,9 +83,10 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
     const foundationPreview=node.type.startsWith('substructure.foundation.')?resolvePreview(node.id,'candidates'):undefined
     const bearingPreview=node.type.startsWith('substructure.bearing.')?resolvePreview(node.id,'candidates'):undefined
     const girderPreview=node.type.startsWith('structural.girder.')?resolvePreview(node.id,'candidates'):undefined
+    const superstructurePreview=node.type==='structural.superstructure'?resolvePreview(node.id,'candidates'):undefined
     const pierPreview=node.type.startsWith('substructure.pier.')?resolvePreview(node.id,'candidates'):undefined
     const capPreview=node.type.startsWith('substructure.pier-cap.')?resolvePreview(node.id,'candidates'):undefined
-    const previewCandidateCount=Array.isArray(pierPreview)?pierPreview.length:Array.isArray(capPreview)?capPreview.length:Array.isArray(foundationPreview)?foundationPreview.length:Array.isArray(bearingPreview)?bearingPreview.length:Array.isArray(girderPreview)?girderPreview.length:undefined
+    const previewCandidateCount=Array.isArray(pierPreview)?pierPreview.length:Array.isArray(capPreview)?capPreview.length:Array.isArray(foundationPreview)?foundationPreview.length:Array.isArray(bearingPreview)?bearingPreview.length:Array.isArray(girderPreview)?girderPreview.length:Array.isArray(superstructurePreview)?superstructurePreview.length:undefined
     let previewGeneratedCombinations:number|undefined,previewInvalidCombinations:number|undefined
     if(node.type.startsWith('substructure.pier-cap.')&&capPreview!==undefined){
       const inputs:Record<string,GraphValue>={}
@@ -102,7 +104,7 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
       try{const stats=previewBearingStatistics(node,inputs,Array.isArray(bearingPreview)?bearingPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=bearingPreview===undefined?undefined:stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
     }
     const previewError=previewErrors.get(node.id)
-    return { id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
+    return { id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
   })
 }
 
@@ -112,6 +114,7 @@ function previewOutput(node: SpanovaNode, portId: string): GraphValue | undefine
   if (portId === 'value' && node.type === 'input.quantity' && typeof node.parameters.value === 'number') return makeQuantity(node.parameters.value, node.parameters.quantityKind as QuantityKind, node.parameters.unit as UnitId)
   if (node.type.startsWith('math.')) return undefined
   if (portId === 'material' && node.type === 'material.concrete' && typeof node.parameters.materialId === 'string' && node.parameters.materialId) return { domainType: 'ConcreteMaterial', id: node.parameters.materialId, name: node.parameters.materialId, properties: {} } satisfies MaterialValue
+  if (portId === 'material' && node.type === 'material.structuralSteel' && typeof node.parameters.materialId === 'string' && node.parameters.materialId) return { domainType: 'StructuralSteelMaterial', id: node.parameters.materialId, name: node.parameters.materialId, properties: {} } satisfies MaterialValue
   return undefined
 }
 

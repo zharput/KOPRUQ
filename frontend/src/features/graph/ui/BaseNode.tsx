@@ -7,7 +7,7 @@ import type { GraphValue } from '../domain/types'
 import EngineeringNodeShell from './EngineeringNodeShell'
 import EditableNumericInput from './EditableNumericInput'
 import ListOutputNode from './ListOutputNode'
-import { EN_CONCRETE_CLASS_IDS } from '../../materials/model/materialCatalog'
+import { EN_CONCRETE_CLASS_IDS, STRUCTURAL_STEEL_OPTIONS } from '../../materials/model/materialCatalog'
 import CanvasSelect from './CanvasSelect'
 import { getNodeCategoryLabel, getNodeTheme } from '../domain/nodeVisualThemes'
 
@@ -26,6 +26,7 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
         <span>Concrete Class</span>
         <CanvasSelect items={EN_CONCRETE_CLASS_IDS} value={String(node.parameters.materialId ?? 'C40/50')} getKey={grade => grade} getLabel={grade => grade} ariaLabel="Concrete Class" onChange={grade => data.onParameterChange(node.id, 'materialId', grade)} />
       </div>}
+      {node.type === 'material.structuralSteel' && <div className="spn-graph-material-selector nodrag nowheel"><span>Steel Class</span><CanvasSelect items={STRUCTURAL_STEEL_OPTIONS.map(item => item.value)} value={String(node.parameters.materialId ?? 'S355')} getKey={grade => grade} getLabel={grade => grade} ariaLabel="Steel Class" onChange={grade => data.onParameterChange(node.id, 'materialId', grade)} /></div>}
       {node.type === 'input.quantity' && <div className="spn-graph-node-range">{node.parameters.value} {getUnit(String(node.parameters.unit))?.label}</div>}
       {definition.inputs.map((port, index) => <div className={`spn-graph-port-row input${node.type === 'input.range' ? ' spn-graph-range-port' : ''}`} key={port.id} style={{ top: 45 + index * 25 }}><Handle type="target" position={Position.Left} id={port.id} isConnectable /><span>{port.label}</span>{node.type === 'input.range' ? <EditableNumericInput value={rangeEditorValue(node,data,port.id)} ariaLabel={`Range ${port.label}`} disabled={Boolean(data.connectedInputs?.[port.id])} onCommit={value => data.onParameterChange(node.id, port.id === 'start' ? 'min' : port.id === 'end' ? 'max' : 'step', value)} /> : definition.category !== 'MATH' && <small>{port.type}</small>}</div>)}
       {definition.outputs.map((port, index) => <div className="spn-graph-port-row output" key={port.id} style={{ top: (node.type === 'input.number' || node.type === 'input.integer' ? 40 : 45) + index * 25 }}>{definition.category !== 'INPUT' && definition.category !== 'MATH' && <small>{port.type}</small>}<span>{port.label}</span><Handle type="source" position={Position.Right} id={port.id} isConnectable /></div>)}

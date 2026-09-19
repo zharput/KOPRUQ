@@ -27,6 +27,24 @@ const FIELDS: Record<string, { label: string; path: string }[]> = {
   'Design Criteria': [{ label: 'Design Life', path: 'criteria.designLife' }, { label: 'Importance / Reliability Class', path: 'criteria.reliabilityClass' }, { label: 'Exposure Assumptions', path: 'criteria.exposure' }, { label: 'Default Material Class', path: 'criteria.concreteClass' }, { label: 'Default Cover', path: 'criteria.cover' }, { label: 'Design Philosophy', path: 'criteria.philosophy' }],
 }
 const SITE_SLUGS: Record<string, string> = { terrain: 'Terrain & GIS', geotechnical: 'Geotechnical', hydrology: 'Hydrology', seismic: 'Seismic', climate: 'Climate & Wind' }
+const UNIT_OPTIONS: Record<keyof ProjectWorkspaceData['units'], string[]> = {
+  length: ['m', 'cm', 'mm'],
+  force: ['N', 'kN', 'MN'],
+  moment: ['Nm', 'kNm', 'MNm', 'kNmm'],
+  stress: ['kPa', 'MPa', 'GPa'],
+  mass: ['kg', 't'],
+  temperature: ['C', 'F', 'K'],
+}
+const UNIT_LABELS: Record<string, string> = { Nm: 'N·m', kNm: 'kN·m', MNm: 'MN·m', kNmm: 'kN·mm', C: '°C', F: '°F' }
+function unitCode(value: string) {
+  if (value === 'N·m' || value.includes('NÂ·m')) return 'Nm'
+  if (value === 'kN·m' || value.includes('kNÂ·m')) return 'kNm'
+  if (value === 'MN·m' || value.includes('MNÂ·m')) return 'MNm'
+  if (value === 'kN·mm' || value.includes('kNÂ·mm')) return 'kNmm'
+  if (value === '°C' || value.includes('Â°C')) return 'C'
+  if (value === '°F' || value.includes('Â°F')) return 'F'
+  return value
+}
 function getPath(project: ProjectWorkspaceData, path: string): string { let value: unknown = project; for (const part of path.split('.')) value = (value as Record<string, unknown>)[part]; return typeof value === 'string' ? value : '' }
 function writePath(project: ProjectWorkspaceData, path: string, value: string): ProjectWorkspaceData {
   const result = structuredClone(project) as unknown as Record<string, unknown>; const parts = path.split('.'); let cursor = result
@@ -47,7 +65,14 @@ export default function ProjectWorkspace({ path, project, setProject, bridges, s
   const startEdit = () => { setDraft(project); setEditing(true); setTab('General') }
   const save = () => { setProject({ ...draft, lastModified: new Date().toISOString().slice(0, 10) }); setEditing(false) }
   const update = (field: string, value: string) => setDraft((previous) => writePath(previous, field, value))
-  const setField = (path: string, label: string) => <label className="spn-field" key={path}><span>{label}</span>{path === 'country' && editing ? <select className="spn-input" value={getPath(draft, path)} onChange={(event) => update(path, event.target.value)}><option value="">Not defined</option>{COUNTRIES.map((country) => <option key={country}>{country}</option>)}</select> : path === 'description' && editing ? <textarea className="spn-input" rows={5} value={getPath(draft, path)} placeholder="Not defined" onChange={(event) => update(path, event.target.value)} /> : <input className="spn-input" type={path === 'startDate' || path === 'targetDate' ? 'date' : 'text'} value={getPath(editing ? draft : project, path)} readOnly={!editing} placeholder="Not defined" onChange={(event) => update(path, event.target.value)} />}</label>
+  const setField = (path: string, label: string) => {
+    const unitKey = path.startsWith('units.') ? path.slice('units.'.length) as keyof ProjectWorkspaceData['units'] : undefined
+    if (unitKey) {
+      const options = UNIT_OPTIONS[unitKey]
+      return <label className="spn-field" key={path}><span>{label}</span><select className="spn-input" value={unitCode(project.units[unitKey])} aria-label={label} onChange={(event) => setProject({ ...project, units: { ...project.units, [unitKey]: event.target.value } })}>{options.map((option) => <option key={option} value={option}>{UNIT_LABELS[option] ?? option}</option>)}</select></label>
+    }
+    return <label className="spn-field" key={path}><span>{label}</span>{path === 'country' && editing ? <select className="spn-input" value={getPath(draft, path)} onChange={(event) => update(path, event.target.value)}><option value="">Not defined</option>{COUNTRIES.map((country) => <option key={country}>{country}</option>)}</select> : path === 'description' && editing ? <textarea className="spn-input" rows={5} value={getPath(draft, path)} placeholder="Not defined" onChange={(event) => update(path, event.target.value)} /> : <input className="spn-input" type={path === 'startDate' || path === 'targetDate' ? 'date' : 'text'} value={getPath(editing ? draft : project, path)} readOnly={!editing} placeholder="Not defined" onChange={(event) => update(path, event.target.value)} />}</label>
+  }
   const selectedTitle = selected.group === 'Design Settings' ? ({ 'design-codes': 'Design Codes', units: 'Units & Preferences', 'coordinate-system': 'Coordinate System', 'design-criteria': 'Design Criteria' } as Record<string, string>)[slug] : selected.group === 'Project Information' ? ({ general: 'General', location: 'Location', stakeholders: 'Stakeholders', schedule: 'Schedule', notes: 'Notes' } as Record<string, string>)[slug] : undefined
   const fields = FIELDS[selectedTitle ?? '']
 

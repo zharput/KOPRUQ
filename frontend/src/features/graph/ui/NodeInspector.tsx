@@ -4,6 +4,7 @@ import { formatQuantity, unitsForKind, type QuantityKind } from '../domain/quant
 import { getNodeDefinition, previewDesignOutput } from '../registry/nodeRegistry'
 import EngineeringNodeInspector from './EngineeringNodeInspector'
 import EditableNumericInput from './EditableNumericInput'
+import MaterialProperties, { catalogMaterial } from './MaterialProperties'
 
 type Props = {
   node?: SpanovaNode
@@ -40,7 +41,7 @@ export default function NodeInspector({ node, selectedNodes = [], states, errors
   const connectedPreview = definition.inputs.map(input => resolvedInputs[node.id]?.[input.id] ?? previewInputs[input.id]?.value).find(value => value !== undefined)
   const localScalarPreview = ['input.number','input.integer','input.boolean'].includes(node.type) ? node.parameters.value as GraphValue : undefined
   const previewValue = outputs[node.id]?.value ?? outputs[node.id]?.result ?? (node.type.startsWith('math.') ? calculatedPreview : undefined) ?? connectedPreview ?? calculatedPreview ?? localScalarPreview
-  const material = concreteMaterial
+  const material = concreteMaterial ?? (node.type === 'material.structuralSteel' ? catalogMaterial(String(node.parameters.materialId ?? 'S355'), 'StructuralSteelMaterial') : undefined)
   return <div className="spn-graph-inspector spn-general-node-inspector">
     <section><h3>GENERAL</h3><label>Name<input className="spn-input" value={node.name} onChange={event => onNodeChange(node.id, { name: event.target.value })} /></label><div className="spn-graph-inspector-row"><span>Type</span><strong>{definition.label}</strong></div><div className="spn-graph-inspector-row"><span>Execution</span><strong className={`state-${states[node.id] ?? 'idle'}`}>{(states[node.id] ?? 'idle').toUpperCase()}</strong></div>{errors[node.id] && <p className="spn-graph-inspector-error">{errors[node.id]}</p>}</section>
     {parameters.length > 0 && <section><h3>PARAMETERS / VALUE</h3>{parameters.map(parameter => {
@@ -50,7 +51,7 @@ export default function NodeInspector({ node, selectedNodes = [], states, errors
       return <div className="spn-general-parameter" key={parameter.key}><label>{humanParameterLabel(parameter.label)}{isConnected && <small>Connected · {input === undefined ? 'waiting for value' : formatGraphValue(input)}</small>}{parameter.dataType === 'boolean' ? <input type="checkbox" checked={Boolean(node.parameters[parameter.key])} disabled={isConnected} onChange={event => onParameterChange(node.id, parameter.key, event.target.checked)} /> : parameter.dataType === 'select' ? <select className="spn-input" aria-label={humanParameterLabel(parameter.label)} value={String(node.parameters[parameter.key] ?? units[0]?.value ?? '')} disabled={isConnected || !units.length} onChange={event => {onParameterChange(node.id, parameter.key, event.target.value);if(parameter.key==='quantityKind'){const kind=event.target.value as QuantityKind,preferred=projectUnits?.[kind],unit=unitsForKind(kind).find(item=>item.id===preferred||item.label===preferred)??unitsForKind(kind)[0];onParameterChange(node.id,'unit',unit.id)}}}><option value="" disabled>Select</option>{units.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : parameter.dataType === 'string' ? <input className="spn-input" aria-label={humanParameterLabel(parameter.label)} value={String(node.parameters[parameter.key] ?? '')} onChange={event => onParameterChange(node.id, parameter.key, event.target.value)} /> : <EditableNumericInput value={node.parameters[parameter.key]} integer={parameter.dataType === 'integer'} ariaLabel={humanParameterLabel(parameter.label)} disabled={isConnected} onCommit={value => onParameterChange(node.id, parameter.key, value)} />}</label></div>
     })}</section>}
     {incoming.length > 0 && <section><h3>CONNECTED VALUES</h3>{incoming.map(item => <div className="spn-graph-inspector-row" key={item.label}><span>{item.label}</span><strong>{item.value === undefined ? 'Waiting for value' : formatGraphValue(item.value)}</strong></div>)}</section>}
-    {node.type.startsWith('material.') && <section><h3>MATERIAL</h3><div className="spn-graph-inspector-row"><span>Grade</span><strong>{material?.name ?? String(node.parameters.materialId ?? 'Not selected')}</strong></div>{material ? Object.entries(material.properties).map(([key,value]) => <div className="spn-graph-inspector-row" key={key}><span>{key}</span><strong>{formatQuantity(value)}</strong></div>) : <small>Material properties are unavailable.</small>}</section>}
+    {node.type.startsWith('material.') && <section><h3>MATERIAL</h3><div className="spn-graph-inspector-row"><span>Grade</span><strong>{material?.name ?? String(node.parameters.materialId ?? 'Not selected')}</strong></div><MaterialProperties material={material} /></section>}
     {(node.type.startsWith('output.') || previewValue !== undefined) && <section><h3>RESULT / PREVIEW</h3>{previewValue === undefined ? <small>{incoming.length ? 'Waiting for a connected value.' : 'Connect a value to preview this node.'}</small> : <GraphValuePreview value={previewValue} />}</section>}
   </div>
 }

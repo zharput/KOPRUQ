@@ -4,6 +4,7 @@ import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
 import EditableNumericInput from './EditableNumericInput'
 import { EngineeringSchematic } from './EngineeringSchematics'
+import MaterialSelector from './MaterialSelector'
 
 type Props = {
   node: SpanovaNode
@@ -46,10 +47,12 @@ export default function EngineeringNodeInspector(props: Props) {
       const resolved = resolvedInputs[node.id]?.[input.id] ?? previewInputs[input.id]?.value
       const isConnected = connected.has(input.id)
       return <div className="spn-engineering-parameter" key={input.id}>
-        <span className="spn-engineering-parameter-label">{input.label}</span>
-        {isConnected
-          ? <div className="spn-engineering-connected"><strong>{resolved === undefined ? 'Connected' : present(resolved)}</strong><small>Connected</small></div>
-          : <div className="spn-engineering-controls">{descriptors.map(descriptor => <ParameterControl key={descriptor.key} node={node} descriptor={descriptor} onChange={onParameterChange} />)}</div>}
+        <span className="spn-engineering-parameter-label">{input.id === 'material' ? 'Material' : input.label}</span>
+        {isConnected && input.id === 'material'
+          ? <div className="spn-engineering-controls"><MaterialSelector steel={node.type.endsWith('.steel')} value={resolved && typeof resolved === 'object' && 'id' in resolved ? String(resolved.id) : String(node.parameters.materialId ?? '')} onChange={value => { const edge = connections.find(item => item.targetNodeId === node.id && item.targetPortId === 'material'); onParameterChange(edge?.sourceNodeId ?? node.id, 'materialId', value) }} /></div>
+          : isConnected
+          ? <div className="spn-engineering-connected"><strong>{resolved === undefined ? 'Connected' : present(resolved)}</strong></div>
+          : <div className="spn-engineering-controls">{input.id === 'material' ? <MaterialSelector steel={node.type.endsWith('.steel')} value={String(node.parameters.materialId ?? (node.type.endsWith('.steel') ? 'S355' : 'C40/50'))} onChange={value => onParameterChange(node.id, 'materialId', value)} /> : descriptors.map(descriptor => <ParameterControl key={descriptor.key} node={node} descriptor={descriptor} onChange={onParameterChange} />)}</div>}
       </div>
     })}</section>
     <section className="spn-engineering-family"><h3>FAMILY</h3><div className="spn-graph-inspector-row"><span>Candidate Count</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Valid</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Invalid</span><strong>{stats?.invalidCombinations ?? 0}</strong></div><div className="spn-graph-inspector-row"><span>Validation</span><strong className={`state-${errors[node.id] ? 'error' : state}`}>{errors[node.id] ? 'FAILED' : candidates.length ? 'VALID' : 'NO VALID CANDIDATES'}</strong></div></section>

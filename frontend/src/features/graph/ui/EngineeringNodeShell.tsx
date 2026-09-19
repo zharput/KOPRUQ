@@ -1,4 +1,4 @@
-﻿import { Handle, Position } from '@xyflow/react'
+import { Handle, Position } from '@xyflow/react'
 import { Fragment } from 'react'
 import type { GraphParameterValue, GraphValue } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
@@ -18,6 +18,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
     <header className="spn-graph-node-title"><span title={definition.label}>{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
     <div className="spn-engineering-inputs">
       {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow port={port} definition={definition} data={data} /></Fragment>)}
+      {data.node.type === 'structural.superstructure' && <SuperstructureEdgeRow data={data} />}
     </div>
     {data.node.type.startsWith('substructure.foundation.piled') && <FoundationDerivedCanvas data={data} />}
     <div className="spn-engineering-outputs">
@@ -32,11 +33,13 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
     <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>
   </div>
 }
+function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{typeof e==='number'?String(e.toFixed(2)) + ' m':'â€”'}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
+function numberInput(data:FlowGraphNode['data'],key:string,fallback:number){const v=data.connectedInputs?.[key]?.value;return typeof v==='number'?v:Number((data.node.parameters[key+'Value']??fallback))}
 
 function FoundationDerivedCanvas({data}:{data:FlowGraphNode['data']}){
   const candidates=data.isDirty?data.previewFoundationCandidates:data.outputs?.candidates??data.previewFoundationCandidates
   const list=Array.isArray(candidates)?candidates.filter((item):item is import('../domain/types').FoundationCandidate=>typeof item==='object'&&item!==null&&'foundationType'in item):[]
-  const derived=(axis:'Lx'|'Ly')=>{const values=list.map(item=>item.foundationType==='PILED'?Number((item.geometry.derived as Readonly<Record<string,number>>)[axis]):Number(item.geometry[axis])).filter(Number.isFinite);if(!values.length)return '—';const min=Math.min(...values),max=Math.max(...values);return min===max?`${min.toFixed(2)} m`:`${min.toFixed(2)}…${max.toFixed(2)} m`}
+  const derived=(axis:'Lx'|'Ly')=>{const values=list.map(item=>item.foundationType==='PILED'?Number((item.geometry.derived as Readonly<Record<string,number>>)[axis]):Number(item.geometry[axis])).filter(Number.isFinite);if(!values.length)return 'Ã¢â‚¬â€';const min=Math.min(...values),max=Math.max(...values);return min===max?`${min.toFixed(2)} m`:`${min.toFixed(2)}Ã¢â‚¬Â¦${max.toFixed(2)} m`}
   return <div className="spn-engineering-derived"><strong>Derived Geometry</strong><span>Lx <b>{derived('Lx')}</b></span><span>Ly <b>{derived('Ly')}</b></span></div>
 }
 
@@ -49,14 +52,15 @@ function EngineeringInputRow({ port, definition, data }: { port: NodePortDefinit
   const displayUnit = unitParameter ? String(node.parameters[unitParameter.key] ?? '') : ''
   const value = connection?.value
   const editable = !connection && valueParameter
-  const localText = localValue(port, descriptors, node.parameters, displayUnit)
-  const externalText = value === undefined ? connection?.error || (data.executionState === 'error' && data.executionError) ? 'Error' : 'Resolving...' : formatValue(value, port, data.projectUnits)
+  const localText = port.id === 'material' ? String(node.parameters.materialId ?? (port.type === 'structuralSteelMaterial' ? 'S355' : 'C40/50')) : localValue(port, descriptors, node.parameters, displayUnit)
+  const externalText = value === undefined ? connection?.error || (data.executionState === 'error' && data.executionError) ? 'Error' : 'Resolving...' : port.id === 'girder' ? girderLabel(value) : formatValue(value, port, data.projectUnits)
   return <div className={`spn-engineering-input-row${connection ? ' is-connected' : ''}${connection?.error ? ' has-input-error' : ''}`} title={connection?.error ?? portTooltip(port, data.projectUnits)}>
     <Handle type="target" position={Position.Left} id={port.id} isConnectable title={portTooltip(port, data.projectUnits)} />
     <span className="spn-engineering-input-label" title={port.label}>{port.label}</span>
     {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={node.parameters[valueParameter.key]} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => data.onParameterChange(node.id, valueParameter.key, next)} /><small>{unitParameter ? getUnit(displayUnit)?.label ?? displayUnit : ''}</small></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
   </div>
 }
+function girderLabel(value: GraphValue) { const item=Array.isArray(value)?value[0]:value; return typeof item==='object'&&item!==null&&'girderType' in item ? `${item.girderType==='PRECAST'?'Precast':'Steel'} Girder` : 'Not connected' }
 
 function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[], parameters: Record<string, GraphParameterValue>, unit: string) {
   const valueParameter = descriptors.find(parameter => parameter.dataType === 'number' || parameter.dataType === 'integer')
@@ -92,7 +96,7 @@ function formatValue(value: GraphValue, port: NodePortDefinition, projectUnits?:
       if (!unit) return `${value.length} values`
       const values = quantities.map(item => item.value), min = Math.min(...values), max = Math.max(...values), label = getUnit(unit)?.label ?? unit
       const shown = (number: number) => quantityFromCanonical(number, kind, unit).toFixed(2)
-      return min === max ? `${shown(min)} ${label}` : `${shown(min)}…${shown(max)} ${label}`
+      return min === max ? `${shown(min)} ${label}` : `${shown(min)}Ã¢â‚¬Â¦${shown(max)} ${label}`
     }
     const first = value[0]
     return `${formatValue(first as GraphValue, port, projectUnits)}${value.length > 1 ? ` ... (${value.length} values)` : ''}`

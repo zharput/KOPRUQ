@@ -1632,3 +1632,59 @@ code itself is not reused.
 - [x] Allow `girderCandidate[]` outputs to connect to `display:any` List and Watch inputs while retaining typed validation for other connections.
 - [x] Keep the existing Girder geometry and material data in candidate previews; use C40/50 only as the existing Precast node default.
 - [x] Validate focused adapter, registry and graph connection tests and the full frontend suite.
+
+## Phase 3F.4 - Steel Girder Welded I Section and Material Catalog (2026-09-19)
+
+- [x] Keep the existing Steel Girder graph node and implement welded I geometry using H, Btf, ttf, Bbf, tbf and tw.
+- [x] Add EN 10025 grade selectors S235, S275, S355, S420 and S460 without inferring unverified strength values.
+- [x] Validate finite geometry, positive dimensions, positive net web height and web-to-flange width limits.
+- [x] Calculate area, centroid, Ix, Iy, elastic section moduli and density-dependent mass/self-weight status independently of FEM.
+- [x] Preserve INCOMPLETE status when verified material density or strength data are unavailable.
+
+## Phase 3F.5 - Shared Material Inspector Integration (2026-09-19)
+
+- [x] Expose Structural Steel grade selection through the existing material node and catalog.
+- [x] Add reusable MaterialProperties rendering for material and girder Inspectors.
+- [x] Show catalog-backed steel properties and explicit INCOMPLETE state for unavailable values.
+- [x] Keep Precast and Steel Girder local defaults and connected material previews in the shared GraphStore flow.
+
+## Phase 3F.6 - Material Selection and Inspector Standardization (2026-09-19)
+
+- [x] Standardize structural material selection in PARAMETERS using the existing concrete and Structural Steel catalogs.
+- [x] Add the Structural Steel selector to the canvas node with S355 as the default.
+- [x] Keep material properties visible only on independent Material node Inspectors.
+- [x] Preserve connected material precedence and GraphStore synchronization for all structural families.
+
+## Phase 3F.7 - Structural Steel to Steel Girder Connection Fix (2026-09-19)
+
+- [x] Resolve Structural Steel material outputs in the live React Flow preview path.
+- [x] Preserve the shared `StructuralSteelMaterial` domain object and material ID through Steel Girder inputs.
+- [x] Keep geometric candidate generation independent from incomplete material properties.
+- [x] Verify adapter and graph connection regressions with focused tests and production build.
+
+## Phase 3F.8 - Structural Material Selector Standardization (2026-09-19)
+
+- [x] Introduce a shared MaterialSelector for structural family Inspectors.
+- [x] Standardize the visible field label to Material for concrete and steel families.
+- [x] Keep connected material selectors visible but disabled and source-driven.
+- [x] Preserve GraphStore parameter updates for local material selection and existing candidate generation.
+
+## Phase 3F.9 - Girder Material Selector Fix (2026-09-19)
+
+- [x] Keep local Precast and Steel Girder selectors active when no material edge exists.
+- [x] Render connected material selectors as source-driven disabled selects without the Connected label.
+- [x] Preserve GraphStore parameter updates and live candidate refresh for local material changes.
+
+## Phase 3F.11 - Global Material Connection and Inspector Synchronization (2026-09-19)
+
+- [x] Keep Material selectors active for connected structural inputs.
+- [x] Route a connected structural selector change to the source Material node through the existing GraphStore parameter update path.
+- [x] Preserve live preview and fan-out updates for all structural consumers of the source material.
+
+## Phase 3G - Superstructure Node Foundation (2026-09-19)
+
+- [x] Register a Structural / Family Superstructure node with typed Girder, deck and concrete inputs.
+- [x] Add deterministic SuperstructureCandidate generation from connected GirderCandidate references.
+- [x] Calculate symmetric girder axes and clear edge cantilever from flange outside edge.
+- [x] Reject e <= 0 with the exact `e yeterli degil !!!` validation message and preserve invalid counts/messages.
+- [x] Add live adapter preview and List/Watch typed connection compatibility.

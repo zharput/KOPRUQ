@@ -38,7 +38,7 @@ function App() {
   const [summary, setSummary] = useState<GenerationSummary | null>(null)
   const [layoutSeed, setLayoutSeed] = useState<LayoutSeed | null>(null)
   const [projectState, setProjectState] = useState(() => readProjectState(INITIAL_BRIDGES))
-  useEffect(() => { persistProjectState(projectState) }, [projectState])
+  useEffect(() => { persistProjectState(projectState); window.dispatchEvent(new Event('spanova:project-units-changed')) }, [projectState])
   const [bridgeDefinitions, setBridgeDefinitions] = useState<BridgeDefinitionStore>(() => readBridgeDefinitionStore(projectState.bridges))
   useEffect(() => { persistBridgeDefinitionStore(bridgeDefinitions) }, [bridgeDefinitions])
   const bridges = projectState.bridges

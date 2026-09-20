@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import type { GraphParameterValue, GraphValue } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import type { NodeDefinition, NodePortDefinition, ParameterDescriptor } from '../registry/nodeRegistry'
-import { CANONICAL_UNITS, formatQuantity, getUnit, quantityFromCanonical, unitsForKind } from '../domain/quantities'
+import { CANONICAL_UNITS, convertQuantity, formatQuantity, getUnit, quantityFromCanonical, toDisplayValue, unitsForKind } from '../domain/quantities'
 import EditableNumericInput from './EditableNumericInput'
 import { getNodeCategoryLabel, getNodeTheme } from '../domain/nodeVisualThemes'
 
@@ -33,7 +33,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
     <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>
   </div>
 }
-function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{typeof e==='number'?String(e.toFixed(2)) + ' m':'â€”'}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
+function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; const shown=typeof e==='number'?Number(toDisplayValue(e,'Length',data.projectUnits).toPrecision(10)).toString():'—'; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{shown}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
 function numberInput(data:FlowGraphNode['data'],key:string,fallback:number){const v=data.connectedInputs?.[key]?.value;return typeof v==='number'?v:Number((data.node.parameters[key+'Value']??fallback))}
 
 function FoundationDerivedCanvas({data}:{data:FlowGraphNode['data']}){
@@ -46,32 +46,37 @@ function FoundationDerivedCanvas({data}:{data:FlowGraphNode['data']}){
 function EngineeringInputRow({ port, definition, data }: { port: NodePortDefinition; definition: NodeDefinition; data: FlowGraphNode['data'] }) {
   const node = data.node
   const connection = data.connectedInputs?.[port.id]
-  const descriptors = definition.parameterSchema.filter(parameter => parameter.inputPortId === port.id)
+  const descriptors = definition.parameterSchema.filter(parameter => parameter.inputPortId === port.id && !(isUnitAwareNode(data.node.type) && parameter.key.endsWith('Unit')))
   const valueParameter = descriptors.find(parameter => parameter.dataType === 'number' || parameter.dataType === 'integer')
-  const unitParameter = descriptors.find(parameter => parameter.key.endsWith('Unit'))
+  const unitParameter = definition.parameterSchema.find(parameter => parameter.inputPortId === port.id && parameter.key.endsWith('Unit'))
   const displayUnit = unitParameter ? String(node.parameters[unitParameter.key] ?? '') : ''
   const value = connection?.value
   const editable = !connection && valueParameter
-  const localText = port.id === 'material' ? String(node.parameters.materialId ?? (port.type === 'structuralSteelMaterial' ? 'S355' : 'C40/50')) : localValue(port, descriptors, node.parameters, displayUnit)
+  const localText = port.id === 'material' ? String(node.parameters.materialId ?? (port.type === 'structuralSteelMaterial' ? 'S355' : 'C40/50')) : localValue(port, descriptors, node.parameters, displayUnit, data.projectUnits, node.type)
   const externalText = value === undefined ? connection?.error || (data.executionState === 'error' && data.executionError) ? 'Error' : 'Resolving...' : port.id === 'girder' ? girderLabel(value) : formatValue(value, port, data.projectUnits)
+  const displayedLocal = typeof node.parameters[valueParameter?.key ?? ''] === 'number' && isUnitAwareNode(node.type) && port.quantityKind ? toDisplayValue(getUnit(displayUnit)?.toCanonical(Number(node.parameters[valueParameter!.key])) ?? Number(node.parameters[valueParameter!.key]), dimensionForKind(port.quantityKind), data.projectUnits) : node.parameters[valueParameter?.key ?? '']
   return <div className={`spn-engineering-input-row${connection ? ' is-connected' : ''}${connection?.error ? ' has-input-error' : ''}`} title={connection?.error ?? portTooltip(port, data.projectUnits)}>
     <Handle type="target" position={Position.Left} id={port.id} isConnectable title={portTooltip(port, data.projectUnits)} />
     <span className="spn-engineering-input-label" title={port.label}>{port.label}</span>
-    {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={node.parameters[valueParameter.key]} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => data.onParameterChange(node.id, valueParameter.key, next)} /><small>{unitParameter ? getUnit(displayUnit)?.label ?? displayUnit : ''}</small></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
+    {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={displayedLocal} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => data.onParameterChange(node.id, valueParameter.key, toStoredValue(next, displayUnit, data.projectUnits, port.quantityKind, node.type))} /></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
   </div>
 }
 function girderLabel(value: GraphValue) { const item=Array.isArray(value)?value[0]:value; return typeof item==='object'&&item!==null&&'girderType' in item ? `${item.girderType==='PRECAST'?'Precast':'Steel'} Girder` : 'Not connected' }
 
-function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[], parameters: Record<string, GraphParameterValue>, unit: string) {
+function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[], parameters: Record<string, GraphParameterValue>, unit: string, projectUnits: FlowGraphNode['data']['projectUnits'], nodeType: string) {
   const valueParameter = descriptors.find(parameter => parameter.dataType === 'number' || parameter.dataType === 'integer')
   if (valueParameter && typeof parameters[valueParameter.key] === 'number') {
     const value = parameters[valueParameter.key] as number
-    return unit ? `${port.quantityKind === 'length' ? value.toFixed(2) : Number(value.toPrecision(10)).toString()} ${getUnit(unit)?.label ?? unit}` : String(value)
+    if (port.quantityKind && isUnitAwareNode(nodeType)) return Number(toDisplayValue(getUnit(unit)?.toCanonical(value) ?? value, dimensionForKind(port.quantityKind), projectUnits).toPrecision(10)).toString()
+    return Number(value.toPrecision(10)).toString()
   }
   const selection = descriptors.find(parameter => parameter.dataType === 'select')
   if (selection) return String(parameters[selection.key] ?? 'Not selected')
   return '-'
 }
+function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type.startsWith('substructure.') }
+function toStoredValue(value: number | string, storedUnit: string, projectUnits: FlowGraphNode['data']['projectUnits'], kind: import('../domain/quantities').QuantityKind | undefined, nodeType: string) { const numeric=Number(value); if (!kind || !isUnitAwareNode(nodeType)) return numeric; const dimension=dimensionForKind(kind); const source=dimension==='Translational Stiffness' ? `${projectUnits?.force ?? 'kN'}/${projectUnits?.length ?? 'm'}` : dimension==='Rotational Stiffness' ? `${projectUnits?.moment ?? 'kNm'}/rad` : kind==='length' ? projectUnits?.length ?? 'm' : storedUnit; return source===storedUnit ? numeric : convertQuantity(numeric, source, storedUnit) }
+function dimensionForKind(kind: import('../domain/quantities').QuantityKind): import('../domain/quantities').PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, import('../domain/quantities').PhysicalDimension>)[kind] ?? 'Dimensionless' }
 
 function portTooltip(port: NodePortDefinition, projectUnits?: FlowGraphNode['data']['projectUnits']) {
   if (port.type === 'length[]') {
@@ -103,6 +108,7 @@ function formatValue(value: GraphValue, port: NodePortDefinition, projectUnits?:
   }
   if (typeof value === 'number') return port.type === 'length[]' ? `${value.toFixed(2)} ${unitsForKind('length').find(unit => unit.id === (projectUnits?.length ?? 'm'))?.label ?? 'm'}` : String(value)
   if (typeof value === 'object' && value !== null && 'quantityKind' in value) {
+    if (port.quantityKind === 'translationalStiffness' || port.quantityKind === 'rotationalStiffness') return Number(toDisplayValue(value.value, dimensionForKind(value.quantityKind), projectUnits).toPrecision(10)).toString()
     const preferred = unitsForKind(value.quantityKind).find(unit => unit.id === projectUnits?.[value.quantityKind] || unit.label === projectUnits?.[value.quantityKind])
     return formatQuantity(value, preferred?.id ?? value.unit)
   }

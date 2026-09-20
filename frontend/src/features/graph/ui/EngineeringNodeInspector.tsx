@@ -1,5 +1,5 @@
 import type { GraphExecutionState, GraphValue, SpanovaConnection, SpanovaNode } from '../domain/types'
-import { convertQuantity, getUnit, quantityFromCanonical, type QuantityKind } from '../domain/quantities'
+import { convertQuantity, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
 import EditableNumericInput from './EditableNumericInput'
@@ -43,7 +43,7 @@ export default function EngineeringNodeInspector(props: Props) {
     <section className="spn-engineering-general"><h3>GENERAL</h3><label>Name<input className="spn-input" value={node.name} onChange={event => onNodeChange(node.id, { name: event.target.value })} /></label><div className="spn-graph-inspector-row"><span>Type</span><strong>{definition.label}</strong></div>{errors[node.id] && <p className="spn-graph-inspector-error">{errors[node.id]}</p>}</section>
     <section className="spn-engineering-type"><h3>TYPE / SCHEMATIC</h3><EngineeringSchematic schema={schema} node={node} candidates={candidates} previewInputs={previewInputs} connections={connections} projectUnits={projectUnits} /></section>
     <section className="spn-engineering-parameters"><h3>PARAMETERS</h3>{orderedInputs.map(input => {
-      const descriptors = definition.parameterSchema.filter(item => item.inputPortId === input.id)
+      const descriptors = definition.parameterSchema.filter(item => item.inputPortId === input.id && !(isUnitAwareNode(node.type) && item.key.endsWith('Unit')))
       const resolved = resolvedInputs[node.id]?.[input.id] ?? previewInputs[input.id]?.value
       const isConnected = connected.has(input.id)
       return <div className="spn-engineering-parameter" key={input.id}>
@@ -51,15 +51,15 @@ export default function EngineeringNodeInspector(props: Props) {
         {isConnected && input.id === 'material'
           ? <div className="spn-engineering-controls"><MaterialSelector steel={node.type.endsWith('.steel')} value={resolved && typeof resolved === 'object' && 'id' in resolved ? String(resolved.id) : String(node.parameters.materialId ?? '')} onChange={value => { const edge = connections.find(item => item.targetNodeId === node.id && item.targetPortId === 'material'); onParameterChange(edge?.sourceNodeId ?? node.id, 'materialId', value) }} /></div>
           : isConnected
-          ? <div className="spn-engineering-connected"><strong>{resolved === undefined ? 'Connected' : present(resolved)}</strong></div>
-          : <div className="spn-engineering-controls">{input.id === 'material' ? <MaterialSelector steel={node.type.endsWith('.steel')} value={String(node.parameters.materialId ?? (node.type.endsWith('.steel') ? 'S355' : 'C40/50'))} onChange={value => onParameterChange(node.id, 'materialId', value)} /> : descriptors.map(descriptor => <ParameterControl key={descriptor.key} node={node} descriptor={descriptor} onChange={onParameterChange} />)}</div>}
+          ? <div className="spn-engineering-connected"><strong>{resolved === undefined ? 'Connected' : present(resolved, projectUnits)}</strong></div>
+          : <div className="spn-engineering-controls">{input.id === 'material' ? <MaterialSelector steel={node.type.endsWith('.steel')} value={String(node.parameters.materialId ?? (node.type.endsWith('.steel') ? 'S355' : 'C40/50'))} onChange={value => onParameterChange(node.id, 'materialId', value)} /> : descriptors.map(descriptor => <ParameterControl key={descriptor.key} node={node} descriptor={descriptor} projectUnits={projectUnits} onChange={onParameterChange} />)}</div>}
       </div>
     })}</section>
     <section className="spn-engineering-family"><h3>FAMILY</h3><div className="spn-graph-inspector-row"><span>Candidate Count</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Valid</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Invalid</span><strong>{stats?.invalidCombinations ?? 0}</strong></div><div className="spn-graph-inspector-row"><span>Validation</span><strong className={`state-${errors[node.id] ? 'error' : state}`}>{errors[node.id] ? 'FAILED' : candidates.length ? 'VALID' : 'NO VALID CANDIDATES'}</strong></div></section>
   </div>
 }
 
-function ParameterControl({ node, descriptor, onChange }: { node: SpanovaNode; descriptor: NonNullable<ReturnType<typeof getNodeDefinition>>['parameterSchema'][number]; onChange: Props['onParameterChange'] }) {
+function ParameterControl({ node, descriptor, projectUnits, onChange }: { node: SpanovaNode; descriptor: NonNullable<ReturnType<typeof getNodeDefinition>>['parameterSchema'][number]; projectUnits?: ProjectUnitPreferences; onChange: Props['onParameterChange'] }) {
   const label = descriptor.label.replace(/ local default$/i, '').replace(/ unit$/i, ' unit')
   if (descriptor.dataType === 'select') return <select className="spn-input" aria-label={label} value={String(node.parameters[descriptor.key] ?? descriptor.options?.[0]?.value ?? '')} disabled={!descriptor.options?.length} onChange={event => {
     const nextUnit = event.target.value
@@ -74,13 +74,21 @@ function ParameterControl({ node, descriptor, onChange }: { node: SpanovaNode; d
   }}><option value="" disabled>Select</option>{descriptor.options?.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
   if (descriptor.dataType === 'boolean') return <input type="checkbox" aria-label={label} checked={Boolean(node.parameters[descriptor.key])} onChange={event => onChange(node.id, descriptor.key, event.target.checked)} />
   if (descriptor.dataType === 'string') return <input className="spn-input" aria-label={label} value={String(node.parameters[descriptor.key] ?? '')} onChange={event => onChange(node.id, descriptor.key, event.target.value)} />
-  return <EditableNumericInput value={node.parameters[descriptor.key]} integer={descriptor.dataType === 'integer'} ariaLabel={label} onCommit={value => onChange(node.id, descriptor.key, value)} />
+  const isLength = descriptor.key.endsWith('Value') && isUnitAwareNode(node.type) && descriptor.key !== 'girderCount'
+  const unitKey = descriptor.key.replace(/Value$/, 'Unit')
+  const storedUnit = String(node.parameters[unitKey] ?? 'm')
+  const storedKind = getUnit(storedUnit)?.kind
+  const shown = isLength && storedKind && typeof node.parameters[descriptor.key] === 'number' ? toDisplayValue(getUnit(storedUnit)!.toCanonical(Number(node.parameters[descriptor.key])), dimensionForKind(storedKind), projectUnits) : node.parameters[descriptor.key]
+  const sourceUnit = storedKind === 'translationalStiffness' ? `${projectUnits?.force ?? 'kN'}/${projectUnits?.length ?? 'm'}` : storedKind === 'rotationalStiffness' ? `${projectUnits?.moment ?? 'kNm'}/rad` : storedKind === 'length' ? projectUnits?.length ?? 'm' : storedUnit
+  return <EditableNumericInput value={shown} integer={descriptor.dataType === 'integer'} ariaLabel={label} onCommit={value => onChange(node.id, descriptor.key, isLength && sourceUnit !== storedUnit ? convertQuantity(Number(value), sourceUnit, storedUnit) : value)} />
 }
 
-function present(value: GraphValue): string {
-  if (Array.isArray(value)) return `${value.slice(0, 3).map(item => typeof item === 'object' && item !== null && 'quantityKind' in item ? displayQuantity(item) : String(item)).join(', ')}${value.length > 3 ? ` … (${value.length} values)` : ''}`
-  if (typeof value === 'object' && value !== null && 'quantityKind' in value) return displayQuantity(value)
+function present(value: GraphValue, projectUnits?: ProjectUnitPreferences): string {
+  if (Array.isArray(value)) return `${value.slice(0, 3).map(item => typeof item === 'object' && item !== null && 'quantityKind' in item ? displayQuantity(item, projectUnits) : String(item)).join(', ')}${value.length > 3 ? ` … (${value.length} values)` : ''}`
+  if (typeof value === 'object' && value !== null && 'quantityKind' in value) return displayQuantity(value, projectUnits)
   if (typeof value === 'object' && value !== null && 'domainType' in value) return value.name
   return String(value)
 }
-function displayQuantity(value: { quantityKind: QuantityKind; value: number; unit: string }) { const unit = getUnit(value.unit); return unit ? `${quantityFromCanonical(value.value, value.quantityKind, unit.id).toFixed(2)} ${unit.label}` : String(value.value) }
+function displayQuantity(value: { quantityKind: QuantityKind; value: number; unit: string }, projectUnits?: ProjectUnitPreferences) { const unit = getUnit(value.unit); return unit ? Number(toDisplayValue(value.value, dimensionForKind(value.quantityKind), projectUnits).toPrecision(10)).toString() : String(value.value) }
+function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type.startsWith('substructure.') }
+function dimensionForKind(kind: QuantityKind): import('../domain/quantities').PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, import('../domain/quantities').PhysicalDimension>)[kind] ?? 'Dimensionless' }

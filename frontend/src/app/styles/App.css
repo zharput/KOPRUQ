@@ -1320,6 +1320,11 @@
 .spn-graph-editable-number { box-sizing: border-box; width: 100%; min-width: 0; padding: 5px 7px; border: 1px solid #39465a; border-radius: 3px; outline: none; background: #0e141e; color: #edf3fc; font: 10px var(--mono); }
 .spn-graph-editable-number:focus { border-color: #5c91dc; box-shadow: 0 0 0 1px rgba(76,145,255,.18); }
 .spn-graph-editable-number.is-invalid { border-color: #bc5860; background: #24171b; }
+.spn-graph-length-editor { display: grid; gap: 4px; padding: 2px 0 4px; }
+.spn-graph-length-editor > label { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 5px; color: #aebbd0; font: 9px var(--mono); }
+.spn-graph-length-editor .spn-input { box-sizing: border-box; width: 100%; height: 19px; min-width: 0; padding: 2px 4px; border: 1px solid #34445a; border-radius: 3px; background: #111a27; color: #e5edf8; font: 9px var(--mono); }
+.spn-graph-length-editor .spn-graph-editable-number { width: 100%; height: 19px; padding: 2px 4px; }
+.spn-graph-length-editor select { cursor: pointer; }
 .spn-graph-inline-value { margin: 6px 8px; }
 .spn-graph-inspector .spn-graph-editable-number { max-width: 180px; }
 .spn-graph-list-node { width: 340px; max-width: 360px; }

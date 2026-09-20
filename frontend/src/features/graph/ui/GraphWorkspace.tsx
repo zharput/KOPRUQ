@@ -29,7 +29,7 @@ export default function GraphWorkspace() {
 function GraphWorkspaceContent() {
   const snapshot = useGraphStore()
   const graph = snapshot.graphs.find((item) => item.id === snapshot.activeGraphId) ?? snapshot.graphs[0] ?? getActiveGraph()
-  const projectUnitLabels = useMemo(() => readProjectState([]).project.units, [])
+  const [projectUnitLabels, setProjectUnitLabels] = useState(() => readProjectState([]).project.units)
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([])
@@ -52,6 +52,7 @@ function GraphWorkspaceContent() {
   const pasteCount = useRef(0)
   const diagnostics = import.meta.env.DEV && new URLSearchParams(window.location.search).has('graphDiagnostics')
   const selected = graph.nodes.find((node) => node.id === selectedNodeId)
+  useEffect(() => { const refresh = () => setProjectUnitLabels(readProjectState([]).project.units); window.addEventListener('spanova:project-units-changed', refresh); return () => window.removeEventListener('spanova:project-units-changed', refresh) }, [])
 
   useEffect(() => {
     if (selected?.type !== 'material.concrete' || typeof selected.parameters.materialId !== 'string') { setInspectorMaterial(undefined); return }

@@ -11,14 +11,15 @@ export function validateConnection(graph: SpanovaGraph, connection: Omit<Spanova
   const targetDefinition = target && getNodeDefinition(target.type)
   const targetPort = targetDefinition?.inputs.find((port) => port.id === connection.targetPortId)
   if (!source || !target || !sourcePort || !targetPort) return { message: 'The selected connection ports are unavailable.' }
-  const rawSourceKind = ['quantity', 'quantity[]', 'numeric[]', 'number[]'].includes(sourcePort.type) ? source.parameters.quantityKind as import('../domain/quantities').QuantityKind : undefined
+  const rawSourceKind = ['quantity', 'quantity[]', 'length', 'length[]', 'numeric[]', 'number[]'].includes(sourcePort.type)
+    ? (sourcePort.quantityKind ?? source.parameters.quantityKind) as import('../domain/quantities').QuantityKind
+    : undefined
   const sourceKind = rawSourceKind === 'dimensionless' ? undefined : rawSourceKind
-    const integerSource = sourcePort.type === 'integer'
     const targetKind = targetPort.quantityKind ?? (targetPort.type === 'length' || targetPort.type === 'length[]' ? 'length' : undefined)
     const rangeKind = target.type === 'input.range' ? target.parameters.quantityKind as import('../domain/quantities').QuantityKind | undefined : undefined
     if (rangeKind && rawSourceKind && rawSourceKind !== rangeKind) return { nodeId: target.id, message: `Range inputs require ${rangeKind} values.` }
   const acceptsMathList = target.type.startsWith('math.') && targetPort.type === 'numeric' && ['number[]','integer[]','numeric[]','quantity[]','length[]'].includes(sourcePort.type)
-  if (!(integerSource && !!targetKind) && !acceptsMathList && !canConnect(sourcePort.type, targetPort.type, sourceKind, targetKind)) return { nodeId: target.id, message: sourceKind && targetKind ? `Cannot connect ${sourceKind} to ${targetKind}.` : `Cannot connect ${sourcePort.type} to ${targetPort.type === 'numeric' ? 'number/quantity' : targetPort.type}.` }
+    if (!acceptsMathList && !canConnect(sourcePort.type, targetPort.type, sourceKind, targetKind)) return { nodeId: target.id, message: targetKind === 'length' && !sourceKind ? 'ERROR: This input requires a Length value. Connect a Length node.' : sourceKind && targetKind ? `Cannot connect ${sourceKind} to ${targetKind}.` : `Cannot connect ${sourcePort.type} to ${targetPort.type === 'numeric' ? 'number/quantity' : targetPort.type}.` }
   const operation = target.type
   const existingEdge = graph.connections.find(edge => edge.targetNodeId === target.id && edge.targetPortId !== targetPort.id)
   const existingSource = existingEdge && graph.nodes.find(node => node.id === existingEdge.sourceNodeId)

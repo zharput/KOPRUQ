@@ -55,6 +55,21 @@ describe('live Elastomeric Bearing preview',()=>{
 })
 
 describe('live output availability projection', () => {
+ it('resolves Length Single and Range outputs as canonical length quantities and fans out the same range', () => {
+  const graph: SpanovaGraph = { id: 'length-girder', name: 'Length to girder', schemaVersion: 1, nodes: [
+   { id: 'length', type: 'input.length', name: 'Length', position: { x: 0, y: 0 }, parameters: { mode: 'range', min: 1, max: 2, step: .5 } },
+   { id: 'girder', type: 'structural.girder.precast', name: 'Precast Girder', position: { x: 300, y: 0 }, parameters: { HValue: 1.9, HUnit: 'm', tfValue: 1.5, tfUnit: 'm', bfValue: .8, bfUnit: 'm', wValue: .2, wUnit: 'm', th1Value: .12, th1Unit: 'm', th2Value: .1, th2Unit: 'm', bh1Value: .28, bh1Unit: 'm', bh2Value: .15, bh2Unit: 'm', familyId: 'PG-200', preferredSpanValue: 40, preferredSpanUnit: 'm', minSpanValue: 30, minSpanUnit: 'm', maxSpanValue: 90, maxSpanUnit: 'm', materialId: 'C40/50' } },
+  ], connections: [
+   { id: 'height', sourceNodeId: 'length', sourcePortId: 'value', targetNodeId: 'girder', targetPortId: 'H' },
+   { id: 'width', sourceNodeId: 'length', sourcePortId: 'value', targetNodeId: 'girder', targetPortId: 'tf' },
+  ] }
+  const node = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'girder')!
+  expect(node.data.connectedInputs?.H.value).toEqual([{ value: 1, quantityKind: 'length', unit: 'm' }, { value: 1.5, quantityKind: 'length', unit: 'm' }, { value: 2, quantityKind: 'length', unit: 'm' }])
+  expect(node.data.connectedInputs?.tf.value).toEqual(node.data.connectedInputs?.H.value)
+  expect(node.data.previewCandidateCount).toBe(3)
+  expect(node.data.executionState).not.toBe('error')
+ })
+
  it('previews Pier candidates from Range, scalar, Integer, Math, and chained Range-to-Math inputs without Run', () => {
   const graph:SpanovaGraph={id:'live-pier',name:'live pier preview',schemaVersion:1,nodes:[
    {id:'range',type:'input.range',name:'Range',position:{x:0,y:0},parameters:{min:2,max:4,step:1,quantityKind:'dimensionless',unit:'1'}},

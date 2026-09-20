@@ -24,7 +24,7 @@ export type GraphNodeViewData = {
   outputAvailability?: 'preview' | 'executed' | 'run-required' | 'dirty' | 'unconnected'
   outputs?: Record<string, GraphValue>
   resolvedInputs?: Record<string, GraphValue>
-  connectedInputs?: Record<string, { sourceName: string; value?: GraphValue; error?: string }>
+  connectedInputs?: Record<string, { sourceName: string; value?: GraphValue; error?: string; range?: { mode: 'single' | 'range'; value?: number; min?: number; max?: number; delta?: number } }>
   projectUnits?: ProjectUnitPreferences
   isDirty?: boolean
   onParameterChange: (nodeId: string, key: string, value: GraphParameterValue) => void
@@ -77,7 +77,9 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
         try { value = resolveEngineeringInput(raw, target, options.projectUnits) }
         catch (cause) { error = cause instanceof Error ? cause.message : 'Input resolution failed.' }
       }
-      return [edge.targetPortId, { sourceName: source?.name ?? edge.sourceNodeId, value, error }]
+      const sourceParameters = source?.type === 'input.length' || source?.type === 'input.range' ? source.parameters : undefined
+      const range = sourceParameters ? { mode: source?.type === 'input.length' && String(sourceParameters.mode ?? 'single') === 'range' ? 'range' as const : 'single' as const, value: typeof sourceParameters.value === 'number' ? sourceParameters.value : undefined, min: typeof sourceParameters.min === 'number' ? sourceParameters.min : undefined, max: typeof sourceParameters.max === 'number' ? sourceParameters.max : undefined, delta: typeof sourceParameters.step === 'number' ? sourceParameters.step : undefined } : undefined
+      return [edge.targetPortId, { sourceName: source?.name ?? edge.sourceNodeId, value, error, range }]
     }))
     const rangePreviewValue=node.type==='input.range'?resolvePreview(node.id,'values'):undefined
     const foundationPreview=node.type.startsWith('substructure.foundation.')?resolvePreview(node.id,'candidates'):undefined
@@ -109,6 +111,20 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
 }
 
 function previewOutput(node: SpanovaNode, portId: string): GraphValue | undefined {
+  if (portId === 'value' && node.type === 'input.length') {
+    const make = (value: number) => makeQuantity(value, 'length', 'm')
+    const mode = String(node.parameters.mode ?? 'single')
+    if (mode === 'single') {
+      return typeof node.parameters.value === 'number' && Number.isFinite(node.parameters.value)
+        ? [make(node.parameters.value)]
+        : undefined
+    }
+    const min = Number(node.parameters.min)
+    const max = Number(node.parameters.max)
+    const step = Number(node.parameters.step)
+    if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(step) || step <= 0 || max < min) return undefined
+    return Array.from({ length: Math.floor((max - min) / step + 1e-10) + 1 }, (_, index) => make(Number((min + index * step).toFixed(10))))
+  }
   if (portId === 'value' && (node.type === 'input.number' || node.type === 'input.integer') && typeof node.parameters.value === 'number') return node.parameters.value
   if (portId === 'values' && node.type === 'input.integer-list') { const values = String(node.parameters.valuesText ?? '').split(',').map(value => Number(value.trim())); return values.length && values.every(value => Number.isFinite(value) && Number.isInteger(value)) ? values : undefined }
   if (portId === 'value' && node.type === 'input.quantity' && typeof node.parameters.value === 'number') return makeQuantity(node.parameters.value, node.parameters.quantityKind as QuantityKind, node.parameters.unit as UnitId)

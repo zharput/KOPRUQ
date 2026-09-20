@@ -5,7 +5,7 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
   const committedText = typeof value === 'number' || typeof value === 'string' ? String(value) : ''
   const [draft, setDraft] = useState(committedText)
   const [focused, setFocused] = useState(false)
-  const [invalid, setInvalid] = useState(typeof value === 'string')
+  const [invalid, setInvalid] = useState(typeof value === 'string' && !isValidNumericText(value, integer))
   const lastCommit = useRef<string | undefined>(undefined)
   const lastCommittedText = useRef(committedText)
 
@@ -13,7 +13,7 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
     if (!focused && document.activeElement !== document.querySelector(`[aria-label="${ariaLabel}"]`)) {
       if (lastCommittedText.current !== committedText || typeof value === 'string') {
         setDraft(committedText)
-        setInvalid(typeof value === 'string')
+        setInvalid(typeof value === 'string' && !isValidNumericText(value, integer))
         lastCommittedText.current = committedText
         lastCommit.current = undefined
       }
@@ -50,7 +50,9 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
       // Preserve native editing/copy shortcuts while keeping React Flow's canvas shortcuts away.
       event.stopPropagation()
       if (event.key === 'Enter') { event.preventDefault(); commitDraft() }
-      if (event.key === 'Escape') { event.preventDefault(); setDraft(committedText); setInvalid(typeof value === 'string'); lastCommit.current = committedText }
+      if (event.key === 'Escape') { event.preventDefault(); setDraft(committedText); setInvalid(typeof value === 'string' && !isValidNumericText(value, integer)); lastCommit.current = committedText }
     }}
   />
 }
+
+function isValidNumericText(value: string, integer: boolean) { const text = value.trim(); return (integer ? /^-?\d+$/.test(text) : /^-?(?:\d+\.?\d*|\.\d+)$/.test(text)) && Number.isFinite(Number(text)) }

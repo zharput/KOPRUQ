@@ -18,7 +18,7 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   if (node.type === 'output.list') return <ListOutputNode data={data} selected={selected} />
   const stateClass = data.isDirty ? ' is-dirty' : data.executionState === 'error' || data.executionError ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''
   return <div className={`spn-graph-node ${getNodeTheme(definition.category).className}${node.type === 'material.concrete' ? ' spn-graph-material-node' : ''}${node.type === 'input.range' ? ' spn-graph-range-node' : ''}${selected ? ' is-selected' : ''}${stateClass}`}>
-    <div className="spn-graph-node-title"><span>{definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></div>
+    <div className="spn-graph-node-title"><span>{node.type === 'input.length' ? `${definition.label} (${data.projectUnits?.length ?? 'm'})` : definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></div>
     <div className="spn-graph-node-content" style={{ minHeight: Math.max(48, definition.inputs.length * 25 + 30, definition.outputs.length * 25 + 30) + (node.type === 'input.range' ? 34 : 0) }}>
       {definition.category === 'INPUT' && node.type !== 'input.range' && node.type !== 'input.integer-list' && <InlineValue nodeId={node.id} type={node.type} value={node.parameters.value} onChange={data.onParameterChange} />}
       {node.type === 'input.length' && <LengthNodeEditor node={node} units={data.projectUnits} onParameterChange={data.onParameterChange} />}

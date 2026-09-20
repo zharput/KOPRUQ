@@ -34,7 +34,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
   </div>
 }
 function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; const shown=typeof e==='number'?Number(toDisplayValue(e,'Length',data.projectUnits).toPrecision(10)).toString():'—'; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{shown}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
-function numberInput(data:FlowGraphNode['data'],key:string,fallback:number){const v=data.connectedInputs?.[key]?.value;return typeof v==='number'?v:Number((data.node.parameters[key+'Value']??fallback))}
+function numberInput(data:FlowGraphNode['data'],key:string,fallback:number){const v=data.connectedInputs?.[key]?.value;const item=Array.isArray(v)?v[0]:v;if(typeof item==='number')return item;if(typeof item==='object'&&item!==null&&'quantityKind'in item&&item.quantityKind==='length')return item.value;return Number((data.node.parameters[key+'Value']??fallback))}
 
 function FoundationDerivedCanvas({data}:{data:FlowGraphNode['data']}){
   const candidates=data.isDirty?data.previewFoundationCandidates:data.outputs?.candidates??data.previewFoundationCandidates
@@ -53,7 +53,7 @@ function EngineeringInputRow({ port, definition, data }: { port: NodePortDefinit
   const value = connection?.value
   const editable = !connection && valueParameter
   const localText = port.id === 'material' ? String(node.parameters.materialId ?? (port.type === 'structuralSteelMaterial' ? 'S355' : 'C40/50')) : localValue(port, descriptors, node.parameters, displayUnit, data.projectUnits, node.type)
-  const externalText = value === undefined ? connection?.error || (data.executionState === 'error' && data.executionError) ? 'Error' : 'Resolving...' : port.id === 'girder' ? girderLabel(value) : formatValue(value, port, data.projectUnits)
+  const externalText = value === undefined ? connection?.error || (data.executionState === 'error' && data.executionError) ? 'Error' : 'Resolving...' : port.id === 'girder' ? girderLabel(value) : connection?.range ? formatRange(connection.range, data.projectUnits) : formatValue(value, port, data.projectUnits)
   const displayedLocal = typeof node.parameters[valueParameter?.key ?? ''] === 'number' && isUnitAwareNode(node.type) && port.quantityKind ? toDisplayValue(getUnit(displayUnit)?.toCanonical(Number(node.parameters[valueParameter!.key])) ?? Number(node.parameters[valueParameter!.key]), dimensionForKind(port.quantityKind), data.projectUnits) : node.parameters[valueParameter?.key ?? '']
   return <div className={`spn-engineering-input-row${connection ? ' is-connected' : ''}${connection?.error ? ' has-input-error' : ''}`} title={connection?.error ?? portTooltip(port, data.projectUnits)}>
     <Handle type="target" position={Position.Left} id={port.id} isConnectable title={portTooltip(port, data.projectUnits)} />
@@ -62,6 +62,7 @@ function EngineeringInputRow({ port, definition, data }: { port: NodePortDefinit
   </div>
 }
 function girderLabel(value: GraphValue) { const item=Array.isArray(value)?value[0]:value; return typeof item==='object'&&item!==null&&'girderType' in item ? `${item.girderType==='PRECAST'?'Precast':'Steel'} Girder` : 'Not connected' }
+function formatRange(range: NonNullable<NonNullable<FlowGraphNode['data']['connectedInputs']>[string]['range']>, projectUnits?: ProjectUnitPreferences) { const show=(value?:number)=>value===undefined?'-':Number(toDisplayValue(value,'Length',projectUnits).toPrecision(10)).toString(); return range.mode==='range'?`${show(range.min)} / ${show(range.max)} / ${show(range.delta)}`:show(range.value) }
 
 function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[], parameters: Record<string, GraphParameterValue>, unit: string, projectUnits: FlowGraphNode['data']['projectUnits'], nodeType: string) {
   const valueParameter = descriptors.find(parameter => parameter.dataType === 'number' || parameter.dataType === 'integer')

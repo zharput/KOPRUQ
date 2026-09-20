@@ -13,7 +13,7 @@ type Props = {
   errors: Record<string, string>
   outputs: Record<string, Record<string, GraphValue>>
   resolvedInputs?: Record<string, Record<string, GraphValue>>
-  previewInputs?: Record<string, { sourceName: string; value?: GraphValue; error?: string }>
+  previewInputs?: Record<string, { sourceName: string; value?: GraphValue; error?: string; range?: { mode: 'single' | 'range'; value?: number; min?: number; max?: number; delta?: number } }>
   connections?: SpanovaConnection[]
   concreteMaterial?: MaterialValue
   projectUnits?: ProjectUnitPreferences

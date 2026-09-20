@@ -1322,9 +1322,10 @@
 .spn-graph-editable-number.is-invalid { border-color: #bc5860; background: #24171b; }
 .spn-graph-length-editor { display: grid; gap: 4px; padding: 2px 0 4px; }
 .spn-graph-length-editor > label { display: grid; grid-template-columns: 44px minmax(0, 1fr); align-items: center; gap: 5px; color: #aebbd0; font: 9px var(--mono); }
-.spn-graph-length-editor .spn-input { box-sizing: border-box; width: 100%; height: 19px; min-width: 0; padding: 2px 4px; border: 1px solid #34445a; border-radius: 3px; background: #111a27; color: #e5edf8; font: 9px var(--mono); }
+.spn-graph-length-editor .spn-input { box-sizing: border-box; width: 100%; height: 19px; min-width: 0; padding: 2px 4px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface-1); color: var(--text-primary); font: 9px var(--mono); }
 .spn-graph-length-editor .spn-graph-editable-number { width: 100%; height: 19px; padding: 2px 4px; }
 .spn-graph-length-editor select { cursor: pointer; }
+.spn-graph-length-editor select option { background: var(--surface-1); color: var(--text-primary); }
 .spn-graph-inline-value { margin: 6px 8px; }
 .spn-graph-inspector .spn-graph-editable-number { max-width: 180px; }
 .spn-graph-list-node { width: 340px; max-width: 360px; }
@@ -1623,3 +1624,4 @@
 .spn-graph-foundation-preview small { color: var(--text-muted, #8b97a7); text-align: center; }
 .spn-graph-library-subgroup { margin: 8px 0 4px; padding-left: 8px; border-left: 1px solid var(--node-structural-family-border, #8e5b35); }
 .spn-graph-library-subgroup h4 { margin: 4px 0; color: var(--node-structural-family-text, #dc8b47); font-size: 11px; }
+.spn-candidate-table-section{margin-top:12px}.spn-candidate-table-scroll{max-height:320px;overflow:auto;border:1px solid var(--spn-border,#39414d)}.spn-candidate-table{border-collapse:collapse;min-width:100%;font-size:11px;white-space:nowrap}.spn-candidate-table th,.spn-candidate-table td{padding:4px 6px;border-right:1px solid var(--spn-border,#39414d);border-bottom:1px solid var(--spn-border,#39414d)}.spn-candidate-table th{position:sticky;top:0;background:var(--spn-panel,#20252d);text-align:left;z-index:1}.spn-candidate-table td.is-numeric{text-align:right}.spn-candidate-table tbody tr{cursor:pointer}.spn-candidate-table tbody tr.is-selected{background:rgba(76,145,255,.2)}.spn-candidate-selection{display:block;margin-top:4px}.spn-graph-inspector-muted{color:var(--spn-muted,#9aa4b2);font-size:12px}

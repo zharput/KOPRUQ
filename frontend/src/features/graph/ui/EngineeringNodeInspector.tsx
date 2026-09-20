@@ -2,6 +2,7 @@ import type { GraphExecutionState, GraphValue, SpanovaConnection, SpanovaNode } 
 import { convertQuantity, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
+import { useState } from 'react'
 import EditableNumericInput from './EditableNumericInput'
 import { EngineeringSchematic } from './EngineeringSchematics'
 import MaterialSelector from './MaterialSelector'
@@ -12,7 +13,7 @@ type Props = {
   errors: Record<string, string>
   outputs: Record<string, Record<string, GraphValue>>
   resolvedInputs: Record<string, Record<string, GraphValue>>
-  previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string }>
+  previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string; range?: { mode: 'single' | 'range'; value?: number; min?: number; max?: number; delta?: number } }>
   connections: SpanovaConnection[]
   projectUnits?: ProjectUnitPreferences
   onNodeChange: (id: string, patch: Partial<SpanovaNode>) => void
@@ -51,7 +52,7 @@ export default function EngineeringNodeInspector(props: Props) {
         {isConnected && input.id === 'material'
           ? <div className="spn-engineering-controls"><MaterialSelector steel={node.type.endsWith('.steel')} value={resolved && typeof resolved === 'object' && 'id' in resolved ? String(resolved.id) : String(node.parameters.materialId ?? '')} onChange={value => { const edge = connections.find(item => item.targetNodeId === node.id && item.targetPortId === 'material'); onParameterChange(edge?.sourceNodeId ?? node.id, 'materialId', value) }} /></div>
           : isConnected
-          ? <div className="spn-engineering-connected"><strong>{resolved === undefined ? 'Connected' : present(resolved, projectUnits)}</strong></div>
+          ? <div className="spn-engineering-connected"><strong>{resolved === undefined ? 'Connected' : connectionRange(previewInputs[input.id]?.range, projectUnits) ?? present(resolved, projectUnits)}</strong></div>
           : <div className="spn-engineering-controls">{input.id === 'material' ? <MaterialSelector steel={node.type.endsWith('.steel')} value={String(node.parameters.materialId ?? (node.type.endsWith('.steel') ? 'S355' : 'C40/50'))} onChange={value => onParameterChange(node.id, 'materialId', value)} /> : descriptors.map(descriptor => <ParameterControl key={descriptor.key} node={node} descriptor={descriptor} projectUnits={projectUnits} onChange={onParameterChange} />)}</div>}
       </div>
     })}</section>
@@ -89,6 +90,29 @@ function present(value: GraphValue, projectUnits?: ProjectUnitPreferences): stri
   if (typeof value === 'object' && value !== null && 'domainType' in value) return value.name
   return String(value)
 }
+function connectionRange(range: NonNullable<NonNullable<FlowGraphNode['data']['connectedInputs']>[string]['range']> | undefined, projectUnits?: ProjectUnitPreferences) { if (!range) return undefined; const show=(value?:number)=>value===undefined?'-':Number(toDisplayValue(value,'Length',projectUnits).toPrecision(10)).toString(); return range.mode==='range'?`Min ${show(range.min)}   Max ${show(range.max)}   Delta ${show(range.delta)}`:`Value ${show(range.value)}` }
 function displayQuantity(value: { quantityKind: QuantityKind; value: number; unit: string }, projectUnits?: ProjectUnitPreferences) { const unit = getUnit(value.unit); return unit ? Number(toDisplayValue(value.value, dimensionForKind(value.quantityKind), projectUnits).toPrecision(10)).toString() : String(value.value) }
 function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type.startsWith('substructure.') }
 function dimensionForKind(kind: QuantityKind): import('../domain/quantities').PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, import('../domain/quantities').PhysicalDimension>)[kind] ?? 'Dimensionless' }
+type CandidateRow = Record<string, unknown>
+function CandidateTable({ nodeType, candidates, projectUnits }: { nodeType: string; candidates: GraphValue[]; projectUnits?: ProjectUnitPreferences }) {
+  const [selected, setSelected] = useState<string>()
+  const rows = candidates.filter((item): item is CandidateRow => typeof item === 'object' && item !== null) as CandidateRow[]
+  const columns = candidateColumns(nodeType)
+  return <div className="spn-candidate-table-section"><h4>CANDIDATE TABLE</h4>{!rows.length ? <p className="spn-graph-inspector-muted">No candidates available.</p> : <div className="spn-candidate-table-scroll"><table className="spn-candidate-table"><thead><tr>{columns.map(column => <th key={column.key}>{column.label}</th>)}</tr></thead><tbody>{rows.map((candidate, index) => { const id=String(candidate.id ?? index+1); return <tr key={id} className={selected===id?'is-selected':''} onClick={() => setSelected(id)}>{columns.map(column => <td key={column.key} className={column.numeric?'is-numeric':''}>{column.value(candidate, projectUnits)}</td>)}</tr> })}</tbody></table></div>}{selected && <small className="spn-candidate-selection">Selected candidate: {selected}</small>}</div>
+}
+type CandidateColumn = { key: string; label: string; numeric?: boolean; value: (candidate: CandidateRow, units?: ProjectUnitPreferences) => string }
+const candidateColumns = (type: string): CandidateColumn[] => {
+  const length=(value: unknown, units?: ProjectUnitPreferences) => typeof value === 'number' ? Number(toDisplayValue(value,'Length',units).toPrecision(10)).toString() : '-'
+  const field=(key: string, label: string, numeric=true): CandidateColumn => ({ key, label, numeric, value: (candidate, units) => { const value=candidate[key] ?? (candidate.geometry as CandidateRow|undefined)?.[key]; return typeof value === 'object' ? Object.entries(value as Record<string, unknown>).filter(([,item]) => typeof item === 'number').map(([name,item]) => `${name}=${length(item, units)}`).join(' ') || '-' : length(value, units) } })
+  const id: CandidateColumn={key:'id',label:'Candidate ID',value:c=>String(c.id??'-')}
+  const status: CandidateColumn={key:'status',label:'Status',value:c=>String(c.validationStatus??'VALID')}
+  if (type === 'structural.superstructure') return [id,{key:'girderType',label:'Girder Type',value:c=>String(c.girderType??'-')},{key:'girderCandidateId',label:'Girder Candidate ID',value:c=>String(c.girderCandidateId??'-')},field('deckWidth','Deck Width'),field('girderCount','Girder Count'),field('girderSpacing','Girder Spacing'),field('deckSlabThickness','Deck Slab Thickness'),field('girderTopFlangeWidth','Top Flange Width'),field('clearEdgeCantileverLeft','Clear Edge Cantilever (e)'),status]
+  if (type === 'structural.girder.precast') return [id,field('H','H'),field('tf','Top Flange Width'),field('bf','Bottom Flange Width'),field('w','Web Width'),field('th1','Top Cap Thickness'),field('th2','Top Taper Thickness'),field('bh1','Bottom Block Thickness'),field('bh2','Bottom Taper Thickness'),{key:'material',label:'Concrete Material',value:c=>String((c.material as CandidateRow|undefined)?.name??'-')},status]
+  if (type === 'structural.girder.steel') return [id,field('H','H'),field('Btf','Top Flange Width'),field('ttf','Top Flange Thickness'),field('Bbf','Bottom Flange Width'),field('tbf','Bottom Flange Thickness'),field('tw','Web Thickness'),{key:'material',label:'Structural Steel',value:c=>String((c.material as CandidateRow|undefined)?.name??'-')},status]
+  if (type.startsWith('substructure.pier.')) return [id,{key:'pierType',label:'Pier Type',value:c=>String(c.pierType??'-')},field('B','B'),field('D','D'),field('heightM','H'),status]
+  if (type.startsWith('substructure.pier-cap.')) return [id,{key:'capType',label:'Cap Type',value:c=>String(c.capType??'-')},field('geometry','Geometry',false),status]
+  if (type.startsWith('substructure.foundation.')) return [id,{key:'foundationType',label:'Foundation Type',value:c=>String(c.foundationType??'-')},field('geometry','Geometry',false),status]
+  if (type.startsWith('substructure.bearing.')) return [id,{key:'bearingType',label:'Bearing Type',value:c=>String(c.bearingType??'-')},field('geometry','Geometry',false),field('stiffness','Stiffness',false),status]
+  return [id,status]
+}

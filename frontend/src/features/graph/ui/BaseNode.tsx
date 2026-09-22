@@ -4,7 +4,7 @@ import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { getNodeDefinition } from '../registry/nodeRegistry'
 import { convertQuantity, formatDisplayValue, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type QuantityKind } from '../domain/quantities'
 import type { GraphValue } from '../domain/types'
-import EngineeringNodeShell from './EngineeringNodeShell'
+import EngineeringNodeShell, { AssemblyNodeShell } from './EngineeringNodeShell'
 import EditableNumericInput from './EditableNumericInput'
 import ListOutputNode from './ListOutputNode'
 import { EN_CONCRETE_CLASS_IDS, STRUCTURAL_STEEL_OPTIONS } from '../../materials/model/materialCatalog'
@@ -14,6 +14,7 @@ import { getNodeCategoryLabel, getNodeHeaderStyle, getNodeThemeForType } from '.
 export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   const node = data.node, definition = getNodeDefinition(node.type)
   if (!definition) return <div className="spn-graph-node spn-graph-node-error">Unknown node</div>
+  if (node.type === 'structural.assembly') return <AssemblyNodeShell data={data} selected={selected} definition={definition} />
   if (definition.category === 'SUBSTRUCTURE' || definition.category === 'STRUCTURAL_FAMILY') return <EngineeringNodeShell data={data} selected={selected} definition={definition} />
   if (node.type === 'output.list') return <ListOutputNode data={data} selected={selected} />
   const stateClass = data.isDirty ? ' is-dirty' : data.executionState === 'error' || data.executionError ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''
@@ -30,13 +31,13 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
       {node.type === 'material.structuralSteel' && <div className="spn-graph-material-selector nodrag nowheel"><span>Steel Class</span><CanvasSelect items={STRUCTURAL_STEEL_OPTIONS.map(item => item.value)} value={String(node.parameters.materialId ?? 'S355')} getKey={grade => grade} getLabel={grade => grade} ariaLabel="Steel Class" onChange={grade => data.onParameterChange(node.id, 'materialId', grade)} /></div>}
       {node.type === 'input.quantity' && <div className="spn-graph-node-range">{quantityDisplay(Number(node.parameters.value), node.parameters.quantityKind as QuantityKind, String(node.parameters.unit), data.projectUnits)}</div>}
       {definition.inputs.map((port, index) => <div className={`spn-graph-port-row input${node.type === 'input.range' ? ' spn-graph-range-port' : ''}`} key={port.id} style={{ top: 45 + index * 25 }}><Handle type="target" position={Position.Left} id={port.id} isConnectable /><span>{port.label}</span>{node.type === 'input.range' ? <EditableNumericInput value={rangeEditorValue(node,data,port.id)} ariaLabel={`Range ${port.label}`} disabled={Boolean(data.connectedInputs?.[port.id])} onCommit={value => data.onParameterChange(node.id, port.id === 'start' ? 'min' : port.id === 'end' ? 'max' : 'step', rangeInternalValue(node, value, data.projectUnits))} /> : definition.category !== 'MATH' && <small>{port.type}</small>}</div>)}
-      {definition.outputs.map((port, index) => <div className="spn-graph-port-row output" key={port.id} style={{ top: (node.type === 'input.number' || node.type === 'input.integer' ? 40 : 45) + index * 25 }}>{definition.category !== 'INPUT' && definition.category !== 'MATH' && <small>{port.type}</small>}<span>{port.label}</span><Handle type="source" position={Position.Right} id={port.id} isConnectable /></div>)}
+      {definition.outputs.map((port, index) => <div className="spn-graph-port-row output" key={port.id} style={{ top: (node.type === 'input.number' || node.type === 'input.integer' ? 40 : 45) + index * 25 }}>{definition.category !== 'INPUT' && definition.category !== 'MATH' && definition.category !== 'MATERIALS' && <small>{port.type}</small>}{definition.category !== 'INPUT' && definition.category !== 'MATH' && definition.category !== 'MATERIALS' && <span>{port.label}</span>}<Handle type="source" position={Position.Right} id={port.id} isConnectable /></div>)}
       {node.type === 'input.range' && <div className={`spn-graph-range-summary${data.rangePreviewError ? ' has-error' : ''}`}>{data.rangePreviewError ?? `${Array.isArray(data.rangePreviewValue) ? data.rangePreviewValue.length : 0} values`}</div>}
       {node.type === 'output.watch' && <div className="spn-graph-watch-value" style={{ whiteSpace: 'pre-line' }}>{watchDisplay(data, value => format(value, data.projectUnits))}</div>}
       {(node.type.startsWith('substructure.pier.') || node.type.startsWith('substructure.pier-cap.') || node.type.startsWith('substructure.foundation.') || node.type.startsWith('substructure.bearing.')) && Array.isArray(data.output) && <div className="spn-graph-watch-value">{data.output.length} candidate{data.output.length === 1 ? '' : 's'}</div>}
       {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
     </div>
-    <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : node.type === 'output.watch' && data.outputAvailability === 'run-required' ? 'RUN REQUIRED' : data.executionState.toUpperCase()}</div>
+    {(data.isDirty || data.executionState !== 'idle' || (node.type === 'output.watch' && data.outputAvailability === 'run-required')) && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : node.type === 'output.watch' && data.outputAvailability === 'run-required' ? 'RUN REQUIRED' : data.executionState.toUpperCase()}</div>}
   </div>
 }
 

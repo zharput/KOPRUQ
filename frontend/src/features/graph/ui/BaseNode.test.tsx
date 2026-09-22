@@ -101,9 +101,9 @@ describe('Watch node rendering', () => {
 })
 
 describe('canvas port labels and structural family theme', () => {
-  it.each([['input.number', '10'], ['input.integer', '5']])('%s keeps Value and hides the redundant port type', (type, value) => {
+  it.each([['input.number', '10'], ['input.integer', '5']])('%s keeps the editor and removes the redundant Value label', (type, value) => {
     const { container } = renderCanvasNode(type)
-    expect(screen.getByText('Value')).toBeInTheDocument()
+    expect(screen.queryByText('Value')).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: type === 'input.integer' ? 'Integer value' : 'Number value' })).toHaveValue(value)
     expect(container.querySelector('.spn-graph-port-row small')).toBeNull()
   })
@@ -112,7 +112,7 @@ describe('canvas port labels and structural family theme', () => {
     const { container } = renderCanvasNode(type)
     expect(screen.getByText('A')).toBeInTheDocument()
     expect(screen.getByText('B')).toBeInTheDocument()
-    expect(screen.getByText('Result')).toBeInTheDocument()
+    expect(screen.queryByText('Result')).not.toBeInTheDocument()
     expect(container.querySelector('.spn-graph-port-row small')).toBeNull()
   })
 

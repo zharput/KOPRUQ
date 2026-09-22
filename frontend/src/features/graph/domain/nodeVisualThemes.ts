@@ -3,10 +3,10 @@ export type NodeCategory = 'INPUT' | 'MATH' | 'MATERIALS' | 'PIER' | 'ABUTMENT' 
 
 export type NodeTheme = { className: string; accentToken: string; borderToken: string; headerToken: string; textToken: string }
 export const NODE_CATEGORY_COLORS: Readonly<Partial<Record<NodeCategory, string>>> = {
-  INPUT: '#BFBFBF', MATH: '#DB2777', MATERIALS: '#3399FF', PIER: '#3B82F6', ABUTMENT: '#8B5CF6', CAP: '#06B6D4', FOUNDATION: '#10B981', BEARING: '#EF4444', GIRDER: '#F59E0B', SUPERSTRUCTURE: '#C00000', BRIDGE: '#DB2777', OUTPUT: '#65A30D',
+  INPUT: '#BFBFBF', MATH: '#D7FFAF', MATERIALS: '#A6DEDE', PIER: '#3B82F6', ABUTMENT: '#8B5CF6', CAP: '#06B6D4', FOUNDATION: '#10B981', BEARING: '#EF4444', GIRDER: '#F59E0B', SUPERSTRUCTURE: '#C00000', BRIDGE: '#DB2777', OUTPUT: '#65A30D',
 }
 export const NODE_CATEGORY_LIGHT_COLORS: Readonly<Partial<Record<NodeCategory, string>>> = NODE_CATEGORY_COLORS
-export const GRAPH_EDGE_COLORS = { dark: '#F2F2F2', light: '#262626' } as const
+export const GRAPH_EDGE_COLORS = { dark: '#A6A6A6', light: '#A6A6A6' } as const
 export function getGraphEdgeColor(): string { return typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light' ? GRAPH_EDGE_COLORS.light : GRAPH_EDGE_COLORS.dark }
 
 /** Presentation-only category themes. Registry metadata remains on NodeDefinition, never saved graph nodes. */

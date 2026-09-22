@@ -11,13 +11,13 @@ describe('React Flow edge style projection',()=>{
   const smooth=toReactFlowEdges(graph,'smooth')
   const orthogonal=toReactFlowEdges(graph,'orthogonal')
   expect(smooth[0]).toMatchObject({id:'stable-edge-id',type:'default'})
-  expect(smooth[0].style?.stroke).toBe('#F2F2F2')
+  expect(smooth[0].style?.stroke).toBe('#A6A6A6')
   expect(orthogonal[0]).toMatchObject({id:'stable-edge-id',type:'step'})
   expect(graph).toEqual(before)
  })
- it('colors edges by source port type, independently of the node category',()=>{
+ it('uses the shared edge color independently of source port and node category',()=>{
   const materialGraph:SpanovaGraph={id:'m',name:'Material edge',schemaVersion:1,nodes:[{id:'c',type:'material.concrete',name:'Concrete',position:{x:0,y:0},parameters:{materialId:'C40/50'}},{id:'p',type:'substructure.pier.rectangular',name:'Pier',position:{x:200,y:0},parameters:{}}],connections:[{id:'material-edge',sourceNodeId:'c',sourcePortId:'material',targetNodeId:'p',targetPortId:'material'}]}
-  expect(toReactFlowEdges(materialGraph)[0].style?.stroke).toBe('#F2F2F2')
+  expect(toReactFlowEdges(materialGraph)[0].style?.stroke).toBe('#A6A6A6')
  })
  it('survives repeated view changes without changing topology or edge IDs',()=>{
   const before=structuredClone(graph)

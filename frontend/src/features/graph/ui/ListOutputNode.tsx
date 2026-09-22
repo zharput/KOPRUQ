@@ -31,7 +31,7 @@ export default function ListOutputNode({ data, selected }: { data: FlowGraphNode
     {items.length > pageSize && <div className="spn-graph-list-footer"><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button><span>{currentPage + 1} / {pageCount}</span><button type="button" disabled={currentPage + 1 === pageCount} onClick={() => setPage(currentPage + 1)}>Next</button></div>}
     {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
     <Handle type="target" position={Position.Left} id="items" isConnectable title="Items - any supported graph value" />
-    <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.outputAvailability === 'run-required' ? 'RUN REQUIRED' : data.executionState.toUpperCase()}</div>
+    {(data.isDirty || data.outputAvailability === 'run-required' || data.executionState !== 'idle') && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.outputAvailability === 'run-required' ? 'RUN REQUIRED' : data.executionState.toUpperCase()}</div>}
   </div>
 }
 

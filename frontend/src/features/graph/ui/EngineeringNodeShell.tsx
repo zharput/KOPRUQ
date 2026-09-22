@@ -10,13 +10,14 @@ import { getNodeCategoryLabel, getNodeHeaderStyle, getNodeThemeForType } from '.
 
 export default function EngineeringNodeShell({ data, selected, definition }: { data: FlowGraphNode['data']; selected: boolean; definition: NodeDefinition }) {
   if (data.node.type === 'structural.abutment') return <AbutmentCompactNodeShell data={data} selected={selected} definition={definition} />
+  if (data.node.type === 'structural.assembly') return <AssemblyNodeShell data={data} selected={selected} definition={definition} />
   const state = data.executionState === 'error' || data.executionError ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''
   const candidates = !data.isDirty && data.outputs?.candidates !== undefined ? data.outputs.candidates : undefined
   const candidateCount = Array.isArray(candidates) ? candidates.length : 0
   const displayedCandidateCount = candidates === undefined ? data.previewCandidateCount ?? candidateCount : candidateCount
   const generated = data.outputs?.generatedCombinations ?? data.previewGeneratedCombinations
   const invalid = data.outputs?.invalidCombinations ?? data.previewInvalidCombinations
-  return <div className={`spn-graph-node spn-engineering-node category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
+  return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''} category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
     <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span title={definition.label}>{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
     <div className="spn-engineering-inputs">
       {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow key={`${port.id}:${data.projectUnitsKey}`} port={port} definition={definition} data={data} /></Fragment>)}
@@ -32,7 +33,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
     </div>
     {data.executionError && (data.node.type.startsWith('substructure.foundation.') || data.node.type.startsWith('substructure.bearing.')) && typeof generated==='number' ? <div className="spn-engineering-node-footer">{generated.toLocaleString()} raw combinations / limit 10,000</div> : typeof generated === 'number' && <div className="spn-engineering-node-footer">{generated} generated / {typeof invalid === 'number' ? invalid : 0} invalid / {displayedCandidateCount} valid</div>}
     {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
-    <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>
+    {(data.isDirty || data.executionState !== 'idle') && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
   </div>
 }
 function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; const shown=typeof e==='number'?Number(toDisplayValue(e,'Length',data.projectUnits).toPrecision(10)).toString():'—'; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{shown}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
@@ -45,6 +46,24 @@ function AbutmentNodeShell({ data, selected, definition }: { data: FlowGraphNode
   const result = (label: string, value: unknown, unit = 'm') => <div className="spn-engineering-derived" key={label}><span>{label}</span><b>{typeof value === 'number' ? `${Number(value.toPrecision(8))} ${unit}` : '—'}</b></div>
   const status = candidate?.seismic?.status ?? 'INCOMPLETE'
   return <div className={`spn-graph-node spn-engineering-node spn-abutment-node category-abutment${selected ? ' is-selected' : ''}`}><header className="spn-graph-node-title"><span>Abutment</span><small>ABUTMENT</small></header><div className="spn-engineering-inputs"><div className="spn-engineering-group-heading">UPSTREAM INPUTS</div>{definition.inputs.map(port => <EngineeringInputRow key={port.id} port={port} definition={definition} data={data} />)}</div><div className="spn-abutment-section"><div className="spn-engineering-group-heading">ABUTMENT GEOMETRY</div>{fields.map(field)}</div><div className="spn-abutment-section"><div className="spn-engineering-group-heading">SEISMIC BLOCK</div>{field('seiU')}{result('sei_w', candidate?.seismic?.seiW)}{result('sei_w_clear', candidate?.seismic?.seiWClear)}<b className={`spn-abutment-status status-${String(status).toLowerCase()}`}>{status}</b></div><div className="spn-abutment-section"><div className="spn-engineering-group-heading">CALCULATED RESULTS</div>{result('found_w', candidate?.geometry?.foundW)}{result('found_d', candidate?.geometry?.found_d)}{result('total_h', candidate?.geometry?.totalH)}{result('foundation_area', candidate?.geometry?.foundationArea, 'm²')}{result('foundation_volume', candidate?.geometry?.foundationVolume, 'm³')}</div><div className="spn-abutment-section"><div className="spn-engineering-group-heading">FAMILY / RANGE</div>{result('Alternatives', count, '')}</div><div className="spn-engineering-outputs">{definition.outputs.map(port => <div className="spn-engineering-output-row" key={port.id}><span className="spn-engineering-output-label">{port.label}</span><span className="spn-engineering-output-value">{count} candidates</span><Handle type="source" position={Position.Right} id={port.id} isConnectable /></div>)}</div><div className="spn-graph-node-state">{data.executionState.toUpperCase()}</div></div>
+}
+
+export function AssemblyNodeShell({ data, selected, definition }: { data: FlowGraphNode['data']; selected: boolean; definition: NodeDefinition }) {
+  const state = data.executionState === 'error' || data.executionError ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''
+  const raw = data.outputs?.assembly ?? data.previewValue
+  const count = Array.isArray(raw) ? raw.length : raw ? 1 : 0
+  return <div className={`spn-graph-node spn-engineering-node spn-assembly-graph-node category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
+    <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span>{definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></header>
+    <div className="spn-assembly-inputs spn-engineering-inputs">
+      {definition.inputs.map(port => <EngineeringInputRow key={port.id} port={port} definition={definition} data={data} />)}
+    </div>
+    <div className="spn-assembly-centered-output">
+      <span className="spn-engineering-output-label">Bridge Assembly</span>
+      <span className="spn-engineering-output-value">{count} assembly</span>
+      <Handle type="source" position={Position.Right} id="assembly" isConnectable title="Bridge Assembly" />
+    </div>
+    {(data.isDirty || data.executionState !== 'idle') && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
+  </div>
 }
 void AbutmentNodeShell
 

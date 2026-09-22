@@ -8,7 +8,8 @@ import { bulbTeeGirderPath } from '../../../shared/ui/BulbTeeGirderShape'
 type Props = { schema: EngineeringInspectorSchema; node: SpanovaNode; candidates: GraphValue[]; previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string }>; connections: SpanovaConnection[]; projectUnits?: ProjectUnitPreferences }
 
 export function EngineeringSchematic({ schema, node, candidates, previewInputs, connections, projectUnits }: Props) {
-  if (schema.schematic === 'superstructure') return <StaticSuperstructureCard />
+  if (schema.schematic === 'superstructure') return <StaticSuperstructureCard node={node} candidates={candidates} previewInputs={previewInputs} connected={new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))} projectUnits={projectUnits} />
+  if (schema.schematic === 'abutment') return <AbutmentSchematic candidates={candidates} />
   const connected = new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))
   if (schema.schematic === 'pier') return <PierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   if (schema.schematic === 'pier-cap') return <PierCapSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
@@ -16,14 +17,32 @@ export function EngineeringSchematic({ schema, node, candidates, previewInputs, 
   if (schema.schematic === 'girder') return <GirderSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   return <BearingSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
 }
-function StaticSuperstructureCard(){return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 260" role="img" aria-label="Superstructure catalog schematic"><rect x="38" y="55" width="224" height="24" fill="#d8d1c7" stroke="#6b6258"/><g fill="#cfc5b8" stroke="#6b6258">{[65,98,131,164,197,230].map(x=><path key={x} d={`M${x-9} 79h18v18h-5v72h-8V97h-5z`}/>)}</g><path d="M38 42h224M38 42v10M262 42v10M38 38l6 4-6 4M262 38l-6 4 6 4" stroke="#222" fill="none"/><text x="150" y="33" textAnchor="middle" className="engineering-dimension">W = Deck Width</text><text x="150" y="195" textAnchor="middle" className="engineering-dimension">6 × Girder · s = Spacing · t = Slab</text><text x="150" y="218" textAnchor="middle" className="engineering-dimension">e = Clear Edge · Btf = Top Flange · H = Height</text><text x="18" y="244" className="engineering-dimension">Parameters</text><text x="18" y="255" className="engineering-dimension">W  Deck Width   n  Girder Count   s  Girder Spacing   t  Deck Slab Thickness</text></svg></SchematicCard>}
+function AbutmentSchematic({ candidates }: { candidates: GraphValue[] }) {
+  const candidate = candidates[0] as import('../domain/abutmentCandidates').AbutmentCandidate | undefined
+  const g = candidate?.geometry
+  const seismic = candidate?.seismic
+  const seismicColor = seismic?.status === 'ERROR' ? '#EF4444' : seismic?.status === 'WARNING' ? '#F59E0B' : '#e4b65c'
+  return <SchematicCard className="engineering-schematic-abutment"><svg viewBox="0 0 520 360" role="img" aria-label="Abutment longitudinal, front and foundation plan schematic">
+    <text x="130" y="18" textAnchor="middle" className="engineering-view-title">LONGITUDINAL</text><rect className="engineering-outline" x="35" y="70" width="190" height="24"/><rect className="engineering-outline" x="70" y="94" width="120" height="80"/><rect className="engineering-outline" x="50" y="174" width="160" height="30"/><text x="130" y="225" textAnchor="middle" className="engineering-dimension">found_w = {g?.foundW ?? '—'} m · total_h = {g?.totalH ?? '—'} m</text>
+    <text x="390" y="18" textAnchor="middle" className="engineering-view-title">FRONT</text><rect className="engineering-outline" x="300" y="70" width="180" height="24"/><rect className="engineering-outline" x="300" y="94" width="180" height="70"/><rect className="engineering-outline" x="280" y="164" width="220" height="30"/><rect x="302" y="105" width="16" height="42" fill={seismicColor}/><rect x="462" y="105" width="16" height="42" fill={seismicColor}/><text x="390" y="218" textAnchor="middle" className="engineering-dimension">found_d = {g?.found_d ?? '—'} m · sei_w = {seismic?.seiW ?? '—'} m</text>
+    <text x="260" y="252" textAnchor="middle" className="engineering-view-title">FOUNDATION PLAN</text><rect className="engineering-outline" x="130" y="270" width="260" height="60"/><rect className="engineering-outline" x="160" y="282" width="200" height="36"/><text x="260" y="350" textAnchor="middle" className="engineering-dimension">{g?.foundationArea ? `Area = ${g.foundationArea} m²` : 'Foundation geometry unavailable'}</text>
+  </svg></SchematicCard>
+}
+function StaticSuperstructureCard(p: { node: SpanovaNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
+  const candidate = p.candidates.find(item => typeof item === 'object' && item !== null && !Array.isArray(item) && 'girderAxisPositions' in item) as { girderAxisPositions?: number[]; girderCount?: number; deckWidth?: number } | undefined
+  const count = Math.max(2, Math.round(candidate?.girderCount ?? representativeNumber(p, 'girderCount', 'girderCount') ?? 6))
+  const width = candidate?.deckWidth ?? representativeMetres(p.node, p.candidates, p.previewInputs, p.connected, 'deckWidth', 'deckWidth') ?? 13.8
+  const positions = candidate?.girderAxisPositions ?? Array.from({ length: count }, (_, index) => (width / 2) - ((count - 1) * (width / Math.max(count - 1, 1)) / 2) + index * (width / Math.max(count - 1, 1)))
+  const min = positions[0] ?? 0, max = positions.at(-1) ?? width, axisX = (position: number) => 65 + ((position - min) / Math.max(max - min, 0.001)) * 170
+  return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 260" role="img" aria-label={`Superstructure schematic with ${count} girder axes`}><rect x="38" y="55" width="224" height="24" fill="#d8d1c7" className="engineering-deck"/><g className="engineering-girder-axes">{positions.map((position, index) => <line key={`${position}-${index}`} x1={axisX(position)} x2={axisX(position)} y1="79" y2="151" />)}</g><path d="M38 42h224M38 42v10M262 42v10M38 38l6 4-6 4M262 38l-6 4 6 4" className="engineering-dimension-line"/><text x="150" y="33" textAnchor="middle" className="engineering-dimension">W = Deck Width</text><text x="150" y="174" textAnchor="middle" className="engineering-dimension">{count} Girder Axes · s = Spacing · t = Slab</text><text x="150" y="196" textAnchor="middle" className="engineering-dimension">e = Clear Edge · Btf = Top Flange · H = Height</text><text x="18" y="222" className="engineering-dimension">Parameters</text><text x="18" y="237" className="engineering-dimension">W  Deck Width   n  Girder Count   s  Girder Spacing   t  Deck Slab</text><text x="18" y="251" className="engineering-dimension">Girder positions follow the resolved superstructure layout</text></svg></SchematicCard>
+}
 
 function GirderSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {
   const steel=node.type.endsWith('.steel'), keys=steel?['H','Btf','ttf','Bbf','tbf','tw']:['H','tf','bf','w','th1','th2','bh1','bh2']
   const vals=Object.fromEntries(keys.map(key=>[key,dimensionValue(node,candidates,previewInputs,connected,key,key,projectUnits)]))
   const g=Object.fromEntries(keys.map(key=>[key,representativeMetres(node,candidates,previewInputs,connected,key,key)])) as Record<string,number|undefined>
   const precastPath=bulbTeeGirderPath({H:g.H??1.9,tf:g.tf??1.5,bf:g.bf??.8,w:g.w??.2,th1:g.th1??.12,th2:g.th2??.1,bh1:g.bh1??.28,bh2:g.bh2??.15})
-  return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 250" role="img" aria-label={`${steel?'Steel':'Precast'} girder section schematic`}><path className="engineering-outline" d={steel?'M92 48H208V62H158V132H208V146H92V132H142V62H92Z':precastPath} transform={steel?undefined:'translate(40 48) scale(220 100)'} /><DimensionHorizontal x1={92} x2={208} y={25} toY={48} label={`${steel?'Btf':'tf'} = ${vals[steel?'Btf':'tf']??vals.H}`}/><DimensionVertical y1={48} y2={148} x={236} toX={208} label={`H = ${vals.H}`} compact/><text className="engineering-dimension" x="150" y="184" textAnchor="middle">{steel?`Btf ${vals.Btf} · ttf ${vals.ttf} · Bbf ${vals.Bbf} · tbf ${vals.tbf} · tw ${vals.tw}`:`tf ${vals.tf} · bf ${vals.bf} · w ${vals.w} · th1 ${vals.th1} · th2 ${vals.th2} · bh1 ${vals.bh1} · bh2 ${vals.bh2}`}</text><BridgeAxis y={215}/></svg></SchematicCard>
+  return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 250" role="img" aria-label={`${steel?'Steel':'Precast'} girder section schematic`}><path className="engineering-outline" d={steel?'M92 48H208V62H158V132H208V146H92V132H142V62H92Z':precastPath} transform={steel?undefined:'translate(40 48) scale(220 100)'} /><DimensionHorizontal x1={92} x2={208} y={25} toY={48} label={`${steel?'Btf':'tf'} = ${vals[steel?'Btf':'tf']??vals.H}`}/><DimensionVertical y1={48} y2={148} x={236} toX={208} label={`H = ${vals.H}`} compact/><text className="engineering-dimension" x="150" y="184" textAnchor="middle">{steel?`Btf ${vals.Btf} · ttf ${vals.ttf} · Bbf ${vals.Bbf} · tbf ${vals.tbf} · tw ${vals.tw}`:`tf ${vals.tf} · bf ${vals.bf} · w ${vals.w} · th1 ${vals.th1} · th2 ${vals.th2} · bh1 ${vals.bh1} · bh2 ${vals.bh2}`}</text></svg></SchematicCard>
 }
 
 function PierSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {
@@ -33,15 +52,15 @@ function PierSchematic({ node, candidates, previewInputs, connected, projectUnit
     rectangular: { key: 'B', port: 'width', fallback: 'B' }, oval: { key: 'B', port: 'width', fallback: 'B' },
     box: { key: 'B', port: 'outerWidth', fallback: 'B' }, h_section: { key: 'B', port: 'width', fallback: 'B' },
   }
-  const b = dimensionValue(node, candidates, previewInputs, connected, kind === 'h_section' ? 'depth' : (dimensions[kind]?.port ?? 'width'), kind === 'h_section' ? 'D' : (dimensions[kind]?.key ?? 'B'), projectUnits)
-  const d = kind === 'circular' ? b : dimensionValue(node, candidates, previewInputs, connected, kind === 'h_section' ? 'width' : (kind === 'box' ? 'outerDepth' : 'depth'), kind === 'h_section' ? 'B' : 'D', projectUnits)
+  const b = dimensionValue(node, candidates, previewInputs, connected, dimensions[kind]?.port ?? 'width', dimensions[kind]?.key ?? 'B', projectUnits)
+  const d = kind === 'circular' ? b : dimensionValue(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D', projectUnits)
   const tw = dimensionValue(node, candidates, previewInputs, connected, 'wallThickness', 'tw', projectUnits)
   const tf = dimensionValue(node, candidates, previewInputs, connected, 'flangeThickness', 'tf', projectUnits)
   const height = dimensionValue(node, candidates, previewInputs, connected, 'height', 'height', projectUnits)
-  const B = representativeMetres(node, candidates, previewInputs, connected, kind === 'h_section' ? 'depth' : (dimensions[kind]?.port ?? 'width'), kind === 'h_section' ? 'D' : (dimensions[kind]?.key ?? 'B'))
-  const D = kind === 'circular' ? B : representativeMetres(node, candidates, previewInputs, connected, kind === 'h_section' ? 'width' : (kind === 'box' ? 'outerDepth' : 'depth'), kind === 'h_section' ? 'B' : 'D')
+  const B = representativeMetres(node, candidates, previewInputs, connected, dimensions[kind]?.port ?? 'width', dimensions[kind]?.key ?? 'B')
+  const D = kind === 'circular' ? B : representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D')
   const max = Math.max(B ?? 0, D ?? 0, 0.01), scale = 112 / max
-  const w = clamp((B ?? max) * scale, 34, 112), h = clamp((D ?? max) * scale, 34, 112), cx = 150, cy = 88
+  const w = kind === 'h_section' ? clamp((B ?? max) * scale, 1, 112) : clamp((B ?? max) * scale, 34, 112), h = kind === 'h_section' ? clamp((D ?? max) * scale, 1, 112) : clamp((D ?? max) * scale, 34, 112), cx = 150, cy = 88
   const circleRadius = clamp(w / 2, 18, 56)
   const shape = kind === 'circular'
     ? <circle className="engineering-outline" cx={cx} cy={cy} r={circleRadius} />
@@ -50,7 +69,7 @@ function PierSchematic({ node, candidates, previewInputs, connected, projectUnit
       : kind === 'box'
         ? <g className="engineering-outline"><rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} /><rect className="engineering-void" x={cx - Math.max(4, w / 2 - wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, w))} y={cy - Math.max(4, h / 2 - wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, h))} width={Math.max(8, w - 2 * wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, w))} height={Math.max(8, h - 2 * wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, h))} /></g>
         : kind === 'h_section'
-          ? <HSection cx={cx} cy={cy} width={w} height={h} web={wallPixels(representativeMetres(node,candidates,previewInputs,connected,'webThickness','tw')??.2, scale, w)} flange={wallPixels(representativeMetres(node,candidates,previewInputs,connected,'flangeThickness','tf')??.2, scale, h)} />
+          ? <HSection cx={cx} cy={cy} width={w} height={h} web={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'webThickness','tw')??0) * scale)} flange={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'flangeThickness','tf')??0) * scale)} />
           : <rect className="engineering-outline" x={cx - w / 2} y={cy - h / 2} width={w} height={h} />
   const label = kind === 'circular' ? `Ø = ${b}` : `B = ${b}`
   const aria = `${kind.replace('_', ' ')} pier schematic. ${label}; ${kind !== 'circular' ? `D = ${d}; ` : ''}Bridge Axis.`
@@ -68,7 +87,7 @@ function HSection({ cx, cy, width, height, web, flange }: { cx: number; cy: numb
   // small default value to turn the reinforced-concrete section into a steel
   // I-profile. This only affects the illustrative SVG; candidate geometry is
   // still read from the existing resolved parameters above.
-  const f = clamp(flange, 9, width * .32), t = clamp(web, 12, height * .38)
+  const f = clamp(flange, 0, width / 2), t = clamp(web, 0, height)
   return <path data-orientation="rotated-90" className="engineering-outline" d={`M${cx - width / 2} ${cy - height / 2} H${cx - width / 2 + f} V${cy - t / 2} H${cx + width / 2 - f} V${cy - height / 2} H${cx + width / 2} V${cy + height / 2} H${cx + width / 2 - f} V${cy + t / 2} H${cx - width / 2 + f} V${cy + height / 2} H${cx - width / 2} Z`} />
 }
 

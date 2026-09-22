@@ -4,10 +4,10 @@ import { DATA_TYPE_THEME_REGISTRY, NODE_THEME_REGISTRY, getDataTypeColor, getNod
 
 describe('graph visual theme registries', () => {
   it('defines visual tokens for current and planned node categories', () => {
-    expect(Object.keys(NODE_THEME_REGISTRY)).toEqual(['INPUT', 'MATH', 'MATERIALS', 'GEOMETRY', 'SUPERSTRUCTURE', 'SUBSTRUCTURE', 'STRUCTURAL_FAMILY', 'LOADS', 'ANALYSIS', 'DESIGN', 'OPTIMIZATION', 'OUTPUT'])
+    expect(Object.keys(NODE_THEME_REGISTRY)).toEqual(['INPUT', 'MATH', 'MATERIALS', 'PIER', 'ABUTMENT', 'CAP', 'FOUNDATION', 'BEARING', 'GIRDER', 'GEOMETRY', 'SUPERSTRUCTURE', 'BRIDGE', 'SUBSTRUCTURE', 'STRUCTURAL_FAMILY', 'LOADS', 'ANALYSIS', 'DESIGN', 'OPTIMIZATION', 'OUTPUT'])
     const currentCategories = new Set(NODE_REGISTRY.map(node => node.category))
     expect([...currentCategories]).toEqual(expect.arrayContaining(['INPUT', 'MATH', 'MATERIALS', 'STRUCTURAL_FAMILY', 'OUTPUT']))
-    expect(NODE_REGISTRY.filter(node => node.type.startsWith('input.')).every(node => node.category === 'INPUT')).toBe(true)
+    expect(NODE_REGISTRY.filter(node => node.type.startsWith('input.') && node.type !== 'input.length').every(node => node.category === 'INPUT')).toBe(true)
     expect(NODE_REGISTRY.filter(node => node.type.startsWith('math.')).every(node => node.category === 'MATH')).toBe(true)
     expect(NODE_REGISTRY.find(node => node.type === 'material.concrete')?.category).toBe('MATERIALS')
     expect(NODE_REGISTRY.filter(node => node.type.startsWith('substructure.pier.')).every(node => node.category === 'STRUCTURAL_FAMILY')).toBe(true)

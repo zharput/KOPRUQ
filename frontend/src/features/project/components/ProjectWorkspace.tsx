@@ -29,7 +29,7 @@ const FIELDS: Record<string, { label: string; path: string }[]> = {
 const SITE_SLUGS: Record<string, string> = { terrain: 'Terrain & GIS', geotechnical: 'Geotechnical', hydrology: 'Hydrology', seismic: 'Seismic', climate: 'Climate & Wind' }
 const UNIT_OPTIONS: Record<keyof ProjectWorkspaceData['units'], string[]> = {
   length: ['m', 'cm', 'mm'],
-  force: ['N', 'kN', 'MN'],
+  force: ['kgf', 'tonf', 'N', 'kN'],
   moment: ['Nm', 'kNm', 'MNm', 'kNmm'],
   stress: ['kPa', 'MPa', 'GPa'],
   mass: ['kg', 't'],

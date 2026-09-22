@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { makeQuantity } from '../domain/quantities'
 import type { SpanovaNode } from '../domain/types'
@@ -13,9 +13,8 @@ describe('Node Inspector', () => {
     const value = node('substructure.bearing.elastomeric')
     const onParameterChange = vi.fn()
     render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} onNodeChange={vi.fn()} onParameterChange={onParameterChange} />)
-    fireEvent.change(screen.getByLabelText('Length X unit'), { target: { value: 'mm' } })
-    expect(onParameterChange).toHaveBeenCalledWith(value.id, 'lengthXValue', 600)
-    expect(onParameterChange).toHaveBeenCalledWith(value.id, 'lengthXUnit', 'mm')
+    expect(screen.queryByLabelText('Length X unit')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Length X')).toHaveValue('0.6')
   })
   it.each(getNodeDefinitions().map(definition => [definition.type, definition.label]))('keeps implementation ports and IDs out of %s Inspector', (type, label) => {
     const value=node(type)
@@ -43,10 +42,10 @@ describe('Node Inspector', () => {
     render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} {...handlers} />)
     const svg=screen.getByRole('img',{name:/h section pier schematic/i})
     expect(svg.querySelector('[data-orientation="rotated-90"]')).toBeInTheDocument()
-    expect(svg.textContent).toContain('B = 1.50 m')
-    expect(svg.textContent).toContain('D = 3.00 m')
-    expect(svg.textContent).toContain('tw = 0.20 m')
-    expect(svg.textContent).toContain('tf = 0.20 m')
+    expect(svg.textContent).toContain('B = 3.00 m')
+    expect(svg.textContent).toContain('D = 6.00 m')
+    expect(svg.textContent).toContain('tw = 3.00 m')
+    expect(svg.textContent).toContain('tf = 0.75 m')
   })
 
   it('draws T-Cap flange at the bottom with its stem extending upward', () => {
@@ -88,7 +87,7 @@ describe('Node Inspector', () => {
     expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 3000.00 mm')
     rerender(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} previewInputs={{width:{sourceName:'Hidden source',value:[makeQuantity(2,'length','m'),makeQuantity(2.5,'length','m')]}}} connections={[{id:'private-edge-id',sourceNodeId:'private-source-id',sourcePortId:'values',targetNodeId:pier.id,targetPortId:'width'}]} projectUnits={{length:'m'}} {...handlers} />)
     const svg=screen.getByRole('img',{name:/rectangular pier schematic/i})
-    expect(svg.textContent).toContain('B = 2.00 m–2.50 m')
+    expect(svg.textContent).toContain('B = 2.00 m – 2.50 m')
     expect(svg.textContent).not.toMatch(/Hidden source|private-source-id|private-edge-id/)
   })
 

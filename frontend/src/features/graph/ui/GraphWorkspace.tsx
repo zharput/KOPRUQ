@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
-import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, MiniMap, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange } from '@xyflow/react'
+import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange } from '@xyflow/react'
 import { Activity, CircleStop, Maximize2, Minus, Plus, Redo2, Save, Trash2, Undo2 } from 'lucide-react'
 import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
 import type { GraphExecutionState, GraphValue, MaterialValue, SpanovaGraph } from '../domain/types'
@@ -15,21 +15,21 @@ import NodeInspector from './NodeInspector'
 import NodeLibrary from './NodeLibrary'
 import { mergeBoxSelection, normalizedBox, selectNodeIdsByBox, selectionMode, transformBox, type BoxRect, type BoxSelectionMode } from './boxSelection'
 import { graphMaterialServices } from '../api/graphMaterialService'
-import { readProjectState } from '../../project/model/projectWorkspace'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
+import type { ProjectWorkspaceData } from '../../project/model/projectWorkspace'
 import { readGraphViewPreferences, writeGraphViewPreferences, type ConnectionStyle } from '../state/graphViewPreferences'
 
 const NODE_TYPES = { spanova: BaseNode }
 type AddNodeRef = MutableRefObject<((type: string) => string | undefined) | undefined>
 
-export default function GraphWorkspace() {
-  return <ReactFlowProvider><GraphWorkspaceContent /></ReactFlowProvider>
+export default function GraphWorkspace({ project, setProject }: { project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void }) {
+  return <ReactFlowProvider><GraphWorkspaceContent project={project} setProject={setProject} /></ReactFlowProvider>
 }
 
-function GraphWorkspaceContent() {
+function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void }) {
   const snapshot = useGraphStore()
   const graph = snapshot.graphs.find((item) => item.id === snapshot.activeGraphId) ?? snapshot.graphs[0] ?? getActiveGraph()
-  const [projectUnitLabels, setProjectUnitLabels] = useState(() => readProjectState([]).project.units)
+  const projectUnitLabels = project.units
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [selectedEdgeIds, setSelectedEdgeIds] = useState<string[]>([])
@@ -52,8 +52,6 @@ function GraphWorkspaceContent() {
   const pasteCount = useRef(0)
   const diagnostics = import.meta.env.DEV && new URLSearchParams(window.location.search).has('graphDiagnostics')
   const selected = graph.nodes.find((node) => node.id === selectedNodeId)
-  useEffect(() => { const refresh = () => setProjectUnitLabels(readProjectState([]).project.units); window.addEventListener('spanova:project-units-changed', refresh); return () => window.removeEventListener('spanova:project-units-changed', refresh) }, [])
-
   useEffect(() => {
     if (selected?.type !== 'material.concrete' || typeof selected.parameters.materialId !== 'string') { setInspectorMaterial(undefined); return }
     let active = true
@@ -76,7 +74,9 @@ function GraphWorkspaceContent() {
     controller.current?.abort()
     const abort = new AbortController(); controller.current = abort
     setIsRunning(true); setFeedback(''); setErrors({}); setResolvedInputs({}); setStates(Object.fromEntries(graph.nodes.map((node) => [node.id, 'running'])))
-    const projectUnits = readProjectState([]).project.units
+    // Execution and live rendering must use the same authoritative App state.
+    // Reading storage here could lag behind a just-selected Quick Unit.
+    const projectUnits = project.units
     const result = await executeGraph(graph, abort.signal, { ...graphMaterialServices, projectUnits })
     setLog(result.logs); setErrors(result.errors); setNodeOutputs(result.values); setResolvedInputs(result.resolvedInputs)
     setExecutedSignature(currentSignature)
@@ -115,11 +115,11 @@ function GraphWorkspaceContent() {
     else if (key === 'v' && pasteClipboard()) event.preventDefault()
     else if (key === 'd') { const ids = selectedForClipboard(); if (ids.length) { event.preventDefault(); pasteClipboard(copyGraphSelection(graph, ids)) } }
   }
-  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} stop={stop} onDelete={removeSelected} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} connectionStyle={connectionStyle} onConnectionStyleChange={changeConnectionStyle} diagnostics={diagnostics} isDirty={isDirty} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} selectedNodes={graph.nodes.filter(item => selectedNodeIds.includes(item.id))} states={executionDisplay.states} errors={executionDisplay.errors} outputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} connections={graph.connections} concreteMaterial={inspectorMaterial} projectUnits={projectUnitLabels} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
+  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} stop={stop} onDelete={removeSelected} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} connectionStyle={connectionStyle} onConnectionStyleChange={changeConnectionStyle} diagnostics={diagnostics} isDirty={isDirty} project={project} setProject={setProject} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} selectedNodes={graph.nodes.filter(item => selectedNodeIds.includes(item.id))} states={executionDisplay.states} errors={executionDisplay.errors} outputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} connections={graph.connections} concreteMaterial={inspectorMaterial} projectUnits={projectUnitLabels} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
 }
 
-function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, connectionStyle, onConnectionStyleChange, diagnostics, isDirty }: {
-  graph: SpanovaGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; onGraphShortcut: (event: React.KeyboardEvent<HTMLDivElement>) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; resolvedInputs: Record<string, Record<string, GraphValue>>; projectUnits: ProjectUnitPreferences; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; connectionStyle: ConnectionStyle; onConnectionStyleChange: (style: ConnectionStyle) => void; diagnostics: boolean; isDirty: boolean
+function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, connectionStyle, onConnectionStyleChange, diagnostics, isDirty, project, setProject }: {
+  graph: SpanovaGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; onGraphShortcut: (event: React.KeyboardEvent<HTMLDivElement>) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; resolvedInputs: Record<string, Record<string, GraphValue>>; projectUnits: ProjectUnitPreferences; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; connectionStyle: ConnectionStyle; onConnectionStyleChange: (style: ConnectionStyle) => void; diagnostics: boolean; isDirty: boolean; project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void
 }) {
   const { screenToFlowPosition, fitView, zoomIn, zoomOut, getViewport, setViewport } = useReactFlow<FlowGraphNode>()
   const flowStore = useStoreApi()
@@ -145,7 +145,8 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
     canvas.addEventListener('wheel', preventPageScroll, { capture: true, passive: false })
     return () => canvas.removeEventListener('wheel', preventPageScroll, true)
   }, [])
-  const flowNodeData = useMemo(() => ({ states, errors, outputs: nodeOutputs, resolvedInputs, projectUnits, isDirty, onParameterChange }), [states, errors, nodeOutputs, resolvedInputs, projectUnits, isDirty, onParameterChange])
+  const projectUnitsKey = projectUnits.length
+  const flowNodeData = useMemo(() => ({ states, errors, outputs: nodeOutputs, resolvedInputs, projectUnits, projectUnitsKey, isDirty, onParameterChange }), [states, errors, nodeOutputs, resolvedInputs, projectUnits, projectUnitsKey, isDirty, onParameterChange])
   const projectedNodes = useMemo(() => { if (diagnostics) console.count('[graph diagnostics] node projection'); return toReactFlowNodes(graph, flowNodeData) }, [graph, flowNodeData, diagnostics])
   const selectedNodeSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds])
   const flowNodes = useMemo(() => projectedNodes.map(node => {
@@ -324,13 +325,18 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
         if (!sameGraphSelection(selectedEdgeIdsRef.current, edgeIds)) { selectedEdgeIdsRef.current = edgeIds; setSelectedEdgeIds(edgeIds) }
       }} onMove={diagnostics ? () => console.count('[graph diagnostics] viewport onMove') : undefined} onNodeDragStart={() => beginMoveHistory()} onNodeDragStop={(_, node, movedNodes) => { const moved = movedNodes.length ? movedNodes : [node]; updatePositions(moveNodePositions(moved)); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; for (const item of moved) delete next[item.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} zoomOnScroll zoomOnPinch minZoom={.2} maxZoom={2.5} panOnDrag={[1]} panOnScroll={false} snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable noWheelClassName="nowheel" noPanClassName="nopan" proOptions={{ hideAttribution: true }}>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--graph-grid-color)" />
-      <MiniMap pannable zoomable nodeColor={(node) => node.selected ? '#4c91ff' : '#344158'} maskColor="rgba(8,12,18,0.66)" />
       </ReactFlow>
       {selectionBox && <div aria-hidden="true" className={`spn-graph-selection-box is-${selectionBox.mode}`} style={{ left: selectionBox.rect.left - (canvasRef.current?.getBoundingClientRect().left ?? 0), top: selectionBox.rect.top - (canvasRef.current?.getBoundingClientRect().top ?? 0), width: selectionBox.rect.right - selectionBox.rect.left, height: selectionBox.rect.bottom - selectionBox.rect.top }} />}
       {graph.nodes.length === 0 && <div className="spn-graph-empty"><strong>Graph Canvas</strong><span>Add a node from the library or drag it here.</span></div>}
+      <QuickUnits project={project} setProject={setProject} />
     </div>
     <GraphLog entries={log} />
   </div>
+}
+
+function QuickUnits({ project, setProject }: { project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void }) {
+  const update = (key: 'force' | 'length', value: string) => setProject({ ...project, units: { ...project.units, [key]: value } })
+  return <div className="spn-quick-units" aria-label="Quick Units"><label>Force <select value={project.units.force} onChange={event => update('force', event.target.value)}><option value="kN">kN</option><option value="N">N</option><option value="kgf">kgf</option><option value="tonf">tonf</option></select></label><label>Length <select value={project.units.length} onChange={event => update('length', event.target.value)}><option value="m">m</option><option value="cm">cm</option><option value="mm">mm</option></select></label></div>
 }
 
 function normalizeConnection(graph: SpanovaGraph, connection: Pick<Connection, 'source' | 'target'> & { sourceHandle?: string | null; targetHandle?: string | null }): Omit<import('../domain/types').SpanovaConnection, 'id'> | undefined {

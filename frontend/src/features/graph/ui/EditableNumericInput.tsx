@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import type { GraphParameterValue } from '../domain/types'
 
 export default function EditableNumericInput({ value, integer = false, ariaLabel, disabled = false, onCommit }: { value: GraphParameterValue | undefined; integer?: boolean; ariaLabel: string; disabled?: boolean; onCommit: (value: number | string) => void }) {
@@ -6,11 +6,17 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
   const [draft, setDraft] = useState(committedText)
   const [focused, setFocused] = useState(false)
   const [invalid, setInvalid] = useState(typeof value === 'string' && !isValidNumericText(value, integer))
+  const inputRef = useRef<HTMLInputElement>(null)
   const lastCommit = useRef<string | undefined>(undefined)
   const lastCommittedText = useRef(committedText)
 
-  useEffect(() => {
-    if (!focused && document.activeElement !== document.querySelector(`[aria-label="${ariaLabel}"]`)) {
+  useLayoutEffect(() => {
+    // A unit change updates `value` while preserving the node instance. Sync
+    // the visible draft unless this exact input is actively being edited.
+    // Looking up an aria-label globally is incorrect because many nodes share
+    // labels such as "Overall Width".
+    const editingThisInput = focused && document.activeElement === inputRef.current
+    if (!editingThisInput) {
       if (lastCommittedText.current !== committedText || typeof value === 'string') {
         setDraft(committedText)
         setInvalid(typeof value === 'string' && !isValidNumericText(value, integer))
@@ -37,6 +43,7 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
 
   return <input
     className={`spn-graph-editable-number nodrag nowheel nopan${invalid ? ' is-invalid' : ''}`}
+    ref={inputRef}
     aria-label={ariaLabel}
     aria-invalid={invalid}
     disabled={disabled}

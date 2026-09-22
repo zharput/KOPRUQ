@@ -1,4 +1,5 @@
 import type { GraphExecutionState, GraphValue, SpanovaConnection, SpanovaNode } from '../domain/types'
+import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { convertQuantity, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
@@ -40,6 +41,7 @@ export default function EngineeringNodeInspector(props: Props) {
   const inputById = new Map(definition.inputs.map(input => [input.id, input]))
   const orderedInputs = schema.parameterOrder.map(id => inputById.get(id)).filter((item): item is NonNullable<typeof item> => !!item)
   const state = states[node.id] ?? 'idle'
+  if (schema.schematic === 'abutment') return <AbutmentInspector node={node} candidate={candidates[0] as import('../domain/abutmentCandidates').AbutmentCandidate | undefined} connected={connected} previewInputs={previewInputs} projectUnits={projectUnits} onParameterChange={onParameterChange} onNodeChange={onNodeChange} errors={errors[node.id]} />
   return <div className="spn-graph-inspector spn-engineering-inspector">
     <section className="spn-engineering-general"><h3>GENERAL</h3><label>Name<input className="spn-input" value={node.name} onChange={event => onNodeChange(node.id, { name: event.target.value })} /></label><div className="spn-graph-inspector-row"><span>Type</span><strong>{definition.label}</strong></div>{errors[node.id] && <p className="spn-graph-inspector-error">{errors[node.id]}</p>}</section>
     <section className="spn-engineering-type"><h3>TYPE / SCHEMATIC</h3><EngineeringSchematic schema={schema} node={node} candidates={candidates} previewInputs={previewInputs} connections={connections} projectUnits={projectUnits} /></section>
@@ -60,6 +62,24 @@ export default function EngineeringNodeInspector(props: Props) {
   </div>
 }
 
+function AbutmentInspector({ node, candidate, connected, previewInputs, projectUnits, onParameterChange, onNodeChange, errors }: { node: SpanovaNode; candidate?: import('../domain/abutmentCandidates').AbutmentCandidate; connected: Set<string>; previewInputs: Props['previewInputs']; projectUnits?: ProjectUnitPreferences; onParameterChange: Props['onParameterChange']; onNodeChange: Props['onNodeChange']; errors?: string }) {
+  const upstream = candidate?.upstream
+  const calculated = candidate?.geometry
+  const manual = ['Back_wall_w','Bearing_sup_w','Front_w','Back_w','front_h','found_th','Onp_Amp','found_d']
+  const display = (value: number | undefined, unit = 'm') => value === undefined ? '—' : `${Number(value.toPrecision(10))} ${unit}`
+  const source = (port: string) => previewInputs[port]?.sourceName ?? (connected.has(port) ? 'Connected source' : 'Not connected')
+  const row = (label: string, value: string, extra?: string) => <div className="spn-graph-inspector-row" key={label}><span>{label}{extra && <small> · {extra}</small>}</span><strong>{value}</strong></div>
+  return <div className="spn-graph-inspector spn-engineering-inspector">
+    <section className="spn-engineering-general"><h3>GENERAL</h3><label>Name<input className="spn-input" value={node.name} onChange={event => onNodeChange(node.id, { name: event.target.value })} /></label><div className="spn-graph-inspector-row"><span>Type</span><strong>Abutment</strong></div>{errors && <p className="spn-graph-inspector-error">{errors}</p>}</section>
+    <section><h3>UPSTREAM INPUTS</h3>{row('girder_h', display(upstream?.girderH), source('girder'))}{row('girder_a', display(upstream?.girderA), source('superstructure'))}{row('girder_e', display(upstream?.girderE), source('superstructure'))}{row('girder_count', upstream ? String(upstream.girderCount) : 'Not connected', source('superstructure'))}{row('girder_bottom_flange_w', display(upstream?.girderBottomFlangeW), source('girder'))}{row('deck_h', display(upstream?.deckH), source('superstructure'))}{row('plt_w', display(upstream?.deckW), source('superstructure'))}{row('bea_h', display(upstream?.bearingH), source('bearing'))}</section>
+    <section><h3>ABUTMENT GEOMETRY</h3>{manual.map(key => <label className="spn-engineering-parameter" key={key}><span className="spn-engineering-parameter-label">{key}</span><EditableNumericInput value={displayParameter(node, key, projectUnits)} disabled={connected.has(key)} ariaLabel={key} onCommit={value => onParameterChange(node.id, `${key}Value`, storeParameter(node, key, Number(value), projectUnits))} /></label>)}</section>
+    <section><h3>SEISMIC BLOCK</h3>{<label className="spn-engineering-parameter"><span className="spn-engineering-parameter-label">sei_u</span><EditableNumericInput value={displayParameter(node, 'sei_u', projectUnits)} disabled={connected.has('sei_u')} ariaLabel="sei_u" onCommit={value => onParameterChange(node.id, 'sei_uValue', storeParameter(node, 'sei_u', Number(value), projectUnits))} /></label>}{row('sei_w', display(candidate?.seismic.seiW))}{row('sei_w_clear', display(candidate?.seismic.seiWClear))}{row('Status', candidate?.seismic.status ?? 'INCOMPLETE')}{candidate?.seismic.message && <p className={candidate.seismic.status === 'ERROR' ? 'spn-graph-inspector-error' : 'spn-graph-inspector-warning'}>{candidate.seismic.message}</p>}</section>
+    <section><h3>CALCULATED RESULTS</h3>{row('found_w', display(calculated?.foundW as number))}{row('found_d', display(calculated?.found_d as number))}{row('total_h', display(calculated?.totalH as number))}{row('abutment_body_d', display(calculated?.abutmentBodyD as number))}{row('foundation_left_offset', display(calculated?.foundationLeftOffset as number))}{row('foundation_right_offset', display(calculated?.foundationRightOffset as number))}{row('foundation_area', display(calculated?.foundationArea as number, 'm²'))}{row('foundation_volume', display(calculated?.foundationVolume as number, 'm³'))}</section>
+  </div>
+}
+
+function displayParameter(node: SpanovaNode, key: string, projectUnits?: ProjectUnitPreferences) { const unit = String(node.parameters[`${key}Unit`] ?? 'm'); const value = node.parameters[`${key}Value`]; return typeof value === 'number' ? toDisplayValue(getUnit(unit)?.toCanonical(value) ?? value, 'Length', projectUnits) : value }
+function storeParameter(node: SpanovaNode, key: string, value: number, projectUnits?: ProjectUnitPreferences) { const unit = String(node.parameters[`${key}Unit`] ?? 'm'); const source = projectUnits?.length ?? 'm'; return source === unit ? value : convertQuantity(value, source, unit) }
 function ParameterControl({ node, descriptor, projectUnits, onChange }: { node: SpanovaNode; descriptor: NonNullable<ReturnType<typeof getNodeDefinition>>['parameterSchema'][number]; projectUnits?: ProjectUnitPreferences; onChange: Props['onParameterChange'] }) {
   const label = descriptor.label.replace(/ local default$/i, '').replace(/ unit$/i, ' unit')
   if (descriptor.dataType === 'select') return <select className="spn-input" aria-label={label} value={String(node.parameters[descriptor.key] ?? descriptor.options?.[0]?.value ?? '')} disabled={!descriptor.options?.length} onChange={event => {
@@ -95,9 +115,9 @@ function displayQuantity(value: { quantityKind: QuantityKind; value: number; uni
 function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type.startsWith('substructure.') }
 function dimensionForKind(kind: QuantityKind): import('../domain/quantities').PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, import('../domain/quantities').PhysicalDimension>)[kind] ?? 'Dimensionless' }
 type CandidateRow = Record<string, unknown>
-function CandidateTable({ nodeType, candidates, projectUnits }: { nodeType: string; candidates: GraphValue[]; projectUnits?: ProjectUnitPreferences }) {
+export function CandidateTable({ nodeType, candidates, projectUnits }: { nodeType: string; candidates: GraphValue[]; projectUnits?: ProjectUnitPreferences }) {
   const [selected, setSelected] = useState<string>()
-  const rows = candidates.filter((item): item is CandidateRow => typeof item === 'object' && item !== null) as CandidateRow[]
+  const rows = candidates.filter(item => typeof item === 'object' && item !== null && !Array.isArray(item)) as unknown as CandidateRow[]
   const columns = candidateColumns(nodeType)
   return <div className="spn-candidate-table-section"><h4>CANDIDATE TABLE</h4>{!rows.length ? <p className="spn-graph-inspector-muted">No candidates available.</p> : <div className="spn-candidate-table-scroll"><table className="spn-candidate-table"><thead><tr>{columns.map(column => <th key={column.key}>{column.label}</th>)}</tr></thead><tbody>{rows.map((candidate, index) => { const id=String(candidate.id ?? index+1); return <tr key={id} className={selected===id?'is-selected':''} onClick={() => setSelected(id)}>{columns.map(column => <td key={column.key} className={column.numeric?'is-numeric':''}>{column.value(candidate, projectUnits)}</td>)}</tr> })}</tbody></table></div>}{selected && <small className="spn-candidate-selection">Selected candidate: {selected}</small>}</div>
 }

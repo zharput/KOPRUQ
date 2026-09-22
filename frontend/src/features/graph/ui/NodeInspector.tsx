@@ -5,6 +5,7 @@ import { getNodeDefinition, previewDesignOutput } from '../registry/nodeRegistry
 import EngineeringNodeInspector from './EngineeringNodeInspector'
 import EditableNumericInput from './EditableNumericInput'
 import MaterialProperties, { catalogMaterial } from './MaterialProperties'
+import AssemblyInspector from './AssemblyInspector'
 
 type Props = {
   node?: SpanovaNode
@@ -26,6 +27,7 @@ export default function NodeInspector({ node, selectedNodes = [], states, errors
   if (!node) return <div className="spn-graph-inspector-empty"><strong>NODE INSPECTOR</strong><span>Select a node to inspect its properties.</span></div>
   const definition = getNodeDefinition(node.type)
   if (!definition) return <p role="alert">This node type is unavailable.</p>
+  if (node.type === 'structural.assembly') { const value = outputs[node.id]?.assembly; const assembly = typeof value === 'object' && value !== null && 'supports' in value ? value as import('../domain/bridgeAssembly').BridgeAssembly : undefined; return <AssemblyInspector node={node} assembly={assembly} state={states[node.id] ?? 'idle'} error={errors[node.id]} projectUnits={projectUnits} onNodeChange={onNodeChange} /> }
   if (definition.engineeringInspector) return <EngineeringNodeInspector node={node} states={states} errors={errors} outputs={outputs} resolvedInputs={resolvedInputs} previewInputs={previewInputs} connections={connections} projectUnits={projectUnits} onNodeChange={onNodeChange} onParameterChange={onParameterChange} />
 
   const connectedPorts = new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))

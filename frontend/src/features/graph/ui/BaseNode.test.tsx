@@ -30,7 +30,7 @@ describe('Watch node rendering', () => {
   })
   it('shows primitive, quantity, range and concrete values', () => {
     renderWatch(6); expect(screen.getByText('6')).toBeInTheDocument()
-    renderWatch(makeQuantity(3, 'length', 'm')); expect(screen.getByText('3.00 m')).toBeInTheDocument()
+    renderWatch(makeQuantity(3, 'length', 'm')); expect(screen.getByText('3')).toBeInTheDocument()
     renderWatch([2, 2.5, 3]); expect(screen.getByText('[2, 2.5, 3]')).toBeInTheDocument()
     renderWatch({ domainType: 'ConcreteMaterial', id: 'C40/50', name: 'C40/50', properties: {} }); expect(screen.getByText('Concrete C40/50')).toBeInTheDocument()
   })

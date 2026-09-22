@@ -1,10 +1,8 @@
 import type { GraphValue } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
-import { toDisplayValue } from '../domain/quantities'
+import { formatDisplayValue } from '../domain/quantities'
 
-export function displayLength(value: number, projectUnits?: ProjectUnitPreferences) {
-  return Number(toDisplayValue(value, 'Length', projectUnits).toPrecision(10)).toString()
-}
+export function displayLength(value: number, projectUnits?: ProjectUnitPreferences) { return formatDisplayValue(value, 'Length', projectUnits) }
 export function displayRange(values: number[], projectUnits?: ProjectUnitPreferences) {
   if (!values.length) return '—'
   const low = Math.min(...values), high = Math.max(...values)

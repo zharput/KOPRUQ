@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SpanovaGraph } from '../domain/types'
+import type { GirderCandidate } from '../domain/girderCandidates'
 import { toReactFlowEdges, toReactFlowNodes } from './reactFlowAdapter'
 
 const graph:SpanovaGraph={id:'graph',name:'Graph',schemaVersion:1,nodes:[{id:'a',type:'input.number',name:'Number',position:{x:10,y:20},parameters:{value:2}},{id:'b',type:'output.watch',name:'Watch',position:{x:300,y:40},parameters:{}}],connections:[{id:'stable-edge-id',sourceNodeId:'a',sourcePortId:'value',targetNodeId:'b',targetPortId:'value'}]}
@@ -10,13 +11,13 @@ describe('React Flow edge style projection',()=>{
   const smooth=toReactFlowEdges(graph,'smooth')
   const orthogonal=toReactFlowEdges(graph,'orthogonal')
   expect(smooth[0]).toMatchObject({id:'stable-edge-id',type:'default'})
-  expect(smooth[0].style?.stroke).toBe('#4c91ff')
+  expect(smooth[0].style?.stroke).toBe('#F2F2F2')
   expect(orthogonal[0]).toMatchObject({id:'stable-edge-id',type:'step'})
   expect(graph).toEqual(before)
  })
  it('colors edges by source port type, independently of the node category',()=>{
   const materialGraph:SpanovaGraph={id:'m',name:'Material edge',schemaVersion:1,nodes:[{id:'c',type:'material.concrete',name:'Concrete',position:{x:0,y:0},parameters:{materialId:'C40/50'}},{id:'p',type:'substructure.pier.rectangular',name:'Pier',position:{x:200,y:0},parameters:{}}],connections:[{id:'material-edge',sourceNodeId:'c',sourcePortId:'material',targetNodeId:'p',targetPortId:'material'}]}
-  expect(toReactFlowEdges(materialGraph)[0].style?.stroke).toBe('#38b7a7')
+  expect(toReactFlowEdges(materialGraph)[0].style?.stroke).toBe('#F2F2F2')
  })
  it('survives repeated view changes without changing topology or edge IDs',()=>{
   const before=structuredClone(graph)
@@ -55,18 +56,50 @@ describe('live Elastomeric Bearing preview',()=>{
 })
 
 describe('live output availability projection', () => {
- it('resolves Length Single and Range outputs as canonical length quantities and fans out the same range', () => {
+ it('resolves Length Single and Range outputs as canonical length quantities and independently fans out the same range', () => {
   const graph: SpanovaGraph = { id: 'length-girder', name: 'Length to girder', schemaVersion: 1, nodes: [
    { id: 'length', type: 'input.length', name: 'Length', position: { x: 0, y: 0 }, parameters: { mode: 'range', min: 1, max: 2, step: .5 } },
    { id: 'girder', type: 'structural.girder.precast', name: 'Precast Girder', position: { x: 300, y: 0 }, parameters: { HValue: 1.9, HUnit: 'm', tfValue: 1.5, tfUnit: 'm', bfValue: .8, bfUnit: 'm', wValue: .2, wUnit: 'm', th1Value: .12, th1Unit: 'm', th2Value: .1, th2Unit: 'm', bh1Value: .28, bh1Unit: 'm', bh2Value: .15, bh2Unit: 'm', familyId: 'PG-200', preferredSpanValue: 40, preferredSpanUnit: 'm', minSpanValue: 30, minSpanUnit: 'm', maxSpanValue: 90, maxSpanUnit: 'm', materialId: 'C40/50' } },
+   { id: 'watch', type: 'output.watch', name: 'Watch', position: { x: 600, y: 0 }, parameters: {} },
   ], connections: [
    { id: 'height', sourceNodeId: 'length', sourcePortId: 'value', targetNodeId: 'girder', targetPortId: 'H' },
    { id: 'width', sourceNodeId: 'length', sourcePortId: 'value', targetNodeId: 'girder', targetPortId: 'tf' },
+   { id: 'girder-watch', sourceNodeId: 'girder', sourcePortId: 'candidates', targetNodeId: 'watch', targetPortId: 'value' },
   ] }
   const node = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'girder')!
   expect(node.data.connectedInputs?.H.value).toEqual([{ value: 1, quantityKind: 'length', unit: 'm' }, { value: 1.5, quantityKind: 'length', unit: 'm' }, { value: 2, quantityKind: 'length', unit: 'm' }])
   expect(node.data.connectedInputs?.tf.value).toEqual(node.data.connectedInputs?.H.value)
-  expect(node.data.previewCandidateCount).toBe(3)
+  expect(node.data.previewCandidateCount).toBe(9)
+  const candidates = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'watch')!.data.previewValue as unknown as GirderCandidate[]
+  expect(candidates.map(item => [item.geometry.H, item.geometry.tf])).toEqual([
+   [1, 1], [1, 1.5], [1, 2],
+   [1.5, 1], [1.5, 1.5], [1.5, 2],
+   [2, 1], [2, 1.5], [2, 2],
+  ])
+  expect(new Set(candidates.map(item => `${item.geometry.H}:${item.geometry.tf}`)).size).toBe(9)
+  expect(node.data.executionState).not.toBe('error')
+ })
+
+ it('independently fans out two different Range Nodes across girder parameters', () => {
+  const graph: SpanovaGraph = { id: 'two-range-girder', name: 'Two ranges to girder', schemaVersion: 1, nodes: [
+   { id: 'height-range', type: 'input.range', name: 'Height range', position: { x: 0, y: 0 }, parameters: { min: 1, max: 2, step: .5, quantityKind: 'length', unit: 'm' } },
+   { id: 'flange-range', type: 'input.range', name: 'Flange range', position: { x: 0, y: 100 }, parameters: { min: 1, max: 2, step: .5, quantityKind: 'length', unit: 'm' } },
+   { id: 'girder', type: 'structural.girder.precast', name: 'Precast Girder', position: { x: 300, y: 0 }, parameters: { HValue: 1.9, HUnit: 'm', tfValue: 1.5, tfUnit: 'm', bfValue: .8, bfUnit: 'm', wValue: .2, wUnit: 'm', th1Value: .12, th1Unit: 'm', th2Value: .1, th2Unit: 'm', bh1Value: .28, bh1Unit: 'm', bh2Value: .15, bh2Unit: 'm', familyId: 'PG-200', preferredSpanValue: 40, preferredSpanUnit: 'm', minSpanValue: 30, minSpanUnit: 'm', maxSpanValue: 90, maxSpanUnit: 'm', materialId: 'C40/50' } },
+   { id: 'watch', type: 'output.watch', name: 'Watch', position: { x: 600, y: 0 }, parameters: {} },
+  ], connections: [
+   { id: 'height', sourceNodeId: 'height-range', sourcePortId: 'values', targetNodeId: 'girder', targetPortId: 'H' },
+   { id: 'flange', sourceNodeId: 'flange-range', sourcePortId: 'values', targetNodeId: 'girder', targetPortId: 'tf' },
+   { id: 'girder-watch', sourceNodeId: 'girder', sourcePortId: 'candidates', targetNodeId: 'watch', targetPortId: 'value' },
+  ] }
+  const node = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'girder')!
+  const candidates = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'watch')!.data.previewValue as unknown as GirderCandidate[]
+  expect(node.data.previewCandidateCount).toBe(9)
+  expect(candidates.map(item => [item.geometry.H, item.geometry.tf])).toEqual([
+   [1, 1], [1, 1.5], [1, 2],
+   [1.5, 1], [1.5, 1.5], [1.5, 2],
+   [2, 1], [2, 1.5], [2, 2],
+  ])
+  expect(new Set(candidates.map(item => `${item.geometry.H}:${item.geometry.tf}`)).size).toBe(9)
   expect(node.data.executionState).not.toBe('error')
  })
 

@@ -7,6 +7,26 @@ import { toReactFlowNodes } from '../adapters/reactFlowAdapter'
 import type { SpanovaGraph } from '../domain/types'
 
 describe('reusable engineering node shell', () => {
+  it('renders the compact abutment node and keeps edits on the graph callback', () => {
+    const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === 'structural.abutment')!
+    const onParameterChange = vi.fn()
+    const graph: SpanovaGraph = { id: 'abutment-shell', name: 'abutment shell', schemaVersion: 1, nodes: [{ id: 'abutment', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'm' }) }], connections: [] }
+    const [node] = toReactFlowNodes(graph, { onParameterChange, projectUnits: { length: 'm' } })
+    const { container } = render(<ReactFlowProvider><EngineeringNodeShell data={node.data} selected={false} definition={definition} /></ReactFlowProvider>)
+    expect(container.textContent).toContain('ABUTMENT GEOMETRY')
+    expect(container.textContent).toContain('SEISMIC BLOCK')
+    expect(container.textContent).not.toContain('UPSTREAM INPUTS')
+    expect(container.textContent).not.toContain('CALCULATED RESULTS')
+    expect(container.textContent).not.toContain('FAMILY / RANGE')
+    expect(container.querySelectorAll('.spn-engineering-inputs input')).toHaveLength(9)
+    for (const label of ['Back_wall_w','Bearing_sup_w','Front_w','Back_w','front_h','found_th','Onp_Amp','found_d','sei_u']) expect(container.textContent).toContain(label)
+    expect(container.querySelectorAll('.react-flow__handle')).toHaveLength(13)
+    expect(container.textContent).not.toContain('Front_fh')
+    expect(container.textContent).not.toContain('Foun_fh')
+    expect(container.querySelectorAll('.spn-engineering-output-row')).toHaveLength(definition.outputs.length)
+    expect(container.textContent).not.toContain('[object Object]')
+  })
+
   it.each(['substructure.foundation.shallow','substructure.foundation.piled'])('renders %s with the shared orange family theme and engineering-only labels',(type)=>{
     const definition=getNodeDefinitions('STRUCTURAL_FAMILY').find(item=>item.type===type)!
     const graph:SpanovaGraph={id:'foundation-shell',name:'foundation shell',schemaVersion:1,nodes:[{id:'foundation',type,name:definition.label,position:{x:0,y:0},parameters:definition.createDefaultParameters({length:'m'})}],connections:[]}
@@ -76,6 +96,21 @@ describe('reusable engineering node shell', () => {
     expect(container.textContent).not.toContain('Connected')
     expect(pier.data.outputs?.candidates).toBeUndefined()
     expect(pier.data.connectedInputs?.width?.value).toMatchObject({ value: 3, quantityKind: 'length', unit: 'm' })
+  })
+
+  it.each([
+    ['substructure.pier.circular', 'Diameter', 'DValue', 2],
+    ['substructure.pier.rectangular', 'B - Transverse', 'BValue', 3],
+    ['substructure.pier.box', 'B - Transverse', 'BValue', 3],
+    ['substructure.pier.h_section', 'Overall Width', 'BValue', 3],
+  ])('projects %s local lengths through the active project unit', (type, label, _parameter, canonical) => {
+    const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === type)!
+    const graph: SpanovaGraph = { id: `units-${type}`, name: 'units', schemaVersion: 1, nodes: [{ id: 'pier', type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'cm' }) }], connections: [] }
+    const { container, rerender } = render(<ReactFlowProvider><EngineeringNodeShell data={toReactFlowNodes(graph, { projectUnits: { length: 'cm' }, onParameterChange: vi.fn() })[0].data} selected={false} definition={definition} /></ReactFlowProvider>)
+    expect(container.querySelector(`input[aria-label="${label} local default"]`)).toHaveValue(String(canonical * 100))
+    const data = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() })[0].data
+    rerender(<ReactFlowProvider><EngineeringNodeShell data={data} selected={false} definition={definition} /></ReactFlowProvider>)
+    expect(container.querySelector(`input[aria-label="${label} local default"]`)).toHaveValue(String(canonical))
   })
 
   it('shows grouped bearing inputs and the resolved stiffness range instead of its source name',()=>{

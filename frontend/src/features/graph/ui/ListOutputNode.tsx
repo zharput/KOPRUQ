@@ -2,8 +2,8 @@
 import { Handle, Position } from '@xyflow/react'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import type { GraphValue, PierCandidate, PierCapCandidate, FoundationCandidate, BearingCandidate } from '../domain/types'
-import { formatQuantity, toDisplayValue, unitsForKind, type PhysicalDimension, type QuantityKind } from '../domain/quantities'
-import { getNodeTheme } from '../domain/nodeVisualThemes'
+import { formatDisplayValue, formatQuantity, unitsForKind, type QuantityKind } from '../domain/quantities'
+import { getNodeHeaderStyle, getNodeTheme } from '../domain/nodeVisualThemes'
 
 export default function ListOutputNode({ data, selected }: { data: FlowGraphNode['data']; selected: boolean }) {
   const stale = data.isDirty && data.previewValue === undefined
@@ -20,7 +20,7 @@ export default function ListOutputNode({ data, selected }: { data: FlowGraphNode
   const currentPage = Math.min(page, pageCount - 1)
   const toggle = (key: string) => setExpanded(current => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next })
   return <div className={`spn-graph-node spn-graph-list-node ${getNodeTheme('OUTPUT').className}${selected ? ' is-selected' : ''}${data.executionState === 'error' ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''}${data.isDirty ? ' is-dirty' : ''}`}>
-    <header className="spn-graph-node-title"><span>List</span><small>OUTPUT</small></header>
+    <header className="spn-graph-node-title" style={getNodeHeaderStyle('OUTPUT')}><span>List</span><small>OUTPUT</small></header>
     <div className="spn-graph-list-heading">{value === undefined ? emptyMessage : `${items.length} item${items.length === 1 ? '' : 's'}${data.isDirty ? ' / DIRTY' : ''}`}</div>
     <div className="spn-graph-list-items" role="list" aria-label="List items">
       {items.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((item, offset) => {
@@ -64,14 +64,11 @@ function summarizeBearing(candidate:BearingCandidate,units?:FlowGraphNode['data'
 function summarizeGirder(candidate: any,units?:FlowGraphNode['data']['projectUnits']){const g=candidate.geometry;return `${candidate.girderType} Girder ${Object.entries(g).map(([k,v])=>`${k}=${formatLength(Number(v),units)}`).join(' ')} Material ${candidate.material?.name??'INCOMPLETE'}`}
 function girderDetails(candidate:any,units?:FlowGraphNode['data']['projectUnits']):[string,string][]{return [...Object.entries(candidate.geometry).map(([k,v])=>[k,formatLength(Number(v),units)] as [string,string]),['Section Type',candidate.sectionType],['Material',candidate.material?.name??'INCOMPLETE'],['Preferred Span',formatLength(candidate.preferredSpan,units)]]}
 function bearingDetails(candidate:BearingCandidate,units?:FlowGraphNode['data']['projectUnits']):[string,string][]{const g=candidate.geometry,s=candidate.stiffness;return [['Type','Elastomeric Bearing'],['Length X',formatLength(g.lengthX,units)],['Width Y',formatLength(g.widthY,units)],['Total Height',formatLength(g.totalHeight,units)],['Kx',formatStiffness(s.kx,'translationalStiffness',units)],['Ky',formatStiffness(s.ky,'translationalStiffness',units)],['Kz',formatStiffness(s.kz,'translationalStiffness',units)],['Krx',formatStiffness(s.krx,'rotationalStiffness',units)],['Kry',formatStiffness(s.kry,'rotationalStiffness',units)],['Krz',formatStiffness(s.krz,'rotationalStiffness',units)]]}
-function formatStiffness(value:number,kind:QuantityKind,units?:FlowGraphNode['data']['projectUnits']){return Number(toDisplayValue(value,dimensionForKind(kind),units).toPrecision(10)).toString()}
+function formatStiffness(value:number,kind:QuantityKind,_units?:FlowGraphNode['data']['projectUnits']){return `${value.toFixed(0)} ${kind==='translationalStiffness'?'kN/m':'kN·m/rad'}`}
 function pierDetails(candidate: PierCandidate, units?: FlowGraphNode['data']['projectUnits']): [string, string][] {
   return [...Object.entries(candidate.geometry).map(([key, value]) => [key, formatLength(value, units)] as [string, string]), ['Height', formatLength(candidate.heightM, units)], ['Columns', String(candidate.columnCount)], ['Material', candidate.material.name]]
 }
-function formatLength(value: number, units?: FlowGraphNode['data']['projectUnits']) {
-  return Number(toDisplayValue(value,'Length',units).toPrecision(10)).toString()
-}
-function dimensionForKind(kind:QuantityKind):PhysicalDimension{return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string,PhysicalDimension>)[kind]??'Dimensionless'}
+function formatLength(value: number, units?: FlowGraphNode['data']['projectUnits']) { return formatDisplayValue(value,'Length',units) }
 function formatValue(value: GraphValue, units?: FlowGraphNode['data']['projectUnits']): string {
   if (typeof value === 'number') return String(value)
   if (typeof value === 'string' || typeof value === 'boolean') return String(value)

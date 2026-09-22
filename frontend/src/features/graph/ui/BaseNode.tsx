@@ -2,14 +2,14 @@
 import type { GraphParameterValue, SpanovaNode } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { getNodeDefinition } from '../registry/nodeRegistry'
-import { convertQuantity, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type QuantityKind } from '../domain/quantities'
+import { convertQuantity, formatDisplayValue, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type QuantityKind } from '../domain/quantities'
 import type { GraphValue } from '../domain/types'
 import EngineeringNodeShell from './EngineeringNodeShell'
 import EditableNumericInput from './EditableNumericInput'
 import ListOutputNode from './ListOutputNode'
 import { EN_CONCRETE_CLASS_IDS, STRUCTURAL_STEEL_OPTIONS } from '../../materials/model/materialCatalog'
 import CanvasSelect from './CanvasSelect'
-import { getNodeCategoryLabel, getNodeTheme } from '../domain/nodeVisualThemes'
+import { getNodeCategoryLabel, getNodeHeaderStyle, getNodeThemeForType } from '../domain/nodeVisualThemes'
 
 export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   const node = data.node, definition = getNodeDefinition(node.type)
@@ -17,8 +17,8 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   if (definition.category === 'SUBSTRUCTURE' || definition.category === 'STRUCTURAL_FAMILY') return <EngineeringNodeShell data={data} selected={selected} definition={definition} />
   if (node.type === 'output.list') return <ListOutputNode data={data} selected={selected} />
   const stateClass = data.isDirty ? ' is-dirty' : data.executionState === 'error' || data.executionError ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''
-  return <div className={`spn-graph-node ${getNodeTheme(definition.category).className}${node.type === 'material.concrete' ? ' spn-graph-material-node' : ''}${node.type === 'input.range' ? ' spn-graph-range-node' : ''}${selected ? ' is-selected' : ''}${stateClass}`}>
-    <div className="spn-graph-node-title"><span>{node.type === 'input.length' ? `${definition.label} (${data.projectUnits?.length ?? 'm'})` : definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></div>
+  return <div className={`spn-graph-node ${getNodeThemeForType(definition.category, node.type).className}${node.type === 'material.concrete' ? ' spn-graph-material-node' : ''}${node.type === 'input.range' ? ' spn-graph-range-node' : ''}${selected ? ' is-selected' : ''}${stateClass}`}>
+    <div className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, node.type)}><span>{node.type === 'input.length' ? `${definition.label} (${data.projectUnits?.length ?? 'm'})` : definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></div>
     <div className="spn-graph-node-content" style={{ minHeight: Math.max(48, definition.inputs.length * 25 + 30, definition.outputs.length * 25 + 30) + (node.type === 'input.range' ? 34 : 0) }}>
       {definition.category === 'INPUT' && node.type !== 'input.range' && node.type !== 'input.integer-list' && <InlineValue nodeId={node.id} type={node.type} value={node.parameters.value} onChange={data.onParameterChange} />}
       {node.type === 'input.length' && <LengthNodeEditor node={node} units={data.projectUnits} onParameterChange={data.onParameterChange} />}
@@ -72,7 +72,7 @@ function watchDisplay(data: FlowGraphNode['data'], formatValue: (value: GraphVal
 }
 function format(value: GraphValue, units?: FlowGraphNode['data']['projectUnits']): string { if(Array.isArray(value)){if(value.every(item=>typeof item==='object'&&item!==null&&'quantityKind'in item)){const quantities=value as import('../domain/quantities').EngineeringQuantity[];return `${quantities.slice(0,5).map(item=>Number(toDisplayValue(item.value,dimensionForKind(item.quantityKind),units).toPrecision(10)).toString()).join(', ')}${quantities.length>5?` ... (${quantities.length} items)`:''}`}return `[${value.slice(0,5).map(item=>format(item,units)).join(', ')}${value.length>5?', ...':''}]${value.length>5?` (${value.length} items)`:''}`}if(typeof value==='object'&&value!==null&&'quantityKind'in value)return Number(toDisplayValue(value.value,dimensionForKind(value.quantityKind),units).toPrecision(10)).toString();if(typeof value==='object'&&value!==null&&'domainType'in value)return `${value.domainType.replace('Material','')} ${value.name}`;if(typeof value==='object'&&value!==null&&'clearEdgeCantileverLeft'in value)return Number(toDisplayValue(value.clearEdgeCantileverLeft,'Length',units).toPrecision(10)).toString();return String(value) }
 function dimensionForKind(kind: QuantityKind): PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, PhysicalDimension>)[kind] ?? 'Dimensionless' }
-function quantityDisplay(value:number,kind:QuantityKind,unit:string,units:FlowGraphNode['data']['projectUnits']) { const canonical=getUnit(unit)?.toCanonical(value) ?? value; return Number(toDisplayValue(canonical,dimensionForKind(kind),units).toPrecision(10)).toString() }
+function quantityDisplay(value:number,kind:QuantityKind,unit:string,units:FlowGraphNode['data']['projectUnits']) { const canonical=getUnit(unit)?.toCanonical(value) ?? value; return formatDisplayValue(canonical,dimensionForKind(kind),units) }
 function displayLength(value: GraphParameterValue | undefined, units: FlowGraphNode['data']['projectUnits']) {
   const numeric = Number(value)
   if (!Number.isFinite(numeric)) return value

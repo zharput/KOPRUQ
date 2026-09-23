@@ -18,7 +18,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
   const displayedCandidateCount = candidates === undefined ? data.previewCandidateCount ?? candidateCount : candidateCount
   const generated = data.outputs?.generatedCombinations ?? data.previewGeneratedCombinations
   const invalid = data.outputs?.invalidCombinations ?? data.previewInvalidCombinations
-  return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''}${data.node.type.startsWith('substructure.foundation.') ? ' foundation-palette' : ''} category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
+  return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''}${data.node.type.startsWith('substructure.foundation.') ? ' foundation-palette' : ''}${data.node.type.startsWith('structural.girder.') ? ' girder-error-palette' : ''}${data.node.type === 'structural.superstructure' ? ' superstructure-error-palette' : ''} category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
     <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span title={definition.label}><NodeIcon type={data.node.type} />{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
     <div className="spn-engineering-inputs">
       {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow key={`${port.id}:${data.projectUnitsKey}`} port={port} definition={definition} data={data} /></Fragment>)}
@@ -33,8 +33,8 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
       </div>)}
     </div>
     {data.executionError && (data.node.type.startsWith('substructure.foundation.') || data.node.type.startsWith('substructure.bearing.')) && typeof generated==='number' ? <div className="spn-engineering-node-footer">{generated.toLocaleString()} raw combinations / limit 10,000</div> : typeof generated === 'number' && <div className="spn-engineering-node-footer">{generated} generated / {typeof invalid === 'number' ? invalid : 0} invalid / {displayedCandidateCount} valid</div>}
-    {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
-    {(data.isDirty || data.executionState !== 'idle') && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
+    {data.executionError && <div className="spn-graph-node-error-message" style={{ backgroundColor: data.node.type.startsWith('structural.girder.') ? '#ffffff' : data.node.type === 'structural.superstructure' ? '#fff1eb' : undefined }} title={data.executionError}>{data.executionError}</div>}
+    {(data.isDirty || (data.executionState !== 'idle' && !data.executionError)) && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
   </div>
 }
 function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; const shown=typeof e==='number'?Number(toDisplayValue(e,'Length',data.projectUnits).toPrecision(10)).toString():'—'; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{shown}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
@@ -63,7 +63,8 @@ export function AssemblyNodeShell({ data, selected, definition }: { data: FlowGr
       <span className="spn-engineering-output-value">{count} assembly</span>
       <Handle type="source" position={Position.Right} id="assembly" isConnectable title="Bridge Assembly" />
     </div>
-    {(data.isDirty || data.executionState !== 'idle') && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
+    {data.executionError && <div className="spn-assembly-error-row" title={data.executionError}>{data.executionError}<span>ERROR</span></div>}
+    {(data.isDirty || (data.executionState !== 'idle' && !data.executionError)) && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
   </div>
 }
 void AbutmentNodeShell

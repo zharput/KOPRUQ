@@ -1958,6 +1958,111 @@
 .spn-graph-node.category-foundation .spn-engineering-output-row,
 .spn-graph-node.category-foundation .spn-engineering-derived { border-color: #e9d5c1 !important; }
 .spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1 !important; background: #f4eae0 !important; }
+
+/* Girder error rows must use the same white body as the input area. */
+.spn-engineering-node .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+.spn-engineering-node.category-superstructure .spn-graph-node-error-message,
+.spn-engineering-node.superstructure-error-palette .spn-graph-node-error-message {
+  background: #fff1eb !important;
+  background-color: #fff1eb !important;
+}
+
+/* Final girder error-row override: match the visible node body. */
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+/* Final girder error-row override: match the visible node body. */
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  color: #7f1d2d !important;
+}
+.spn-graph-node.superstructure-error-palette.superstructure-error-palette .spn-graph-node-error-message {
+  background: #fff1eb !important;
+  color: #7f1d2d !important;
+}
+
+.spn-graph-node.category-girder .spn-graph-node-error-message { background: #ffffff !important; background-color: #ffffff !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-error-message { background: #fff1eb !important; }
+.spn-assembly-graph-node .spn-assembly-error-row { background: #f2f2f2 !important; }
+
+/* Execution errors use the node body color for their row; keep the warning readable in burgundy. */
+.spn-graph-node.category-girder .spn-graph-node-error-message,
+.spn-graph-node.category-superstructure .spn-graph-node-error-message {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 12px;
+  background: #ffffff !important;
+  color: #7f1d2d !important;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.spn-graph-node.category-superstructure .spn-graph-node-error-message,
+.spn-graph-node.superstructure-error-palette .spn-graph-node-error-message {
+  background: #fff1eb !important;
+  background-color: #fff1eb !important;
+}
+.spn-assembly-graph-node {
+  padding-bottom: 0 !important;
+}
+.spn-assembly-error-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  box-sizing: border-box;
+  margin-top: 2px;
+  padding: 7px 14px;
+  background: inherit;
+  color: #7f1d2d;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.spn-assembly-error-row span {
+  flex: 0 0 auto;
+  color: #7f1d2d;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+/* Inspector engineering schematics: neutral light-gray geometry and UI typography. */
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg path,
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg rect,
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg polygon,
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg circle,
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg ellipse {
+  fill: #d9d9d9 !important;
+  stroke: #6f7b89 !important;
+}
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg line,
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg polyline {
+  fill: none !important;
+  stroke: #6f7b89 !important;
+}
+.spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg text {
+  fill: #404040 !important;
+  color: #404040 !important;
+  stroke: none !important;
+  font-family: 'Segoe UI', sans-serif !important;
+  font-size: 10px !important;
+}
 .spn-graph-node.foundation-palette,
 .spn-graph-node.foundation-palette[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border: 1px solid #f5eae1 !important; }
 .spn-graph-node.foundation-palette .spn-graph-node-title { background: #f5eae1 !important; background-color: #f5eae1 !important; border-bottom: 1px solid #f5eae1 !important; }
@@ -2036,6 +2141,25 @@
 .spn-abutment-node.spn-abutment-node.spn-abutment-node { background: #ffffff !important; background-color: #ffffff !important; }
 .spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-node-state,
 .spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-inspector-warning { border-top: 0 !important; }
+.spn-graph-node svg path,
+.spn-graph-node svg rect,
+.spn-graph-node svg polygon,
+.spn-graph-node svg circle,
+.spn-graph-node svg ellipse,
+.spn-graph-node svg line { fill: #d9d9d9; stroke: #6f7b89; }
+.spn-graph-node svg text,
+.spn-graph-node .engineering-dimension,
+.spn-graph-node .spn-graph-schematic-label { fill: #404040; color: #404040; font-family: var(--spn-ui-font-family) !important; font-size: 10px !important; }
+.spn-graph-node svg .axis,
+.spn-graph-node svg .dimension-line { stroke: #6f7b89; fill: none; }
+.spn-graph-inspector .spn-engineering-schematic svg path,
+.spn-graph-inspector .spn-engineering-schematic svg rect,
+.spn-graph-inspector .spn-engineering-schematic svg polygon,
+.spn-graph-inspector .spn-engineering-schematic svg circle,
+.spn-graph-inspector .spn-engineering-schematic svg ellipse { fill: #d9d9d9 !important; stroke: #6f7b89 !important; }
+.spn-graph-inspector .spn-engineering-schematic svg line,
+.spn-graph-inspector .spn-engineering-schematic svg polyline { fill: none !important; stroke: #6f7b89 !important; }
+.spn-graph-inspector .spn-engineering-schematic svg text { fill: #404040 !important; color: #404040 !important; font-family: 'Segoe UI' !important; font-size: 10px !important; }
 .spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-category-heading { background: #ffffcc !important; background-color: #ffffcc !important; border-color: #e2df9a !important; color: #404040 !important; }
 .spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-item { background: #ffffcc !important; background-color: #ffffcc !important; border-color: #e2df9a !important; color: #404040 !important; }
 .spn-graph-library-group.category-output.category-output.category-output .spn-node-icon { color: #6b7040; }

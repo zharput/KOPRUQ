@@ -30,12 +30,41 @@ describe('Foundation graph node contracts',()=>{
 })
 
 describe('Precast girder live preview contract', () => {
+  it.each([
+    ['m', 1.9, 1.5, 0.2],
+    ['cm', 190, 150, 20],
+    ['mm', 1900, 1500, 200],
+  ] as const)('creates precast defaults in the selected length unit (%s)', (unit, height, flange, web) => {
+    const definition = getNodeDefinition('structural.girder.precast')!
+    expect(definition.createDefaultParameters({ length: unit })).toMatchObject({ HValue: height, HUnit: unit, tfValue: flange, tfUnit: unit, wValue: web, wUnit: unit })
+  })
+
   it('generates the default geometric candidate before RUN with the full section geometry', () => {
     const definition = getNodeDefinition('structural.girder.precast')!
     const node = { id: 'g', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'm' }) }
     const preview = previewDesignOutput(node, 'candidates', {}) as unknown[]
     expect(preview).toHaveLength(1)
     expect(preview[0]).toMatchObject({ geometry: { H: 1.9, tf: 1.5, bf: 0.8, w: 0.2, th1: 0.12, th2: 0.1, bh1: 0.28, bh2: 0.15 }, material: { id: 'C40/50' } })
+  })
+})
+
+describe('Steel girder unit-aware defaults', () => {
+  it.each([
+    ['m', 2.5, 0.04, 0.02],
+    ['cm', 250, 4, 2],
+    ['mm', 2500, 40, 20],
+  ] as const)('creates steel defaults in the selected length unit (%s)', (unit, height, flangeThickness, webThickness) => {
+    const definition = getNodeDefinition('structural.girder.steel')!
+    expect(definition.createDefaultParameters({ length: unit })).toMatchObject({ HValue: height, HUnit: unit, ttfValue: flangeThickness, ttfUnit: unit, twValue: webThickness, twUnit: unit })
+  })
+
+  it('keeps default physical geometry invariant across units during preview', () => {
+    const definition = getNodeDefinition('structural.girder.steel')!
+    const metre = { id: 'm', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'm' }) }
+    const millimetre = { ...metre, id: 'mm', parameters: definition.createDefaultParameters({ length: 'mm' }) }
+    const mCandidate = (previewDesignOutput(metre, 'candidates', {}) as any[])[0]
+    const mmCandidate = (previewDesignOutput(millimetre, 'candidates', {}) as any[])[0]
+    expect(mmCandidate.geometry).toEqual(mCandidate.geometry)
   })
 })
 

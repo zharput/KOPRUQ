@@ -108,12 +108,22 @@ describe('canvas port labels and structural family theme', () => {
     expect(container.querySelector('.spn-graph-port-row small')).toBeNull()
   })
 
-  it.each(['math.add', 'math.subtract', 'math.multiply', 'math.divide'])('%s shows port names without numeric labels', (type) => {
+  it.each([
+    ['math.add', ['a', 'b']],
+    ['math.subtract', ['a', 'b']],
+    ['math.multiply', ['a', 'b']],
+    ['math.divide', ['a', 'b']],
+  ] as const)('%s shows registry input labels and preserves handles', (type, inputIds) => {
     const { container } = renderCanvasNode(type)
     expect(screen.getByText('A')).toBeInTheDocument()
     expect(screen.getByText('B')).toBeInTheDocument()
     expect(screen.queryByText('Result')).not.toBeInTheDocument()
+    const inputRows = [...container.querySelectorAll('.spn-graph-port-row.input')]
+    expect(inputRows).toHaveLength(2)
+    expect(inputRows.map(row => row.querySelector('.react-flow__handle')?.getAttribute('data-handleid'))).toEqual(inputIds)
+    expect(inputRows.map(row => row.querySelector('span')?.textContent)).toEqual(['A', 'B'])
     expect(container.querySelector('.spn-graph-port-row small')).toBeNull()
+    expect(container.querySelectorAll('.spn-graph-port-row.output .react-flow__handle')).toHaveLength(1)
   })
 
   it.each(['input.number', 'input.integer', 'input.boolean', 'input.quantity', 'input.range', 'math.add', 'math.subtract', 'math.multiply', 'math.divide'])('%s renders a shared, absolutely anchored output handle after its label', type => {

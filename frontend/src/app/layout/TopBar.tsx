@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
 import { Bell, Search, UserCircle } from 'lucide-react'
-import ThemeToggle from '../../shared/ui/ThemeToggle'
 import type { SectionId } from '../navigation/sections'
 import { SIDEBAR_GROUPS, WORKING_SECTIONS } from '../navigation/sections'
 
@@ -41,7 +40,6 @@ export default function TopBar() {
           <Search size={15} strokeWidth={1.75} />
           <span>Search</span>
         </div>
-        <ThemeToggle />
         <button type="button" className="spn-icon-button" aria-label="Notifications">
           <Bell size={17} strokeWidth={1.75} />
         </button>

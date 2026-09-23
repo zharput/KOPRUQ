@@ -25,9 +25,12 @@
   --sidebar-bg: #10141c;
 
   --sans: 'Segoe UI', system-ui, Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  --mono: 'Segoe UI';
+  --spn-ui-font-family: var(--sans);
+  --spn-parameter-font-size: 10px;
+  --spn-parameter-line-height: 1.25;
 
-  font: 15px/1.5 var(--sans);
+  font: 15px/1.5 var(--spn-ui-font-family);
   color-scheme: dark;
   color: var(--text-secondary);
   background: var(--bg-page);

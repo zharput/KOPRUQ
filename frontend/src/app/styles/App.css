@@ -11,7 +11,7 @@
 .spn-workspace-brand img { display: block; width: 168px; height: 50px; object-fit: contain; object-position: left center; }
 .spn-workspace-nav-items { display: flex; align-items: stretch; min-width: 0; overflow-x: auto; scrollbar-width: none; }
 .spn-workspace-nav-items::-webkit-scrollbar { display: none; }
-.spn-workspace-nav-item { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: max-content; padding: 0 15px; border-bottom: 2px solid transparent; color: #aab6c9; text-decoration: none; font-size: 12px; transition: color .12s ease, background .12s ease; }
+.spn-workspace-nav-item { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: max-content; padding: 0 15px; border-bottom: 2px solid transparent; color: #aab6c9; text-decoration: none; font-size: 14px; transition: color .12s ease, background .12s ease; }
 .spn-workspace-nav-item:hover { color: #f1f5fb; background: rgba(255,255,255,.035); }
 .spn-workspace-nav-item.active { color: #f5f8ff; background: rgba(42,112,230,.16); border-bottom-color: #4387ff; }
 .spn-workspace-nav-item.active svg { color: #70a6ff; }
@@ -21,7 +21,7 @@
 .spn-main { min-height: 0; }
 .spn-content { min-height: 0; }
 
-.spn-workspace-layout { --workspace-left: 248px; --workspace-right: 320px; display: grid; grid-template-columns: var(--workspace-left) minmax(0,1fr) var(--workspace-right); grid-template-rows: minmax(0,1fr); flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; border-top: 1px solid var(--border); }
+.spn-workspace-layout { --workspace-left: 248px; --workspace-right: 370px; display: grid; grid-template-columns: var(--workspace-left) minmax(0,1fr) var(--workspace-right); grid-template-rows: minmax(0,1fr); flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; border-top: 1px solid var(--border); }
 .spn-workspace-layout.left-collapsed { --workspace-left: 42px; }
 .spn-workspace-layout.right-collapsed { --workspace-right: 42px; }
 .spn-workspace-side { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--surface-1); }
@@ -310,7 +310,10 @@
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 13.5px;
+  font-family: var(--spn-ui-font-family);
+  font-size: 10px;
+  line-height: var(--spn-parameter-line-height);
+  font-weight: 400;
   text-align: left;
   cursor: pointer;
 }
@@ -1428,6 +1431,7 @@
 .spn-graph-port-row.input { left: -8px; transform: translateY(-50%); }
 .spn-graph-port-row.output { right: -8px; justify-content: flex-end; transform: translateY(-50%); }
 .spn-graph-port-row.input span { padding-left: 7px; }
+.spn-graph-node.category-math .spn-graph-port-row.input span { padding-left: 20px; color: var(--spn-node-body-text); }
 .spn-graph-port-row.output span { padding-right: 11px; }
 .spn-graph-port-row small { color: #718099; font-size: 8px; }
 .spn-graph-port-row .react-flow__handle { position: absolute; top: 50%; width: var(--spn-node-handle-size); height: var(--spn-node-handle-size); box-sizing: border-box; border: var(--spn-node-handle-border); background: var(--spn-node-handle-background); transform: translateY(-50%); }
@@ -1461,42 +1465,6 @@
 .spn-graph-node-state { position: absolute; right: 7px; bottom: 4px; color: #68768a; font-size: 7px; letter-spacing: .08em; }
 .spn-graph-node-error-message { max-width: 178px; margin: 6px 0 10px; color: #e39498; font-size: 8px; white-space: normal; }
 
-/* Phase 3B.2E: category identity stays separate from execution status and edge data type. */
-:root {
-  --node-input-accent:#5798ed;--node-input-border:#38577c;--node-input-header:rgba(87,152,237,.18);--node-input-text:#85b7f4;
-  --node-math-accent:#D7FFAF;--node-math-border:#485667;--node-math-header:#D7FFAF;--node-math-text:#000000;
-  --node-material-accent:#39b7a8;--node-material-border:#28675f;--node-material-header:rgba(57,183,168,.17);--node-material-text:#70d0c1;
-  --node-geometry-accent:#39b7d2;--node-geometry-border:#286678;--node-geometry-header:rgba(57,183,210,.16);--node-geometry-text:#72d2e4;
-  --node-superstructure-accent:#63b887;--node-superstructure-border:#356a4b;--node-superstructure-header:rgba(99,184,135,.16);--node-superstructure-text:#8bd4a8;
-  --node-substructure-accent:#a68ae3;--node-substructure-border:#5a4d80;--node-substructure-header:rgba(166,138,227,.17);--node-substructure-text:#c0a9f0;
-  --node-load-accent:#c47690;--node-load-border:#704553;--node-load-header:rgba(196,118,144,.16);--node-load-text:#dc9bad;
-  --node-analysis-accent:#8299b2;--node-analysis-border:#4c5c6d;--node-analysis-header:rgba(130,153,178,.16);--node-analysis-text:#a9bdd2;
-  --node-design-accent:#8798e1;--node-design-border:#4e5988;--node-design-header:rgba(135,152,225,.16);--node-design-text:#aebbf0;
-  --node-optimization-accent:#d59b55;--node-optimization-border:#77572f;--node-optimization-header:rgba(213,155,85,.16);--node-optimization-text:#e7b875;
-  --node-output-accent:#a690df;--node-output-border:#5c5080;--node-output-header:rgba(166,144,223,.16);--node-output-text:#c2b1f1;
-}
-.spn-graph-library-group.category-input{--node-text:var(--node-input-text)}
-.spn-graph-library-group.category-math{--node-text:var(--node-math-text)}
-.spn-graph-library-group.category-materials{--node-text:var(--node-material-text)}
-.spn-graph-library-group.category-geometry{--node-text:var(--node-geometry-text)}
-.spn-graph-library-group.category-superstructure{--node-text:var(--node-superstructure-text)}
-.spn-graph-library-group.category-substructure{--node-text:var(--node-substructure-text)}
-.spn-graph-library-group.category-loads{--node-text:var(--node-load-text)}
-.spn-graph-library-group.category-analysis{--node-text:var(--node-analysis-text)}
-.spn-graph-library-group.category-design{--node-text:var(--node-design-text)}
-.spn-graph-library-group.category-optimization{--node-text:var(--node-optimization-text)}
-.spn-graph-library-group.category-output{--node-text:var(--node-output-text)}
-.spn-graph-node.category-input{--node-accent:var(--node-input-accent);--node-border:var(--node-input-border);--node-header:var(--node-input-header);--node-text:var(--node-input-text)}
-.spn-graph-node.category-math{--node-accent:var(--node-math-accent);--node-border:var(--node-math-border);--node-header:var(--node-math-header);--node-text:var(--node-math-text)}
-.spn-graph-node.category-materials{--node-accent:var(--node-material-accent);--node-border:var(--node-material-border);--node-header:var(--node-material-header);--node-text:var(--node-material-text)}
-.spn-graph-node.category-geometry{--node-accent:var(--node-geometry-accent);--node-border:var(--node-geometry-border);--node-header:var(--node-geometry-header);--node-text:var(--node-geometry-text)}
-.spn-graph-node.category-superstructure{--node-accent:var(--node-superstructure-accent);--node-border:var(--node-superstructure-border);--node-header:var(--node-superstructure-header);--node-text:var(--node-superstructure-text)}
-.spn-graph-node.category-substructure{--node-accent:var(--node-substructure-accent);--node-border:var(--node-substructure-border);--node-header:var(--node-substructure-header);--node-text:var(--node-substructure-text)}
-.spn-graph-node.category-loads{--node-accent:var(--node-load-accent);--node-border:var(--node-load-border);--node-header:var(--node-load-header);--node-text:var(--node-load-text)}
-.spn-graph-node.category-analysis{--node-accent:var(--node-analysis-accent);--node-border:var(--node-analysis-border);--node-header:var(--node-analysis-header);--node-text:var(--node-analysis-text)}
-.spn-graph-node.category-design{--node-accent:var(--node-design-accent);--node-border:var(--node-design-border);--node-header:var(--node-design-header);--node-text:var(--node-design-text)}
-.spn-graph-node.category-optimization{--node-accent:var(--node-optimization-accent);--node-border:var(--node-optimization-border);--node-header:var(--node-optimization-header);--node-text:var(--node-optimization-text)}
-.spn-graph-node.category-output{--node-accent:var(--node-output-accent);--node-border:var(--node-output-border);--node-header:var(--node-output-header);--node-text:var(--node-output-text)}
 .spn-graph-node[class*="category-"]{border-color:var(--spn-graph-node-border)}
 .spn-graph-node[class*="category-"] .spn-graph-node-title{border-top:0;border-bottom-color:var(--node-header)}
 .spn-graph-node[class*="category-"] .spn-graph-node-title small{color:var(--node-text)}
@@ -1589,9 +1557,9 @@
 .spn-engineering-schematic svg { width: 100%; max-width: 250px; height: 132px; overflow: visible; fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2.2; }
 .spn-engineering-schematic text { fill: var(--text-secondary); stroke: none; font: 10px var(--mono); }
 .spn-engineering-schematic > span { color: var(--text-muted); font-size: 11px; }
-.spn-engineering-parameter { display: grid; gap: 5px; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle, #334155); }
-.spn-engineering-parameter-label { color: var(--text-secondary); font-size: 12px; }
-.spn-engineering-controls { display: flex; align-items: center; gap: 6px; }
+.spn-engineering-parameter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 1.15fr); align-items: center; gap: 12px; min-width: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle, #334155); }
+.spn-engineering-parameter-label { min-width: 0; color: var(--spn-node-body-text); font-size: var(--graph-panel-body-font-size); line-height: 1.25; overflow-wrap: anywhere; }
+.spn-engineering-controls { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
 .spn-engineering-controls > * { min-width: 0; }
 .spn-engineering-controls .spn-input { flex: 1; font-size: 12px; }
 .spn-engineering-connected { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
@@ -1604,6 +1572,14 @@
 :root[data-theme='light'] { --spanova-edge-color:#A6A6A6; --spanova-node-body-bg:#ffffff; --node-input-header:#BFBFBF; --node-math-header:#FBCFE8; --node-material-header:#A6DEDE; --node-pier-header:#DBEAFE; --node-abutment-header:#E9D5FF; --node-cap-header:#A5F3FC; --node-foundation-header:#A7F3D0; --node-bearing-header:#FECACA; --node-girder-header:#FDE68A; --node-superstructure-header:#C00000; --node-bridge-header:#FBCFE8; --node-output-header:#DCFCE7; --node-header-text:#111111; }
 .spn-graph-node[class*="category-"] .spn-graph-node-title { background:var(--node-header); }
 .spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--spanova-edge-color) !important; }
+.spn-graph-node,
+.spn-graph-node .spn-graph-node-content,
+.spn-graph-node .spn-graph-port-row,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item,
+.spn-graph-node .spn-graph-node-range { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); }
+.spn-graph-node .spn-graph-node-title { font-family: var(--spn-ui-font-family); font-size: 11px; }
+.spn-graph-node .spn-graph-node-title small { font-family: var(--spn-ui-font-family); }
 :root { --node-math-header: #D7FFAF; --node-math-accent: #D7FFAF; }
 :root[data-theme='light'] { --node-math-header: #D7FFAF; --node-math-accent: #D7FFAF; }
 .spn-graph-library-group.category-input .spn-graph-library-category-heading { background:var(--node-input-header); }
@@ -1632,7 +1608,7 @@
 .spn-engineering-connected strong, .spn-engineering-family .spn-graph-inspector-row strong { font-size: var(--graph-panel-body-font-size); }
 .spn-engineering-connected small, .spn-general-parameter small { font-size: var(--graph-panel-secondary-font-size); }
 .spn-engineering-schematic { width: 100%; padding: 4px; }
-.spn-engineering-schematic svg { display: block; width: 100%; max-width: 100%; height: auto; overflow: visible; fill: none; stroke: none; }
+.spn-engineering-schematic svg { display: block; width: 100%; max-width: 100%; height: auto; overflow: visible; fill: none; stroke: none; font-family: var(--sans, system-ui, sans-serif); }
 .spn-engineering-schematic-single svg { max-height: 230px; }
 .spn-engineering-schematic-foundation svg { max-height: 410px; }
 .engineering-outline { fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: .9; vector-effect: non-scaling-stroke; }
@@ -1649,6 +1625,19 @@
 .engineering-centerline { fill: none; stroke: var(--graph-axis-color); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .engineering-schematic-single .engineering-dimension { font-size: 11px; }
 .engineering-dimension.is-compact { font-size: 10px; }
+:root { --graph-schematic-fill: #A6A6A6; --graph-schematic-stroke: #d8e0ec; --graph-schematic-text: #d8e0ec; }
+:root[data-theme='light'] { --graph-schematic-fill: #666666; --graph-schematic-stroke: #26364d; --graph-schematic-text: #26364d; }
+.spn-engineering-schematic .engineering-outline,
+.spn-engineering-schematic .engineering-pile,
+.spn-engineering-schematic .engineering-pile-section { fill: var(--graph-schematic-fill); stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-void { fill: var(--surface-1); stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-deck { stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-dimension-line,
+.spn-engineering-schematic .engineering-axis,
+.spn-engineering-schematic .engineering-centerline { stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-dimension,
+.spn-engineering-schematic .engineering-view-title,
+.spn-engineering-schematic .engineering-axis text { fill: var(--graph-schematic-text); }
 .engineering-schematic-foundation svg { max-height: 430px; }
 :root[data-theme='light'] .spn-workspace-nav { color: var(--text-primary); }
 :root[data-theme='light'] .spn-workspace-nav-item { color: var(--text-secondary); }
@@ -1735,4 +1724,550 @@
 .spn-graph-node > .react-flow__handle { width:var(--spn-node-handle-size); height:var(--spn-node-handle-size); box-sizing:border-box; border:var(--spn-node-handle-border); background:var(--spn-node-handle-background); }
 .spn-graph-list-node > .react-flow__handle { left: calc(-1 * (var(--spn-node-handle-size) / 2)); }
 .spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--spanova-edge-color) !important; }
+.spn-graph-node .spn-engineering-input-label,
+.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node .spn-engineering-local-value,
+.spn-graph-node .spn-engineering-output-label,
+.spn-graph-node .spn-engineering-output-value,
+.spn-graph-node .spn-graph-port-row,
+.spn-graph-node .spn-graph-editable-number,
+.spn-graph-node .spn-graph-inline-input,
+.spn-graph-node .spn-engineering-local-value input,
+.spn-graph-node .spn-canvas-select-trigger { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); }
+.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node .spn-engineering-output-value { font-weight: 400; }
+.spn-graph-inspector .spn-engineering-parameter-label,
+.spn-graph-inspector .spn-engineering-controls,
+.spn-graph-inspector .spn-engineering-controls .spn-input,
+.spn-graph-inspector .spn-engineering-connected strong,
+.spn-graph-inspector .spn-engineering-family .spn-graph-inspector-row,
+.spn-graph-inspector .spn-engineering-family .spn-graph-inspector-row strong,
+.spn-graph-inspector .spn-graph-editable-number { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); }
+.spn-graph-inspector,
+.spn-graph-inspector * { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); }
+.spn-graph-inspector h3,
+.spn-graph-inspector .spn-graph-inspector-section-title { font-size: 12px; }
+.spn-graph-library-category-heading,
+.spn-graph-library-category-heading span,
+.spn-graph-library-group h3 { font-family: var(--spn-ui-font-family); font-size: 12px; line-height: var(--spn-parameter-line-height); }
+.spn-graph-library-category-heading { justify-content: space-between; cursor: pointer; }
+.spn-graph-library-collapse-icon { margin-left: auto; font-size: 16px !important; font-weight: 700; line-height: 1; letter-spacing: 0; }
+.spn-graph-library-item,
+.spn-graph-library-item span { font-family: var(--spn-ui-font-family); font-size: 12px; line-height: var(--spn-parameter-line-height); font-weight: 400; }
+.spn-graph-inspector,
+.spn-graph-inspector * { font-size: 12px; }
+.spn-graph-inspector h3,
+.spn-graph-inspector .spn-graph-inspector-section-title { font-size: 12px; }
+.spn-graph-inspector .spn-engineering-controls .spn-input,
+.spn-graph-inspector .spn-engineering-controls input,
+.spn-graph-inspector .spn-engineering-controls select { font-weight: 400; }
+.spn-graph-inspector .spn-engineering-general > label,
+.spn-graph-inspector .spn-engineering-general > label > input,
+.spn-graph-inspector .spn-engineering-general .spn-input,
+.spn-graph-inspector .spn-graph-inspector-row,
+.spn-graph-inspector .spn-graph-inspector-row strong { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); font-weight: 400; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-input-label,
+.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node .spn-engineering-output-label,
+.spn-graph-node .spn-engineering-output-value,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-local-value,
+.spn-graph-node .spn-graph-editable-number,
+.spn-graph-node .spn-graph-inline-input,
+.spn-graph-node .spn-canvas-select-trigger,
+.spn-graph-inspector,
+.spn-graph-inspector label,
+.spn-graph-inspector label > input,
+.spn-graph-inspector label > select,
+.spn-graph-inspector .spn-graph-inspector-row,
+.spn-graph-inspector .spn-engineering-parameter-label,
+.spn-graph-inspector .spn-engineering-controls,
+.spn-graph-inspector .spn-engineering-controls .spn-input,
+.spn-graph-inspector .spn-graph-editable-number { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); }
 .spn-candidate-table-section{margin-top:12px}.spn-candidate-table-scroll{max-height:320px;overflow:auto;border:1px solid var(--spn-border,#39414d)}.spn-candidate-table{border-collapse:collapse;min-width:100%;font-size:11px;white-space:nowrap}.spn-candidate-table th,.spn-candidate-table td{padding:4px 6px;border-right:1px solid var(--spn-border,#39414d);border-bottom:1px solid var(--spn-border,#39414d)}.spn-candidate-table th{position:sticky;top:0;background:var(--spn-panel,#20252d);text-align:left;z-index:1}.spn-candidate-table td.is-numeric{text-align:right}.spn-candidate-table tbody tr{cursor:pointer}.spn-candidate-table tbody tr.is-selected{background:rgba(76,145,255,.2)}.spn-candidate-selection{display:block;margin-top:4px}.spn-graph-inspector-muted{color:var(--spn-muted,#9aa4b2);font-size:12px}
+.spn-graph-inspector,
+.spn-graph-inspector * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; }
+.spn-card,
+.spn-card input,
+.spn-card select,
+.spn-card option,
+.spn-card button,
+.spn-card label,
+.spn-card span,
+.spn-card p,
+.spn-card td,
+.spn-card th,
+.spn-card li,
+.spn-card .spn-pre,
+.spn-card .spn-formula-row,
+.spn-card .spn-formula-row * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; color: var(--text-secondary); }
+.spn-card input,
+.spn-card select,
+.spn-card option { color: var(--text-primary); }
+.spn-card,
+.spn-card * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; color: var(--text-secondary) !important; }
+.spn-card input,
+.spn-card select,
+.spn-card option { color: var(--text-primary) !important; }
+.spn-graph-inspector .spn-engineering-parameter { border-bottom: 0; }
+.spn-workspace-nav,
+.spn-workspace-nav *,
+.spn-workspace-side-left,
+.spn-workspace-side-left *,
+.spn-workspace-side-right,
+.spn-workspace-side-right * { font-family: var(--spn-ui-font-family) !important; color: var(--text-secondary); }
+.spn-workspace-nav-item { font-size: 14px !important; color: #aab6c9; }
+.spn-workspace-side-left,
+.spn-workspace-side-right,
+.spn-workspace-side-left *:not(svg),
+.spn-workspace-side-right *:not(svg) { font-size: 12px; }
+.spn-workspace-side-right .spn-graph-inspector,
+.spn-workspace-side-right .spn-graph-inspector * { color: inherit; }
+.spn-graph-node,
+.spn-graph-node * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; }
+.spn-node-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; width: 22px; height: 22px; margin-right: 6px; border-radius: 5px; vertical-align: middle; color: currentColor; }
+.spn-node-icon-input { background: #f0f3f7; color: #174a91; box-shadow: inset 0 0 0 1px rgba(23,74,145,.12); }
+.spn-node-more { margin-left: auto; color: #173f78; font-size: 16px !important; font-weight: 700; line-height: 1; letter-spacing: 1px; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) { background: #f7fbff; border-color: #b9d8f5; color: #19324f; box-shadow: 0 2px 8px rgba(47,123,246,.12); }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .spn-graph-node-title { background: #e8f4ff !important; border-bottom-color: #c6e1fa; color: #173f78; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .spn-graph-node-content { background: #f7fbff; color: #19324f; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .spn-graph-port-row { color: #294664; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) > .react-flow__handle,
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .react-flow__handle { border-color: #4b8edb; background: #f7fbff; }
+.spn-graph-node.category-materials { background: #f7fff9; border-color: #acd9bd; color: #245b38; box-shadow: 0 2px 8px rgba(47,145,82,.12); }
+.spn-graph-node.category-materials .spn-graph-node-title { background: #e4f7e9 !important; border-bottom-color: #c2e8cc; color: #287644; }
+.spn-graph-node.category-materials .spn-graph-node-content { background: #f7fff9; color: #245b38; }
+.spn-graph-node.category-materials .spn-graph-port-row { color: #326e49; }
+.spn-graph-node.category-materials > .react-flow__handle,
+.spn-graph-node.category-materials .react-flow__handle { border-color: #4a9b68; background: #f7fff9; }
+.spn-graph-node.category-materials .spn-node-icon { color: #2f8b4f; }
+.spn-graph-library-group.category-materials .spn-graph-library-category-heading { background: #dff4e5 !important; color: #2f8b4f !important; }
+.spn-graph-library-group.category-materials .spn-graph-library-item { background: #f7fff9; border-color: #c5e5ce; color: #245b38; }
+.spn-graph-library-group.category-materials .spn-node-icon { color: #2f8b4f; }
+.spn-graph-node.category-materials,
+.spn-graph-node.category-materials[class*="category-"] { border-color: #acd9bd !important; }
+.spn-graph-library-group.category-input .spn-graph-library-category-heading { background: #e8f4ff !important; color: #173f78 !important; border-color: #c6e1fa; }
+.spn-graph-library-group.category-input .spn-graph-library-item { background: #f7fbff; border-color: #b9d8f5; color: #294664; }
+.spn-graph-node.category-output,
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 !important; border-color: #e1cc72 !important; color: #5f511d; }
+.spn-graph-node.category-output .spn-graph-node-title,
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 !important; }
+.spn-graph-node.category-output .spn-graph-node-content,
+.spn-graph-library-group.category-output .spn-graph-library-item { background: #fff8d7; border-color: #e1cc72; color: #5f511d; }
+.spn-graph-node.category-output .react-flow__handle { border-color: #b99f32; background: #fff8d7; }
+.spn-graph-node.category-girder,
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 !important; border-color: #a9a9a9 !important; color: #3f4650; }
+.spn-graph-node.category-girder .spn-graph-node-title,
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 !important; }
+.spn-graph-node.category-girder .spn-graph-node-content,
+.spn-graph-library-group.category-girder .spn-graph-library-item { background: #eeeeee; border-color: #a9a9a9; color: #3f4650; }
+.spn-graph-node.category-girder .react-flow__handle { border-color: #858585; background: #eeeeee; }
+.spn-graph-node.category-bearing,
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa !important; border-color: #d9a9d9 !important; color: #633d63; }
+.spn-graph-node.category-bearing .spn-graph-node-title,
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa !important; }
+.spn-graph-node.category-bearing .spn-graph-node-content,
+.spn-graph-library-group.category-bearing .spn-graph-library-item { background: #fff7ff; border-color: #d9a9d9; color: #633d63; }
+.spn-graph-node.category-bearing .react-flow__handle { border-color: #b979b9; background: #fff7ff; }
+.spn-graph-node.category-cap,
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed !important; border-color: #9dcdd2 !important; color: #2e5d62; }
+.spn-graph-node.category-cap .spn-graph-node-title,
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed !important; }
+.spn-graph-node.category-cap .spn-graph-node-content,
+.spn-graph-library-group.category-cap .spn-graph-library-item { background: #f2fbfc; border-color: #9dcdd2; color: #2e5d62; }
+.spn-graph-node.category-cap .react-flow__handle { border-color: #68aeb6; background: #f2fbfc; }
+.spn-graph-node.category-foundation,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 !important; border-color: #a8a8a8 !important; color: #464646; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #eeeeee; border-color: #a8a8a8; color: #464646; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #858585; background: #eeeeee; }
+.spn-graph-node.category-superstructure,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; border-color: #d58a73 !important; color: #683326; }
+.spn-graph-node.category-superstructure .spn-graph-node-title,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-content,
+.spn-graph-library-group.category-superstructure .spn-graph-library-item { background: #fff1eb; border-color: #d58a73; color: #683326; }
+.spn-graph-node.category-superstructure .react-flow__handle { border-color: #b8664c; background: #fff1eb; }
+.spn-graph-node.category-foundation .spn-graph-node-title { background: #d9b38c !important; border-bottom-color: #bd8b5d !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived { background: #f8eadc !important; }
+.spn-graph-node.category-foundation .spn-engineering-derived { background: #f3e1cf !important; border-color: #bd8b5d !important; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-output-row,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item { border-color: var(--node-border, var(--spn-graph-node-border)) !important; }
+.spn-graph-node.category-input { --spn-divider-color: #b9d8f5; }
+.spn-graph-node.category-math { --spn-divider-color: #f0c98f; }
+.spn-graph-node.category-materials { --spn-divider-color: #acd9bd; }
+.spn-graph-node.category-pier { --spn-divider-color: #c3a5dc; }
+.spn-graph-node.category-cap { --spn-divider-color: #9dcdd2; }
+.spn-graph-node.category-abutment { --spn-divider-color: #58b858; }
+.spn-graph-node.category-foundation { --spn-divider-color: #bd8b5d; }
+.spn-graph-node.category-bearing { --spn-divider-color: #afc34e; }
+.spn-graph-node.category-girder { --spn-divider-color: #a9a9a9; }
+.spn-graph-node.category-superstructure { --spn-divider-color: #d58a73; }
+.spn-graph-node.category-bridge { --spn-divider-color: #a8a8a8; }
+.spn-graph-node.category-output { --spn-divider-color: #e2df9a; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-output-row,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item { border-color: var(--spn-divider-color) !important; }
+.spn-graph-node.category-bearing .spn-engineering-input-row,
+.spn-graph-node.category-bearing .spn-engineering-output-row,
+.spn-graph-node.category-bearing .spn-engineering-derived,
+.spn-graph-node.category-bearing .spn-engineering-outputs { border-color: #afc34e !important; }
+.spn-graph-node.category-abutment .spn-engineering-input-row,
+.spn-graph-node.category-abutment .spn-engineering-output-row,
+.spn-graph-node.category-abutment .spn-engineering-derived,
+.spn-graph-node.category-abutment .spn-engineering-outputs,
+.spn-graph-node.category-abutment .spn-abutment-section { border-color: #58b858 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 !important; border-color: #e9d5c1 !important; color: #60452d; }
+.spn-graph-node.category-foundation .spn-graph-node-title { background: #e9d5c1 !important; border-bottom-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f4eae0 !important; border-color: #e9d5c1 !important; color: #60452d; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1; background: #f4eae0; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-node.category-foundation .spn-engineering-outputs { border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #f4eae0 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f4eae0 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1 !important; background: #f4eae0 !important; }
+.spn-graph-node.foundation-palette,
+.spn-graph-node.foundation-palette[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border: 1px solid #f5eae1 !important; }
+.spn-graph-node.foundation-palette .spn-graph-node-title { background: #f5eae1 !important; background-color: #f5eae1 !important; border-bottom: 1px solid #f5eae1 !important; }
+.spn-graph-node.foundation-palette .spn-engineering-inputs,
+.spn-graph-node.foundation-palette .spn-engineering-outputs,
+.spn-graph-node.foundation-palette .spn-engineering-derived { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette .spn-engineering-input-row,
+.spn-graph-node.foundation-palette .spn-engineering-output-row,
+.spn-graph-node.foundation-palette .spn-engineering-derived { border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette .react-flow__handle { border-color: #f5eae1 !important; background: #fcf8f4 !important; background-color: #fcf8f4 !important; }
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-graph-node-title { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-inputs,
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-outputs,
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-derived { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-input-row,
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-output-row,
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-derived { border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette.foundation-palette.foundation-palette .react-flow__handle { border-color: #f5eae1 !important; background: #fcf8f4 !important; background-color: #fcf8f4 !important; }
+.spn-graph-library-group.category-foundation.category-foundation.category-foundation .spn-graph-library-category-heading { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-library-group.category-foundation.category-foundation.category-foundation .spn-graph-library-item { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-graph-node-title { background: #a8eca8 !important; background-color: #a8eca8 !important; border-bottom-color: #58b858 !important; }
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-input-row,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-output-row,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-derived,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-outputs,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-abutment-section { border-color: #58b858 !important; }
+.spn-graph-node.category-abutment.category-abutment.category-abutment,
+.spn-graph-node.category-abutment.category-abutment.category-abutment[class*="category-"] { border-color: #a8eca8 !important; }
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-graph-node-title,
+.spn-graph-library-group.category-abutment.category-abutment.category-abutment .spn-graph-library-category-heading { background: #a8eca8 !important; background-color: #a8eca8 !important; border-color: #a8eca8 !important; }
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-input-row,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-output-row,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-derived,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-outputs,
+.spn-graph-node.category-abutment.category-abutment.category-abutment .spn-abutment-section { border-color: #a8eca8 !important; }
+.spn-graph-node.category-abutment.category-abutment.category-abutment .react-flow__handle { border-color: #a8eca8 !important; }
+.spn-graph-library-group.category-abutment.category-abutment.category-abutment .spn-graph-library-item { background: #eaffea !important; background-color: #eaffea !important; border-color: #a8eca8 !important; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-output-row,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item { border-top: 0 !important; border-bottom: 0 !important; }
+.spn-graph-node .spn-engineering-outputs { border-top: 1px solid var(--spn-divider-color, var(--node-border)) !important; border-bottom: 0 !important; }
+.spn-graph-node .spn-engineering-output-row { border-top: 0 !important; border-bottom: 0 !important; }
+.spn-graph-node .spn-graph-node-title { border-bottom-color: var(--spn-divider-color, var(--node-border)) !important; }
+.spn-graph-node.spn-assembly-graph-node .spn-graph-node-title { border-bottom-color: #a8a8a8 !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-title { border-bottom-color: #d58a73 !important; color: #683326 !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-title > span,
+.spn-graph-node.category-superstructure .spn-graph-node-title small { color: #683326 !important; }
+.spn-graph-node.category-cap .spn-engineering-outputs { background: #f2fbfc !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-output-row,
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-derived,
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-abutment-section,
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-list-item { border-top: 0 !important; border-bottom: 0 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-outputs { border-top: 1px solid var(--spn-divider-color, var(--node-border)) !important; border-bottom: 0 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title { border-bottom: 1px solid var(--spn-divider-color, var(--node-border)) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-assembly-graph-node .spn-graph-node-title { border-bottom-color: #a8a8a8 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-superstructure .spn-graph-node-title { border-bottom-color: #d58a73 !important; color: #683326 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-superstructure .spn-graph-node-title > span,
+.spn-graph-node.spn-graph-node.spn-graph-node.category-superstructure .spn-graph-node-title small { color: #683326 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-outputs { background: #f2fbfc !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-abutment .spn-engineering-group-heading { border-top: 0 !important; border-bottom: 0 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-abutment .spn-abutment-section { border-top: 0 !important; border-bottom: 0 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-outputs { background: inherit !important; background-color: inherit !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-outputs,
+.spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-node-footer { background: #ffffff !important; background-color: #ffffff !important; }
+.spn-assembly-graph-node .spn-assembly-centered-output { position: relative; top: auto; right: auto; bottom: auto; display: flex; align-items: center; justify-content: flex-end; min-height: 32px; max-width: none; margin: 8px 14px 4px; padding: 6px 10px; transform: none; }
+.spn-assembly-graph-node .spn-assembly-centered-output .react-flow__handle { right: -20px; width: var(--spn-node-handle-size); height: var(--spn-node-handle-size); box-sizing: border-box; border: var(--spn-node-handle-border); }
+.spn-abutment-node { padding-bottom: 30px; }
+.spn-abutment-node .spn-graph-inspector-warning { position: absolute; right: 0; bottom: -28px; left: 0; min-height: 22px; box-sizing: border-box; padding: 5px 12px; border-top: 1px solid #a8eca8; background: #ffffff !important; background-color: #ffffff !important; color: #c45b5b; font-size: 10px; line-height: 1.2; }
+.spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-node-state { background: #ffffff !important; background-color: #ffffff !important; border-top: 1px solid #a8eca8; color: #68768a; }
+.spn-abutment-node.spn-abutment-node.spn-abutment-node { background: #ffffff !important; background-color: #ffffff !important; }
+.spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-node-state,
+.spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-inspector-warning { border-top: 0 !important; }
+.spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-category-heading { background: #ffffcc !important; background-color: #ffffcc !important; border-color: #e2df9a !important; color: #404040 !important; }
+.spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-item { background: #ffffcc !important; background-color: #ffffcc !important; border-color: #e2df9a !important; color: #404040 !important; }
+.spn-graph-library-group.category-output.category-output.category-output .spn-node-icon { color: #6b7040; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing,
+.spn-graph-node.category-bearing.category-bearing.category-bearing[class*="category-"] { background: #f9edf9 !important; background-color: #f9edf9 !important; border-color: #f5dbf3 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-title,
+.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-category-heading { background: #f5dbf3 !important; background-color: #f5dbf3 !important; border-color: #f5dbf3 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-content,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-inputs,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-outputs,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-derived,
+.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-item { background: #f9edf9 !important; background-color: #f9edf9 !important; border-color: #f5dbf3 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-input-row,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-engineering-output-row,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-derived,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-outputs { border-color: #f5dbf3 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .react-flow__handle { border-color: #f5dbf3 !important; background: #f9edf9 !important; background-color: #f9edf9 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing,
+.spn-graph-node.category-bearing.category-bearing.category-bearing[class*="category-"] { background: #fcf6fc !important; background-color: #fcf6fc !important; border-color: #f8e4f7 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-title,
+.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-category-heading { background: #f8e4f7 !important; background-color: #f8e4f7 !important; border-color: #f8e4f7 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-content,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-inputs,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-outputs,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-derived,
+.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-item { background: #fcf6fc !important; background-color: #fcf6fc !important; border-color: #f8e4f7 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-input-row,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-output-row,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-derived,
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-outputs { border-color: #f8e4f7 !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .react-flow__handle { border-color: #f8e4f7 !important; background: #fcf6fc !important; background-color: #fcf6fc !important; }
+.spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-group-heading { border-top: 0 !important; border-bottom: 0 !important; }
+.spn-graph-node.foundation-palette,
+.spn-graph-node.foundation-palette[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border: 1px solid #f5eae1 !important; }
+.spn-graph-node.foundation-palette .spn-graph-node-title { background: #f5eae1 !important; background-color: #f5eae1 !important; border-bottom: 1px solid #f5eae1 !important; }
+.spn-graph-node.foundation-palette .spn-engineering-inputs,
+.spn-graph-node.foundation-palette .spn-engineering-outputs,
+.spn-graph-node.foundation-palette .spn-engineering-derived { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette .spn-engineering-input-row,
+.spn-graph-node.foundation-palette .spn-engineering-output-row,
+.spn-graph-node.foundation-palette .spn-engineering-derived { border-color: #f5eae1 !important; }
+.spn-graph-node.foundation-palette .react-flow__handle { border-color: #f5eae1 !important; background: #fcf8f4 !important; background-color: #fcf8f4 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border: 1px solid #f5eae1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #f5eae1 !important; background: #fcf8f4 !important; background-color: #fcf8f4 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #f9f3ed !important; background-color: #f9f3ed !important; border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f1e4d7 !important; background-color: #f1e4d7 !important; border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f9f3ed !important; background-color: #f9f3ed !important; border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #f1e4d7 !important; background: #f9f3ed !important; background-color: #f9f3ed !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #f5eae1 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #f5eae1 !important; background: #fcf8f4 !important; background-color: #fcf8f4 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #f9f3ed !important; background-color: #f9f3ed !important; border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f1e4d7 !important; background-color: #f1e4d7 !important; border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f9f3ed !important; background-color: #f9f3ed !important; border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #f1e4d7 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #f1e4d7 !important; background: #f9f3ed !important; background-color: #f9f3ed !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #f5ece3 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f5ece3 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { background: #f5ece3 !important; }
+.spn-graph-node.category-bridge,
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading,
+.spn-graph-node.category-abutment,
+.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background: #87e187 !important; border-color: #58b858 !important; color: #205e20; }
+.spn-graph-node.category-bridge .spn-graph-node-title,
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading,
+.spn-graph-node.category-abutment .spn-graph-node-title,
+.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background: #87e187 !important; }
+.spn-graph-node.category-bridge .spn-graph-node-content,
+.spn-graph-library-group.category-bridge .spn-graph-library-item,
+.spn-graph-node.category-abutment .spn-graph-node-content,
+.spn-graph-library-group.category-abutment .spn-graph-library-item { background: #eaffea; border-color: #58b858; color: #205e20; }
+.spn-graph-node.category-bridge .react-flow__handle,
+.spn-graph-node.category-abutment .react-flow__handle { border-color: #3d9b3d; background: #eaffea; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e4c6a8 !important; border-color: #c49b72 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #b47f4e; }
+.spn-graph-node.category-superstructure .spn-graph-node-title,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #6db9ff !important; border-color: #398bd5 !important; }
+.spn-graph-node.category-superstructure .react-flow__handle { border-color: #287bc4; }
+.spn-graph-node.category-bridge .spn-graph-node-title,
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #ff5c29 !important; border-color: #d94115 !important; }
+.spn-graph-node.category-bridge .react-flow__handle { border-color: #c93611; }
+.spn-graph-node.category-output,
+.spn-graph-node.category-output .spn-graph-node-title,
+.spn-graph-node.category-output .spn-graph-node-content,
+.spn-graph-node.spn-graph-list-node { background: #ffffcc !important; border-color: #e2df9a !important; color: #404040; }
+.spn-graph-node.category-output .react-flow__handle { border-color: #8c9b5a; background: #ffffcc; }
+.spn-graph-node.category-pier,
+.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #e1ccf0 !important; border-color: #c3a5dc !important; }
+.spn-graph-node.category-pier .spn-graph-node-title { background: #e1ccf0 !important; }
+.spn-graph-node.category-bearing,
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #d5e67e !important; border-color: #afc34e !important; }
+.spn-graph-node.category-bearing .spn-graph-node-title { background: #d5e67e !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs { background: #e4c6a8 !important; border-color: #c49b72 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #a87545; background: #e4c6a8; }
+.spn-graph-node.category-superstructure,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #c0e6f5 !important; border-color: #82bfd8 !important; color: #24536a; }
+.spn-graph-node.category-superstructure .spn-graph-node-title,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #c0e6f5 !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-content,
+.spn-graph-node.category-superstructure .spn-engineering-inputs,
+.spn-graph-node.category-superstructure .spn-engineering-outputs,
+.spn-graph-library-group.category-superstructure .spn-graph-library-item { background: #eefaff !important; border-color: #82bfd8; color: #24536a; }
+.spn-graph-node.category-superstructure .react-flow__handle { border-color: #4e9dbd; background: #eefaff; }
+.spn-graph-node.spn-assembly-graph-node,
+.spn-graph-node.spn-assembly-graph-node[class*="category-"] { background: #f0fff0 !important; border-color: #58b858 !important; color: #205e20; }
+.spn-graph-node.spn-assembly-graph-node .spn-graph-node-title { background: #dff7df !important; border-bottom-color: #a5dca5; color: #205e20; }
+.spn-graph-node.spn-assembly-graph-node .spn-assembly-inputs,
+.spn-graph-node.spn-assembly-graph-node .spn-assembly-centered-output { background: #f0fff0 !important; }
+.spn-graph-node.spn-assembly-graph-node .react-flow__handle { border-color: #3d9b3d; background: #f0fff0; }
+.spn-graph-node.category-foundation,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d9b38c !important; border-color: #bd8b5d !important; color: #5d3b20; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d9b38c !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f3e1cf !important; border-color: #bd8b5d; color: #5d3b20; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #a96f3b; background: #f3e1cf; }
+.spn-graph-node.spn-assembly-graph-node,
+.spn-graph-node.spn-assembly-graph-node[class*="category-"] { background: #f2f2f2 !important; border-color: #a8a8a8 !important; color: #414141; }
+.spn-graph-node.spn-assembly-graph-node .spn-graph-node-title { background: #cfcfcf !important; border-bottom-color: #a8a8a8; color: #414141; }
+.spn-graph-node.spn-assembly-graph-node .spn-assembly-inputs,
+.spn-graph-node.spn-assembly-graph-node .spn-assembly-centered-output { background: #f2f2f2 !important; }
+.spn-graph-node.spn-assembly-graph-node .react-flow__handle { border-color: #898989; background: #f2f2f2; }
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #cfcfcf !important; border-color: #a8a8a8 !important; color: #414141 !important; }
+.spn-graph-library-group.category-bridge .spn-graph-library-item { background: #f2f2f2; border-color: #a8a8a8; color: #414141; }
+.spn-graph-node.category-superstructure,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; border-color: #d58a73 !important; color: #683326; }
+.spn-graph-node.category-superstructure .spn-graph-node-title,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-content,
+.spn-graph-node.category-superstructure .spn-engineering-inputs,
+.spn-graph-node.category-superstructure .spn-engineering-outputs,
+.spn-graph-library-group.category-superstructure .spn-graph-library-item { background: #fff1eb !important; border-color: #d58a73; color: #683326; }
+.spn-graph-node.category-superstructure .react-flow__handle { border-color: #b8664c; background: #fff1eb; }
+.spn-graph-library-group.category-input .spn-node-icon { background: #f0f3f7; color: #174a91; box-shadow: inset 0 0 0 1px rgba(23,74,145,.12); }
+.spn-graph-node.category-math { background: #fffaf2; border-color: #f0c98f !important; color: #7a4d18; box-shadow: 0 2px 8px rgba(218,145,45,.12); }
+.spn-graph-node.category-math .spn-graph-node-title { background: #fff0d5 !important; border-bottom-color: #f0c98f; color: #9a5d12; }
+.spn-graph-node.category-math .spn-graph-node-content { background: #fffaf2; color: #7a4d18; }
+.spn-graph-node.category-math .spn-graph-port-row { color: #875a24; }
+.spn-graph-node.category-math > .react-flow__handle,
+.spn-graph-node.category-math .react-flow__handle { border-color: #d99a3d; background: #fffaf2; }
+.spn-graph-node.category-math .spn-node-icon { color: #bd7416; }
+.spn-graph-library-group.category-math .spn-graph-library-category-heading { background: #fff0d5 !important; color: #9a5d12 !important; border-color: #f0c98f; }
+.spn-graph-library-group.category-math .spn-graph-library-item { background: #fffaf2; border-color: #f0c98f; color: #7a4d18; }
+.spn-graph-library-group.category-math .spn-node-icon { background: #fff4e1; color: #bd7416; box-shadow: inset 0 0 0 1px rgba(189,116,22,.16); }
+.spn-graph-node.category-pier { background: #fcf9ff; border-color: #d7c4f4 !important; color: #513b78; box-shadow: 0 2px 8px rgba(122,76,179,.12); }
+.spn-graph-node.category-pier .spn-graph-node-title { background: #f0e8ff !important; border-bottom-color: #d7c4f4; color: #6542a0; }
+.spn-graph-node.category-pier .spn-graph-node-content { background: #fcf9ff; color: #513b78; }
+.spn-graph-node.category-pier .spn-graph-port-row { color: #634c89; }
+.spn-graph-node.category-pier > .react-flow__handle,
+.spn-graph-node.category-pier .react-flow__handle { border-color: #a77cdd; background: #fcf9ff; }
+.spn-graph-node.category-pier .spn-node-icon { color: #697586; }
+.spn-node-icon-oval svg { transform: scaleX(.72); }
+.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #f0e8ff !important; color: #6542a0 !important; border-color: #d7c4f4; }
+.spn-graph-library-group.category-pier .spn-graph-library-item { background: #fcf9ff; border-color: #d7c4f4; color: #513b78; }
+.spn-graph-library-group.category-pier .spn-node-icon { color: #697586; }
+.spn-graph-node.category-pier,
+.spn-graph-node.category-pier[class*="category-"] { background: #fcf9ff !important; border-color: #d7c4f4 !important; }
+.spn-graph-node.category-pier .spn-graph-node-title { background: #f0e8ff !important; }
+.spn-graph-node.category-pier .spn-graph-node-content,
+.spn-graph-node.category-pier .spn-engineering-inputs,
+.spn-graph-node.category-pier .spn-engineering-outputs { background: #fcf9ff !important; }
+.spn-graph-node-title > span { display: inline-flex; align-items: center; min-width: 0; }
+.spn-graph-library-item { gap: 7px; }
+.spn-graph-library-item .spn-node-icon { margin-right: 0; }
+.spn-graph-library-group-actions { display: flex; gap: 6px; padding: 6px 7px; }
+.spn-graph-library-group-actions button { flex: 1; min-width: 0; padding: 5px 4px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface-2); color: var(--text-secondary); font: 10px var(--spn-ui-font-family); cursor: pointer; }
+.spn-graph-library-group-actions button:hover { border-color: var(--accent); color: var(--text-primary); }
+.spn-graph-notes-node { width: 260px; min-height: 150px; background: #ffffcc !important; border-color: #d6d69a !important; color: #404040 !important; }
+.spn-graph-notes-node .spn-graph-node-title { background: #ffffcc !important; border-bottom-color: #d6d69a !important; color: #404040 !important; }
+.spn-graph-notes-node .spn-graph-node-title > span,
+.spn-graph-notes-node .spn-graph-node-title small { color: #404040 !important; }
+.spn-graph-notes-editor { display: block; width: 100%; min-height: 112px; padding: 10px; border: 0; outline: 0; resize: vertical; background: #ffffcc; color: #404040; font: inherit; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #f4eae0 !important; border: 1px solid #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f4eae0 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1 !important; background: #f4eae0 !important; }

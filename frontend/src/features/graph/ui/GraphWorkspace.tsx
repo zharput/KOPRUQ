@@ -16,6 +16,7 @@ import NodeLibrary from './NodeLibrary'
 import { mergeBoxSelection, normalizedBox, selectNodeIdsByBox, selectionMode, transformBox, type BoxRect, type BoxSelectionMode } from './boxSelection'
 import { graphMaterialServices } from '../api/graphMaterialService'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
+
 import type { ProjectWorkspaceData } from '../../project/model/projectWorkspace'
 import { readGraphViewPreferences, writeGraphViewPreferences, type ConnectionStyle } from '../state/graphViewPreferences'
 

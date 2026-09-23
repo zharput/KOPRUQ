@@ -7,6 +7,7 @@ import type { NodeDefinition, NodePortDefinition, ParameterDescriptor } from '..
 import { CANONICAL_UNITS, convertQuantity, formatQuantity, getUnit, quantityFromCanonical, toDisplayValue, unitsForKind } from '../domain/quantities'
 import EditableNumericInput from './EditableNumericInput'
 import { getNodeCategoryLabel, getNodeHeaderStyle, getNodeThemeForType } from '../domain/nodeVisualThemes'
+import { NodeIcon } from './NodeIcon'
 
 export default function EngineeringNodeShell({ data, selected, definition }: { data: FlowGraphNode['data']; selected: boolean; definition: NodeDefinition }) {
   if (data.node.type === 'structural.abutment') return <AbutmentCompactNodeShell data={data} selected={selected} definition={definition} />
@@ -17,8 +18,8 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
   const displayedCandidateCount = candidates === undefined ? data.previewCandidateCount ?? candidateCount : candidateCount
   const generated = data.outputs?.generatedCombinations ?? data.previewGeneratedCombinations
   const invalid = data.outputs?.invalidCombinations ?? data.previewInvalidCombinations
-  return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''} category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
-    <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span title={definition.label}>{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
+  return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''}${data.node.type.startsWith('substructure.foundation.') ? ' foundation-palette' : ''} category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
+    <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span title={definition.label}><NodeIcon type={data.node.type} />{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
     <div className="spn-engineering-inputs">
       {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow key={`${port.id}:${data.projectUnitsKey}`} port={port} definition={definition} data={data} /></Fragment>)}
       {data.node.type === 'structural.superstructure' && <SuperstructureEdgeRow data={data} />}

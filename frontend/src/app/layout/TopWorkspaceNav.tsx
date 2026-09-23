@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
 import { PRIMARY_WORKSPACES, legacyWorkspaceFromPath, workspaceFromPath } from '../workspaces/registry'
-import ThemeToggle from '../../shared/ui/ThemeToggle'
 
 export default function TopWorkspaceNav() {
   const { pathname } = useLocation()
@@ -12,6 +11,5 @@ export default function TopWorkspaceNav() {
         <Icon size={17} strokeWidth={1.8} aria-hidden="true" /><span>{label}</span>
       </Link>)}
     </nav>
-    <div className="spn-workspace-nav-actions"><ThemeToggle /></div>
   </header>
 }

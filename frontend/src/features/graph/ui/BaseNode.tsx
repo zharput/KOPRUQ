@@ -9,8 +9,9 @@ import EditableNumericInput from './EditableNumericInput'
 import ListOutputNode from './ListOutputNode'
 import { EN_CONCRETE_CLASS_IDS, STRUCTURAL_STEEL_OPTIONS } from '../../materials/model/materialCatalog'
 import CanvasSelect from './CanvasSelect'
-import { getNodeCategoryLabel, getNodeHeaderStyle, getNodeThemeForType } from '../domain/nodeVisualThemes'
-import { NodeIcon } from './NodeIcon'
+import { getNodeThemeForType } from '../domain/nodeVisualThemes'
+import NodeHeader from './NodeHeader'
+import NodeStatusIndicator from './NodeStatusIndicator'
 
 export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   const node = data.node, definition = getNodeDefinition(node.type)
@@ -19,9 +20,9 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   if (definition.category === 'SUBSTRUCTURE' || definition.category === 'STRUCTURAL_FAMILY') return <EngineeringNodeShell data={data} selected={selected} definition={definition} />
   if (node.type === 'output.list') return <ListOutputNode data={data} selected={selected} />
   const stateClass = data.isDirty ? ' is-dirty' : data.executionState === 'error' || data.executionError ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''
-  if (node.type === 'input.notes') return <div className={`spn-graph-node spn-graph-notes-node${selected ? ' is-selected' : ''}`}><div className="spn-graph-node-title"><span><NodeIcon type={node.type} />{definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></div><textarea className="spn-graph-notes-editor nodrag nowheel" aria-label="Notes" value={String(node.parameters.text ?? '')} placeholder="Write a note..." onChange={event => data.onParameterChange(node.id, 'text', event.target.value)} /></div>
+  if (node.type === 'input.notes') return <div className={`spn-graph-node spn-graph-notes-node${selected ? ' is-selected' : ''}`}><NodeHeader definition={definition} type={node.type} /><textarea className="spn-graph-notes-editor nodrag nowheel" aria-label="Notes" value={String(node.parameters.text ?? '')} placeholder="Write a note..." onChange={event => data.onParameterChange(node.id, 'text', event.target.value)} /></div>
   return <div className={`spn-graph-node ${getNodeThemeForType(definition.category, node.type).className}${node.type === 'material.concrete' ? ' spn-graph-material-node' : ''}${node.type === 'input.range' ? ' spn-graph-range-node' : ''}${selected ? ' is-selected' : ''}${stateClass}`}>
-    <div className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, node.type)}><span><NodeIcon type={node.type} />{node.type === 'input.length' ? `${definition.label} (${data.projectUnits?.length ?? 'm'})` : definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></div>
+    <NodeHeader definition={definition} type={node.type} label={node.type === 'input.length' ? `${definition.label} (${data.projectUnits?.length ?? 'm'})` : undefined} />
     <div className="spn-graph-node-content" style={{ minHeight: Math.max(48, definition.inputs.length * 25 + 30, definition.outputs.length * 25 + 30) + (node.type === 'input.range' ? 34 : 0) }}>
       {definition.category === 'INPUT' && node.type !== 'input.range' && node.type !== 'input.integer-list' && <InlineValue nodeId={node.id} type={node.type} value={node.parameters.value} onChange={data.onParameterChange} />}
       {node.type === 'input.length' && <LengthNodeEditor node={node} units={data.projectUnits} onParameterChange={data.onParameterChange} />}
@@ -39,7 +40,7 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
       {(node.type.startsWith('substructure.pier.') || node.type.startsWith('substructure.pier-cap.') || node.type.startsWith('substructure.foundation.') || node.type.startsWith('substructure.bearing.')) && Array.isArray(data.output) && <div className="spn-graph-watch-value">{data.output.length} candidate{data.output.length === 1 ? '' : 's'}</div>}
       {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
     </div>
-    {(data.isDirty || data.executionState !== 'idle' || (node.type === 'output.watch' && data.outputAvailability === 'run-required')) && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : node.type === 'output.watch' && data.outputAvailability === 'run-required' ? 'RUN REQUIRED' : data.executionState.toUpperCase()}</div>}
+    <NodeStatusIndicator executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} runRequired={node.type === 'output.watch' && data.outputAvailability === 'run-required'} />
   </div>
 }
 

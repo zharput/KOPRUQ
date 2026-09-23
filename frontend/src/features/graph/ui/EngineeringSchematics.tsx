@@ -10,12 +10,25 @@ type Props = { schema: EngineeringInspectorSchema; node: SpanovaNode; candidates
 export function EngineeringSchematic({ schema, node, candidates, previewInputs, connections, projectUnits }: Props) {
   if (schema.schematic === 'superstructure') return <StaticSuperstructureCard node={node} candidates={candidates} previewInputs={previewInputs} connected={new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))} projectUnits={projectUnits} />
   if (schema.schematic === 'abutment') return <AbutmentSchematic candidates={candidates} />
+  if (schema.schematic === 'span-arrangement') return <SpanArrangementSchematic candidates={candidates} />
   const connected = new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))
   if (schema.schematic === 'pier') return <PierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   if (schema.schematic === 'pier-cap') return <PierCapSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   if (schema.schematic === 'foundation') return <FoundationSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   if (schema.schematic === 'girder') return <GirderSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   return <BearingSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+}
+function SpanArrangementSchematic({ candidates }: { candidates: GraphValue[] }) {
+  const candidate = candidates[0] as import('../domain/spanArrangement').SpanArrangementCandidate | undefined
+  if (!candidate) return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 150" role="img" aria-label="No feasible span arrangement"><text x="150" y="70" textAnchor="middle" className="engineering-dimension">No exact arrangement available</text><text x="150" y="92" textAnchor="middle" className="engineering-dimension">Adjust the span rules</text></svg></SchematicCard>
+  const total = candidate.totalLengthM || 1
+  const x = (station: number) => 24 + station / total * 252
+  return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 180" role="img" aria-label={`Span arrangement with ${candidate.spanCount} spans`}>
+    <line className="engineering-dimension-line" x1="24" x2="276" y1="86" y2="86" />
+    {candidate.supportStationsM.map((station, index) => <g key={`${station}-${index}`}><line className="engineering-outline" x1={x(station)} x2={x(station)} y1="70" y2="108" /><text className="engineering-dimension" x={x(station)} y="124" textAnchor="middle">{index === 0 ? 'A1' : index === candidate.supportStationsM.length - 1 ? 'A2' : `P${index}`}</text></g>)}
+    {candidate.spanLengthsM.map((length, index) => <text key={index} className="engineering-dimension" x={(x(candidate.supportStationsM[index]) + x(candidate.supportStationsM[index + 1])) / 2} y="58" textAnchor="middle">{length} m</text>)}
+    <text className="engineering-dimension" x="150" y="154" textAnchor="middle">L = {candidate.totalLengthM} m · {candidate.spanCount} spans · preview</text>
+  </svg></SchematicCard>
 }
 function AbutmentSchematic({ candidates }: { candidates: GraphValue[] }) {
   const candidate = candidates[0] as import('../domain/abutmentCandidates').AbutmentCandidate | undefined

@@ -35,7 +35,7 @@ export const NODE_THEME_REGISTRY: Readonly<Record<NodeCategory, NodeTheme>> = {
 export function getNodeTheme(category: NodeCategory): NodeTheme { return NODE_THEME_REGISTRY[category] }
 export function getNodePresentationCategory(category: NodeCategory, type?: string): NodeCategory {
   if (category !== 'STRUCTURAL_FAMILY' || !type) return category
-  if (type === 'structural.superstructure') return 'SUPERSTRUCTURE'
+  if (type === 'structural.superstructure' || type === 'structural.span_arrangement') return 'SUPERSTRUCTURE'
   if (type === 'structural.abutment') return 'ABUTMENT'
   if (type.startsWith('structural.girder.')) return 'GIRDER'
   if (type.startsWith('substructure.pier-cap.')) return 'CAP'
@@ -60,7 +60,7 @@ export const DATA_TYPE_THEME_REGISTRY: Readonly<Record<GraphPortType, string>> =
   number: '#4c91ff', integer: '#6bbcc4', numeric: '#4c91ff', boolean: '#c18af7', string: '#8b9caf',
   'number[]': '#e4b65c', 'integer[]': '#e4b65c', 'numeric[]': '#e4b65c', quantity: '#4c91ff', 'quantity[]': '#e4b65c', length: '#4c91ff', 'length[]': '#e4b65c',
   concreteMaterial: '#38b7a7', reinforcementMaterial: '#c47b58', prestressingSteelMaterial: '#d49a4b', structuralSteelMaterial: '#8b9caf',
-  'pierCandidate[]': '#e4b65c', 'pierCapCandidate[]': '#e4b65c', 'foundationCandidate[]': '#e4b65c', 'bearingCandidate[]': '#e4b65c', 'girderCandidate[]': '#e4b65c', 'superstructureCandidate[]': '#e4b65c', bridgeAssembly: '#57a6cc', 'display:any': '#8b9caf', pierFamily: '#a98be8', foundationFamily: '#a98be8', bearingFamily: '#a98be8', bridge: '#57a6cc', alignment: '#43b5c9', geometry: '#43b5c9', loadCase: '#c36d87', analysisModel: '#7890a8', analysisResult: '#89a0d8',
+  'pierCandidate[]': '#e4b65c', 'pierCapCandidate[]': '#e4b65c', 'foundationCandidate[]': '#e4b65c', 'bearingCandidate[]': '#e4b65c', 'girderCandidate[]': '#e4b65c', 'superstructureCandidate[]': '#e4b65c', 'spanArrangementCandidate[]': '#e4b65c', bridgeAssembly: '#57a6cc', 'display:any': '#8b9caf', pierFamily: '#a98be8', foundationFamily: '#a98be8', bearingFamily: '#a98be8', bridge: '#57a6cc', alignment: '#43b5c9', geometry: '#43b5c9', loadCase: '#c36d87', analysisModel: '#7890a8', analysisResult: '#89a0d8',
 }
 
 export function getDataTypeColor(type?: GraphPortType): string { return type ? DATA_TYPE_THEME_REGISTRY[type] : '#4c91ff' }

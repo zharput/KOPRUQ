@@ -61,7 +61,7 @@ describe('App workspace shell', () => {
     const user = userEvent.setup()
     const navElement = screen.getByRole('navigation', { name: 'Workspaces' })
     const nav = within(navElement)
-    const labels = ['Project', 'Family Tables', 'Graph', 'Loads', 'Analysis', 'Optimization', 'Results', 'BIM / Export']
+    const labels = ['Project', 'Graph', 'Family Tables', 'Loads', 'Analysis', 'Optimization', 'Results', 'BIM / Export']
     labels.forEach((label) => expect(nav.getByRole('link', { name: label })).toBeInTheDocument())
     expect(nav.queryByRole('link', { name: 'Bridge Definition' })).not.toBeInTheDocument()
     expect(Array.from(navElement.querySelectorAll('a')).map((link) => link.getAttribute('aria-label'))).toEqual(labels)

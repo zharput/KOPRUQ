@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { EN_CONCRETE_CLASS_IDS } from '../../materials/model/materialCatalog'
-import { getNodeDefinition, previewDesignOutput } from './nodeRegistry'
+import { createNode, getNodeDefinition, previewDesignOutput } from './nodeRegistry'
+
+describe('Central node creation contract', () => {
+  it('creates persisted UI nodes from the registered definition', () => {
+    const definition = getNodeDefinition('input.number')!
+    const node = createNode(definition, { id: 'number-1', name: 'Number-1', position: { x: 12, y: 24 } })
+    expect(node).toMatchObject({ id: 'number-1', type: 'input.number', name: 'Number-1', position: { x: 12, y: 24 } })
+    expect(node.parameters).toEqual(definition.createDefaultParameters())
+  })
+})
 
 describe('Concrete material node contract', () => {
   it('uses the shared grade catalog, defaults to C40/50, and keeps a typed material output', () => {

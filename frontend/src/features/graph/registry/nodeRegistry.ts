@@ -1,5 +1,5 @@
 import type { GraphParameterValue, GraphPortType, GraphValue, MaterialValue, SpanovaNode } from '../domain/types'
-import { makeQuantity, quantityFromCanonical, QUANTITY_KINDS as UNIT_KINDS, type QuantityKind, type UnitId, unitsForKind } from '../domain/quantities'
+import { getUnit, makeQuantity, quantityFromCanonical, QUANTITY_KINDS as UNIT_KINDS, type QuantityKind, type UnitId, unitsForKind } from '../domain/quantities'
 import { EN_CONCRETE_CLASS_IDS, STRUCTURAL_STEEL_OPTIONS } from '../../materials/model/materialCatalog'
 import { generatePierCandidatesWithStats, localLength, normalizeCandidateInput } from '../domain/pierCandidates'
 import { generatePierCapCandidatesWithStats } from '../domain/pierCapCandidates'
@@ -10,16 +10,33 @@ import { generateSteelGirderCandidates, generatePrecastGirderCandidates } from '
 import { generateSuperstructureCandidates } from '../domain/superstructureCandidates'
 import { resolveBridgeAssembly } from '../domain/bridgeAssembly'
 import { generateAbutmentCandidates } from '../domain/abutmentCandidates'
+import { generateSpanArrangements } from '../domain/spanArrangement'
 
 export type { NodeCategory } from '../domain/nodeVisualThemes'
 export type ParameterDescriptor = { key: string; label: string; dataType: 'number' | 'integer' | 'boolean' | 'string' | 'select'; min?: number; step?: number; options?: readonly { value: string; label: string }[]; inputPortId?: string }
 export type NodePortDefinition = { id: string; label: string; type: GraphPortType; quantityKind?: QuantityKind; domainType?: MaterialValue['domainType']; required?: boolean; description?: string; group?: string }
 export interface GraphExecutionServices { resolveConcreteMaterial?: (materialId:string)=>Promise<MaterialValue>; projectUnits?: Partial<Record<QuantityKind, string>> }
 export type NodeExecutionContext = { node: SpanovaNode; inputs: Record<string, GraphValue>; services?: GraphExecutionServices }
-export interface EngineeringInspectorSchema { schematic: 'pier' | 'pier-cap' | 'foundation' | 'bearing' | 'girder' | 'superstructure' | 'abutment'; parameterOrder: readonly string[] }
+export interface EngineeringInspectorSchema { schematic: 'pier' | 'pier-cap' | 'foundation' | 'bearing' | 'girder' | 'superstructure' | 'abutment' | 'span-arrangement'; parameterOrder: readonly string[] }
 export interface NodeDefinition { type: string; label: string; category: NodeCategory; description: string; inputs: NodePortDefinition[]; outputs: NodePortDefinition[]; parameterSchema: ParameterDescriptor[]; engineeringInspector?: EngineeringInspectorSchema; createDefaultParameters: (projectUnits?: Record<string,string>) => Record<string,GraphParameterValue>; validateParameters: (parameters: Record<string,GraphParameterValue>) => string[]; executor: (context:NodeExecutionContext)=>Record<string,GraphValue>|Promise<Record<string,GraphValue>> }
+export type NodeCreationContext = { id: string; name: string; position: { x: number; y: number }; projectUnits?: Record<string, string> }
+/** Single UI entry point for creating a persisted node from its registry definition. */
+export function createNode(definition: NodeDefinition, context: NodeCreationContext): SpanovaNode {
+  return { id: context.id, type: definition.type, name: context.name, position: context.position, parameters: definition.createDefaultParameters(context.projectUnits) }
+}
 const classOptions=EN_CONCRETE_CLASS_IDS.map(value=>({value,label:value}))
 const lengthOptions = unitsForKind('length').map(unit => ({ value: unit.id, label: unit.label }))
+const spanArrangementDefinition: NodeDefinition = {
+  type:'structural.span_arrangement', label:'Span Arrangement', category:'STRUCTURAL_FAMILY',
+  description:'Generate exact bridge span arrangements using bounded integer increments.',
+  inputs:[{id:'bridgeLength',label:'Bridge Length',type:'length[]',quantityKind:'length',required:true},{id:'spanCount',label:'Span Count',type:'integer'},{id:'minSpanCount',label:'Min Span Count',type:'integer'},{id:'maxSpanCount',label:'Max Span Count',type:'integer'},{id:'minSpanLength',label:'Min Span Length',type:'length[]',quantityKind:'length',required:true},{id:'maxSpanLength',label:'Max Span Length',type:'length[]',quantityKind:'length',required:true},{id:'spanIncrement',label:'Span Increment',type:'length[]',quantityKind:'length',required:true}],
+  outputs:[{id:'candidates',label:'Alternatives',type:'spanArrangementCandidate[]'},{id:'alternativeCount',label:'Alternative Count',type:'integer'},{id:'status',label:'Generation Status',type:'string'}],
+  parameterSchema:[{key:'mode',label:'Mode',dataType:'select',options:[{value:'FIXED_COUNT',label:'Fixed Count'},{value:'VARIABLE_COUNT',label:'Variable Count'}]},{key:'bridgeLengthValue',label:'Bridge Length',dataType:'number',step:.01,inputPortId:'bridgeLength'},{key:'bridgeLengthUnit',label:'Bridge Length unit',dataType:'select',options:lengthOptions,inputPortId:'bridgeLength'},{key:'spanCount',label:'Span Count',dataType:'integer',min:1,step:1,inputPortId:'spanCount'},{key:'minSpanCount',label:'Min Span Count',dataType:'integer',min:1,step:1,inputPortId:'minSpanCount'},{key:'maxSpanCount',label:'Max Span Count',dataType:'integer',min:1,step:1,inputPortId:'maxSpanCount'},{key:'minSpanLengthValue',label:'Min Span Length',dataType:'number',step:.01,inputPortId:'minSpanLength'},{key:'minSpanLengthUnit',label:'Min Span Length unit',dataType:'select',options:lengthOptions,inputPortId:'minSpanLength'},{key:'maxSpanLengthValue',label:'Max Span Length',dataType:'number',step:.01,inputPortId:'maxSpanLength'},{key:'maxSpanLengthUnit',label:'Max Span Length unit',dataType:'select',options:lengthOptions,inputPortId:'maxSpanLength'},{key:'spanIncrementValue',label:'Span Increment',dataType:'number',step:.01,inputPortId:'spanIncrement'},{key:'spanIncrementUnit',label:'Span Increment unit',dataType:'select',options:lengthOptions,inputPortId:'spanIncrement'},{key:'generationLimit',label:'Generation Limit',dataType:'integer',min:1,step:1}],
+  engineeringInspector:{schematic:'span-arrangement',parameterOrder:['bridgeLength','spanCount','minSpanCount','maxSpanCount','minSpanLength','maxSpanLength','spanIncrement']},
+  createDefaultParameters:prefs=>({mode:'FIXED_COUNT',bridgeLengthValue:185,bridgeLengthUnit:defaultUnit('length',prefs),spanCount:5,minSpanCount:3,maxSpanCount:8,minSpanLengthValue:25,minSpanLengthUnit:defaultUnit('length',prefs),maxSpanLengthValue:50,maxSpanLengthUnit:defaultUnit('length',prefs),spanIncrementValue:5,spanIncrementUnit:defaultUnit('length',prefs),generationLimit:1000}),
+  validateParameters:p=>[...numberParameter(p,'bridgeLengthValue'),...numberParameter(p,'minSpanLengthValue'),...numberParameter(p,'maxSpanLengthValue'),...numberParameter(p,'spanIncrementValue'),...numberParameter(p,'generationLimit')],
+  executor:({node,inputs})=>{const p=node.parameters;const length=(value:GraphValue|undefined,key:string)=>canonicalLength(value,Number(p[`${key}Value`]),String(p[`${key}Unit`]));const result=generateSpanArrangements({mode:String(p.mode??'FIXED_COUNT') as 'FIXED_COUNT'|'VARIABLE_COUNT',totalLengthM:length(inputs.bridgeLength,'bridgeLength'),spanCount:integerInput(inputs.spanCount,p.spanCount),minSpanCount:integerInput(inputs.minSpanCount,p.minSpanCount),maxSpanCount:integerInput(inputs.maxSpanCount,p.maxSpanCount),minSpanLengthM:length(inputs.minSpanLength,'minSpanLength'),maxSpanLengthM:length(inputs.maxSpanLength,'maxSpanLength'),spanIncrementM:length(inputs.spanIncrement,'spanIncrement'),generationLimit:integerInput(undefined,p.generationLimit)??1000});return {candidates:result.candidates as GraphValue,alternativeCount:result.alternativeCount,status:result.status}}
+}
 const pierDefinitions = [
   pierNode('CIRCULAR', 'Circular Pier', [{ key: 'D', label: 'Diameter', port: 'diameter', defaultValue: 2 }]),
   pierNode('RECTANGULAR', 'Rectangular Pier', [{ key: 'B', label: 'B - Transverse', port: 'width', defaultValue: 3 }, { key: 'D', label: 'D - Longitudinal', port: 'depth', defaultValue: 1.5 }]),
@@ -238,12 +255,15 @@ const definitions:NodeDefinition[]=[
  ...pierDefinitions,
  ...pierCapDefinitions,
  ...foundationDefinitions,
- ...girderDefinitions, superstructureDefinition, abutmentDefinition, assemblyDefinition,
+ ...girderDefinitions, spanArrangementDefinition, superstructureDefinition, abutmentDefinition, assemblyDefinition,
  elastomericBearingDefinition,
  {type:'output.watch',label:'Watch',category:'OUTPUT',description:'Inspect an arbitrary graph value for debugging.',inputs:[{id:'value',label:'Value',type:'display:any',required:true}],outputs:[],parameterSchema:[],createDefaultParameters:()=>({}),validateParameters:noParameters,executor:({inputs})=>({value:inputs.value})},
  {type:'output.list',label:'List',category:'OUTPUT',description:'Display values and engineering alternatives as an indexed read-only list.',inputs:[{id:'items',label:'Items',type:'display:any',required:true}],outputs:[],parameterSchema:[],createDefaultParameters:()=>({}),validateParameters:noParameters,executor:({inputs})=>({value:inputs.items})},
 ]
 function quantityErrors(p:Record<string,GraphParameterValue>,range:boolean):string[]{const kind=(p.quantityKind??'dimensionless') as QuantityKind;const unit=(p.unit??'1') as string;const u=getValidUnit(unit,kind);const errors:string[]=[];if(!UNIT_KINDS.includes(kind))errors.push('Select a valid quantity kind.');if(!u)errors.push(`Unit ${String(p.unit)} is invalid for ${String(kind)}.`);if(!range)errors.push(...numberParameter(p,'value'));return errors}
+function firstInput(value: GraphValue | undefined): unknown { return Array.isArray(value) ? value[0] : value }
+function canonicalLength(value: GraphValue | undefined, fallback: number, unit: string): number { const item=firstInput(value); if (isQuantity(item)) return item.value; if (typeof item === 'number') return item; return getUnit(unit)?.toCanonical(fallback) ?? fallback }
+function integerInput(value: GraphValue | undefined, fallback: GraphParameterValue | undefined): number | undefined { const item=firstInput(value); return typeof item === 'number' ? item : typeof fallback === 'number' ? fallback : undefined }
 function rangeScalar(input:GraphValue|undefined,fallback:number,kind:QuantityKind,unit:UnitId):number {if(input===undefined)return fallback;if(typeof input==='number')return input;if(isQuantity(input)){if(input.quantityKind!==kind)throw new Error(`Range inputs must use ${kind} quantities.`);return quantityFromCanonical(input.value,kind,unit)}throw new Error('Range Start, End and Step require scalar numeric inputs.')}
 function getValidUnit(unit:string,kind:QuantityKind){return unitsForKind(kind).some(u=>u.id===unit)}
 function defaultUnit(kind:string,prefs?:Record<string,string>){const prefKey:Record<string,string>={length:'length',force:'force',moment:'moment',stress:'stress',mass:'mass',temperature:'temperature',translationalStiffness:'translationalStiffness',rotationalStiffness:'rotationalStiffness'};const pref=prefs?.[prefKey[kind]??''];const match=unitsForKind(kind as QuantityKind).find(u=>u.label===pref||u.id===pref);const canonical=kind==='translationalStiffness'?'kN/m':kind==='rotationalStiffness'?'kNm/rad':undefined;return match?.id??(canonical&&unitsForKind(kind as QuantityKind).some(unit=>unit.id===canonical)?canonical:undefined)??unitsForKind(kind as QuantityKind)[0]?.id??'1'}
@@ -308,6 +328,13 @@ export function previewDesignOutput(node:SpanovaNode,portId:string,inputs:Record
     const girder=resolveGirderCandidates(inputs.girder)
     if(!girder.length) return [] as unknown as GraphValue
     return generateSuperstructureCandidates({girders:girder as unknown as import('../domain/girderCandidates').GirderCandidate[],deckWidth:resolvedSuperstructureLength(inputs.deckWidth,localLength(Number(node.parameters.deckWidthValue),String(node.parameters.deckWidthUnit)),'Deck Width'),girderCount:(inputs.girderCount??node.parameters.girderCount) as never,girderSpacing:resolvedSuperstructureLength(inputs.girderSpacing,localLength(Number(node.parameters.girderSpacingValue),String(node.parameters.girderSpacingUnit)),'Girder Spacing'),deckSlabThickness:resolvedSuperstructureLength(inputs.deckSlabThickness,localLength(Number(node.parameters.deckSlabThicknessValue),String(node.parameters.deckSlabThicknessUnit)),'Deck Slab Thickness'),deckConcrete}).candidates as unknown as GraphValue
+  }
+  if(node.type==='structural.span_arrangement'){
+    const p=node.parameters
+    const result=generateSpanArrangements({mode:String(p.mode??'FIXED_COUNT') as 'FIXED_COUNT'|'VARIABLE_COUNT',totalLengthM:canonicalLength(inputs.bridgeLength,Number(p.bridgeLengthValue),String(p.bridgeLengthUnit)),spanCount:integerInput(inputs.spanCount,p.spanCount),minSpanCount:integerInput(inputs.minSpanCount,p.minSpanCount),maxSpanCount:integerInput(inputs.maxSpanCount,p.maxSpanCount),minSpanLengthM:canonicalLength(inputs.minSpanLength,Number(p.minSpanLengthValue),String(p.minSpanLengthUnit)),maxSpanLengthM:canonicalLength(inputs.maxSpanLength,Number(p.maxSpanLengthValue),String(p.maxSpanLengthUnit)),spanIncrementM:canonicalLength(inputs.spanIncrement,Number(p.spanIncrementValue),String(p.spanIncrementUnit)),generationLimit:integerInput(undefined,p.generationLimit)??1000})
+    if(portId==='candidates') return result.candidates as GraphValue
+    if(portId==='alternativeCount') return result.alternativeCount
+    if(portId==='status') return result.status
   }
   if(node.type==='structural.abutment'&&portId==='candidates'){
     const geometry=Object.fromEntries(['Back_wall_w','Bearing_sup_w','Front_w','Back_w','Front_fh','Foun_fh','Onp_Amp','found_d'].map(key=>[key,localLength(Number(node.parameters[`${key}Value`]),String(node.parameters[`${key}Unit`]))]))

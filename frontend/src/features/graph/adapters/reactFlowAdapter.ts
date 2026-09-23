@@ -43,7 +43,7 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
     const node=graph.nodes.find(item=>item.id===nodeId);if(!node)return undefined
     const nextPath=new Set(path);nextPath.add(cacheKey)
     const direct=previewOutput(node,portId);if(direct!==undefined){previewCache.set(cacheKey,direct);return direct}
-    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.')&&!node.type.startsWith('substructure.bearing.')&&!node.type.startsWith('structural.girder.')&&node.type!=='structural.superstructure'&&node.type!=='structural.abutment')return undefined
+    if(!node.type.startsWith('math.')&&node.type!=='input.range'&&!node.type.startsWith('substructure.pier.')&&!node.type.startsWith('substructure.pier-cap.')&&!node.type.startsWith('substructure.foundation.')&&!node.type.startsWith('substructure.bearing.')&&!node.type.startsWith('structural.girder.')&&node.type!=='structural.superstructure'&&node.type!=='structural.abutment'&&node.type!=='structural.span_arrangement')return undefined
     const definition=getNodeDefinition(node.type),inputs:Record<string,GraphValue>={}
     for(const edge of graph.connections.filter(item=>item.targetNodeId===nodeId)){
       const target=definition?.inputs.find(port=>port.id===edge.targetPortId)

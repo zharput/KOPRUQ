@@ -6,8 +6,9 @@ import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import type { NodeDefinition, NodePortDefinition, ParameterDescriptor } from '../registry/nodeRegistry'
 import { CANONICAL_UNITS, convertQuantity, formatQuantity, getUnit, quantityFromCanonical, toDisplayValue, unitsForKind } from '../domain/quantities'
 import EditableNumericInput from './EditableNumericInput'
-import { getNodeCategoryLabel, getNodeHeaderStyle, getNodeThemeForType } from '../domain/nodeVisualThemes'
-import { NodeIcon } from './NodeIcon'
+import { getNodeThemeForType } from '../domain/nodeVisualThemes'
+import NodeHeader from './NodeHeader'
+import NodeStatusIndicator from './NodeStatusIndicator'
 
 export default function EngineeringNodeShell({ data, selected, definition }: { data: FlowGraphNode['data']; selected: boolean; definition: NodeDefinition }) {
   if (data.node.type === 'structural.abutment') return <AbutmentCompactNodeShell data={data} selected={selected} definition={definition} />
@@ -19,7 +20,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
   const generated = data.outputs?.generatedCombinations ?? data.previewGeneratedCombinations
   const invalid = data.outputs?.invalidCombinations ?? data.previewInvalidCombinations
   return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''}${data.node.type.startsWith('substructure.foundation.') ? ' foundation-palette' : ''}${data.node.type.startsWith('structural.girder.') ? ' girder-error-palette' : ''}${data.node.type === 'structural.superstructure' ? ' superstructure-error-palette' : ''} category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
-    <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span title={definition.label}><NodeIcon type={data.node.type} />{definition.label}</span><small title={getNodeCategoryLabel(definition.category)}>{getNodeCategoryLabel(definition.category)}</small></header>
+    <NodeHeader definition={definition} type={data.node.type} />
     <div className="spn-engineering-inputs">
       {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow key={`${port.id}:${data.projectUnitsKey}`} port={port} definition={definition} data={data} /></Fragment>)}
       {data.node.type === 'structural.superstructure' && <SuperstructureEdgeRow data={data} />}
@@ -34,7 +35,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
     </div>
     {data.executionError && (data.node.type.startsWith('substructure.foundation.') || data.node.type.startsWith('substructure.bearing.')) && typeof generated==='number' ? <div className="spn-engineering-node-footer">{generated.toLocaleString()} raw combinations / limit 10,000</div> : typeof generated === 'number' && <div className="spn-engineering-node-footer">{generated} generated / {typeof invalid === 'number' ? invalid : 0} invalid / {displayedCandidateCount} valid</div>}
     {data.executionError && <div className="spn-graph-node-error-message" style={{ backgroundColor: data.node.type.startsWith('structural.girder.') ? '#ffffff' : data.node.type === 'structural.superstructure' ? '#fff1eb' : undefined }} title={data.executionError}>{data.executionError}</div>}
-    {(data.isDirty || (data.executionState !== 'idle' && !data.executionError)) && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
+    <NodeStatusIndicator executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} />
   </div>
 }
 function SuperstructureEdgeRow({data}:{data:FlowGraphNode['data']}) { const list=(data.isDirty?data.previewSuperstructureCandidates:data.outputs?.candidates??data.previewSuperstructureCandidates) as import('../domain/superstructureCandidates').SuperstructureCandidate[]|undefined; const candidate=Array.isArray(list)?list[0]:undefined; const source=data.connectedInputs?.girder?.value; const girder=Array.isArray(source)?source[0] as any:source as any; const W=numberInput(data,'deckWidth',15), n=numberInput(data,'girderCount',6), s=numberInput(data,'girderSpacing',2.5), btf=candidate?.girderTopFlangeWidth??(girder?.girderType==='STEEL'?girder?.geometry?.Btf:girder?.geometry?.tf); const e=typeof btf==='number'&&Number.isFinite(W)&&Number.isFinite(n)&&Number.isFinite(s)?(W-(n-1)*s-btf)/2:candidate?.clearEdgeCantileverLeft; const invalid=typeof e==='number'&&e<=0; const shown=typeof e==='number'?Number(toDisplayValue(e,'Length',data.projectUnits).toPrecision(10)).toString():'—'; return <div className='spn-engineering-derived spn-superstructure-edge'><span>Clear Edge Cantilever (e)</span><b>{shown}</b>{invalid&&<strong className='spn-graph-inspector-error'>ERROR: e yeterli !!!</strong>}</div> }
@@ -54,7 +55,7 @@ export function AssemblyNodeShell({ data, selected, definition }: { data: FlowGr
   const raw = data.outputs?.assembly ?? data.previewValue
   const count = Array.isArray(raw) ? raw.length : raw ? 1 : 0
   return <div className={`spn-graph-node spn-engineering-node spn-assembly-graph-node category-structural-family ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
-    <header className="spn-graph-node-title" style={getNodeHeaderStyle(definition.category, data.node.type)}><span>{definition.label}</span><small>{getNodeCategoryLabel(definition.category)}</small></header>
+    <NodeHeader definition={definition} type={data.node.type} showIcon={false} />
     <div className="spn-assembly-inputs spn-engineering-inputs">
       {definition.inputs.map(port => <EngineeringInputRow key={port.id} port={port} definition={definition} data={data} />)}
     </div>
@@ -64,7 +65,7 @@ export function AssemblyNodeShell({ data, selected, definition }: { data: FlowGr
       <Handle type="source" position={Position.Right} id="assembly" isConnectable title="Bridge Assembly" />
     </div>
     {data.executionError && <div className="spn-assembly-error-row" title={data.executionError}>{data.executionError}<span>ERROR</span></div>}
-    {(data.isDirty || (data.executionState !== 'idle' && !data.executionError)) && <div className="spn-graph-node-state">{data.isDirty ? 'DIRTY' : data.executionState.toUpperCase()}</div>}
+    <NodeStatusIndicator executionState={data.executionState} isDirty={data.isDirty} />
   </div>
 }
 void AbutmentNodeShell
@@ -119,7 +120,7 @@ function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[]
   if (selection) return String(parameters[selection.key] ?? 'Not selected')
   return '-'
 }
-function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type === 'structural.abutment' || type.startsWith('substructure.') }
+function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.span_arrangement' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type === 'structural.abutment' || type.startsWith('substructure.') }
 function toStoredValue(value: number | string, storedUnit: string, projectUnits: FlowGraphNode['data']['projectUnits'], kind: import('../domain/quantities').QuantityKind | undefined, nodeType: string) { const numeric=Number(value); if (!kind || !isUnitAwareNode(nodeType)) return numeric; const dimension=dimensionForKind(kind); const source=dimension==='Translational Stiffness' ? `${projectUnits?.force ?? 'kN'}/${projectUnits?.length ?? 'm'}` : dimension==='Rotational Stiffness' ? `${projectUnits?.moment ?? 'kNm'}/rad` : kind==='length' ? projectUnits?.length ?? 'm' : storedUnit; return source===storedUnit ? numeric : convertQuantity(numeric, source, storedUnit) }
 function dimensionForKind(kind: import('../domain/quantities').QuantityKind): import('../domain/quantities').PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, import('../domain/quantities').PhysicalDimension>)[kind] ?? 'Dimensionless' }
 

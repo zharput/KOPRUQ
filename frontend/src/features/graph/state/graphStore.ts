@@ -1,6 +1,6 @@
 import type { GraphParameterValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
 import { validateConnection } from '../engine/graphEngine'
-import { getNodeDefinition } from '../registry/nodeRegistry'
+import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
 import { readProjectState } from '../../project/model/projectWorkspace'
 
 const STORAGE_KEY = 'spanova.graph.documents.v1'
@@ -74,7 +74,7 @@ export function addNode(type: string, position: { x: number; y: number }) {
   const definition = getNodeDefinition(type); if (!definition) return
   const graph = getActiveGraph(), count = graph.nodes.filter((node) => node.type === type).length + 1
   const projectUnits = typeof localStorage === 'undefined' ? undefined : readProjectState([]).project.units
-  const node: SpanovaNode = { id: globalThis.crypto?.randomUUID?.() ?? `node-${Date.now()}-${Math.random().toString(36).slice(2)}`, type, name: `${definition.label}-${count}`, position, parameters: definition.createDefaultParameters(projectUnits) }
+  const node = createNode(definition, { id: globalThis.crypto?.randomUUID?.() ?? `node-${Date.now()}-${Math.random().toString(36).slice(2)}`, name: `${definition.label}-${count}`, position, projectUnits })
   if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] node insertion')
   replaceActiveGraph({ ...graph, nodes: [...graph.nodes, node] })
   return node.id

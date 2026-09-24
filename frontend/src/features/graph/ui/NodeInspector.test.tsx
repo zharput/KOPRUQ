@@ -25,16 +25,17 @@ describe('Node Inspector', () => {
     expect(container.textContent).not.toContain(value.type)
   })
 
-  it('uses a rounded obround for Oval Pier with resolved B and D, units and Bridge Axis', () => {
+  it('uses a rounded obround for Oval Pier with resolved B and D and reference axes', () => {
     const value=node('substructure.pier.oval')
     const { container }=render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} {...handlers} />)
     const svg=screen.getByRole('img',{name:/oval pier schematic/i})
     expect(svg.querySelector('ellipse')).toBeNull()
     expect(svg.querySelector('rect[rx]')).toBeInTheDocument()
-    expect(svg.getAttribute('aria-label')).toContain('Bridge Axis')
+    expect(svg.getAttribute('aria-label')).not.toContain('Bridge Axis')
     expect(container.textContent).toContain('B = 3.00 m')
     expect(container.textContent).toContain('D = 1.50 m')
-    expect(container.textContent).toContain('Bridge Axis')
+    expect(container.textContent).toContain('X-X')
+    expect(container.textContent).toContain('Y-Y')
   })
 
   it('shows H-section dimensions with B transverse and D longitudinal', () => {
@@ -83,11 +84,14 @@ describe('Node Inspector', () => {
 
   it('converts schematic values to Project display units and indicates connected ranges', () => {
     const pier=node('substructure.pier.rectangular')
-    const { rerender }=render(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} projectUnits={{length:'mm'}} {...handlers} />)
+    const { container, rerender }=render(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} projectUnits={{length:'mm'}} {...handlers} />)
     expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 3000.00 mm')
     rerender(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} previewInputs={{width:{sourceName:'Hidden source',value:[makeQuantity(2,'length','m'),makeQuantity(2.5,'length','m')]}}} connections={[{id:'private-edge-id',sourceNodeId:'private-source-id',sourcePortId:'values',targetNodeId:pier.id,targetPortId:'width'}]} projectUnits={{length:'m'}} {...handlers} />)
     const svg=screen.getByRole('img',{name:/rectangular pier schematic/i})
-    expect(svg.textContent).toContain('B = 2.00 m – 2.50 m')
+    expect(container.textContent).toContain('2.00 m')
+    expect(svg.getAttribute('aria-label')).toContain('B/D 2.00 × 1.50 m')
+    expect(svg.textContent).toContain('X-X')
+    expect(svg.textContent).toContain('Y-Y')
     expect(svg.textContent).not.toMatch(/Hidden source|private-source-id|private-edge-id/)
   })
 

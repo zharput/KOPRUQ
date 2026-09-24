@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { GraphValue, SpanovaConnection, SpanovaNode } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getUnit } from '../domain/quantities'
@@ -60,6 +61,8 @@ function GirderSchematic({ node, candidates, previewInputs, connected, projectUn
 
 function PierSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {
   const kind = node.type.split('.').at(-1) ?? 'rectangular'
+  if (kind === 'rectangular') return <RectangularPierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+  return <PierFamilySchematic kind={kind} node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   const dimensions: Record<string, { key: string; port: string; fallback: string }> = {
     circular: { key: 'D', port: 'diameter', fallback: 'D' },
     rectangular: { key: 'B', port: 'width', fallback: 'B' }, oval: { key: 'B', port: 'width', fallback: 'B' },
@@ -92,6 +95,106 @@ function PierSchematic({ node, candidates, previewInputs, connected, projectUnit
     {kind !== 'circular' && <><DimensionHorizontal x1={cx - w / 2} x2={cx + w / 2} y={20} toY={cy - h / 2} label={`B = ${b}`} /><DimensionVertical y1={cy - h / 2} y2={cy + h / 2} x={232} toX={cx + w / 2} label={`D = ${d}`} />{(kind === 'box' || kind === 'h_section') && <text className="engineering-dimension" x="150" y="177" textAnchor="middle">{kind === 'box' ? `tw = ${tw}` : `tw = ${tw}   tf = ${tf}`}</text>}</>}
     <BridgeAxis y={201} /><text className="engineering-dimension" x="150" y="239" textAnchor="middle">Pier Height = {height}</text>
   </svg></SchematicCard>
+}
+
+function PierFamilySchematic({ kind, node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string>; kind: string }) {
+  const [detail, setDetail] = useState(false)
+  const b = representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerWidth' : 'width', 'B') ?? 1
+  const d = kind === 'circular' ? b : representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D') ?? 1
+  const tw = representativeMetres(node, candidates, previewInputs, connected, 'wallThickness', 'tw') ?? .3
+  const tf = representativeMetres(node, candidates, previewInputs, connected, 'flangeThickness', 'tf') ?? .6
+  const web = representativeMetres(node, candidates, previewInputs, connected, 'webThickness', 'tw') ?? tw
+  const flange = representativeMetres(node, candidates, previewInputs, connected, 'flangeThickness', 'tf') ?? tf
+  const height = dimensionValue(node, candidates, previewInputs, connected, 'height', 'height', projectUnits)
+  const size = rectangularSize(d, b, 170, 105)
+  return <>
+    <SchematicCard className="engineering-schematic-single spn-pier-family-preview">
+      <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label={`Expand ${kind} pier detail`} title="Detail view" onClick={() => setDetail(true)}>↗</button></div>
+      <svg viewBox="0 0 300 180" role="img" aria-label={`${kind.replace('_', ' ')} pier schematic`}>
+        <desc>{kind === 'oval' ? `Oval pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · Bridge Axis` : kind === 'h_section' ? `H section pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · tw = ${displayLength(web, projectUnits)} · tf = ${displayLength(flange, projectUnits)}` : ''}</desc>
+        <PierFamilyShape kind={kind} cx={150} cy={82} w={size.w} h={size.h} tw={tw} web={web} flange={flange} scale={size.scale} />
+        <BridgeAxisDirectional x={150} y={82} left={48} right={252} verticalTop={28} verticalBottom={136} />
+      </svg>
+      <div className="spn-schematic-preview-note">{kind.replace('_', ' ')} section preview{kind === 'box' ? ` · t = ${displayLength(tw, projectUnits)}` : kind === 'h_section' ? ` · W = ${displayLength(web, projectUnits)} · t = ${displayLength(flange, projectUnits)}` : ''}</div>
+    </SchematicCard>
+    {detail && <div className="spn-schematic-detail-backdrop" role="presentation" onMouseDown={() => setDetail(false)}>
+      <div className="spn-schematic-detail-dialog" role="dialog" aria-modal="true" aria-label={`${kind} pier detail view`} onMouseDown={event => event.stopPropagation()}>
+        <div className="spn-schematic-detail-header"><strong>{kind.replace('_', ' ')} Pier Detail</strong><button type="button" aria-label={`Close ${kind} pier detail`} onClick={() => setDetail(false)}>×</button></div>
+        <svg viewBox="0 0 520 360" role="img" aria-label={`${kind.replace('_', ' ')} pier detailed section`}>
+          <PierFamilyShape kind={kind} cx={260} cy={180} w={rectangularSize(d, b, 250, 230).w} h={rectangularSize(d, b, 250, 230).h} tw={tw} web={web} flange={flange} scale={rectangularSize(d, b, 250, 230).scale} />
+          <DimensionHorizontal x1={260 - rectangularSize(d, b, 250, 230).w / 2} x2={260 + rectangularSize(d, b, 250, 230).w / 2} y={42} toY={180 - rectangularSize(d, b, 250, 230).h / 2} label={`${kind === 'circular' ? 'D' : 'D'} = ${displayLength(d, projectUnits)}`} />
+          {kind !== 'circular' && <DimensionVertical y1={180 - rectangularSize(d, b, 250, 230).h / 2} y2={180 + rectangularSize(d, b, 250, 230).h / 2} x={445} toX={260 + rectangularSize(d, b, 250, 230).w / 2} label={`B = ${displayLength(b, projectUnits)}`} />}
+          <BridgeAxisDirectional x={260} y={180} left={105} right={415} verticalTop={52} verticalBottom={308} />
+          {kind === 'box' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">t = {displayLength(tw, projectUnits)}</text>}
+          {kind === 'h_section' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">W = {displayLength(web, projectUnits)} · t = {displayLength(flange, projectUnits)}</text>}
+          <text className="engineering-axis-label" x="260" y="350" textAnchor="middle">H = {height}</text>
+        </svg>
+      </div>
+    </div>}
+  </>
+}
+
+function PierFamilyShape({ kind, cx, cy, w, h, tw, web, flange, scale }: { kind: string; cx: number; cy: number; w: number; h: number; tw: number; web: number; flange: number; scale?: number }) {
+  if (kind === 'circular') return <circle className="engineering-outline" cx={cx} cy={cy} r={Math.min(w, h) / 2} />
+  if (kind === 'oval') return <rect className="engineering-outline" x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx={Math.min(w, h) / 2} />
+  if (kind === 'box') {
+    const wall = clamp(tw * (scale ?? 1), 0.5, Math.min(w, h) / 2 - 1)
+    const wallX = wall, wallY = wall
+    const outerX = cx - w / 2, outerY = cy - h / 2
+    const innerX = outerX + wallX, innerY = outerY + wallY
+    const innerW = Math.max(4, w - wallX * 2), innerH = Math.max(4, h - wallY * 2)
+    return <path className="engineering-outline" fillRule="evenodd" d={`M${outerX} ${outerY}H${outerX + w}V${outerY + h}H${outerX}Z M${innerX} ${innerY}V${innerY + innerH}H${innerX + innerW}V${innerY}Z`} />
+  }
+  return <HSection cx={cx} cy={cy} width={w} height={h} web={clamp(web * (scale ?? 1), 0.5, h)} flange={clamp(flange * (scale ?? 1), 0.5, w / 2)} />
+}
+
+function RectangularPierSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {
+  const [detail, setDetail] = useState(false)
+  const b = representativeMetres(node, candidates, previewInputs, connected, 'width', 'B') ?? localLengthParameter(node, 'B') ?? 1
+  const d = representativeMetres(node, candidates, previewInputs, connected, 'depth', 'D') ?? localLengthParameter(node, 'D') ?? 1
+  const label = `${b.toFixed(2)} × ${d.toFixed(2)} m`
+  return <>
+    <SchematicCard className="engineering-schematic-single spn-rectangular-pier-preview">
+      <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label="Expand rectangular pier detail" title="Detail view" onClick={() => setDetail(true)}>↗</button></div>
+      <svg viewBox="0 0 300 180" role="img" aria-label={`Rectangular pier schematic. B/D ${label}.`}>
+        <desc>Rectangular pier schematic. B = {displayLength(b, projectUnits)} · D = {displayLength(d, projectUnits)}</desc>
+        <RectangularPierShape b={b} d={d} x={150} y={82} maxW={170} maxH={105} />
+        <BridgeAxisDirectional x={150} y={82} left={48} right={252} verticalTop={28} verticalBottom={136} />
+      </svg>
+      <div className="spn-schematic-preview-note">Rectangular section preview</div>
+    </SchematicCard>
+    {detail && <div className="spn-schematic-detail-backdrop" role="presentation" onMouseDown={() => setDetail(false)}>
+      <div className="spn-schematic-detail-dialog" role="dialog" aria-modal="true" aria-label="Rectangular pier detail view" onMouseDown={event => event.stopPropagation()}>
+        <div className="spn-schematic-detail-header"><strong>Rectangular Pier Detail</strong><button type="button" aria-label="Close rectangular pier detail" onClick={() => setDetail(false)}>×</button></div>
+        <svg viewBox="0 0 520 360" role="img" aria-label={`Rectangular pier detailed section. B ${b.toFixed(2)} m, D ${d.toFixed(2)} m.`}>
+          <RectangularPierShape b={b} d={d} x={260} y={180} maxW={250} maxH={230} />
+          <DimensionHorizontal x1={260 - rectangularSize(d, b, 250, 230).w / 2} x2={260 + rectangularSize(d, b, 250, 230).w / 2} y={42} toY={180 - rectangularSize(d, b, 250, 230).h / 2} label={`D = ${displayLength(d, projectUnits)}`} />
+          <DimensionVertical y1={180 - rectangularSize(d, b, 250, 230).h / 2} y2={180 + rectangularSize(d, b, 250, 230).h / 2} x={445} toX={260 + rectangularSize(d, b, 250, 230).w / 2} label={`B = ${displayLength(b, projectUnits)}`} />
+          <BridgeAxisDirectional x={260} y={180} left={105} right={415} verticalTop={52} verticalBottom={308} />
+        </svg>
+      </div>
+    </div>}
+  </>
+}
+
+function rectangularSize(b: number, d: number, maxW: number, maxH: number) {
+  const scale = Math.min(maxW / Math.max(b, 0.001), maxH / Math.max(d, 0.001))
+  return { w: b * scale, h: d * scale, scale }
+}
+
+function RectangularPierShape({ b, d, x, y, maxW, maxH }: { b: number; d: number; x: number; y: number; maxW: number; maxH: number }) {
+  const { w, h } = rectangularSize(d, b, maxW, maxH)
+  return <rect className="engineering-outline" x={x - w / 2} y={y - h / 2} width={w} height={h} />
+}
+
+/** Shared rectangular-pier reference axes for Preview and Detail views. */
+function BridgeAxisDirectional({ x, y, left, right, verticalTop, verticalBottom }: { x: number; y: number; left: number; right: number; verticalTop: number; verticalBottom: number }) {
+  return <g className="engineering-axis engineering-axis-directional" aria-label="Rectangular pier X-X and Y-Y reference axes">
+    <path d={`M${left} ${y}H${right}`} />
+    <path d={`M${x} ${verticalTop}V${verticalBottom}`} />
+    <text x={x + 6} y={verticalTop + 11} textAnchor="start">Y-Y</text>
+    <text x={right - 3} y={y - 7} textAnchor="end">X-X</text>
+  </g>
 }
 
 function HSection({ cx, cy, width, height, web, flange }: { cx: number; cy: number; width: number; height: number; web: number; flange: number }) {
@@ -184,6 +287,7 @@ function dimensionValue(node: SpanovaNode, candidates: GraphValue[], previewInpu
   return '—'
 }
 function representativeMetres(node:SpanovaNode,candidates:GraphValue[],preview:Props['previewInputs'],connected:Set<string>,port:string,key:string){const v=geometryValues(candidates,key)[0];if(v!==undefined)return v;if(connected.has(port))return inputValues(preview[port]?.value)[0];const raw=node.parameters[`${key}Value`],unit=getUnit(String(node.parameters[`${key}Unit`]??'m'));return typeof raw==='number'&&unit?.kind==='length'?unit.toCanonical(raw):undefined}
+function localLengthParameter(node: SpanovaNode, key: string) { const raw = node.parameters[`${key}Value`], unit = getUnit(String(node.parameters[`${key}Unit`] ?? 'm')); return typeof raw === 'number' && unit?.kind === 'length' ? unit.toCanonical(raw) : undefined }
 function representativeNumber(p:{node:SpanovaNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const v=geometryValues(p.candidates,key)[0];if(v!==undefined)return v;if(p.connected.has(port)){const raw=p.previewInputs[port]?.value;return inputValues(raw)[0]}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?value:undefined}
 function representativeDerived(p:{candidates:GraphValue[]},axis:'Lx'|'Ly'){for(const item of p.candidates){if(typeof item!=='object'||item===null||Array.isArray(item)||!('geometry'in item))continue;const derived=(item.geometry as Record<string,unknown>).derived as Record<string,unknown>|undefined;if(typeof derived?.[axis]==='number')return derived[axis]}return undefined}
 function numberValue(p:{node:SpanovaNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const values=p.candidates.map(item=>candidateProperty(item,key)).filter((v):v is number=>v!==undefined);if(values.length)return values.length===1?String(values[0]):`${Math.min(...values)}–${Math.max(...values)}`;if(p.connected.has(port)){const values=inputValues(p.previewInputs[port]?.value);return values.length?values.join('–'):'—'}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?String(value):'—'}

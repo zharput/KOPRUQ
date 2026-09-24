@@ -1299,6 +1299,18 @@
 .spn-graph-workspace > .spn-graph-toolbar { padding-left: 10px; }
 .spn-graph-bridge-selector label { color: #4b5563; font: 11px "Segoe UI", sans-serif; }
 .spn-graph-bridge-selector select { min-width: 270px; border: 1px solid var(--border); background: var(--surface-0); color: #4b5563; font: 11px "Segoe UI", sans-serif; padding: 3px 5px; }
+.spn-schematic-card-toolbar { display: flex; align-items: center; justify-content: space-between; height: 22px; color: var(--text-muted); font-size: 10px; }
+.spn-schematic-card-toolbar button { border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font: 12px "Segoe UI", sans-serif; line-height: 16px; padding: 0 4px; }
+.spn-schematic-preview-note { color: var(--text-muted); font-size: 9px; text-align: center; }
+.spn-schematic-detail-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 24px; background: rgb(0 0 0 / 52%); }
+.spn-schematic-detail-dialog { width: min(620px, 94vw); max-height: 90vh; overflow: auto; border: 1px solid var(--border-strong); background: var(--surface-1); box-shadow: 0 18px 60px rgb(0 0 0 / 42%); }
+.spn-schematic-detail-header { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 12px; }
+.spn-schematic-detail-header button { border: 0; background: transparent; color: var(--text-primary); cursor: pointer; font-size: 20px; line-height: 18px; }
+.spn-schematic-detail-dialog svg { display: block; width: 100%; height: auto; min-height: 300px; padding: 12px; }
+.spn-schematic-detail-dialog .engineering-dimension { font-size: 11px; }
+.engineering-axis-label { fill: var(--graph-schematic-text); font: 10px "Segoe UI", sans-serif; }
+.engineering-axis-directional path { fill: none; stroke: var(--graph-schematic-stroke); stroke-width: .8; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.engineering-axis-directional text { fill: var(--graph-schematic-text); font: 10px "Segoe UI", sans-serif; }
 .spn-graph-toolbar { display: flex; }
 .spn-graph-name > label, .spn-graph-name > input, .spn-graph-name > select, .spn-graph-name > button { display: none; }
 .spn-workspace-layout:has(.spn-graph-library) .spn-workspace-side-left .spn-workspace-side-content { display: flex; flex-direction: column; min-height: 0; overflow: hidden; overscroll-behavior: contain; }

@@ -42,7 +42,7 @@ const pierDefinitions = [
   pierNode('RECTANGULAR', 'Rectangular Pier', [{ key: 'B', label: 'B - Transverse', port: 'width', defaultValue: 3 }, { key: 'D', label: 'D - Longitudinal', port: 'depth', defaultValue: 1.5 }]),
   pierNode('OVAL', 'Oval Pier', [{ key: 'B', label: 'B - Transverse', port: 'width', defaultValue: 3 }, { key: 'D', label: 'D - Longitudinal', port: 'depth', defaultValue: 1.5 }]),
   pierNode('BOX', 'Box Pier', [{ key: 'B', label: 'B - Transverse', port: 'outerWidth', defaultValue: 3 }, { key: 'D', label: 'D - Longitudinal', port: 'outerDepth', defaultValue: 1.5 }, { key: 'tw', label: 'Wall thickness', port: 'wallThickness', defaultValue: .3 }]),
-  pierNode('H_SECTION', 'H Pier', [{ key: 'B', label: 'Overall Width', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Overall Depth', port: 'depth', defaultValue: 6 }, { key: 'tw', label: 'Web Thickness', port: 'webThickness', defaultValue: 3 }, { key: 'tf', label: 'Flange Thickness', port: 'flangeThickness', defaultValue: .75 }]),
+  pierNode('H_SECTION', 'H Pier', [{ key: 'B', label: 'B - Transverse', port: 'width', defaultValue: 3 }, { key: 'D', label: 'D - Longitudinal', port: 'depth', defaultValue: 6 }, { key: 'tw', label: 'W - Web thickness', port: 'webThickness', defaultValue: 3 }, { key: 'tf', label: 't - Flange thickness', port: 'flangeThickness', defaultValue: .75 }]),
 ]
 const pierCapDefinitions = [
   pierCapNode('RECTANGULAR', 'Rectangular Cap', [

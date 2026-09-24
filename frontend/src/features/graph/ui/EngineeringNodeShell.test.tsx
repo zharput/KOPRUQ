@@ -102,7 +102,7 @@ describe('reusable engineering node shell', () => {
     ['substructure.pier.circular', 'Diameter', 'DValue', 2],
     ['substructure.pier.rectangular', 'B - Transverse', 'BValue', 3],
     ['substructure.pier.box', 'B - Transverse', 'BValue', 3],
-    ['substructure.pier.h_section', 'Overall Width', 'BValue', 3],
+    ['substructure.pier.h_section', 'B - Transverse', 'BValue', 3],
   ])('projects %s local lengths through the active project unit', (type, label, _parameter, canonical) => {
     const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === type)!
     const graph: SpanovaGraph = { id: `units-${type}`, name: 'units', schemaVersion: 1, nodes: [{ id: 'pier', type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'cm' }) }], connections: [] }

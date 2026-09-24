@@ -16,6 +16,8 @@ import NodeLibrary from './NodeLibrary'
 import { mergeBoxSelection, normalizedBox, selectNodeIdsByBox, selectionMode, transformBox, type BoxRect, type BoxSelectionMode } from './boxSelection'
 import { graphMaterialServices } from '../api/graphMaterialService'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
+import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from '../family/familyResults'
+import { markFamilySnapshotsStale, publishFamilySnapshots } from '../family/familySnapshotStore'
 
 import { readProjectState, type ProjectWorkspaceData } from '../../project/model/projectWorkspace'
 
@@ -39,6 +41,7 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
   const [resolvedInputs, setResolvedInputs] = useState<Record<string, Record<string, GraphValue>>>({})
   const [executedSignature, setExecutedSignature] = useState<string | undefined>(undefined)
   const currentSignature = useMemo(() => graphExecutionSignature(graph), [graph])
+  useEffect(() => { if (graph.bridgeId) markFamilySnapshotsStale(graph.bridgeId, graph.id, graphFingerprint(graph)) }, [graph])
   const isDirty = executedSignature !== undefined && executedSignature !== currentSignature
   const executionDisplay = useMemo(() => isDirty ? { states: {} as Record<string, GraphExecutionState>, errors: {} as Record<string, string>, resolvedInputs: {} as Record<string, Record<string, GraphValue>> } : { states, errors, resolvedInputs }, [isDirty, states, errors, resolvedInputs])
   const [log, setLog] = useState<GraphLogEntry[]>([])
@@ -77,6 +80,7 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
     // Reading storage here could lag behind a just-selected Quick Unit.
     const projectUnits = project.units
     const result = await executeGraph(graph, abort.signal, { ...graphMaterialServices, projectUnits })
+    if (!abort.signal.aborted && graph.bridgeId) publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(graph, result))
     setLog(result.logs); setErrors(result.errors); setNodeOutputs(result.values); setResolvedInputs(result.resolvedInputs)
     setExecutedSignature(currentSignature)
     setStates(Object.fromEntries(graph.nodes.map((node) => [node.id, result.errors[node.id] ? 'error' : result.values[node.id] ? 'success' : 'idle'])))

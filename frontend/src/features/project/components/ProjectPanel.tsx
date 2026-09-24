@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { Dispatch, SetStateAction } from 'react'
-import { BRIDGE_TYPES, PIER_SHAPES, type BridgeRow, type BridgeType, type PierShape } from '../model/types'
+import type { BridgeRow } from '../model/types'
 import { parseImportedBridges } from '../api/excelImport'
 
 /**
@@ -99,15 +99,10 @@ export default function ProjectPanel({
 }) {
   const [units, setUnits] = useState('kN-m')
   const [designCriteria, setDesignCriteria] = useState('None')
-  const [expandedNo, setExpandedNo] = useState<string | null>(null)
   const [editingNo, setEditingNo] = useState<string | null>(null)
   const [addingNew, setAddingNew] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  function updateBridge(no: string, patch: Partial<BridgeRow>) {
-    setBridges((prev) => prev.map((b) => (b.no === no ? { ...b, ...patch } : b)))
-  }
 
   function saveEditedBridge(originalNo: string, fields: BridgeBaseFields) {
     setBridges((prev) => prev.map((b) => (b.no === originalNo ? { ...b, ...fields } : b)))
@@ -117,7 +112,6 @@ export default function ProjectPanel({
   function deleteBridge(no: string) {
     if (!window.confirm(`Remove bridge "${no}" from the Bridge Information table?`)) return
     setBridges((prev) => prev.filter((b) => b.no !== no))
-    if (expandedNo === no) setExpandedNo(null)
     if (editingNo === no) setEditingNo(null)
   }
 
@@ -149,13 +143,11 @@ export default function ProjectPanel({
         return
       }
       setBridges(imported)
-      setExpandedNo(null)
     } catch (e) {
       setImportError(e instanceof Error ? `Could not read that file: ${e.message}` : 'Could not read that file.')
     }
   }
 
-  const expanded = bridges.find((b) => b.no === expandedNo) ?? null
   const editing = bridges.find((b) => b.no === editingNo) ?? null
 
   return (
@@ -203,7 +195,7 @@ export default function ProjectPanel({
             }}
           />
         </div>
-        <p className="spn-card-subtitle">Click a bridge to view/edit its additional details below.</p>
+        <p className="spn-card-subtitle">Project bridge information and lifecycle data.</p>
         {importError && <p className="spn-error">{importError}</p>}
         <table className="spn-table">
           <thead>
@@ -217,8 +209,6 @@ export default function ProjectPanel({
             {bridges.map((bridge) => (
               <tr
                 key={bridge.no}
-                onClick={() => setExpandedNo(expandedNo === bridge.no ? null : bridge.no)}
-                className={expandedNo === bridge.no ? 'spn-row-selected' : undefined}
               >
                 <td>{bridge.no}</td>
                 <td>{bridge.km}</td>
@@ -287,65 +277,6 @@ export default function ProjectPanel({
         )}
       </div>
 
-      {expanded && (
-        <div className="spn-card">
-          <h2 className="spn-card-title">{expanded.no} - additional details</h2>
-
-          <label className="spn-field" style={{ maxWidth: 280 }}>
-            <span>Bridge Type</span>
-            <select
-              className="spn-input"
-              value={expanded.bridgeType}
-              onChange={(e) => updateBridge(expanded.no, { bridgeType: e.target.value as BridgeType })}
-            >
-              {BRIDGE_TYPES.map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
-          </label>
-
-          <RangeSliderField
-            label="Span length (m)"
-            given={expanded.spansM}
-            boundMin={10}
-            boundMax={150}
-            step={5}
-            onChange={(spansM) => updateBridge(expanded.no, { spansM })}
-          />
-
-          {expanded.girderDepthCm ? (
-            <RangeSliderField
-              label="Girder depth (cm)"
-              given={expanded.girderDepthCm}
-              boundMin={50}
-              boundMax={500}
-              step={10}
-              onChange={(girderDepthCm) => updateBridge(expanded.no, { girderDepthCm })}
-            />
-          ) : (
-            <div className="spn-field" style={{ maxWidth: 280 }}>
-              <span>Girder</span>
-              <p className="spn-card-subtitle" style={{ marginTop: 4 }}>{expanded.girderNote}</p>
-            </div>
-          )}
-
-          <label className="spn-field" style={{ maxWidth: 280 }}>
-            <span>Pier Shape</span>
-            <select
-              className="spn-input"
-              value={expanded.pierShape}
-              onChange={(e) => updateBridge(expanded.no, { pierShape: e.target.value as PierShape })}
-            >
-              {PIER_SHAPES.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </label>
-          <p className="spn-card-subtitle">
-            Pier cross-section dimensions (B, H, wall/flange thickness, etc.) are defined per shape in Pier Families - not entered here.
-          </p>
-        </div>
-      )}
     </div>
   )
 }
@@ -414,55 +345,6 @@ function BridgeBaseFieldsForm({
           Cancel
         </button>
       </div>
-    </div>
-  )
-}
-
-/** Two single-handle sliders (min/max) standing in for a range control - see this file's own comment for why. */
-function RangeSliderField({
-  label,
-  given,
-  boundMin,
-  boundMax,
-  step,
-  onChange,
-}: {
-  label: string
-  given: number[]
-  boundMin: number
-  boundMax: number
-  step: number
-  onChange: (values: number[]) => void
-}) {
-  const min = Math.min(...given)
-  const max = Math.max(...given)
-
-  return (
-    <div className="spn-field" style={{ maxWidth: 420 }}>
-      <span>{label}</span>
-      <div className="spn-slider-row">
-        <span className="spn-slider-value">min {min}</span>
-        <input
-          type="range"
-          min={boundMin}
-          max={boundMax}
-          step={step}
-          value={min}
-          onChange={(e) => onChange([Number(e.target.value), max])}
-        />
-      </div>
-      <div className="spn-slider-row">
-        <span className="spn-slider-value">max {max}</span>
-        <input
-          type="range"
-          min={boundMin}
-          max={boundMax}
-          step={step}
-          value={max}
-          onChange={(e) => onChange([min, Number(e.target.value)])}
-        />
-      </div>
-      <p className="spn-card-subtitle" style={{ marginTop: 2 }}>Given alternatives: {given.join(', ')}</p>
     </div>
   )
 }

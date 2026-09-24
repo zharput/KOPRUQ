@@ -11,8 +11,10 @@ import GirderLibraryPanel from '../../girder-library/components/GirderLibraryPan
 import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
 import { familyChangedEvent, getFamilies, getFamilyReferences, publishFamilySelection, type FamilyCategory, type FamilyRegistryRecord, type FamilySelection } from '../../family-registry/model/registry'
 import type { BridgeRow } from '../../project/model/types'
+import { readProjectState } from '../../project/model/projectWorkspace'
 import { getFamilySnapshots } from '../../graph/family/familySnapshotStore'
 import type { FamilyCategory as GraphFamilyCategory, FamilyCalculationSnapshot } from '../../graph/family/familyResults'
+import { familyGroups, candidateColumns, cellValue, paginateAlternatives } from '../model/graphFamilyPresentation'
 
 type Props = { crossSectionValues: CrossSectionValues; setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>; bridges: BridgeRow[] }
 const CATEGORIES: { category: FamilyCategory; label: string; Icon: typeof Boxes; types: string; supported: boolean }[] = [
@@ -33,10 +35,12 @@ export default function FamilyTablesWorkspace({ crossSectionValues, setCrossSect
   const [bridgeId, setBridgeId] = useState(bridges[0]?.id ?? '')
   const [view, setView] = useState<'catalog' | 'graph'>('catalog')
   const [snapshots, setSnapshots] = useState<FamilyCalculationSnapshot[]>([])
+  const [projectUnits, setProjectUnits] = useState(() => readProjectState([]).project.units)
   const graphCategory = category as unknown as GraphFamilyCategory
   const refreshSnapshots = () => { const graph = typeof localStorage === 'undefined' ? undefined : (() => { try { return JSON.parse(localStorage.getItem('spanova.graph.documents.v1') ?? 'null') as { graphs?: { id: string; bridgeId?: string }[] } | null } catch { return null } })(); const document = graph?.graphs?.find(item => item.bridgeId === bridgeId); setSnapshots(document ? getFamilySnapshots(bridgeId, document.id) : []) }
   useEffect(() => { if (!bridges.some(item => item.id === bridgeId)) setBridgeId(bridges[0]?.id ?? '') }, [bridges, bridgeId])
   useEffect(() => { refreshSnapshots(); window.addEventListener('spanova:family-snapshots-changed', refreshSnapshots); return () => window.removeEventListener('spanova:family-snapshots-changed', refreshSnapshots) }, [bridgeId])
+  useEffect(() => { const refreshUnits = () => setProjectUnits(readProjectState([]).project.units); window.addEventListener('spanova:project-units-changed', refreshUnits); return () => window.removeEventListener('spanova:project-units-changed', refreshUnits) }, [])
   useEffect(() => {
     const onSelection = (event: Event) => {
       const detail = (event as CustomEvent<FamilySelection>).detail
@@ -57,7 +61,7 @@ export default function FamilyTablesWorkspace({ crossSectionValues, setCrossSect
   const active = CATEGORIES.find((item) => item.category === category)!
   const selected = selection.category === category ? families.find((item) => item.id === selection.id) : undefined
   const selectedBridge = bridges.find(item => item.id === bridgeId)
-  const content = view === 'graph' ? <GraphAlternatives category={graphCategory} snapshots={snapshots} /> : !active.supported ? <div className="spn-card"><h2 className="spn-card-title">{active.label.toUpperCase()}</h2><p className="spn-card-subtitle">{active.types}</p></div>
+  const content = view === 'graph' ? <GraphAlternatives category={graphCategory} snapshots={snapshots} projectUnits={projectUnits} /> : !active.supported ? <div className="spn-card"><h2 className="spn-card-title">{active.label.toUpperCase()}</h2><p className="spn-card-subtitle">{active.types}</p></div>
     : category === 'SUPERSTRUCTURE' ? <SuperstructureFamiliesPanel crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues} />
     : category === 'GIRDER' ? <GirderLibraryPanel />
     : category === 'PIER' ? <PierFamiliesPanel />
@@ -69,11 +73,26 @@ export default function FamilyTablesWorkspace({ crossSectionValues, setCrossSect
   return <WorkspaceLayout leftTitle="Family Tables" leftPanel={<nav className="spn-family-nav" aria-label="Family categories">{CATEGORIES.map(({ category: itemCategory, label, Icon, types, supported }) => <button type="button" key={itemCategory} disabled={!supported} className={itemCategory === category ? 'active' : ''} onClick={() => { setCategory(itemCategory); setView('catalog'); const next = getFamilies(itemCategory); setFamilies(next); setSelection({ category: itemCategory, id: next[0]?.id ?? null }); publishFamilySelection(itemCategory, next[0]?.id ?? null) }}><Icon size={15} /><span>{label}</span><small>{types}</small></button>)}<button type="button" className={view === 'graph' ? 'active' : ''} onClick={() => { setView('graph'); refreshSnapshots() }}><Layers size={15} /><span>Graph Alternatives</span><small>Bridge calculation results</small></button></nav>} mainContent={<div className="spn-family-center"><div className="spn-family-center-heading"><div><h1>{view === 'graph' ? 'Graph Alternatives' : `${active.label} Families`}</h1><p>{view === 'graph' ? 'Read-only results from Graph snapshots' : active.types}</p></div><div className="spn-family-file-actions"><label>Bridge <select aria-label="Family Tables Bridge" value={bridgeId} onChange={event => setBridgeId(event.target.value)}>{bridges.map(bridge => <option key={bridge.id} value={bridge.id}>{bridge.no} | KM {bridge.km} | L = {bridge.estimatedLengthM.toFixed(2)} m</option>)}</select></label><button type="button" disabled title="Family import is not implemented yet">Import</button><button type="button" disabled title="Family export is not implemented yet">Export</button></div></div><div className="spn-family-bridge-summary">{selectedBridge ? `${selectedBridge.no} · KM ${selectedBridge.km} · ${selectedBridge.estimatedLengthM.toFixed(2)} m` : 'No bridge selected'} · {snapshots.length} family groups</div>{content}</div>} rightTitle="Family Inspector" rightPanel={<FamilyInspector category={category} family={selected} records={families} />} />
 }
 
-function GraphAlternatives({ category, snapshots }: { category: GraphFamilyCategory; snapshots: FamilyCalculationSnapshot[] }) {
-  const snapshot = snapshots.find(item => item.familyCategory === category)
-  if (!snapshot) return <div className="spn-card"><h2 className="spn-card-title">NO_RESULT</h2><p className="spn-card-subtitle">Run the selected bridge graph to create Family alternatives.</p></div>
-  return <div className="spn-card"><h2 className="spn-card-title">{category.replace('_', ' ')}</h2><p className="spn-card-subtitle">{snapshot.sourceNodeName} · {snapshot.freshness} · {snapshot.candidates.length} alternatives</p><div className="spn-table-wrap"><table className="spn-table"><thead><tr><th>Candidate ID</th><th>Source Node</th><th>Data</th></tr></thead><tbody>{snapshot.candidates.map(alternative => <tr key={`${alternative.sourceNodeId}:${alternative.candidateId}`}><td>{alternative.candidateId}</td><td>{alternative.sourceNodeType}</td><td><code>{JSON.stringify(alternative.candidateData)}</code></td></tr>)}</tbody></table></div></div>
+function GraphAlternatives({ category, snapshots, projectUnits }: { category: GraphFamilyCategory; snapshots: FamilyCalculationSnapshot[]; projectUnits: { length: string; force: string; moment: string; stress: string; mass: string; temperature: string } }) {
+  const groups = familyGroups(snapshots)
+  const active = groups.find(group => group.category === category) ?? groups[0]
+  const [groupCategory, setGroupCategory] = useState<GraphFamilyCategory>(active.category)
+  const selectedGroup = groups.find(group => group.category === groupCategory) ?? active
+  const [sourceId, setSourceId] = useState<string | null>(selectedGroup.snapshots[0]?.sourceNodeId ?? null)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
+  const [page, setPage] = useState(1)
+  useEffect(() => setGroupCategory(category), [category])
+  useEffect(() => setSourceId(selectedGroup.snapshots[0]?.sourceNodeId ?? null), [groupCategory, selectedGroup.snapshots])
+  useEffect(() => setPage(1), [groupCategory, sourceId, snapshots, rowsPerPage])
+  const source = selectedGroup.snapshots.find(item => item.sourceNodeId === sourceId) ?? selectedGroup.snapshots[0]
+  const alternatives = source?.candidates ?? []
+  const columns = candidateColumns(selectedGroup.category, alternatives, projectUnits)
+  const pagination = paginateAlternatives(alternatives, page, rowsPerPage)
+  const { page: safePage, pageCount, items: pageRows } = pagination
+  return <div className="spn-family-graph-view"><aside className="spn-family-graph-groups"><h3>FAMILY GROUPS</h3>{groups.map(group => <button type="button" key={group.category} className={group.category === groupCategory ? 'active' : ''} onClick={() => setGroupCategory(group.category)}><span>{familyLabel(group.category)}</span><small>{group.snapshots.length} nodes · {group.candidateCount} candidates</small></button>)}</aside><section className="spn-card"><h2 className="spn-card-title">{familyLabel(selectedGroup.category)}</h2>{selectedGroup.snapshots.length ? <label className="spn-family-source-select">Source Node<select aria-label="Family source node" value={source?.sourceNodeId ?? ''} onChange={event => setSourceId(event.target.value)}>{selectedGroup.snapshots.map(item => <option key={item.sourceNodeId} value={item.sourceNodeId}>{item.sourceNodeName} · {item.candidates.length} candidates</option>)}</select></label> : <p className="spn-card-subtitle">NO_RESULT · Run the selected bridge graph to create Family alternatives.</p>}{source && <><p className="spn-card-subtitle">{source.sourceNodeName} · {source.sourceNodeType} · {source.freshness} · {alternatives.length} alternatives</p><div className="spn-table-wrap"><table className="spn-table"><thead><tr>{columns.map(column => <th key={column.key}>{column.label}</th>)}</tr></thead><tbody>{pageRows.map(alternative => <tr key={`${alternative.bridgeId}:${alternative.graphDocumentId}:${alternative.sourceNodeId}:${alternative.candidateId}`}><>{columns.map(column => <td key={column.key}>{cellValue(alternative, column.key, projectUnits)}</td>)}</></tr>)}</tbody></table></div><div className="spn-family-pagination"><span>{alternatives.length ? `Showing ${(safePage - 1) * rowsPerPage + 1}–${Math.min(safePage * rowsPerPage, alternatives.length)} of ${alternatives.length} alternatives` : '0 alternatives'}</span><label>Rows per page<select value={rowsPerPage} onChange={event => setRowsPerPage(Number(event.target.value))}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select></label><button type="button" disabled={safePage <= 1} onClick={() => setPage(value => Math.max(1, value - 1))}>Previous</button><span>{pageCount ? `Page ${safePage} of ${pageCount}` : 'No pages'}</span><button type="button" disabled={!pageCount || safePage >= pageCount} onClick={() => setPage(value => Math.min(pageCount, value + 1))}>Next</button></div></>}</section></div>
 }
+
+function familyLabel(category: GraphFamilyCategory) { return category.replace('SPAN_ARRANGEMENT', 'Span Arrangement').replace('PIER_CAP', 'Pier Cap').replaceAll('_', ' ').replace(/\b\w/g, value => value.toUpperCase()) }
 
 function FamilyInspector({ category, family, records }: { category: FamilyCategory; family?: FamilyRegistryRecord; records: FamilyRegistryRecord[] }) {
   if (!family) return <div className="spn-family-inspector"><div className="spn-workspace-heading">{category.replace('_', ' ')}</div>{records.length ? <><p>Select a row in the catalog to inspect its stable family identity and current use.</p><div className="spn-inspector-row"><span>Families</span><strong>{records.length}</strong></div></> : <p>{category === 'ABUTMENT' ? 'No Abutment family model is available. This category is disabled.' : 'This existing feature has no stable family catalog records yet. Its editor remains available in the center panel.'}</p>}</div>

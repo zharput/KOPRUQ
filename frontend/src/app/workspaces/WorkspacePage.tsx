@@ -16,7 +16,7 @@ export default function WorkspacePage({ workspace, initialSelectedItem, mainCont
   if (workspace.id === 'graph' && !mainContentOverride) return <GraphWorkspace project={project} setProject={setProject} />
   if (workspace.id === 'project' && !mainContentOverride) return <ProjectWorkspace path={window.location.pathname} project={project} setProject={setProject} bridges={bridges} setBridges={setBridges} designCode={designCode} setDesignCode={setDesignCode} />
   if (workspace.id === 'bridge-definition' && !mainContentOverride) return <BridgeDefinitionWorkspace bridges={bridges} project={project} store={bridgeDefinitions} setStore={setBridgeDefinitions} terrainId={terrainId} landXmlImportId={landXmlImportId} setTerrainId={setTerrainId} setLandXmlImportId={setLandXmlImportId} />
-  if (workspace.id === 'family-tables' && !mainContentOverride) return <FamilyTablesWorkspace crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues} />
+  if (workspace.id === 'family-tables' && !mainContentOverride) return <FamilyTablesWorkspace crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues} bridges={bridges} />
   const workspaceMain = workspace.id === 'loads'
     ? <div className="spn-workspace-feature"><LoadsPanel crossSectionValues={crossSectionValues} /></div>
     : <div className="spn-workspace-placeholder"><h1>{workspace.centerHeading}</h1><p>{workspace.id === 'graph' ? 'Node-based bridge workflow editor will be available in Phase 3A.' : selectedItem ? `${selectedItem} â€” workspace placeholder` : 'Workspace placeholder'}</p></div>

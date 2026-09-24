@@ -13,8 +13,8 @@ let documents: GraphDocuments | undefined
 let dragStart: SpanovaGraph | undefined
 let snapshot: GraphStoreSnapshot | undefined
 
-export function createEmptyGraph(name = 'Untitled Graph'): SpanovaGraph {
-  return { id: globalThis.crypto?.randomUUID?.() ?? `graph-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, schemaVersion: 1, nodes: [], connections: [] }
+export function createEmptyGraph(name = 'Untitled Graph', ownership?: Pick<SpanovaGraph, 'projectId' | 'bridgeId'>): SpanovaGraph {
+  return { id: globalThis.crypto?.randomUUID?.() ?? `graph-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, schemaVersion: 1, ...ownership, nodes: [], connections: [] }
 }
 export function serializeGraph(graph: SpanovaGraph): string { return JSON.stringify(graph, null, 2) }
 export function deserializeGraph(raw: string): SpanovaGraph {
@@ -147,5 +147,19 @@ export function redoGraph() {
 export function renameActiveGraph(name: string) { const graph = getActiveGraph(); documents = { ...getDocuments(), graphs: getDocuments().graphs.map((item) => item.id === graph.id ? { ...item, name } : item) }; notify() }
 export function createGraphDocument(name = 'Untitled Graph') { const graph = createEmptyGraph(name); documents = { ...getDocuments(), activeGraphId: graph.id, graphs: [...getDocuments().graphs, graph] }; notify(); return graph.id }
 export function selectGraphDocument(id: string) { if (!getDocuments().graphs.some((graph) => graph.id === id)) return; documents = { ...getDocuments(), activeGraphId: id }; notify() }
+
+export function getGraphForBridge(bridgeId: string) {
+  return getDocuments().graphs.find((graph) => graph.bridgeId === bridgeId)
+}
+
+/** Select an existing bridge graph or create exactly one empty primary graph. */
+export function selectOrCreateBridgeGraph(bridgeId: string, projectId?: string, name = bridgeId) {
+  const existing = getGraphForBridge(bridgeId)
+  if (existing) { selectGraphDocument(existing.id); return existing.id }
+  const graph = createEmptyGraph(name, { bridgeId, ...(projectId ? { projectId } : {}) })
+  documents = { ...getDocuments(), activeGraphId: graph.id, graphs: [...getDocuments().graphs, graph] }
+  notify()
+  return graph.id
+}
 
 function graphDiagnosticsEnabled() { return import.meta.env.DEV && typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('graphDiagnostics') }

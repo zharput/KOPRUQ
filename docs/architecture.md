@@ -23,6 +23,21 @@ milestones land.
 
 ## Core architectural principle (spec section 3, unchanged)
 
+## Project Bridge -> Graph workspace integration (Phase 3)
+
+The frontend Project `BridgeRow[]` remains the single bridge-list source. A
+bridge may carry a persistent `id`; `readProjectState` performs a backward-
+compatible one-time migration for older records and persistence retains the
+identity across reloads, edits, sorting and imports. The display `no` value
+(`VIA-01`, etc.) is not used as the Graph identity.
+
+Graph documents retain the existing `spanova.graph.documents.v1` format and
+schema, with optional `bridgeId` and `projectId` ownership metadata. Selecting
+a Project bridge reuses its owned document or creates one empty document with
+no default nodes. Legacy unassigned documents remain in the same store and
+are not assigned by name. Graph-store history remains keyed by Graph document
+ID, so switching bridges does not share undo/redo state.
+
 SPANOVA has its own independent **Bridge Core**. It must never depend on
 MIDAS, ALLPLAN, SCIA, a specific FEM solver, or a specific BIM format.
 External engineering applications are reached only through adapter

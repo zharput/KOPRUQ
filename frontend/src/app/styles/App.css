@@ -1293,7 +1293,14 @@
 .spn-height-fields + div span { font-size: 11px; white-space: nowrap; }
 @media (max-width: 760px) { .spn-height-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .spn-workspace-main-graph { display: flex; min-height: 0; overflow: hidden; padding: 0; }
-.spn-graph-workspace { display: flex; flex: 1 1 auto; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; background: var(--surface-0); }
+.spn-graph-workspace { position: relative; display: flex; flex: 1 1 auto; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; background: var(--surface-0); }
+.spn-graph-bridge-selector { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--surface-1); font-family: "Segoe UI", sans-serif; font-size: 11px; color: #4b5563; }
+.spn-graph-workspace > .spn-graph-bridge-selector { position: absolute; z-index: 2; top: 0; left: 0; right: auto; height: 48px; min-height: 48px; padding: 5px 10px; border-bottom: 0; background: var(--surface-1); }
+.spn-graph-workspace > .spn-graph-toolbar { padding-left: 10px; }
+.spn-graph-bridge-selector label { color: #4b5563; font: 11px "Segoe UI", sans-serif; }
+.spn-graph-bridge-selector select { min-width: 270px; border: 1px solid var(--border); background: var(--surface-0); color: #4b5563; font: 11px "Segoe UI", sans-serif; padding: 3px 5px; }
+.spn-graph-toolbar { display: flex; }
+.spn-graph-name > label, .spn-graph-name > input, .spn-graph-name > select, .spn-graph-name > button { display: none; }
 .spn-workspace-layout:has(.spn-graph-library) .spn-workspace-side-left .spn-workspace-side-content { display: flex; flex-direction: column; min-height: 0; overflow: hidden; overscroll-behavior: contain; }
 .spn-workspace-layout:has(.spn-workspace-main-graph) { min-height: 0; }
 .spn-workspace-main-graph > .spn-graph-workspace { min-height: 0; }

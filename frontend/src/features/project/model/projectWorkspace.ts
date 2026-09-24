@@ -40,16 +40,30 @@ export const INITIAL_PROJECT: ProjectWorkspaceData = {
 const STORAGE_KEY = 'spanova.project-workspace.v1'
 export interface PersistedProjectState { project: ProjectWorkspaceData; bridges: BridgeRow[] }
 
+function newBridgeId() {
+  return globalThis.crypto?.randomUUID?.() ?? `bridge-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+/** One-time, persistence-backed identity migration. Never keys identity by row order or display No. */
+export function ensureBridgeIds(bridges: BridgeRow[]): BridgeRow[] {
+  const used = new Set<string>()
+  return bridges.map((bridge) => {
+    const id = bridge.id && !used.has(bridge.id) ? bridge.id : newBridgeId()
+    used.add(id)
+    return bridge.id === id ? bridge : { ...bridge, id }
+  })
+}
+
 export function readProjectState(fallbackBridges: BridgeRow[]): PersistedProjectState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { project: INITIAL_PROJECT, bridges: fallbackBridges }
+    if (!raw) return { project: INITIAL_PROJECT, bridges: ensureBridgeIds(fallbackBridges) }
     const saved = JSON.parse(raw) as Partial<PersistedProjectState>
     return {
       project: { ...INITIAL_PROJECT, ...saved.project, units: { ...INITIAL_PROJECT.units, ...saved.project?.units }, coordinate: { ...INITIAL_PROJECT.coordinate, ...saved.project?.coordinate }, criteria: { ...INITIAL_PROJECT.criteria, ...saved.project?.criteria }, environment: { ...INITIAL_PROJECT.environment, ...saved.project?.environment } },
-      bridges: Array.isArray(saved.bridges) ? saved.bridges : fallbackBridges,
+      bridges: ensureBridgeIds(Array.isArray(saved.bridges) ? saved.bridges : fallbackBridges),
     }
-  } catch { return { project: INITIAL_PROJECT, bridges: fallbackBridges } }
+  } catch { return { project: INITIAL_PROJECT, bridges: ensureBridgeIds(fallbackBridges) } }
 }
 
 export function persistProjectState(state: PersistedProjectState): boolean {

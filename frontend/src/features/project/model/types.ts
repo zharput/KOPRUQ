@@ -13,6 +13,8 @@ export const BRIDGE_TYPES: BridgeType[] = ['Precast Girder', 'Steel Composite Gi
 export const PIER_SHAPES: PierShape[] = ['Rectangular', 'Circular', 'Box', 'Oval']
 
 export interface BridgeRow {
+  /** Stable identity used by Graph documents; `no` remains display-only. */
+  id?: string
   no: string
   km: string
   crossingType: string

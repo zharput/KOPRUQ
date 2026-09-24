@@ -30,6 +30,9 @@ export interface SpanovaGraph {
   id: string
   name: string
   schemaVersion: 1
+  /** Optional for legacy documents; present for bridge-owned documents. */
+  projectId?: string
+  bridgeId?: string
   nodes: SpanovaNode[]
   connections: SpanovaConnection[]
 }

@@ -10,7 +10,7 @@ import { INITIAL_BRIDGES, type BridgeRow } from '../features/project'
 import type { GenerationSummary } from '../features/bridge-alternatives'
 import type { LayoutSeed } from '../features/layout-generator'
 import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../features/superstructure-families'
-import { readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
+import { ensureBridgeIds, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
   '/alignment': '/bridge-definition/alignment/horizontal',
@@ -43,7 +43,12 @@ function App() {
   useEffect(() => { persistBridgeDefinitionStore(bridgeDefinitions) }, [bridgeDefinitions])
   const bridges = projectState.bridges
   const setBridges: Dispatch<SetStateAction<BridgeRow[]>> = (update) => {
-    const nextRows = typeof update === 'function' ? update(bridges) : update
+    const proposedRows = typeof update === 'function' ? update(bridges) : update
+    const nextRows = ensureBridgeIds(proposedRows.map((row) => {
+      if (row.id) return row
+      const matching = bridges.filter((old) => old.no === row.no)
+      return matching.length === 1 ? { ...row, id: matching[0].id } : row
+    }))
     setProjectState((previous) => ({ ...previous, bridges: nextRows, project: { ...previous.project, lastModified: new Date().toISOString().slice(0, 10) } }))
     setBridgeDefinitions((previous) => ensureBridgeDefinitions(previous, nextRows))
   }

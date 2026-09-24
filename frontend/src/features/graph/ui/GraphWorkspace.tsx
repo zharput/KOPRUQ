@@ -6,7 +6,7 @@ import type { GraphExecutionState, GraphValue, MaterialValue, SpanovaGraph } fro
 import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'
 import { getNodeDefinition } from '../registry/nodeRegistry'
-import { addConnection, addNode, beginMoveHistory, createGraphDocument, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, setNodeParameter, undoGraph, updateNode, updatePositions } from '../state/graphStore'
+import { addConnection, addNode, beginMoveHistory, createGraphDocument, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, updateNode, updatePositions } from '../state/graphStore'
 import { useGraphStore } from '../state/useGraphStore'
 import { cloneGraphSelection, copyGraphSelection, sameGraphSelection, type GraphClipboard } from '../state/graphClipboard'
 import BaseNode from './BaseNode'
@@ -17,7 +17,7 @@ import { mergeBoxSelection, normalizedBox, selectNodeIdsByBox, selectionMode, tr
 import { graphMaterialServices } from '../api/graphMaterialService'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 
-import type { ProjectWorkspaceData } from '../../project/model/projectWorkspace'
+import { readProjectState, type ProjectWorkspaceData } from '../../project/model/projectWorkspace'
 
 const NODE_TYPES = { spanova: BaseNode }
 type AddNodeRef = MutableRefObject<((type: string) => string | undefined) | undefined>
@@ -119,6 +119,14 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
 function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, diagnostics, isDirty, project, setProject }: {
   graph: SpanovaGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; onGraphShortcut: (event: React.KeyboardEvent<HTMLDivElement>) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; resolvedInputs: Record<string, Record<string, GraphValue>>; projectUnits: ProjectUnitPreferences; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; diagnostics: boolean; isDirty: boolean; project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void
 }) {
+  const bridges = readProjectState([]).bridges
+  const activeBridge = bridges.find((bridge) => bridge.id === graph.bridgeId)
+  const selectBridge = (bridgeId: string) => {
+    const bridge = bridges.find((item) => item.id === bridgeId)
+    if (!bridge) return
+    selectOrCreateBridgeGraph(bridgeId, project.id || undefined, bridge.no)
+    setSelectedNodeId(null); setSelectedNodeIds([]); setSelectedEdgeIds([])
+  }
   const { screenToFlowPosition, fitView, zoomIn, zoomOut, getViewport, setViewport } = useReactFlow<FlowGraphNode>()
   const flowStore = useStoreApi()
   const [dragPositions, setDragPositions] = useState<Record<string, { x: number; y: number }>>({})
@@ -314,6 +322,7 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
   }
 
   return <div className="spn-graph-workspace">
+    <div className="spn-graph-bridge-selector"><label htmlFor="bridge-selector">Bridge</label><select id="bridge-selector" aria-label="Bridge" value={graph.bridgeId ?? ''} onChange={(event) => selectBridge(event.target.value)}><option value="" disabled>{activeBridge ? activeBridge.no : 'Select bridge'}</option>{bridges.map((bridge) => <option key={bridge.id} value={bridge.id}>{bridge.no} | KM {bridge.km} | L = {bridge.estimatedLengthM.toFixed(2)} m</option>)}</select></div>
     <header className="spn-graph-toolbar"><div className="spn-graph-name"><label htmlFor="graph-name">GRAPH</label><input id="graph-name" aria-label="Graph name" value={graph.name} onChange={(event) => renameActiveGraph(event.target.value)} /><select aria-label="Graph document" value={graph.id} onChange={(event) => selectGraphDocument(event.target.value)}>{useGraphStore().graphs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" className="spn-graph-icon-button" aria-label="New graph" title="New graph" onClick={onNewGraph}><Plus size={15} /></button></div><div className="spn-graph-tools"><button type="button" onClick={run} disabled={isRunning} title="Run graph"><Activity size={14} /> Run</button><button type="button" onClick={stop} disabled={!isRunning} title="Stop graph"><CircleStop size={14} /> Stop</button><i /><button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} onClick={undoGraph}><Undo2 size={15} /></button><button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} onClick={redoGraph}><Redo2 size={15} /></button><button type="button" aria-label="Delete selected" title="Delete selected" disabled={!selectedNodeIds.length && !selectedEdgeIds.length} onClick={onDelete}><Trash2 size={15} /></button><i /><button type="button" aria-label="Fit View" title="Fit View" onClick={() => { if (diagnostics) console.count('[graph diagnostics] fitView'); fitView({ padding: 0.2, duration: 140 }) }}><Maximize2 size={15} /></button><button type="button" aria-label="Zoom In" title="Zoom In" onClick={() => zoomIn({ duration: 100 })}><Plus size={15} /></button><button type="button" aria-label="Zoom Out" title="Zoom Out" onClick={() => zoomOut({ duration: 100 })}><Minus size={15} /></button></div><div className="spn-graph-save-state"><Save size={13} /> Saved</div></header>
     {feedback && <button className="spn-graph-feedback" type="button" onClick={() => setFeedback('')} aria-label="Dismiss connection feedback">{feedback} x</button>}
     <div className="spn-graph-flow" ref={canvasRef} tabIndex={0} onMouseDownCapture={event => { startCtrlMiddleZoom(event); startBoxSelection(event) }} onKeyDown={event => { if (event.key === 'Escape') cancelReconnect(); onGraphShortcut(event) }} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>

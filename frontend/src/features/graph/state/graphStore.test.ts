@@ -3,6 +3,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 describe('Graph document store', () => {
   beforeEach(() => { localStorage.removeItem('spanova.graph.documents.v1'); vi.resetModules() })
 
+  it('creates one empty graph per bridge and reuses it by stable bridge id', async () => {
+    const { getGraphForBridge, getGraphStoreSnapshot, selectOrCreateBridgeGraph } = await import('./graphStore')
+    const first = selectOrCreateBridgeGraph('bridge-1', 'project-1', 'VIA-01')
+    const second = selectOrCreateBridgeGraph('bridge-1', 'project-1', 'VIA-01')
+    expect(second).toBe(first)
+    expect(getGraphForBridge('bridge-1')?.bridgeId).toBe('bridge-1')
+    expect(getGraphStoreSnapshot().graphs.filter(graph => graph.bridgeId === 'bridge-1')).toHaveLength(1)
+  })
+
   it('persists multiple documents and supports node edit undo/redo', async () => {
     const { addNode, createGraphDocument, deleteNodes, getActiveGraph, getGraphStoreSnapshot, redoGraph, selectGraphDocument, undoGraph } = await import('./graphStore')
     const firstId = createGraphDocument('Bridge Layout')

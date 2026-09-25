@@ -3,10 +3,13 @@ import { Handle, Position } from '@xyflow/react'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import type { GraphValue, PierCandidate, PierCapCandidate, FoundationCandidate, BearingCandidate } from '../domain/types'
 import { formatDisplayValue, formatQuantity, unitsForKind, type QuantityKind } from '../domain/quantities'
-import { getNodeHeaderStyle, getNodeTheme } from '../domain/nodeVisualThemes'
+import { getNodeTheme } from '../domain/nodeVisualThemes'
 import NodeStatusIndicator from './NodeStatusIndicator'
+import NodeHeader from './NodeHeader'
+import { getNodeDefinition } from '../registry/nodeRegistry'
 
 export default function ListOutputNode({ data, selected }: { data: FlowGraphNode['data']; selected: boolean }) {
+  const definition = getNodeDefinition(data.node.type)
   const stale = data.isDirty && data.previewValue === undefined
   const value = stale ? undefined : data.isDirty ? data.previewValue : data.outputs?.value ?? data.previewValue
   const items = value === undefined ? [] : Array.isArray(value) ? value : [value]
@@ -21,7 +24,7 @@ export default function ListOutputNode({ data, selected }: { data: FlowGraphNode
   const currentPage = Math.min(page, pageCount - 1)
   const toggle = (key: string) => setExpanded(current => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next })
   return <div className={`spn-graph-node spn-graph-list-node ${getNodeTheme('OUTPUT').className}${selected ? ' is-selected' : ''}${data.executionState === 'error' ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''}${data.isDirty ? ' is-dirty' : ''}`}>
-    <header className="spn-graph-node-title" style={getNodeHeaderStyle('OUTPUT')}><span>List</span><small>OUTPUT</small></header>
+    {definition && <NodeHeader definition={definition} type={data.node.type} />}
     <div className="spn-graph-list-heading">{value === undefined ? emptyMessage : `${items.length} item${items.length === 1 ? '' : 's'}${data.isDirty ? ' / DIRTY' : ''}`}</div>
     <div className="spn-graph-list-items" role="list" aria-label="List items">
       {items.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((item, offset) => {

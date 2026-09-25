@@ -57,6 +57,20 @@
   --sp-node-text-primary: #F2F4F5; --sp-node-text-secondary: #B8C1C7; --sp-node-text-muted: #87949D; --sp-node-value-text: #F5F7F8; --sp-node-divider: #3A464E;
   --sp-node-readonly-bg: var(--sp-node-body-alt); --sp-node-helper-bg: var(--sp-node-body-alt); --sp-node-status-bg: var(--sp-node-body-alt); --sp-node-empty-bg: var(--sp-node-body-alt); --sp-node-footer-bg: #1D282F;
   --sp-node-shadow: 0 4px 12px rgba(0,0,0,.30); --sp-node-shadow-selected: 0 5px 16px rgba(0,0,0,.40); --sp-node-header-text-light: #F5F7F8; --sp-node-header-text-dark: #182026;
+  --sp-structural-node-header: #2D4059; --sp-structural-node-header-text: #F2F2F2; --sp-structural-node-category-text: #BFC8D4;
+  --sp-input-node-header: #46515E; --sp-input-node-header-text: #F2F2F2; --sp-input-node-category-text: #D0D5DA;
+  --sp-materials-node-header: #36594A; --sp-materials-node-header-text: #F2F2F2; --sp-materials-node-category-text: #D4DDD8;
+  --sp-math-node-header: #B26A3A; --sp-math-node-header-text: #F2F2F2; --sp-math-node-category-text: #F0D8C8;
+  --sp-output-node-header: #6B5C50; --sp-output-node-header-text: #F2F2F2; --sp-output-node-category-text: #E5DDD8;
+  --sp-superstructure-family-header: #66577A; --sp-bridge-family-header: #794A55;
+}
+
+[data-theme='light'] {
+  --sp-structural-node-header: #B9C6D3; --sp-structural-node-header-text: #26313D; --sp-structural-node-category-text: #3D4A58;
+  --sp-input-node-header: #C8CDD2; --sp-input-node-header-text: #26313D; --sp-input-node-category-text: #4F5964;
+  --sp-materials-node-header: #B8CBBF; --sp-materials-node-header-text: #26352E; --sp-materials-node-category-text: #4C6256;
+  --sp-math-node-header: #D8A47C; --sp-math-node-header-text: #3F2B20; --sp-math-node-category-text: #654635;
+  --sp-output-node-header: #C7B9AE; --sp-output-node-header-text: #382F2A; --sp-output-node-category-text: #5D5048;
 }
 
 /* Light theme (2026-09-12) - toggled via [data-theme] on <html>, set by

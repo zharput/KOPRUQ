@@ -24,6 +24,7 @@ export default function HomePanel({ summary }: { summary: GenerationSummary | nu
   return (
     <div className="spn-home">
       <h1>Welcome to KOPRUQ</h1>
+      <p className="spn-home-tagline">Computational &amp; Generative Bridge Design</p>
       <p className="spn-home-intro">
         Use <strong>Layout Generator</strong> (Bridges) to find candidate span arrangements, then{' '}
         <strong>Bridge Alternatives</strong> to produce feasible structural alternatives.

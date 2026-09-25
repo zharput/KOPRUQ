@@ -1326,7 +1326,7 @@
 .spn-graph-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: var(--text-primary); background: transparent; font: inherit; font-size: 11px; }
 .spn-graph-library-group { display: grid; gap: 4px; }
 .spn-graph-library-group h3 { display: flex; justify-content: space-between; margin: 3px 0; color: var(--text-muted); font-size: var(--graph-library-category-size); letter-spacing: .1em; }
-.spn-graph-library-category-heading { display:flex; align-items:center; width:100%; padding:5px 7px; border:0; background:transparent; color:var(--node-text); font:inherit; font-size:var(--graph-library-category-size); font-weight:700; letter-spacing:.1em; text-align:left; }
+.spn-graph-library-category-heading { display:flex; align-items:center; width:100%; padding:5px 7px; border:0; background-color:var(--node-group-color); color:var(--node-group-text); font:inherit; font-size:var(--graph-library-category-size); font-weight:700; letter-spacing:.1em; text-align:left; }
 .spn-graph-library-compat-heading { margin:2px 7px; color:var(--node-text); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
 .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 .spn-graph-node.category-pier,.spn-graph-library-group.category-pier{--node-accent:var(--node-pier-accent);--node-border:var(--node-pier-border);--node-header:var(--node-pier-header);--node-text:var(--node-pier-text)}
@@ -1842,52 +1842,52 @@
 .spn-graph-node.category-materials > .react-flow__handle,
 .spn-graph-node.category-materials .react-flow__handle { border-color: #4a9b68; background: #f7fff9; }
 .spn-graph-node.category-materials .spn-node-icon { color: #2f8b4f; }
-.spn-graph-library-group.category-materials .spn-graph-library-category-heading { background: #dff4e5 !important; color: #2f8b4f !important; }
+.spn-graph-library-group.category-materials .spn-graph-library-category-heading { background: #dff4e5 ; color: #2f8b4f !important; }
 .spn-graph-library-group.category-materials .spn-graph-library-item { background: #f7fff9; border-color: #c5e5ce; color: #245b38; }
 .spn-graph-library-group.category-materials .spn-node-icon { color: #2f8b4f; }
 .spn-graph-node.category-materials,
 .spn-graph-node.category-materials[class*="category-"] { border-color: #acd9bd !important; }
-.spn-graph-library-group.category-input .spn-graph-library-category-heading { background: #e8f4ff !important; color: #173f78 !important; border-color: #c6e1fa; }
+.spn-graph-library-group.category-input .spn-graph-library-category-heading { background: #e8f4ff ; color: #173f78 !important; border-color: #c6e1fa; }
 .spn-graph-library-group.category-input .spn-graph-library-item { background: #f7fbff; border-color: #b9d8f5; color: #294664; }
 .spn-graph-node.category-output,
-.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 !important; border-color: #e1cc72 !important; color: #5f511d; }
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 ; border-color: #e1cc72 !important; color: #5f511d; }
 .spn-graph-node.category-output .spn-graph-node-title,
-.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 !important; }
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 ; }
 .spn-graph-node.category-output .spn-graph-node-content,
 .spn-graph-library-group.category-output .spn-graph-library-item { background: #fff8d7; border-color: #e1cc72; color: #5f511d; }
 .spn-graph-node.category-output .react-flow__handle { border-color: #b99f32; background: #fff8d7; }
 .spn-graph-node.category-girder,
-.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 !important; border-color: #a9a9a9 !important; color: #3f4650; }
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 ; border-color: #a9a9a9 !important; color: #3f4650; }
 .spn-graph-node.category-girder .spn-graph-node-title,
-.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 !important; }
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 ; }
 .spn-graph-node.category-girder .spn-graph-node-content,
 .spn-graph-library-group.category-girder .spn-graph-library-item { background: #eeeeee; border-color: #a9a9a9; color: #3f4650; }
 .spn-graph-node.category-girder .react-flow__handle { border-color: #858585; background: #eeeeee; }
 .spn-graph-node.category-bearing,
-.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa !important; border-color: #d9a9d9 !important; color: #633d63; }
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa ; border-color: #d9a9d9 !important; color: #633d63; }
 .spn-graph-node.category-bearing .spn-graph-node-title,
-.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa !important; }
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa ; }
 .spn-graph-node.category-bearing .spn-graph-node-content,
 .spn-graph-library-group.category-bearing .spn-graph-library-item { background: #fff7ff; border-color: #d9a9d9; color: #633d63; }
 .spn-graph-node.category-bearing .react-flow__handle { border-color: #b979b9; background: #fff7ff; }
 .spn-graph-node.category-cap,
-.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed !important; border-color: #9dcdd2 !important; color: #2e5d62; }
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed ; border-color: #9dcdd2 !important; color: #2e5d62; }
 .spn-graph-node.category-cap .spn-graph-node-title,
-.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed !important; }
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed ; }
 .spn-graph-node.category-cap .spn-graph-node-content,
 .spn-graph-library-group.category-cap .spn-graph-library-item { background: #f2fbfc; border-color: #9dcdd2; color: #2e5d62; }
 .spn-graph-node.category-cap .react-flow__handle { border-color: #68aeb6; background: #f2fbfc; }
 .spn-graph-node.category-foundation,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 !important; border-color: #a8a8a8 !important; color: #464646; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 ; border-color: #a8a8a8 !important; color: #464646; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 ; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-library-group.category-foundation .spn-graph-library-item { background: #eeeeee; border-color: #a8a8a8; color: #464646; }
 .spn-graph-node.category-foundation .react-flow__handle { border-color: #858585; background: #eeeeee; }
 .spn-graph-node.category-superstructure,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; border-color: #d58a73 !important; color: #683326; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e ; border-color: #d58a73 !important; color: #683326; }
 .spn-graph-node.category-superstructure .spn-graph-node-title,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e ; }
 .spn-graph-node.category-superstructure .spn-graph-node-content,
 .spn-graph-library-group.category-superstructure .spn-graph-library-item { background: #fff1eb; border-color: #d58a73; color: #683326; }
 .spn-graph-node.category-superstructure .react-flow__handle { border-color: #b8664c; background: #fff1eb; }
@@ -1933,7 +1933,7 @@
 .spn-graph-node.category-abutment .spn-engineering-outputs,
 .spn-graph-node.category-abutment .spn-abutment-section { border-color: #58b858 !important; }
 .spn-graph-node.category-foundation,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 !important; border-color: #e9d5c1 !important; color: #60452d; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 ; border-color: #e9d5c1 !important; color: #60452d; }
 .spn-graph-node.category-foundation .spn-graph-node-title { background: #e9d5c1 !important; border-bottom-color: #e9d5c1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
@@ -1948,7 +1948,7 @@
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation[class*="category-"] { background: #f4eae0 !important; border-color: #e9d5c1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 !important; border-color: #e9d5c1 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 ; border-color: #e9d5c1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2179,7 +2179,7 @@
 .spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-output-row,
 .spn-graph-node.foundation-palette.foundation-palette.foundation-palette .spn-engineering-derived { border-color: #f5eae1 !important; }
 .spn-graph-node.foundation-palette.foundation-palette.foundation-palette .react-flow__handle { border-color: #f5eae1 !important; background: #fcf8f4 !important; background-color: #fcf8f4 !important; }
-.spn-graph-library-group.category-foundation.category-foundation.category-foundation .spn-graph-library-category-heading { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-library-group.category-foundation.category-foundation.category-foundation .spn-graph-library-category-heading { background: #f5eae1 ; background-color: #f5eae1 ; border-color: #f5eae1 !important; }
 .spn-graph-library-group.category-foundation.category-foundation.category-foundation .spn-graph-library-item { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
 .spn-graph-node.category-abutment.category-abutment.category-abutment .spn-graph-node-title { background: #a8eca8 !important; background-color: #a8eca8 !important; border-bottom-color: #58b858 !important; }
 .spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-input-row,
@@ -2190,7 +2190,7 @@
 .spn-graph-node.category-abutment.category-abutment.category-abutment,
 .spn-graph-node.category-abutment.category-abutment.category-abutment[class*="category-"] { border-color: #a8eca8 !important; }
 .spn-graph-node.category-abutment.category-abutment.category-abutment .spn-graph-node-title,
-.spn-graph-library-group.category-abutment.category-abutment.category-abutment .spn-graph-library-category-heading { background: #a8eca8 !important; background-color: #a8eca8 !important; border-color: #a8eca8 !important; }
+.spn-graph-library-group.category-abutment.category-abutment.category-abutment .spn-graph-library-category-heading { background: #a8eca8 ; background-color: #a8eca8 ; border-color: #a8eca8 !important; }
 .spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-input-row,
 .spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-output-row,
 .spn-graph-node.category-abutment.category-abutment.category-abutment .spn-engineering-derived,
@@ -2256,13 +2256,13 @@
 .spn-graph-inspector .spn-engineering-schematic svg line,
 .spn-graph-inspector .spn-engineering-schematic svg polyline { fill: none !important; stroke: #6f7b89 !important; }
 .spn-graph-inspector .spn-engineering-schematic svg text { fill: #404040 !important; color: #404040 !important; font-family: 'Segoe UI' !important; font-size: 10px !important; }
-.spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-category-heading { background: #ffffcc !important; background-color: #ffffcc !important; border-color: #e2df9a !important; color: #404040 !important; }
+.spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-category-heading { background: #ffffcc ; background-color: #ffffcc ; border-color: #e2df9a !important; color: #404040 !important; }
 .spn-graph-library-group.category-output.category-output.category-output .spn-graph-library-item { background: #ffffcc !important; background-color: #ffffcc !important; border-color: #e2df9a !important; color: #404040 !important; }
 .spn-graph-library-group.category-output.category-output.category-output .spn-node-icon { color: #6b7040; }
 .spn-graph-node.category-bearing.category-bearing.category-bearing,
 .spn-graph-node.category-bearing.category-bearing.category-bearing[class*="category-"] { background: #f9edf9 !important; background-color: #f9edf9 !important; border-color: #f5dbf3 !important; }
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-title,
-.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-category-heading { background: #f5dbf3 !important; background-color: #f5dbf3 !important; border-color: #f5dbf3 !important; }
+.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-category-heading { background: #f5dbf3 ; background-color: #f5dbf3 ; border-color: #f5dbf3 !important; }
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-content,
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-inputs,
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-outputs,
@@ -2276,7 +2276,7 @@
 .spn-graph-node.category-bearing.category-bearing.category-bearing,
 .spn-graph-node.category-bearing.category-bearing.category-bearing[class*="category-"] { background: #fcf6fc !important; background-color: #fcf6fc !important; border-color: #f8e4f7 !important; }
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-title,
-.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-category-heading { background: #f8e4f7 !important; background-color: #f8e4f7 !important; border-color: #f8e4f7 !important; }
+.spn-graph-library-group.category-bearing.category-bearing.category-bearing .spn-graph-library-category-heading { background: #f8e4f7 ; background-color: #f8e4f7 ; border-color: #f8e4f7 !important; }
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-graph-node-content,
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-inputs,
 .spn-graph-node.category-bearing.category-bearing.category-bearing .spn-engineering-outputs,
@@ -2301,7 +2301,7 @@
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border: 1px solid #f5eae1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f5eae1 ; background-color: #f5eae1 ; border-color: #f5eae1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2314,7 +2314,7 @@
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation[class*="category-"] { background: #f9f3ed !important; background-color: #f9f3ed !important; border-color: #f1e4d7 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f1e4d7 !important; background-color: #f1e4d7 !important; border-color: #f1e4d7 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f1e4d7 ; background-color: #f1e4d7 ; border-color: #f1e4d7 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2327,7 +2327,7 @@
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation[class*="category-"] { background: #fcf8f4 !important; background-color: #fcf8f4 !important; border-color: #f5eae1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f5eae1 !important; background-color: #f5eae1 !important; border-color: #f5eae1 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f5eae1 ; background-color: #f5eae1 ; border-color: #f5eae1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2340,7 +2340,7 @@
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation[class*="category-"] { background: #f9f3ed !important; background-color: #f9f3ed !important; border-color: #f1e4d7 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f1e4d7 !important; background-color: #f1e4d7 !important; border-color: #f1e4d7 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #f1e4d7 ; background-color: #f1e4d7 ; border-color: #f1e4d7 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2361,11 +2361,11 @@
 .spn-graph-node.category-bridge,
 .spn-graph-library-group.category-bridge .spn-graph-library-category-heading,
 .spn-graph-node.category-abutment,
-.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background: #87e187 !important; border-color: #58b858 !important; color: #205e20; }
+.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background: #87e187 ; border-color: #58b858 !important; color: #205e20; }
 .spn-graph-node.category-bridge .spn-graph-node-title,
 .spn-graph-library-group.category-bridge .spn-graph-library-category-heading,
 .spn-graph-node.category-abutment .spn-graph-node-title,
-.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background: #87e187 !important; }
+.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background: #87e187 ; }
 .spn-graph-node.category-bridge .spn-graph-node-content,
 .spn-graph-library-group.category-bridge .spn-graph-library-item,
 .spn-graph-node.category-abutment .spn-graph-node-content,
@@ -2373,23 +2373,23 @@
 .spn-graph-node.category-bridge .react-flow__handle,
 .spn-graph-node.category-abutment .react-flow__handle { border-color: #3d9b3d; background: #eaffea; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e4c6a8 !important; border-color: #c49b72 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e4c6a8 ; border-color: #c49b72 !important; }
 .spn-graph-node.category-foundation .react-flow__handle { border-color: #b47f4e; }
 .spn-graph-node.category-superstructure .spn-graph-node-title,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #6db9ff !important; border-color: #398bd5 !important; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #6db9ff ; border-color: #398bd5 !important; }
 .spn-graph-node.category-superstructure .react-flow__handle { border-color: #287bc4; }
 .spn-graph-node.category-bridge .spn-graph-node-title,
-.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #ff5c29 !important; border-color: #d94115 !important; }
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #ff5c29 ; border-color: #d94115 !important; }
 .spn-graph-node.category-bridge .react-flow__handle { border-color: #c93611; }
 .spn-graph-node.category-output,
 .spn-graph-node.category-output .spn-graph-node-content,
 .spn-graph-node.spn-graph-list-node { background: var(--sp-node-body) !important; border-color: var(--sp-node-divider) !important; color: var(--sp-node-text-secondary); }
 .spn-graph-node.category-output .react-flow__handle { border-color: #8c9b5a; background: #ffffcc; }
 .spn-graph-node.category-pier,
-.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #e1ccf0 !important; border-color: #c3a5dc !important; }
+.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #e1ccf0 ; border-color: #c3a5dc !important; }
 .spn-graph-node.category-pier .spn-graph-node-title { background: #e1ccf0 !important; }
 .spn-graph-node.category-bearing,
-.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #d5e67e !important; border-color: #afc34e !important; }
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #d5e67e ; border-color: #afc34e !important; }
 .spn-graph-node.category-bearing .spn-graph-node-title { background: #d5e67e !important; }
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation .spn-graph-node-title,
@@ -2398,9 +2398,9 @@
 .spn-graph-node.category-foundation .spn-engineering-outputs { background: #e4c6a8 !important; border-color: #c49b72 !important; }
 .spn-graph-node.category-foundation .react-flow__handle { border-color: #a87545; background: #e4c6a8; }
 .spn-graph-node.category-superstructure,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #c0e6f5 !important; border-color: #82bfd8 !important; color: #24536a; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #c0e6f5 ; border-color: #82bfd8 !important; color: #24536a; }
 .spn-graph-node.category-superstructure .spn-graph-node-title,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #c0e6f5 !important; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #c0e6f5 ; }
 .spn-graph-node.category-superstructure .spn-graph-node-content,
 .spn-graph-node.category-superstructure .spn-engineering-inputs,
 .spn-graph-node.category-superstructure .spn-engineering-outputs,
@@ -2413,9 +2413,9 @@
 .spn-graph-node.spn-assembly-graph-node .spn-assembly-centered-output { background: #f0fff0 !important; }
 .spn-graph-node.spn-assembly-graph-node .react-flow__handle { border-color: #3d9b3d; background: #f0fff0; }
 .spn-graph-node.category-foundation,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d9b38c !important; border-color: #bd8b5d !important; color: #5d3b20; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d9b38c ; border-color: #bd8b5d !important; color: #5d3b20; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d9b38c !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d9b38c ; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2427,12 +2427,12 @@
 .spn-graph-node.spn-assembly-graph-node .spn-assembly-inputs,
 .spn-graph-node.spn-assembly-graph-node .spn-assembly-centered-output { background: var(--sp-node-footer-bg) !important; background-color: var(--sp-node-footer-bg) !important; color: var(--sp-node-text-secondary) !important; }
 .spn-graph-node.spn-assembly-graph-node .react-flow__handle { border-color: #898989; background: #f2f2f2; }
-.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #cfcfcf !important; border-color: #a8a8a8 !important; color: #414141 !important; }
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #cfcfcf ; border-color: #a8a8a8 !important; color: #414141 !important; }
 .spn-graph-library-group.category-bridge .spn-graph-library-item { background: #f2f2f2; border-color: #a8a8a8; color: #414141; }
 .spn-graph-node.category-superstructure,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; border-color: #d58a73 !important; color: #683326; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e ; border-color: #d58a73 !important; color: #683326; }
 .spn-graph-node.category-superstructure .spn-graph-node-title,
-.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e !important; }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e ; }
 .spn-graph-node.category-superstructure .spn-graph-node-content,
 .spn-graph-node.category-superstructure .spn-engineering-inputs,
 .spn-graph-node.category-superstructure .spn-engineering-outputs,
@@ -2446,7 +2446,7 @@
 .spn-graph-node.category-math > .react-flow__handle,
 .spn-graph-node.category-math .react-flow__handle { border-color: #d99a3d; background: #fffaf2; }
 .spn-graph-node.category-math .spn-node-icon { color: #bd7416; }
-.spn-graph-library-group.category-math .spn-graph-library-category-heading { background: #fff0d5 !important; color: #9a5d12 !important; border-color: #f0c98f; }
+.spn-graph-library-group.category-math .spn-graph-library-category-heading { background: #fff0d5 ; color: #9a5d12 !important; border-color: #f0c98f; }
 .spn-graph-library-group.category-math .spn-graph-library-item { background: #fffaf2; border-color: #f0c98f; color: #7a4d18; }
 .spn-graph-library-group.category-math .spn-node-icon { background: #fff4e1; color: #bd7416; box-shadow: inset 0 0 0 1px rgba(189,116,22,.16); }
 .spn-graph-node.category-pier { background: #fcf9ff; border-color: #d7c4f4 !important; color: #513b78; box-shadow: 0 2px 8px rgba(122,76,179,.12); }
@@ -2457,7 +2457,7 @@
 .spn-graph-node.category-pier .react-flow__handle { border-color: #a77cdd; background: #fcf9ff; }
 .spn-graph-node.category-pier .spn-node-icon { color: #697586; }
 .spn-node-icon-oval svg { transform: scaleX(.72); }
-.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #f0e8ff !important; color: #6542a0 !important; border-color: #d7c4f4; }
+.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #f0e8ff ; color: #6542a0 !important; border-color: #d7c4f4; }
 .spn-graph-library-group.category-pier .spn-graph-library-item { background: #fcf9ff; border-color: #d7c4f4; color: #513b78; }
 .spn-graph-library-group.category-pier .spn-node-icon { color: #697586; }
 .spn-graph-node.category-pier,
@@ -2480,7 +2480,7 @@
 .spn-graph-node.category-foundation,
 .spn-graph-node.category-foundation[class*="category-"] { background: #f4eae0 !important; border: 1px solid #e9d5c1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-title,
-.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 !important; border-color: #e9d5c1 !important; }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 ; border-color: #e9d5c1 !important; }
 .spn-graph-node.category-foundation .spn-graph-node-content,
 .spn-graph-node.category-foundation .spn-engineering-inputs,
 .spn-graph-node.category-foundation .spn-engineering-outputs,
@@ -2811,13 +2811,14 @@
 .spn-graph-library { background: #171E25; border-right-color: #2D3841; }
 .spn-graph-search { background: var(--sp-node-body-alt) !important; border-color: var(--sp-node-border) !important; color: var(--sp-node-text-muted); }
 .spn-graph-search input { background: transparent !important; color: var(--sp-node-text-primary) !important; border: 0 !important; }
-.spn-graph-library-category-heading { justify-content: flex-start; gap: 7px; min-height: 28px; padding: 5px 8px; background: transparent !important; color: #3f4650 !important; border-bottom: 1px solid var(--sp-node-divider); font-size: 10px; letter-spacing: .08em; }
+.spn-graph-library-category-heading { justify-content: flex-start; gap: 7px; min-height: 28px; padding: 5px 8px; background-color: var(--node-group-color); color: var(--node-group-text); border-bottom: 1px solid var(--sp-node-divider); font-size: 10px; letter-spacing: .08em; }
 .spn-graph-library-category-heading span { color: #3f4650 !important; }
 .spn-graph-library-category-heading::before { content: ''; width: 3px; height: 14px; background: var(--sp-node-accent, var(--sp-node-border)); border-radius: 2px; }
 .spn-graph-library-item { min-height: 56px; padding: 4px 8px; background: transparent !important; color: var(--sp-node-text-primary) !important; border-color: transparent !important; }
 .spn-graph-library-item,
 .spn-graph-library-item > span { font-size: 14px !important; }
 .spn-graph-library-item:hover { background: #26323B !important; border-color: var(--sp-node-border) !important; }
+
 .spn-graph-library-item .spn-node-icon { width: 16px; height: 16px; color: var(--sp-node-accent, var(--sp-node-text-secondary)); background: transparent !important; box-shadow: none !important; }
 .spn-graph-node .spn-graph-node-state,
 .spn-graph-node .spn-graph-node-error-message,
@@ -2871,3 +2872,44 @@
 .spn-graph-flow .react-flow__edge.selected .react-flow__edge-path { stroke: var(--sp-edge-selected) !important; stroke-width: 2.1; }
 .spn-graph-selection-box.is-window { border-color: var(--sp-marquee-window-border) !important; background: var(--sp-marquee-window-fill) !important; }
 .spn-graph-selection-box.is-crossing { border-color: var(--sp-marquee-crossing-border) !important; background: var(--sp-marquee-crossing-fill) !important; }
+.spn-graph-node .spn-graph-node-title { background: var(--node-group-color) !important; background-color: var(--node-group-color) !important; }
+.spn-graph-library-category-heading { background-color: var(--node-group-color); color: var(--node-group-text); }
+.spn-graph-library-category-heading span { color: var(--node-group-text) !important; }
+
+/* Final cascade guard: library headers use the runtime theme supplied by
+   NodeLibrary, never the legacy per-category pastel tokens. */
+.spn-graph-library-group.library-family-input .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-output .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-math .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-materials .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-structural .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-superstructure-family .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-bridge-family .spn-graph-library-category-heading {
+  background: var(--node-group-color) !important;
+  background-color: var(--node-group-color) !important;
+  color: var(--node-group-text) !important;
+}
+
+/* Legacy stylesheet layers contain highly-specific pastel library rules.
+   Keep those rules available for legacy node chrome, but make the actual
+   library header rectangle authoritative through NODE_GROUP_THEME. */
+.spn-graph-library-group.library-family-input.library-family-input.library-family-input.library-family-input.library-family-input .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-output.library-family-output.library-family-output.library-family-output.library-family-output .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-math.library-family-math.library-family-math.library-family-math.library-family-math .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-materials.library-family-materials.library-family-materials.library-family-materials.library-family-materials .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-structural.library-family-structural.library-family-structural.library-family-structural.library-family-structural .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family .spn-graph-library-category-heading {
+  background: var(--node-group-color) !important;
+  background-color: var(--node-group-color) !important;
+  color: var(--node-group-text) !important;
+}
+.spn-graph-library-group.library-family-input.library-family-input.library-family-input.library-family-input.library-family-input .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-output.library-family-output.library-family-output.library-family-output.library-family-output .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-math.library-family-math.library-family-math.library-family-math.library-family-math .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-materials.library-family-materials.library-family-materials.library-family-materials.library-family-materials .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-structural.library-family-structural.library-family-structural.library-family-structural.library-family-structural .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family .spn-graph-library-category-heading span {
+  color: var(--node-group-text) !important;
+}

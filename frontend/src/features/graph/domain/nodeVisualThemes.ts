@@ -2,6 +2,31 @@ import type { GraphPortType } from './types'
 export type NodeCategory = 'INPUT' | 'MATH' | 'MATERIALS' | 'PIER' | 'ABUTMENT' | 'CAP' | 'FOUNDATION' | 'BEARING' | 'GIRDER' | 'SUPERSTRUCTURE' | 'BRIDGE' | 'GEOMETRY' | 'SUBSTRUCTURE' | 'STRUCTURAL_FAMILY' | 'LOADS' | 'ANALYSIS' | 'DESIGN' | 'OPTIMIZATION' | 'OUTPUT'
 
 export type NodeTheme = { className: string; accentToken: string; borderToken: string; headerToken: string; textToken: string }
+export type NodeGroupTheme = { label: string; dark: string; light: string; text: string }
+export const NODE_GROUP_THEME: Readonly<Record<string, NodeGroupTheme>> = {
+  INPUT: { label: 'INPUT', dark: '#46515E', light: '#46515E', text: '#F2F2F2' },
+  OUTPUT: { label: 'OUTPUT', dark: '#6B5C50', light: '#6B5C50', text: '#F2F2F2' },
+  MATH: { label: 'MATH', dark: '#B26A3A', light: '#B26A3A', text: '#F2F2F2' },
+  MATERIALS: { label: 'MATERIALS', dark: '#36594A', light: '#36594A', text: '#F2F2F2' },
+  STRUCTURAL: { label: 'STRUCTURAL', dark: '#2D4059', light: '#2D4059', text: '#F2F2F2' },
+  SUPERSTRUCTURE: { label: 'SUPERSTRUCTURE FAMILY', dark: '#66577A', light: '#66577A', text: '#F2F2F2' },
+  BRIDGE: { label: 'BRIDGE FAMILY', dark: '#794A55', light: '#794A55', text: '#F2F2F2' },
+}
+export function getNodeGroupKey(category: NodeCategory | string, type?: string): string {
+  if (category === 'input') return 'INPUT'
+  if (category === 'output') return 'OUTPUT'
+  if (category === 'math') return 'MATH'
+  if (category === 'materials') return 'MATERIALS'
+  if (category === 'structural') return 'STRUCTURAL'
+  if (category === 'superstructure-family') return 'SUPERSTRUCTURE'
+  if (category === 'bridge-family') return 'BRIDGE'
+  if (category === 'INPUT' || category === 'OUTPUT' || category === 'MATH' || category === 'MATERIALS') return category
+  if (category === 'BRIDGE' || type === 'structural.assembly') return 'BRIDGE'
+  if (category === 'SUPERSTRUCTURE' || type === 'structural.superstructure') return 'SUPERSTRUCTURE'
+  if (category === 'STRUCTURAL_FAMILY' || ['PIER', 'ABUTMENT', 'CAP', 'FOUNDATION', 'BEARING', 'GIRDER'].includes(category)) return 'STRUCTURAL'
+  return category
+}
+export function getNodeGroupTheme(category: NodeCategory | string, type?: string): NodeGroupTheme { return NODE_GROUP_THEME[getNodeGroupKey(category as NodeCategory, type)] ?? NODE_GROUP_THEME.STRUCTURAL }
 export const NODE_CATEGORY_COLORS: Readonly<Partial<Record<NodeCategory, string>>> = {
   INPUT: 'var(--sp-node-input)', MATH: 'var(--sp-node-math)', MATERIALS: 'var(--sp-node-materials)', PIER: 'var(--sp-node-pier)', ABUTMENT: 'var(--sp-node-abutment)', CAP: 'var(--sp-node-cap)', FOUNDATION: 'var(--sp-node-foundation)', BEARING: 'var(--sp-node-bearing)', GIRDER: 'var(--sp-node-girder)', SUPERSTRUCTURE: 'var(--sp-node-superstructure)', BRIDGE: 'var(--sp-node-bridge)', GEOMETRY: 'var(--sp-node-geometry)', SUBSTRUCTURE: 'var(--sp-node-substructure)', STRUCTURAL_FAMILY: 'var(--sp-node-structural-family)', LOADS: 'var(--sp-node-loads)', ANALYSIS: 'var(--sp-node-analysis)', DESIGN: 'var(--sp-node-design)', OPTIMIZATION: 'var(--sp-node-optimization)', OUTPUT: 'var(--sp-node-output)',
 }
@@ -47,10 +72,8 @@ export function getNodePresentationCategory(category: NodeCategory, type?: strin
 export function getNodeThemeForType(category: NodeCategory, type?: string): NodeTheme { return getNodeTheme(getNodePresentationCategory(category, type)) }
 export function getNodeCategoryColor(category: NodeCategory, type?: string): string | undefined { return NODE_CATEGORY_COLORS[getNodePresentationCategory(category, type)] }
 export function getNodeHeaderStyle(category: NodeCategory, type?: string): { backgroundColor?: string; color: string } {
-  const backgroundColor = getNodeCategoryColor(category, type)
-  const darkText = new Set(['INPUT', 'MATH', 'MATERIALS', 'CAP', 'FOUNDATION', 'GIRDER', 'STRUCTURAL_FAMILY', 'LOADS', 'DESIGN', 'OUTPUT'])
-  const resolved = getNodePresentationCategory(category, type)
-  return { backgroundColor, color: darkText.has(resolved) ? 'var(--sp-node-header-text-dark)' : 'var(--sp-node-header-text-light)' }
+  const theme = getNodeGroupTheme(category, type)
+  return { backgroundColor: theme.dark, color: theme.text }
 }
 export function getNodeCategoryLabel(category: NodeCategory): string { return category === 'STRUCTURAL_FAMILY' ? 'STRUCTURAL / FAMILY' : category }
 

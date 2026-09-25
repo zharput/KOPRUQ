@@ -185,15 +185,15 @@
 
 /* UI-5 category palette: shared by graph nodes and the node library. */
 :root {
-  --node-input-accent:#E4E7EB; --node-input-header:#E4E7EB; --node-input-text:#000000;
-  --node-math-accent:#D7FFAF; --node-math-header:#D7FFAF; --node-math-text:#000000;
-  --node-material-accent:#C7EFD1; --node-material-header:#C7EFD1; --node-material-text:#000000;
-  --node-pier-accent:#BFE8FA; --node-pier-header:#BFE8FA; --node-pier-text:#000000;
-  --node-cap-accent:#E9D5FF; --node-cap-header:#E9D5FF; --node-cap-text:#000000;
-  --node-foundation-accent:#FBD7BF; --node-foundation-header:#FBD7BF; --node-foundation-text:#000000;
-  --node-bearing-accent:#FFF9C4; --node-bearing-header:#FFF9C4; --node-bearing-text:#000000;
-  --node-girder-accent:#DFF7B8; --node-girder-header:#DFF7B8; --node-girder-text:#000000;
-  --node-superstructure-accent:#FFD1D1; --node-superstructure-header:#FFD1D1; --node-superstructure-text:#000000;
+  --node-input-accent:var(--sp-node-input); --node-input-header:var(--sp-node-input); --node-input-text:var(--sp-text-inverse);
+  --node-math-accent:var(--sp-node-math); --node-math-header:var(--sp-node-math); --node-math-text:var(--sp-text-inverse);
+  --node-material-accent:var(--sp-node-materials); --node-material-header:var(--sp-node-materials); --node-material-text:var(--sp-text-inverse);
+  --node-pier-accent:var(--sp-node-pier); --node-pier-header:var(--sp-node-pier); --node-pier-text:var(--sp-text-primary);
+  --node-cap-accent:var(--sp-node-cap); --node-cap-header:var(--sp-node-cap); --node-cap-text:var(--sp-text-primary);
+  --node-foundation-accent:var(--sp-node-foundation); --node-foundation-header:var(--sp-node-foundation); --node-foundation-text:var(--sp-text-primary);
+  --node-bearing-accent:var(--sp-node-bearing); --node-bearing-header:var(--sp-node-bearing); --node-bearing-text:var(--sp-text-primary);
+  --node-girder-accent:var(--sp-node-girder); --node-girder-header:var(--sp-node-girder); --node-girder-text:var(--sp-text-inverse);
+  --node-superstructure-accent:var(--sp-node-superstructure); --node-superstructure-header:var(--sp-node-superstructure); --node-superstructure-text:var(--sp-text-primary);
 }
 
 /* Sidebar */
@@ -1471,16 +1471,6 @@
 .spn-graph-inspector-list > div { display: grid; grid-template-columns: 56px minmax(0,1fr); gap: 4px 7px; padding: 6px; background: #111a27; overflow-wrap: anywhere; }
 .spn-graph-inspector-list strong { color: #d4deed; font: 9px var(--mono); }
 .spn-graph-watch-value { margin: 8px 2px 4px; padding: 5px 6px; border: 1px solid #29394b; background: #101722; color: #a9d6bb; overflow-wrap: anywhere; font: 10px var(--mono); }
-:root[data-theme='light'] .spn-graph-list-heading,
-:root[data-theme='light'] .spn-graph-list-item-row,
-:root[data-theme='light'] .spn-graph-list-item-row button,
-:root[data-theme='light'] .spn-graph-list-index,
-:root[data-theme='light'] .spn-graph-list-summary,
-:root[data-theme='light'] .spn-graph-list-details > div,
-:root[data-theme='light'] .spn-graph-list-details strong,
-:root[data-theme='light'] .spn-graph-list-footer { color:#262626; }
-:root[data-theme='light'] .spn-graph-list-item-row button:hover { color:#000000; }
-:root[data-theme='light'] .spn-graph-watch-value { background:#F2F2F2; color:#262626; border-color:#c5cedb; }
 .spn-graph-node-state { position: absolute; right: 7px; bottom: 4px; color: #68768a; font-size: 7px; letter-spacing: .08em; }
 .spn-graph-node .spn-graph-node-state { position: static; min-height: 16px; padding: 2px 10px 4px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); background-color: var(--spn-node-body-bg); font-size: 9px; line-height: 12px; text-align: right; letter-spacing: .06em; }
 .spn-graph-node.superstructure-error-palette .spn-graph-node-state { color: #58606b; }
@@ -1503,17 +1493,18 @@
 
 /* Phase 3B.2E: category identity stays separate from execution status and edge data type. */
 :root {
-  --node-input-accent:#5798ed;--node-input-border:#38577c;--node-input-header:rgba(87,152,237,.18);--node-input-text:#85b7f4;
-  --node-math-accent:#D7FFAF;--node-math-border:#485667;--node-math-header:#D7FFAF;--node-math-text:#000000;
-  --node-material-accent:#39b7a8;--node-material-border:#28675f;--node-material-header:rgba(57,183,168,.17);--node-material-text:#70d0c1;
-  --node-geometry-accent:#39b7d2;--node-geometry-border:#286678;--node-geometry-header:rgba(57,183,210,.16);--node-geometry-text:#72d2e4;
-  --node-superstructure-accent:#63b887;--node-superstructure-border:#356a4b;--node-superstructure-header:rgba(99,184,135,.16);--node-superstructure-text:#8bd4a8;
-  --node-substructure-accent:#a68ae3;--node-substructure-border:#5a4d80;--node-substructure-header:rgba(166,138,227,.17);--node-substructure-text:#c0a9f0;
-  --node-load-accent:#c47690;--node-load-border:#704553;--node-load-header:rgba(196,118,144,.16);--node-load-text:#dc9bad;
-  --node-analysis-accent:#8299b2;--node-analysis-border:#4c5c6d;--node-analysis-header:rgba(130,153,178,.16);--node-analysis-text:#a9bdd2;
-  --node-design-accent:#8798e1;--node-design-border:#4e5988;--node-design-header:rgba(135,152,225,.16);--node-design-text:#aebbf0;
-  --node-optimization-accent:#d59b55;--node-optimization-border:#77572f;--node-optimization-header:rgba(213,155,85,.16);--node-optimization-text:#e7b875;
-  --node-output-accent:#a690df;--node-output-border:#5c5080;--node-output-header:rgba(166,144,223,.16);--node-output-text:#c2b1f1;
+  --node-input-accent:var(--sp-node-input);--node-input-border:var(--sp-node-border);--node-input-header:var(--sp-node-input);--node-input-text:var(--sp-node-header-text-dark);
+  --node-math-accent:var(--sp-node-math);--node-math-border:var(--sp-node-border);--node-math-header:var(--sp-node-math);--node-math-text:var(--sp-node-header-text-dark);
+  --node-material-accent:var(--sp-node-materials);--node-material-border:var(--sp-node-border);--node-material-header:var(--sp-node-materials);--node-material-text:var(--sp-node-header-text-dark);
+  --node-geometry-accent:var(--sp-node-geometry);--node-geometry-border:var(--sp-node-border);--node-geometry-header:var(--sp-node-geometry);--node-geometry-text:var(--sp-node-header-text-light);
+  --node-superstructure-accent:var(--sp-node-superstructure);--node-superstructure-border:var(--sp-node-border);--node-superstructure-header:var(--sp-node-superstructure);--node-superstructure-text:var(--sp-node-header-text-light);
+  --node-substructure-accent:var(--sp-node-substructure);--node-substructure-border:var(--sp-node-border);--node-substructure-header:var(--sp-node-substructure);--node-substructure-text:var(--sp-node-header-text-dark);
+  --node-load-accent:var(--sp-node-loads);--node-load-border:var(--sp-node-border);--node-load-header:var(--sp-node-loads);--node-load-text:var(--sp-node-header-text-dark);
+  --node-analysis-accent:var(--sp-node-analysis);--node-analysis-border:var(--sp-node-border);--node-analysis-header:var(--sp-node-analysis);--node-analysis-text:var(--sp-node-header-text-light);
+  --node-design-accent:var(--sp-node-design);--node-design-border:var(--sp-node-border);--node-design-header:var(--sp-node-design);--node-design-text:var(--sp-node-header-text-dark);
+  --node-optimization-accent:var(--sp-node-optimization);--node-optimization-border:var(--sp-node-border);--node-optimization-header:var(--sp-node-optimization);--node-optimization-text:var(--sp-node-header-text-light);
+  --node-output-accent:var(--sp-node-output);--node-output-border:var(--sp-node-border);--node-output-header:var(--sp-node-output);--node-output-text:var(--sp-node-header-text-dark);
+  --node-structural-family-accent:var(--sp-node-structural-family);--node-structural-family-border:var(--sp-node-border);--node-structural-family-header:var(--sp-node-structural-family);--node-structural-family-text:var(--sp-node-header-text-dark);
 }
 .spn-graph-node.category-input,.spn-graph-library-group.category-input{--node-accent:var(--node-input-accent);--node-border:var(--node-input-border);--node-header:var(--node-input-header);--node-text:var(--node-input-text)}
 .spn-graph-node.category-math,.spn-graph-library-group.category-math{--node-accent:var(--node-math-accent);--node-border:var(--node-math-border);--node-header:var(--node-math-header);--node-text:var(--node-math-text)}
@@ -1530,7 +1521,7 @@
 .spn-graph-node[class*="category-"] .spn-graph-node-title{border-top:0;border-bottom-color:var(--node-header)}
 .spn-graph-node[class*="category-"] .spn-graph-node-title small{color:var(--node-text)}
 .spn-graph-library-group[class*="category-"] h3{color:var(--node-text)}
-.spn-graph-node.is-selected{border-color:var(--node-accent,#4c91ff);box-shadow:0 0 0 1px var(--node-accent,#4c91ff),0 5px 18px rgba(0,0,0,.3)}
+.spn-graph-node.is-selected{border-color:var(--sp-selection-border);box-shadow:0 0 0 1px var(--sp-selection-border),0 5px 18px rgba(0,0,0,.3)}
 .spn-graph-node.has-success .spn-graph-node-state{color:#81c999}
 .spn-graph-node.is-running .spn-graph-node-state{color:#84b7f4}
 .spn-graph-node.has-error .spn-graph-node-state{color:#e39498}
@@ -1538,7 +1529,6 @@
 .spn-graph-library-group[class*="category-"] .spn-graph-library-item:hover{border-color:var(--node-accent);background:color-mix(in srgb,var(--node-accent) 8%,var(--surface-2))}
 
 /* Structural family identity is shared by all structural family nodes; port edges keep their data-type colors. */
-:root { --node-structural-family-accent:#e69a45;--node-structural-family-border:#79512b;--node-structural-family-header:rgba(230,154,69,.17);--node-structural-family-text:#efb36d; }
 .spn-graph-node.category-structural-family,.spn-graph-library-group.category-structural-family { --node-accent:var(--node-structural-family-accent);--node-border:var(--node-structural-family-border);--node-header:var(--node-structural-family-header);--node-text:var(--node-structural-family-text); }
 .spn-graph-node.category-structural-family.category-abutment { --node-accent:var(--node-abutment-accent);--node-border:var(--node-abutment-border);--node-header:var(--node-abutment-header);--node-text:var(--node-abutment-text); }
 .spn-graph-log { flex: none; border-top: 1px solid var(--border); background: var(--surface-1); }
@@ -1589,10 +1579,21 @@
 .spn-engineering-family .spn-graph-inspector-row { font-size: 12px; }
 .spn-engineering-family .spn-graph-inspector-row strong { color: var(--text-primary); font-size: 13px; }
 .spn-graph-multi-inspector h4 { margin: 6px 0 0; color: var(--text-muted); font-size: 12px; }
-:root { --graph-structural-accent: #e69a45; --graph-window-selection: #4c91ff; --graph-window-selection-fill: rgba(76,145,255,.08); --graph-crossing-selection: #49c6a7; --graph-crossing-selection-fill: rgba(73,198,167,.08); --graph-panel-title-font-size: 14px; --graph-panel-section-font-size: 11px; --graph-panel-body-font-size: 13px; --graph-panel-secondary-font-size: 11px; --graph-dimension-color: #aebbd0; --graph-axis-color: #7789a3; --spanova-edge-color:#A6A6A6; --spanova-node-body-bg:#17202c; --node-input-header:#BFBFBF; --node-math-header:#DB2777; --node-material-header:#A6DEDE; --node-pier-header:#3B82F6; --node-abutment-header:#8B5CF6; --node-cap-header:#06B6D4; --node-foundation-header:#10B981; --node-bearing-header:#EF4444; --node-girder-header:#F59E0B; --node-superstructure-header:#C00000; --node-bridge-header:#DB2777; --node-output-header:#65A30D; --node-header-text:#111111; }
-:root[data-theme='light'] { --spanova-edge-color:#A6A6A6; --spanova-node-body-bg:#ffffff; --node-input-header:#BFBFBF; --node-math-header:#FBCFE8; --node-material-header:#A6DEDE; --node-pier-header:#DBEAFE; --node-abutment-header:#E9D5FF; --node-cap-header:#A5F3FC; --node-foundation-header:#A7F3D0; --node-bearing-header:#FECACA; --node-girder-header:#FDE68A; --node-superstructure-header:#C00000; --node-bridge-header:#FBCFE8; --node-output-header:#DCFCE7; --node-header-text:#111111; }
+:root { --graph-structural-accent: var(--sp-node-structural-family); --graph-window-selection: var(--sp-selection-border); --graph-window-selection-fill: rgba(104,117,134,.08); --graph-crossing-selection: var(--sp-selection-hover); --graph-crossing-selection-fill: rgba(70,80,93,.08); --graph-panel-title-font-size: 14px; --graph-panel-section-font-size: 11px; --graph-panel-body-font-size: 13px; --graph-panel-secondary-font-size: 11px; --graph-dimension-color: var(--sp-drawing-dimension); --graph-axis-color: var(--sp-drawing-axis); --spanova-edge-color:var(--sp-link-default); --spanova-node-body-bg:var(--sp-node-body); --node-header-text:var(--sp-text-inverse); }
 .spn-graph-node[class*="category-"] .spn-graph-node-title { background:var(--node-header); }
 .spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--spanova-edge-color) !important; }
+/* Graph Interaction System V1: interaction state is independent of category identity. */
+.spn-graph-node { background: var(--sp-node-body); box-shadow: var(--sp-node-shadow); transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease; }
+.spn-graph-node:hover { border-color: var(--sp-hover-border) !important; background: var(--sp-hover-surface); }
+.spn-graph-node.is-selected, .spn-graph-node[class*="category-"].is-selected { border-color: var(--sp-selection-border) !important; background: var(--sp-node-body); box-shadow: var(--sp-node-shadow-selected); }
+.spn-graph-node > .react-flow__handle, .spn-graph-node .react-flow__handle { border-color: var(--sp-socket-default); background: var(--sp-node-body); }
+.spn-graph-node .react-flow__handle:hover { border-color: var(--sp-socket-hover); background: var(--sp-socket-hover); }
+.spn-graph-flow .react-flow__edge-path { stroke: var(--sp-edge-default); transition: stroke 120ms ease, stroke-width 120ms ease; }
+.spn-graph-flow .react-flow__edge:hover .react-flow__edge-path { stroke: var(--sp-edge-hover); stroke-width: 2.1; }
+.spn-graph-flow .react-flow__edge.selected .react-flow__edge-path { stroke: var(--sp-edge-selected); stroke-width: 2.1; }
+.spn-graph-flow .react-flow__connection-path, .spn-graph-flow .react-flow__connectionline path { stroke: var(--sp-edge-preview) !important; stroke-dasharray: 5 4; }
+.spn-graph-selection-box.is-window { border-color: var(--sp-marquee-window-border); background: var(--sp-marquee-window-fill); }
+.spn-graph-selection-box.is-crossing { border-color: var(--sp-marquee-crossing-border); background: var(--sp-marquee-crossing-fill); }
 .spn-graph-node,
 .spn-graph-node .spn-graph-node-content,
 .spn-graph-node .spn-graph-port-row,
@@ -1601,8 +1602,7 @@
 .spn-graph-node .spn-graph-node-range { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); }
 .spn-graph-node .spn-graph-node-title { font-family: var(--spn-ui-font-family); font-size: 11px; }
 .spn-graph-node .spn-graph-node-title small { font-family: var(--spn-ui-font-family); }
-:root { --node-math-header: #D7FFAF; --node-math-accent: #D7FFAF; }
-:root[data-theme='light'] { --node-math-header: #D7FFAF; --node-math-accent: #D7FFAF; }
+:root { --node-math-header: var(--sp-node-math); --node-math-accent: var(--sp-node-math); }
 .spn-graph-library-group.category-input .spn-graph-library-category-heading { background:var(--node-input-header); }
 .spn-graph-library-group.category-math .spn-graph-library-category-heading { background:var(--node-math-header); }
 .spn-graph-library-group.category-materials .spn-graph-library-category-heading { background:var(--node-material-header); }
@@ -1647,7 +1647,6 @@
 .engineering-schematic-single .engineering-dimension { font-size: 11px; }
 .engineering-dimension.is-compact { font-size: 10px; }
 :root { --graph-schematic-fill: #A6A6A6; --graph-schematic-stroke: #d8e0ec; --graph-schematic-text: #d8e0ec; }
-:root[data-theme='light'] { --graph-schematic-fill: #666666; --graph-schematic-stroke: #26364d; --graph-schematic-text: #26364d; }
 .spn-engineering-schematic .engineering-outline,
 .spn-engineering-schematic .engineering-pile,
 .spn-engineering-schematic .engineering-pile-section { fill: var(--graph-schematic-fill); stroke: var(--graph-schematic-stroke); }
@@ -1660,29 +1659,9 @@
 .spn-engineering-schematic .engineering-view-title,
 .spn-engineering-schematic .engineering-axis text { fill: var(--graph-schematic-text); }
 .engineering-schematic-foundation svg { max-height: 430px; }
-:root[data-theme='light'] .spn-workspace-nav { color: var(--text-primary); }
-:root[data-theme='light'] .spn-workspace-nav-item { color: var(--text-secondary); }
-:root[data-theme='light'] .spn-workspace-nav-item:hover, :root[data-theme='light'] .spn-workspace-nav-item.active { color: var(--text-primary); }
-:root[data-theme='light'] .spn-graph-node { --spn-node-body-bg: #ffffff; border-color: var(--spn-node-border); box-shadow: 0 4px 12px rgba(37,55,78,.14); }
-:root[data-theme='light'] .spn-graph-node, :root[data-theme='light'] .spn-graph-node-title, :root[data-theme='light'] .spn-engineering-input-row, :root[data-theme='light'] .spn-engineering-input-value, :root[data-theme='light'] .spn-general-node-inspector { color: #26364d; }
-:root[data-theme='light'] .spn-graph-node-title small, :root[data-theme='light'] .spn-engineering-input-label, :root[data-theme='light'] .spn-engineering-input-value small { color: #40516a; }
-:root[data-theme='light'] .spn-graph-node-title { color: #1a2233; border-bottom-color: #d6dee9; }
-:root[data-theme='light'] .spn-graph-editable-number, :root[data-theme='light'] .spn-graph-inline-input, :root[data-theme='light'] .spn-engineering-local-value input, :root[data-theme='light'] .spn-graph-range-port .spn-graph-editable-number { background: #fff; color: #172238; border-color: #bcc8d7; }
-:root[data-theme='light'] .spn-canvas-select-trigger, :root[data-theme='light'] .spn-canvas-select-menu { background: #fff; color: #172238; border-color: #bcc8d7; }
-:root[data-theme='light'] .spn-canvas-select-option { color: #27364c; }
-:root[data-theme='light'] .spn-canvas-select-option:hover, :root[data-theme='light'] .spn-canvas-select-option.is-selected { background: #e8eef8; color: #172238; }
 /* Selection remains a distinct signal; title colors come from the shared
    nodeVisualThemes resolver applied by the renderers. */
 .spn-graph-node.is-selected, .spn-graph-node[class*="category-"].is-selected { border-color: #2f7bf6; box-shadow: 0 0 0 2px #2f7bf6, 0 0 14px rgba(47,123,246,.28), 0 5px 18px rgba(0,0,0,.24); }
-:root[data-theme='light'] .spn-graph-node[class*="category-"] { background:#ffffff; color:#172238; }
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-inputs,
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-outputs { background:#ffffff; }
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-input-row,
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-input-label,
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-input-value { color:#172238; }
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-output-label,
-:root[data-theme='light'] .spn-graph-node[class*="category-"] .spn-engineering-output-value { color:#000000; }
-:root[data-theme='light'] .spn-graph-node.is-selected, :root[data-theme='light'] .spn-graph-node[class*="category-"].is-selected { border-color: #1769e0; box-shadow: 0 0 0 2px #1769e0, 0 0 16px rgba(23,105,224,.35), 0 5px 14px rgba(37,55,78,.2); }
 .spn-general-node-inspector { gap: 16px; }
 .spn-general-parameter { padding: 2px 0 6px; border-bottom: 1px solid var(--border-subtle, #334155); }
 .spn-general-parameter label { display: grid; gap: 5px; color: var(--text-secondary); }
@@ -1724,7 +1703,6 @@
    the existing engineering/Assembly handle size; only positioning differs by
    row wrapper so vertical centers remain untouched. */
 :root { --spn-node-handle-size: 9px; --spn-node-handle-border: 1px solid #b2c2da; --spn-node-handle-background: #28364b; }
-:root[data-theme='light'] { --node-input-header:#BFBFBF; --node-math-header:#D7FFAF; --node-material-header:#A6DEDE; --node-pier-header:#3B82F6; --node-abutment-header:#8B5CF6; --node-cap-header:#06B6D4; --node-foundation-header:#10B981; --node-bearing-header:#EF4444; --node-girder-header:#F59E0B; --node-superstructure-header:#C00000; --node-bridge-header:#DB2777; --node-output-header:#65A30D; }
 .spn-assembly-node .spn-engineering-input-label { padding-left: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .spn-assembly-node .spn-engineering-input-row { grid-template-columns: minmax(0, 48%) minmax(0, 1fr); gap: 6px; }
 .spn-assembly-node .spn-engineering-input-value, .spn-assembly-node .spn-engineering-local-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1732,7 +1710,6 @@
 .spn-assembly-node .spn-engineering-output-row .react-flow__handle { position: absolute; top: 50%; right: calc(-1 * (var(--spn-node-handle-size) / 2)); left: auto; transform: translateY(-50%); }
 .spn-graph-node[class*="category-"] { border-color: var(--spn-node-border); }
 :root { --spn-node-body-text: #F2F2F2; --spn-graph-node-border: #A6A6A6; }
-:root[data-theme='light'] { --spn-node-body-text: #262626; --spn-graph-node-border: #A6A6A6; --node-material-header:#A6DEDE; }
 .spn-graph-node .spn-graph-node-content, .spn-graph-node .spn-engineering-inputs, .spn-graph-node .spn-engineering-outputs, .spn-graph-node .spn-engineering-input-row, .spn-graph-node .spn-engineering-input-label, .spn-graph-node .spn-engineering-input-value, .spn-graph-node .spn-engineering-output-label, .spn-graph-node .spn-engineering-output-value, .spn-graph-node .spn-graph-port-row, .spn-graph-node .spn-graph-list-heading, .spn-graph-node .spn-graph-list-item, .spn-graph-node .spn-graph-node-range, .spn-graph-node .spn-engineering-derived { color: var(--spn-node-body-text); }
 .spn-graph-node .spn-graph-port-row small, .spn-graph-node .spn-graph-list-item small { color: var(--spn-node-body-text); }
 .spn-assembly-graph-node .spn-assembly-inputs { padding-left: 14px; }
@@ -2116,7 +2093,7 @@
 
 .spn-graph-node.category-girder .spn-graph-node-error-message { background: #ffffff !important; background-color: #ffffff !important; }
 .spn-graph-node.category-superstructure .spn-graph-node-error-message { background: #fff1eb !important; }
-.spn-assembly-graph-node .spn-assembly-error-row { background: #f2f2f2 !important; }
+.spn-assembly-graph-node .spn-assembly-error-row { background: var(--sp-node-readonly-bg) !important; color: var(--sp-status-error) !important; border-color: var(--sp-node-divider) !important; }
 
 /* Execution errors use the node body color for their row; keep the warning readable in burgundy. */
 .spn-graph-node.category-girder .spn-graph-node-error-message,
@@ -2250,12 +2227,12 @@
 .spn-graph-node.spn-graph-node.spn-graph-node.category-abutment .spn-abutment-section { border-top: 0 !important; border-bottom: 0 !important; }
 .spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-outputs { background: inherit !important; background-color: inherit !important; }
 .spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-outputs,
-.spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-node-footer { background: #ffffff !important; background-color: #ffffff !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.category-cap .spn-engineering-node-footer { background: var(--sp-node-footer-bg) !important; background-color: var(--sp-node-footer-bg) !important; }
 .spn-assembly-graph-node .spn-assembly-centered-output { position: relative; top: auto; right: auto; bottom: auto; display: flex; align-items: center; justify-content: flex-end; min-height: 32px; max-width: none; margin: 8px 14px 4px; padding: 6px 10px; transform: none; }
 .spn-assembly-graph-node .spn-assembly-centered-output .react-flow__handle { right: -20px; width: var(--spn-node-handle-size); height: var(--spn-node-handle-size); box-sizing: border-box; border: var(--spn-node-handle-border); }
 .spn-abutment-node { padding-bottom: 30px; }
-.spn-abutment-node .spn-graph-inspector-warning { position: absolute; right: 0; bottom: -28px; left: 0; min-height: 22px; box-sizing: border-box; padding: 5px 12px; border-top: 1px solid #a8eca8; background: #ffffff !important; background-color: #ffffff !important; color: #c45b5b; font-size: 10px; line-height: 1.2; }
-.spn-abutment-node.spn-abutment-node.spn-abutment-node { --spn-node-body-bg: #ffffff; background: var(--spn-node-body-bg); }
+.spn-abutment-node .spn-graph-inspector-warning { position: absolute; right: 0; bottom: -28px; left: 0; min-height: 22px; box-sizing: border-box; padding: 5px 12px; border-top: 1px solid var(--sp-status-error); background: var(--sp-node-readonly-bg) !important; background-color: var(--sp-node-readonly-bg) !important; color: var(--sp-status-error); font-size: 10px; line-height: 1.2; }
+.spn-abutment-node.spn-abutment-node.spn-abutment-node { --spn-node-body-bg: var(--sp-node-body); background: var(--sp-node-body-bg); }
 .spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-node-state,
 .spn-abutment-node.spn-abutment-node.spn-abutment-node .spn-graph-inspector-warning { border-top: 0 !important; }
 .spn-graph-node svg path,
@@ -2403,9 +2380,8 @@
 .spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #ff5c29 !important; border-color: #d94115 !important; }
 .spn-graph-node.category-bridge .react-flow__handle { border-color: #c93611; }
 .spn-graph-node.category-output,
-.spn-graph-node.category-output .spn-graph-node-title,
 .spn-graph-node.category-output .spn-graph-node-content,
-.spn-graph-node.spn-graph-list-node { background: #ffffcc !important; border-color: #e2df9a !important; color: #404040; }
+.spn-graph-node.spn-graph-list-node { background: var(--sp-node-body) !important; border-color: var(--sp-node-divider) !important; color: var(--sp-node-text-secondary); }
 .spn-graph-node.category-output .react-flow__handle { border-color: #8c9b5a; background: #ffffcc; }
 .spn-graph-node.category-pier,
 .spn-graph-library-group.category-pier .spn-graph-library-category-heading { background: #e1ccf0 !important; border-color: #c3a5dc !important; }
@@ -2447,7 +2423,7 @@
 .spn-graph-node.spn-assembly-graph-node[class*="category-"] { background: #f2f2f2 !important; border-color: #a8a8a8 !important; color: #414141; }
 .spn-graph-node.spn-assembly-graph-node .spn-graph-node-title { background: #cfcfcf !important; border-bottom-color: #a8a8a8; color: #414141; }
 .spn-graph-node.spn-assembly-graph-node .spn-assembly-inputs,
-.spn-graph-node.spn-assembly-graph-node .spn-assembly-centered-output { background: #f2f2f2 !important; }
+.spn-graph-node.spn-assembly-graph-node .spn-assembly-centered-output { background: var(--sp-node-footer-bg) !important; background-color: var(--sp-node-footer-bg) !important; color: var(--sp-node-text-secondary) !important; }
 .spn-graph-node.spn-assembly-graph-node .react-flow__handle { border-color: #898989; background: #f2f2f2; }
 .spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background: #cfcfcf !important; border-color: #a8a8a8 !important; color: #414141 !important; }
 .spn-graph-library-group.category-bridge .spn-graph-library-item { background: #f2f2f2; border-color: #a8a8a8; color: #414141; }
@@ -2513,20 +2489,20 @@
 .spn-graph-node.category-foundation .spn-engineering-derived { border-color: #e9d5c1 !important; }
 .spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1 !important; background: #f4eae0 !important; }
 /* Canonical node palette: category surfaces are immutable across execution states. */
-.spn-graph-node.category-input { --spn-node-header-bg: #e8f4ff; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-math { --spn-node-header-bg: #fff0d5; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-materials { --spn-node-header-bg: #e4f7e9; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-output { --spn-node-header-bg: #fff2b2; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-girder { --spn-node-header-bg: #d9d9d9; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-bearing { --spn-node-header-bg: #fae6fa; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-pier { --spn-node-header-bg: #f0e8ff; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-cap { --spn-node-header-bg: #d3eaed; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-foundation { --spn-node-header-bg: #e9d5c1; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-superstructure { --spn-node-header-bg: #f4b29e; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-bridge { --spn-node-header-bg: #ff5c29; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.category-abutment { --spn-node-header-bg: #87e187; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.spn-assembly-graph-node { --spn-node-header-bg: #cfcfcf; --spn-node-body-bg: #eaeaea; }
-.spn-graph-node.spn-graph-notes-node { --spn-node-header-bg: #ffffcc; --spn-node-body-bg: #eaeaea; }
+.spn-graph-node.category-input { --spn-node-header-bg: #e8f4ff; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-math { --spn-node-header-bg: #fff0d5; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-materials { --spn-node-header-bg: #e4f7e9; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-output { --spn-node-header-bg: #fff2b2; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-girder { --spn-node-header-bg: #d9d9d9; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-bearing { --spn-node-header-bg: #fae6fa; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-pier { --spn-node-header-bg: #f0e8ff; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-cap { --spn-node-header-bg: #d3eaed; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-foundation { --spn-node-header-bg: #e9d5c1; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-superstructure { --spn-node-header-bg: #f4b29e; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-bridge { --spn-node-header-bg: #ff5c29; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.category-abutment { --spn-node-header-bg: #87e187; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.spn-assembly-graph-node { --spn-node-header-bg: #cfcfcf; --spn-node-body-bg: var(--sp-node-body); }
+.spn-graph-node.spn-graph-notes-node { --spn-node-header-bg: #ffffcc; --spn-node-body-bg: var(--sp-node-body); }
 
 .spn-graph-node .spn-graph-node-title {
   background: var(--spn-node-header-bg) !important;
@@ -2594,8 +2570,8 @@
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-abutment-section,
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-assembly-inputs,
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-assembly-centered-output {
-  background: #d9d9d9 !important;
-  background-color: #d9d9d9 !important;
+  background: var(--sp-node-body) !important;
+  background-color: var(--sp-node-body) !important;
 }
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node {
   border-color: var(--spn-node-chrome) !important;
@@ -2631,13 +2607,13 @@
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-abutment-section,
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-assembly-inputs,
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-assembly-centered-output {
-  background: #f2f2f2 !important;
-  background-color: #f2f2f2 !important;
-  color: #4a4a4a !important;
+  background: var(--sp-node-body) !important;
+  background-color: var(--sp-node-body) !important;
+  color: var(--sp-node-text-secondary) !important;
 }
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node {
   border-color: #555555 !important;
-  color: #4a4a4a !important;
+  color: var(--sp-node-text-secondary) !important;
 }
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title,
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title > span,
@@ -2651,8 +2627,8 @@
 }
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node > .react-flow__handle,
 .spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .react-flow__handle {
-  background: #f2f2f2 !important;
-  border-color: #555555 !important;
+  background: var(--sp-node-body) !important;
+  border-color: var(--sp-node-divider) !important;
 }
 
 /* Central neutral chrome: separators and outer edges never inherit category colors. */
@@ -2711,3 +2687,121 @@
   .spn-graph-port-row label {
   color: #555555 !important;
 }
+
+/* Inspector Structural Drawing System V1. Geometry remains component-owned;
+   visual language is shared through the central drawing tokens. */
+.spn-engineering-schematic { gap: 3px; padding: var(--sp-drawing-padding); border-color: var(--sp-border-subtle); border-radius: 4px; background: var(--sp-surface-02); }
+.spn-engineering-schematic svg { font-family: var(--spn-ui-font-family); }
+.spn-engineering-schematic .engineering-outline { fill: var(--sp-drawing-fill) !important; stroke: var(--sp-drawing-primary) !important; stroke-width: var(--sp-drawing-primary-width) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-void { fill: var(--sp-surface-02) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
+.spn-engineering-schematic .engineering-pile, .spn-engineering-schematic .engineering-pile-section { fill: var(--sp-drawing-fill-secondary) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
+.spn-engineering-schematic .engineering-deck { fill: var(--sp-drawing-fill-secondary) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
+.spn-engineering-schematic .engineering-dimension-line { fill: none !important; stroke: var(--sp-drawing-dimension) !important; stroke-width: var(--sp-drawing-dimension-width) !important; stroke-dasharray: none; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-dimension { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-dimension-size) var(--spn-ui-font-family) !important; }
+.spn-engineering-schematic .engineering-view-title { fill: var(--sp-drawing-text) !important; stroke: none !important; font: 600 var(--sp-drawing-label-size) var(--spn-ui-font-family) !important; letter-spacing: .08em; }
+.spn-engineering-schematic .engineering-axis, .spn-engineering-schematic .engineering-centerline { fill: none !important; stroke: var(--sp-drawing-axis) !important; stroke-width: var(--sp-drawing-axis-width) !important; stroke-dasharray: var(--sp-drawing-dash) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-axis text, .spn-engineering-schematic .engineering-axis-label { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-axis-size) var(--spn-ui-font-family) !important; }
+.spn-engineering-schematic text { font-family: var(--spn-ui-font-family) !important; }
+.spn-assembly-schematic { background: var(--sp-surface-02); border-color: var(--sp-border-subtle); }
+.spn-assembly-schematic text { fill: var(--sp-drawing-text); font-family: var(--spn-ui-font-family); }
+
+.spn-family-candidate-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 10px 18px; margin: 12px 0 8px; padding: 8px 10px; border: 1px solid var(--sp-border-primary); background: var(--sp-surface-01); color: var(--sp-text-secondary); font-size: 11px; }
+.spn-family-candidate-toolbar label { display: grid; gap: 4px; color: var(--sp-text-muted); font-size: 10px; }
+.spn-family-candidate-toolbar input { min-width: 220px; height: 29px; padding: 4px 8px; border: 1px solid var(--sp-control-border); background: var(--sp-control-bg); color: var(--sp-control-text); font: inherit; }
+.spn-family-candidate-toolbar input:focus { outline: 1px solid var(--sp-focus-ring); outline-offset: 1px; }
+.spn-family-graph-view .spn-table-wrap { overflow: auto; max-width: 100%; }
+.spn-family-graph-view .spn-table { min-width: max-content; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.spn-family-graph-view .spn-table thead th { position: sticky; top: 0; z-index: 1; padding: 0; background: var(--sp-surface-03); color: var(--sp-text-secondary); border-color: var(--sp-border-primary); white-space: nowrap; }
+.spn-sortable-header button { width: 100%; padding: 8px 9px; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: left; }
+.spn-sortable-header button:hover { background: var(--sp-surface-hover); color: var(--sp-text-primary); }
+.spn-family-graph-view .spn-table tbody tr { cursor: pointer; }
+.spn-family-graph-view .spn-table tbody tr:hover { background: var(--sp-surface-hover); }
+.spn-family-graph-view .spn-table tbody tr.spn-row-selected { background: var(--sp-surface-selected); }
+.spn-family-empty { padding: 28px 12px; border: 1px solid var(--sp-border-primary); border-top: 0; color: var(--sp-text-muted); text-align: center; }
+
+/* Final interaction contract: overrides legacy specificity guards without changing geometry. */
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node { background: var(--sp-node-body) !important; border-color: var(--sp-node-border) !important; color: var(--sp-text-primary) !important; box-shadow: var(--sp-node-shadow); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node:hover { border-color: var(--sp-hover-border) !important; background: var(--sp-hover-surface) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.is-selected { border-color: var(--sp-selection-border) !important; background: var(--sp-node-body) !important; box-shadow: var(--sp-node-shadow-selected) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node > .react-flow__handle,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .react-flow__handle { border-color: var(--sp-socket-default) !important; background: var(--sp-node-body) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .react-flow__handle:hover { border-color: var(--sp-socket-hover) !important; background: var(--sp-socket-hover) !important; }
+.spn-graph-flow { background: var(--sp-graph-canvas); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node { border-radius: 7px; background: var(--sp-node-body) !important; border-color: var(--sp-node-border) !important; box-shadow: var(--sp-node-shadow); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-content,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-inputs,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-node-footer { background: var(--sp-node-body) !important; color: var(--sp-node-text-primary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title { min-height: 30px; border-radius: 6px 6px 0 0; border-bottom: 1px solid color-mix(in srgb, var(--sp-node-divider) 70%, transparent); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-input-label,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-output-label,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-port-row > span { color: var(--sp-node-text-secondary) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-output-value,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-watch-value { color: var(--sp-node-value-text) !important; }
+.spn-graph-node input:not([type="checkbox"]), .spn-graph-node select, .spn-graph-node textarea, .spn-graph-node .spn-graph-editable-number, .spn-graph-node .spn-graph-inline-input, .spn-graph-node .spn-input { background: var(--sp-node-field-bg) !important; color: var(--sp-node-value-text) !important; border: 1px solid var(--sp-node-field-border) !important; border-radius: 4px; }
+.spn-graph-node input:not([type="checkbox"]):hover, .spn-graph-node select:hover, .spn-graph-node textarea:hover { background: var(--sp-node-field-hover) !important; }
+.spn-graph-node input:not([type="checkbox"]):focus, .spn-graph-node select:focus, .spn-graph-node textarea:focus { background: var(--sp-node-field-focus) !important; border-color: var(--sp-focus-ring) !important; outline: none; box-shadow: 0 0 0 1px var(--sp-focus-ring); }
+.spn-graph-node .spn-engineering-input-row, .spn-graph-node .spn-engineering-output-row, .spn-graph-node .spn-graph-port-row { border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.is-selected { border-color: var(--sp-node-border-selected) !important; box-shadow: var(--sp-node-shadow-selected) !important; }
+.spn-graph-library { background: #171E25; border-right-color: #2D3841; }
+.spn-graph-search { background: var(--sp-node-body-alt) !important; border-color: var(--sp-node-border) !important; color: var(--sp-node-text-muted); }
+.spn-graph-search input { background: transparent !important; color: var(--sp-node-text-primary) !important; border: 0 !important; }
+.spn-graph-library-category-heading { justify-content: flex-start; gap: 7px; min-height: 28px; padding: 5px 8px; background: transparent !important; color: #3f4650 !important; border-bottom: 1px solid var(--sp-node-divider); font-size: 10px; letter-spacing: .08em; }
+.spn-graph-library-category-heading span { color: #3f4650 !important; }
+.spn-graph-library-category-heading::before { content: ''; width: 3px; height: 14px; background: var(--sp-node-accent, var(--sp-node-border)); border-radius: 2px; }
+.spn-graph-library-item { min-height: 30px; padding: 5px 8px; background: transparent !important; color: var(--sp-node-text-primary) !important; border-color: transparent !important; }
+.spn-graph-library-item:hover { background: #26323B !important; border-color: var(--sp-node-border) !important; }
+.spn-graph-library-item .spn-node-icon { width: 16px; height: 16px; color: var(--sp-node-accent, var(--sp-node-text-secondary)); background: transparent !important; box-shadow: none !important; }
+.spn-graph-node .spn-graph-node-state,
+.spn-graph-node .spn-graph-node-error-message,
+.spn-graph-node .spn-graph-watch-value,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-items,
+.spn-graph-node .spn-graph-list-item,
+.spn-graph-node .spn-graph-node-range,
+.spn-graph-node .spn-graph-range-summary,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-node-footer,
+.spn-graph-node .spn-assembly-inputs,
+.spn-graph-node .spn-assembly-centered-output,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-empty-state { background: var(--sp-node-readonly-bg) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node .spn-graph-node-error-message { color: #7f1d2d !important; }
+.spn-graph-node .spn-assembly-error-row,
+.spn-graph-node .spn-assembly-error-row span { color: #7f1d2d !important; }
+.spn-graph-node .sp-status--error { color: var(--sp-status-error) !important; }
+.spn-graph-node .sp-status--warning { color: var(--sp-status-warning) !important; }
+.spn-graph-node .sp-status--success { color: var(--sp-status-success) !important; }
+.spn-graph-node .sp-status--info { color: var(--sp-status-info) !important; }
+.spn-graph-node.has-error .spn-graph-node-state,
+.spn-graph-node .status-error { color: var(--sp-status-error) !important; }
+.spn-graph-node.has-success .spn-graph-node-state,
+.spn-graph-node .status-valid,
+.spn-graph-node .status-success { color: var(--sp-status-success) !important; }
+.spn-graph-node.is-running .spn-graph-node-state { color: var(--sp-status-info) !important; }
+.spn-graph-node.is-dirty .spn-graph-node-state,
+.spn-graph-node .status-warning { color: var(--sp-status-warning) !important; }
+.spn-graph-node .spn-graph-node-state.has-success, .spn-graph-node .spn-graph-node-state.has-success * { color: var(--sp-status-success) !important; }
+.spn-graph-node .spn-graph-node-state.has-error, .spn-graph-node .spn-graph-node-state.has-error * { color: var(--sp-status-error) !important; }
+.spn-graph-node .spn-graph-node-state.is-running, .spn-graph-node .spn-graph-node-state.is-running * { color: var(--sp-status-info) !important; }
+.spn-graph-node .spn-graph-node-state.is-dirty, .spn-graph-node .spn-graph-node-state.is-dirty * { color: var(--sp-status-warning) !important; }
+.spn-graph-node .spn-engineering-node-footer, .spn-graph-node .spn-assembly-centered-output { background: var(--sp-node-footer-bg) !important; }
+.spn-graph-node button:disabled, .spn-graph-node input:disabled, .spn-graph-node select:disabled, .spn-graph-node textarea:disabled { background: var(--sp-node-body-alt) !important; color: var(--sp-node-text-muted) !important; border-color: var(--sp-node-divider) !important; opacity: .9; }
+.spn-graph-node.spn-graph-list-node,
+.spn-graph-node.spn-graph-list-node .spn-graph-list-heading,
+.spn-graph-node.spn-graph-list-node .spn-graph-list-items,
+.spn-graph-node.spn-graph-list-node .spn-graph-list-footer { background-color: var(--sp-node-body) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-engineering-node .spn-engineering-derived,
+.spn-graph-node.spn-engineering-node .spn-abutment-section,
+.spn-graph-node.spn-engineering-node .spn-graph-node-state { background-color: var(--sp-node-readonly-bg) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-engineering-node .spn-superstructure-edge,
+.spn-graph-node.spn-engineering-node .spn-graph-inspector-error,
+.spn-graph-node.spn-engineering-node .spn-graph-inspector-warning { background-color: var(--sp-node-readonly-bg) !important; color: var(--sp-node-text-secondary) !important; }
+.spn-graph-node.spn-engineering-node .spn-engineering-node-footer,
+.spn-graph-node.spn-engineering-node .spn-assembly-centered-output { background-color: var(--sp-node-footer-bg) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path, .spn-graph-flow .react-flow__connectionline path { stroke: var(--sp-edge-default) !important; }
+.spn-graph-flow .react-flow__edge:hover .react-flow__edge-path { stroke: var(--sp-edge-hover) !important; stroke-width: 2.1; }
+.spn-graph-flow .react-flow__edge.selected .react-flow__edge-path { stroke: var(--sp-edge-selected) !important; stroke-width: 2.1; }
+.spn-graph-selection-box.is-window { border-color: var(--sp-marquee-window-border) !important; background: var(--sp-marquee-window-fill) !important; }
+.spn-graph-selection-box.is-crossing { border-color: var(--sp-marquee-crossing-border) !important; background: var(--sp-marquee-crossing-fill) !important; }

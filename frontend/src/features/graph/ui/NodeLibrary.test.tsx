@@ -34,9 +34,9 @@ describe('Graph Node Library structural families',()=>{
   it('renders exact category strip colors on the category strips', () => {
     render(<NodeLibrary onAdd={vi.fn()} />)
     const strip = (name: string) => screen.getByText(name, { selector: '.spn-graph-library-category-heading span' }).parentElement!
-    expect(getComputedStyle(strip('INPUT')).backgroundColor).toBe('rgb(191, 191, 191)')
-    expect(getComputedStyle(strip('PIER')).backgroundColor).toBe('rgb(59, 130, 246)')
-    expect(getComputedStyle(strip('GIRDER')).backgroundColor).toBe('rgb(245, 158, 11)')
-    expect(getComputedStyle(strip('SUPERSTRUCTURE')).backgroundColor).toBe('rgb(192, 0, 0)')
+    expect(strip('INPUT').style.backgroundColor).toBe('var(--sp-node-input)')
+    expect(strip('PIER').style.backgroundColor).toBe('var(--sp-node-pier)')
+    expect(strip('GIRDER').style.backgroundColor).toBe('var(--sp-node-girder)')
+    expect(strip('SUPERSTRUCTURE').style.backgroundColor).toBe('var(--sp-node-superstructure)')
   })
 })

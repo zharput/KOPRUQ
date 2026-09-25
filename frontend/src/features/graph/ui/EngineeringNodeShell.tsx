@@ -34,7 +34,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
       </div>)}
     </div>
     {data.executionError && (data.node.type.startsWith('substructure.foundation.') || data.node.type.startsWith('substructure.bearing.')) && typeof generated==='number' ? <div className="spn-engineering-node-footer">{generated.toLocaleString()} raw combinations / limit 10,000</div> : typeof generated === 'number' && <div className="spn-engineering-node-footer">{generated} generated / {typeof invalid === 'number' ? invalid : 0} invalid / {displayedCandidateCount} valid</div>}
-    {data.executionError && <div className="spn-graph-node-error-message" style={{ backgroundColor: data.node.type.startsWith('structural.girder.') ? '#ffffff' : data.node.type === 'structural.superstructure' ? '#fff1eb' : undefined }} title={data.executionError}>{data.executionError}</div>}
+    {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
     <NodeStatusIndicator executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} />
   </div>
 }

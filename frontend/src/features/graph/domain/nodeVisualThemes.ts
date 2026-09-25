@@ -3,11 +3,11 @@ export type NodeCategory = 'INPUT' | 'MATH' | 'MATERIALS' | 'PIER' | 'ABUTMENT' 
 
 export type NodeTheme = { className: string; accentToken: string; borderToken: string; headerToken: string; textToken: string }
 export const NODE_CATEGORY_COLORS: Readonly<Partial<Record<NodeCategory, string>>> = {
-  INPUT: '#BFBFBF', MATH: '#D7FFAF', MATERIALS: '#A6DEDE', PIER: '#3B82F6', ABUTMENT: '#8B5CF6', CAP: '#06B6D4', FOUNDATION: '#10B981', BEARING: '#EF4444', GIRDER: '#F59E0B', SUPERSTRUCTURE: '#C00000', BRIDGE: '#DB2777', OUTPUT: '#65A30D',
+  INPUT: 'var(--sp-node-input)', MATH: 'var(--sp-node-math)', MATERIALS: 'var(--sp-node-materials)', PIER: 'var(--sp-node-pier)', ABUTMENT: 'var(--sp-node-abutment)', CAP: 'var(--sp-node-cap)', FOUNDATION: 'var(--sp-node-foundation)', BEARING: 'var(--sp-node-bearing)', GIRDER: 'var(--sp-node-girder)', SUPERSTRUCTURE: 'var(--sp-node-superstructure)', BRIDGE: 'var(--sp-node-bridge)', GEOMETRY: 'var(--sp-node-geometry)', SUBSTRUCTURE: 'var(--sp-node-substructure)', STRUCTURAL_FAMILY: 'var(--sp-node-structural-family)', LOADS: 'var(--sp-node-loads)', ANALYSIS: 'var(--sp-node-analysis)', DESIGN: 'var(--sp-node-design)', OPTIMIZATION: 'var(--sp-node-optimization)', OUTPUT: 'var(--sp-node-output)',
 }
 export const NODE_CATEGORY_LIGHT_COLORS: Readonly<Partial<Record<NodeCategory, string>>> = NODE_CATEGORY_COLORS
-export const GRAPH_EDGE_COLORS = { dark: '#A6A6A6', light: '#A6A6A6' } as const
-export function getGraphEdgeColor(): string { return typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light' ? GRAPH_EDGE_COLORS.light : GRAPH_EDGE_COLORS.dark }
+export const GRAPH_EDGE_COLORS = { default: 'var(--sp-link-default)', hover: 'var(--sp-link-hover)', selected: 'var(--sp-link-selected)', disabled: 'var(--sp-link-disabled)' } as const
+export function getGraphEdgeColor(): string { return GRAPH_EDGE_COLORS.default }
 
 /** Presentation-only category themes. Registry metadata remains on NodeDefinition, never saved graph nodes. */
 export const NODE_THEME_REGISTRY: Readonly<Record<NodeCategory, NodeTheme>> = {
@@ -48,9 +48,9 @@ export function getNodeThemeForType(category: NodeCategory, type?: string): Node
 export function getNodeCategoryColor(category: NodeCategory, type?: string): string | undefined { return NODE_CATEGORY_COLORS[getNodePresentationCategory(category, type)] }
 export function getNodeHeaderStyle(category: NodeCategory, type?: string): { backgroundColor?: string; color: string } {
   const backgroundColor = getNodeCategoryColor(category, type)
-  const darkText = new Set(['INPUT', 'MATERIALS', 'PIER', 'ABUTMENT', 'CAP', 'FOUNDATION', 'BEARING', 'GIRDER', 'OUTPUT'])
+  const darkText = new Set(['INPUT', 'MATH', 'MATERIALS', 'CAP', 'FOUNDATION', 'GIRDER', 'STRUCTURAL_FAMILY', 'LOADS', 'DESIGN', 'OUTPUT'])
   const resolved = getNodePresentationCategory(category, type)
-  return { backgroundColor, color: darkText.has(resolved) ? '#111111' : '#ffffff' }
+  return { backgroundColor, color: darkText.has(resolved) ? 'var(--sp-node-header-text-dark)' : 'var(--sp-node-header-text-light)' }
 }
 export function getNodeCategoryLabel(category: NodeCategory): string { return category === 'STRUCTURAL_FAMILY' ? 'STRUCTURAL / FAMILY' : category }
 

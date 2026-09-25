@@ -1,20 +1,23 @@
 @import '@xyflow/react/dist/style.css';
 
 :root {
-  --bg-page: #0b0e14;
-  --surface-0: #0b0e14;
-  --surface-1: #10141c;
-  --surface-2: #161b25;
-  --border: #262c38;
-  --border-strong: #333a48;
-  --text-primary: #f3f4f6;
-  --text-secondary: #9aa3b2;
-  --text-muted: #6b7280;
-  --accent: #2f7bf6;
-  --accent-strong: #4c8dff;
-  --graph-canvas: #0d1119;
-  --graph-grid-color: #354052;
-  --graph-edge-color: #F2F2F2;
+  --sp-bg-app: #0D0F12; --sp-bg-workspace: #111419; --sp-bg-canvas: #111419; --sp-bg-overlay: rgba(0,0,0,.65);
+  --sp-surface-01: #161A20; --sp-surface-02: #1B2027; --sp-surface-03: #222831; --sp-surface-hover: #2B323C; --sp-surface-active: #303844; --sp-surface-selected: #35404D;
+  --sp-text-primary: #F2F2F2; --sp-text-secondary: #C7CBD1; --sp-text-muted: #9299A3; --sp-text-disabled: #626A75; --sp-text-inverse: #111419;
+  --sp-border-subtle: #2A3038; --sp-border-primary: #343C47; --sp-border-strong: #46505D; --sp-divider: #2D343D;
+  --sp-node-border: #A6A6A6; --sp-link-default: #A6A6A6; --sp-link-hover: #C7CBD1; --sp-link-selected: #F2F2F2; --sp-link-disabled: #626A75;
+  --sp-grid-minor: #181C22; --sp-grid-major: #222831;
+  --sp-control-bg: #222831; --sp-control-bg-hover: #2B323C; --sp-control-bg-active: #303844; --sp-control-border: #343C47; --sp-control-border-hover: #46505D; --sp-control-text: #F2F2F2; --sp-control-placeholder: #9299A3; --sp-control-disabled: #626A75; --sp-focus-ring: #687586;
+  --sp-drawing-primary: #C7CBD1; --sp-drawing-secondary: #9299A3; --sp-drawing-dimension: #9299A3; --sp-drawing-text: #C7CBD1; --sp-drawing-axis: #626A75; --sp-drawing-hidden: #46505D;
+  --sp-drawing-fill: rgba(199,203,209,.06); --sp-drawing-fill-secondary: rgba(146,153,163,.05); --sp-drawing-highlight: #5EA7FF; --sp-drawing-reference: #626A75;
+  --sp-drawing-primary-width: 1.5; --sp-drawing-secondary-width: 1; --sp-drawing-dimension-width: .9; --sp-drawing-axis-width: .8; --sp-drawing-hidden-width: .8;
+  --sp-drawing-dimension-tick: 3; --sp-drawing-dimension-offset: 6; --sp-drawing-label-size: 10px; --sp-drawing-dimension-size: 11px; --sp-drawing-axis-size: 10px; --sp-drawing-padding: 8px; --sp-drawing-dash: 5 3;
+  --sp-scrollbar-track: #161A20; --sp-scrollbar-thumb: #343C47; --sp-scrollbar-thumb-hover: #46505D; --sp-shadow-popup: 0 8px 24px rgba(0,0,0,.4);
+  --sp-status-success: #34D399; --sp-status-warning: #F59E0B; --sp-status-error: #EF4444; --sp-status-info: #60A5FA; --sp-selection: #35404D; --sp-selection-hover: #46505D; --sp-selection-border: #5EA7FF; --sp-selection-fill: rgba(94,167,255,.10); --sp-selection-glow: rgba(94,167,255,.22);
+  --sp-hover-border: #C7CBD1; --sp-hover-surface: var(--sp-surface-hover); --sp-socket-default: #A6A6A6; --sp-socket-hover: #F2F2F2; --sp-socket-compatible: #55B889; --sp-socket-incompatible: #E05A5A;
+  --sp-edge-default: var(--sp-link-default); --sp-edge-hover: #C7CBD1; --sp-edge-selected: #5EA7FF; --sp-edge-preview: #C7CBD1; --sp-marquee-window-border: #5EA7FF; --sp-marquee-window-fill: rgba(94,167,255,.10); --sp-marquee-crossing-border: #55B889; --sp-marquee-crossing-fill: rgba(85,184,137,.10);
+  --sp-node-shadow: 0 5px 16px rgba(0,0,0,.24); --sp-node-shadow-selected: 0 0 0 1px var(--sp-selection-border), 0 5px 18px rgba(0,0,0,.30);
+  --bg-page: var(--sp-bg-app); --surface-0: var(--sp-bg-workspace); --surface-1: var(--sp-surface-01); --surface-2: var(--sp-surface-02); --border: var(--sp-border-primary); --border-strong: var(--sp-border-strong); --text-primary: var(--sp-text-primary); --text-secondary: var(--sp-text-secondary); --text-muted: var(--sp-text-muted); --accent: var(--sp-status-info); --accent-strong: var(--sp-link-hover); --graph-canvas: var(--sp-graph-canvas); --graph-grid-color: var(--sp-graph-grid-minor); --graph-edge-color: var(--sp-link-default);
 
   /* Fixed dark constant, NOT overridden by [data-theme='light'] below -
      the sidebar itself now follows the app theme (2026-09-13, reversed
@@ -22,7 +25,7 @@
      instruction), but the SPANOVA logo PNG still has a dark navy
      background baked into the image itself, so it keeps this one fixed
      badge behind it (`.spn-sidebar-logo`) regardless of theme. */
-  --sidebar-bg: #10141c;
+  --sidebar-bg: var(--sp-surface-01);
 
   --sans: 'Segoe UI', system-ui, Roboto, sans-serif;
   --mono: 'Segoe UI';
@@ -40,31 +43,26 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Structural category layer: intentionally separate from neutral UI tokens. */
+:root {
+  --sp-node-input: #9CA3AF; --sp-node-math: #A3C77B; --sp-node-materials: #69B8B8;
+  --sp-node-pier: #4F8FEA; --sp-node-abutment: #8B6FD6; --sp-node-cap: #32AFC1;
+  --sp-node-foundation: #3FAF7C; --sp-node-bearing: #E05A5A; --sp-node-girder: #E6A23C;
+  --sp-node-superstructure: #C94F4F; --sp-node-bridge: #6674D9; --sp-node-geometry: #D06FA7;
+  --sp-node-substructure: #56A86B; --sp-node-structural-family: #C7A83D; --sp-node-loads: #629BD1;
+  --sp-node-analysis: #9276CC; --sp-node-design: #55B889; --sp-node-optimization: #D97A3A; --sp-node-output: #8D96A3;
+  --sp-graph-canvas: #11161D; --sp-graph-grid-major: #26303A; --sp-graph-grid-minor: #1B232C;
+  --sp-node-body: #202A31; --sp-node-body-alt: #253139; --sp-node-border: #3A4852; --sp-node-border-hover: #566773; --sp-node-border-selected: #82919B;
+  --sp-node-field-bg: #34434C; --sp-node-field-hover: #3B4C56; --sp-node-field-focus: #425660; --sp-node-field-border: #4A5B65;
+  --sp-node-text-primary: #F2F4F5; --sp-node-text-secondary: #B8C1C7; --sp-node-text-muted: #87949D; --sp-node-value-text: #F5F7F8; --sp-node-divider: #3A464E;
+  --sp-node-readonly-bg: var(--sp-node-body-alt); --sp-node-helper-bg: var(--sp-node-body-alt); --sp-node-status-bg: var(--sp-node-body-alt); --sp-node-empty-bg: var(--sp-node-body-alt); --sp-node-footer-bg: #1D282F;
+  --sp-node-shadow: 0 4px 12px rgba(0,0,0,.30); --sp-node-shadow-selected: 0 5px 16px rgba(0,0,0,.40); --sp-node-header-text-light: #F5F7F8; --sp-node-header-text-dark: #182026;
+}
+
 /* Light theme (2026-09-12) - toggled via [data-theme] on <html>, set by
    shared/ui/ThemeToggle.tsx and persisted in localStorage
    ("spanova.theme"). Same variable names as the dark palette above, so
    every component that already uses var(--...) needs no change. */
-:root[data-theme='light'] {
-  --bg-page: #f2f4f8;
-  --surface-0: #f2f4f8;
-  --surface-1: #ffffff;
-  --surface-2: #eef1f6;
-  --border: #dde3ec;
-  --border-strong: #c5cedb;
-  --text-primary: #1a2233;
-  --text-secondary: #4b5768;
-  --text-muted: #7b8494;
-  --accent: #2f7bf6;
-  --accent-strong: #1b5fd6;
-  --graph-canvas: #e6e6e6;
-  --graph-grid-color: #c7d0dc;
-  --graph-edge-color: #262626;
-
-  color-scheme: light;
-  color: var(--text-secondary);
-  background: var(--bg-page);
-}
-
 * {
   box-sizing: border-box;
 }

@@ -37,9 +37,9 @@ export default function SystemAssemblyPanel() {
   const [bearingFamilies, setBearingFamilies] = useState<BearingFamily[]>(readBearingFamilies)
   const [foundationFamilies, setFoundationFamilies] = useState<FoundationFamily[]>(readFoundationFamilies)
   const [selectedFoundationId, setSelectedFoundationId] = useState('')
-  useEffect(() => { const refresh = () => setPierCapFamilies(readPierCapFamilies()); window.addEventListener('storage', refresh); window.addEventListener('spanova:pier-cap-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('spanova:pier-cap-catalog-changed', refresh) } }, [])
-  useEffect(() => { const refresh = () => setBearingFamilies(readBearingFamilies()); window.addEventListener('storage', refresh); window.addEventListener('spanova:bearing-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('spanova:bearing-catalog-changed', refresh) } }, [])
-  useEffect(() => { const refresh = () => setFoundationFamilies(readFoundationFamilies()); window.addEventListener('storage', refresh); window.addEventListener('spanova:foundation-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('spanova:foundation-catalog-changed', refresh) } }, [])
+  useEffect(() => { const refresh = () => setPierCapFamilies(readPierCapFamilies()); window.addEventListener('storage', refresh); window.addEventListener('kopruq:pier-cap-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('kopruq:pier-cap-catalog-changed', refresh) } }, [])
+  useEffect(() => { const refresh = () => setBearingFamilies(readBearingFamilies()); window.addEventListener('storage', refresh); window.addEventListener('kopruq:bearing-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('kopruq:bearing-catalog-changed', refresh) } }, [])
+  useEffect(() => { const refresh = () => setFoundationFamilies(readFoundationFamilies()); window.addEventListener('storage', refresh); window.addEventListener('kopruq:foundation-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('kopruq:foundation-catalog-changed', refresh) } }, [])
   const definition = kind === 'PIER' ? PIER_ASSEMBLY : ABUTMENT_ASSEMBLY
   const hasPierCapCatalog = pierCapFamilies.some((family) => generatePierCapVariants(family).length > 0)
   const usableBearings = bearingFamilies.filter((family) => family.enabled && bearingStatus(family) === 'VALID')
@@ -56,7 +56,7 @@ export default function SystemAssemblyPanel() {
 }
 
 function readGirderDimensions() { return getPrecastGirderDefinition<{ dimensions?: typeof PRECAST_DIMENSIONS } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS }
-function readSpanRules(): PreferredSpanRule[] { try { return JSON.parse(localStorage.getItem('spanova.project-design-system.girder-span-rules') ?? '[]') as PreferredSpanRule[] } catch { return [] } }
+function readSpanRules(): PreferredSpanRule[] { try { return JSON.parse(localStorage.getItem('kopruq.project-design-system.girder-span-rules') ?? '[]') as PreferredSpanRule[] } catch { return [] } }
 function readPierCapFamilies(): PierCapFamily[] { return getFamilyRecords<PierCapFamily>('PIER_CAP') }
 function readBearingFamilies(): BearingFamily[] { return getFamilyRecords<BearingFamily>('BEARING') }
 function readFoundationFamilies(): FoundationFamily[] { return getFamilyRecords<FoundationFamily>('FOUNDATION') }

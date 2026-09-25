@@ -1,11 +1,11 @@
 import type { BridgeAssembly } from '../domain/bridgeAssembly'
-import type { GraphExecutionState, SpanovaNode } from '../domain/types'
+import type { GraphExecutionState, KopruqNode } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { formatDisplayValue, toDisplayValue } from '../domain/quantities'
 import { useState } from 'react'
 import type { AbutmentCandidate } from '../domain/abutmentCandidates'
 
-export default function AssemblyInspector({ node, assembly, state, error, projectUnits, onNodeChange }: { node: SpanovaNode; assembly?: BridgeAssembly; state: GraphExecutionState; error?: string; projectUnits?: ProjectUnitPreferences; onNodeChange: (id: string, patch: Partial<SpanovaNode>) => void }) {
+export default function AssemblyInspector({ node, assembly, state, error, projectUnits, onNodeChange }: { node: KopruqNode; assembly?: BridgeAssembly; state: GraphExecutionState; error?: string; projectUnits?: ProjectUnitPreferences; onNodeChange: (id: string, patch: Partial<KopruqNode>) => void }) {
   const unit = projectUnits?.length ?? 'm'
   const [view, setView] = useState<'LONGITUDINAL' | 'A1_FRONT' | 'A2_FRONT'>('LONGITUDINAL')
   const total = assembly ? formatDisplayValue(assembly.totalLengthM, 'Length', projectUnits) : '—'

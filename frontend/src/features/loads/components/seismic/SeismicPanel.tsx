@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
 
 export default function SeismicPanel() {
-  const saved = JSON.parse(localStorage.getItem('spanova.seismic') || 'null')
+  const saved = JSON.parse(localStorage.getItem('kopruq.seismic') || 'null')
   const [a, setA] = useState(saved?.a || ''), [g, setG] = useState(saved?.g || 'B'), [t, setT] = useState(saved?.t || 'Type 1'), [i, setI] = useState(saved?.i || '1'), [details, setDetails] = useState(false), [r, setR] = useState<any>(null)
   useEffect(() => {
-    localStorage.setItem('spanova.seismic', JSON.stringify({ a, g, t, i }))
+    localStorage.setItem('kopruq.seismic', JSON.stringify({ a, g, t, i }))
     if (a && i) {
       fetch('http://localhost:8080/api/seismic/spectrum', {
         method: 'POST',

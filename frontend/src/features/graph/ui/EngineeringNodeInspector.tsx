@@ -1,4 +1,4 @@
-import type { GraphExecutionState, GraphValue, SpanovaConnection, SpanovaNode } from '../domain/types'
+import type { GraphExecutionState, GraphValue, KopruqConnection, KopruqNode } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { convertQuantity, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
@@ -9,15 +9,15 @@ import { EngineeringSchematic } from './EngineeringSchematics'
 import MaterialSelector from './MaterialSelector'
 
 type Props = {
-  node: SpanovaNode
+  node: KopruqNode
   states: Record<string, GraphExecutionState>
   errors: Record<string, string>
   outputs: Record<string, Record<string, GraphValue>>
   resolvedInputs: Record<string, Record<string, GraphValue>>
   previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string; range?: { mode: 'single' | 'range'; value?: number; min?: number; max?: number; delta?: number } }>
-  connections: SpanovaConnection[]
+  connections: KopruqConnection[]
   projectUnits?: ProjectUnitPreferences
-  onNodeChange: (id: string, patch: Partial<SpanovaNode>) => void
+  onNodeChange: (id: string, patch: Partial<KopruqNode>) => void
   onParameterChange: (id: string, key: string, value: number | boolean | string) => void
 }
 
@@ -62,7 +62,7 @@ export default function EngineeringNodeInspector(props: Props) {
   </div>
 }
 
-function AbutmentInspector({ node, candidate, connected, previewInputs, projectUnits, onParameterChange, onNodeChange, errors }: { node: SpanovaNode; candidate?: import('../domain/abutmentCandidates').AbutmentCandidate; connected: Set<string>; previewInputs: Props['previewInputs']; projectUnits?: ProjectUnitPreferences; onParameterChange: Props['onParameterChange']; onNodeChange: Props['onNodeChange']; errors?: string }) {
+function AbutmentInspector({ node, candidate, connected, previewInputs, projectUnits, onParameterChange, onNodeChange, errors }: { node: KopruqNode; candidate?: import('../domain/abutmentCandidates').AbutmentCandidate; connected: Set<string>; previewInputs: Props['previewInputs']; projectUnits?: ProjectUnitPreferences; onParameterChange: Props['onParameterChange']; onNodeChange: Props['onNodeChange']; errors?: string }) {
   const upstream = candidate?.upstream
   const calculated = candidate?.geometry
   const manual = ['Back_wall_w','Bearing_sup_w','Front_w','Back_w','front_h','found_th','Onp_Amp','found_d']
@@ -78,9 +78,9 @@ function AbutmentInspector({ node, candidate, connected, previewInputs, projectU
   </div>
 }
 
-function displayParameter(node: SpanovaNode, key: string, projectUnits?: ProjectUnitPreferences) { const unit = String(node.parameters[`${key}Unit`] ?? 'm'); const value = node.parameters[`${key}Value`]; return typeof value === 'number' ? toDisplayValue(getUnit(unit)?.toCanonical(value) ?? value, 'Length', projectUnits) : value }
-function storeParameter(node: SpanovaNode, key: string, value: number, projectUnits?: ProjectUnitPreferences) { const unit = String(node.parameters[`${key}Unit`] ?? 'm'); const source = projectUnits?.length ?? 'm'; return source === unit ? value : convertQuantity(value, source, unit) }
-function ParameterControl({ node, descriptor, projectUnits, onChange }: { node: SpanovaNode; descriptor: NonNullable<ReturnType<typeof getNodeDefinition>>['parameterSchema'][number]; projectUnits?: ProjectUnitPreferences; onChange: Props['onParameterChange'] }) {
+function displayParameter(node: KopruqNode, key: string, projectUnits?: ProjectUnitPreferences) { const unit = String(node.parameters[`${key}Unit`] ?? 'm'); const value = node.parameters[`${key}Value`]; return typeof value === 'number' ? toDisplayValue(getUnit(unit)?.toCanonical(value) ?? value, 'Length', projectUnits) : value }
+function storeParameter(node: KopruqNode, key: string, value: number, projectUnits?: ProjectUnitPreferences) { const unit = String(node.parameters[`${key}Unit`] ?? 'm'); const source = projectUnits?.length ?? 'm'; return source === unit ? value : convertQuantity(value, source, unit) }
+function ParameterControl({ node, descriptor, projectUnits, onChange }: { node: KopruqNode; descriptor: NonNullable<ReturnType<typeof getNodeDefinition>>['parameterSchema'][number]; projectUnits?: ProjectUnitPreferences; onChange: Props['onParameterChange'] }) {
   const label = descriptor.label.replace(/ local default$/i, '').replace(/ unit$/i, ' unit')
   if (descriptor.dataType === 'select') return <select className="spn-input" aria-label={label} value={String(node.parameters[descriptor.key] ?? descriptor.options?.[0]?.value ?? '')} disabled={!descriptor.options?.length} onChange={event => {
     const nextUnit = event.target.value

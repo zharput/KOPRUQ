@@ -22,7 +22,7 @@
   /* Fixed dark constant, NOT overridden by [data-theme='light'] below -
      the sidebar itself now follows the app theme (2026-09-13, reversed
      from an earlier fixed-dark-sidebar decision per the engineer's own
-     instruction), but the SPANOVA logo PNG still has a dark navy
+     instruction), but the KOPRUQ logo PNG still has a dark navy
      background baked into the image itself, so it keeps this one fixed
      badge behind it (`.spn-sidebar-logo`) regardless of theme. */
   --sidebar-bg: var(--sp-surface-01);
@@ -61,7 +61,7 @@
 
 /* Light theme (2026-09-12) - toggled via [data-theme] on <html>, set by
    shared/ui/ThemeToggle.tsx and persisted in localStorage
-   ("spanova.theme"). Same variable names as the dark palette above, so
+   ("kopruq.theme"). Same variable names as the dark palette above, so
    every component that already uses var(--...) needs no change. */
 * {
   box-sizing: border-box;

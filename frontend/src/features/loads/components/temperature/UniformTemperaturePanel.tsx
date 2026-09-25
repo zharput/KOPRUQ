@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { resolveUniformTemperature, type UniformTemperatureResult } from '../../api/temperatureService'
 
 export default function UniformTemperaturePanel() {
-  const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('spanova.uniform-temperature.inputs') ?? 'null') as { min?: string; max?: string; t0?: string } | null : null
+  const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('kopruq.uniform-temperature.inputs') ?? 'null') as { min?: string; max?: string; t0?: string } | null : null
   const [min, setMin] = useState(saved?.min ?? ''), [max, setMax] = useState(saved?.max ?? ''), [t0, setT0] = useState(saved?.t0 ?? '')
   const [details, setDetails] = useState(false)
   const [result, setResult] = useState<UniformTemperatureResult | null>(null)
@@ -16,9 +16,9 @@ export default function UniformTemperaturePanel() {
   return <div className="spn-card" style={{ maxWidth: 620 }}>
     <h2 className="spn-card-title">Uniform Temperature</h2><p className="spn-card-subtitle">EN 1991-1-5 · Uniform temperature component</p>
     <div className="spn-field-grid" style={{ gridTemplateColumns: '1fr' }}>
-      <label className="spn-field">Effective Minimum Temperature, Te,min<div className="spn-input-unit-row" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input className="spn-input" type="number" value={min} onChange={e => { const value = e.target.value; setMin(value); localStorage.setItem('spanova.uniform-temperature.inputs', JSON.stringify({ min: value, max, t0 })); void update(value, max, t0) }} style={{ width: 140 }} /><span>°C</span></div></label>
-      <label className="spn-field">Effective Maximum Temperature, Te,max<div className="spn-input-unit-row" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input className="spn-input" type="number" value={max} onChange={e => { const value = e.target.value; setMax(value); localStorage.setItem('spanova.uniform-temperature.inputs', JSON.stringify({ min, max: value, t0 })); void update(min, value, t0) }} style={{ width: 140 }} /><span>°C</span></div></label>
-      <label className="spn-field">Initial Temperature, T0<div className="spn-input-unit-row" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input className="spn-input" type="number" value={t0} onChange={e => { const value = e.target.value; setT0(value); localStorage.setItem('spanova.uniform-temperature.inputs', JSON.stringify({ min, max, t0: value })); void update(min, max, value) }} style={{ width: 140 }} /><span>°C</span></div></label>
+      <label className="spn-field">Effective Minimum Temperature, Te,min<div className="spn-input-unit-row" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input className="spn-input" type="number" value={min} onChange={e => { const value = e.target.value; setMin(value); localStorage.setItem('kopruq.uniform-temperature.inputs', JSON.stringify({ min: value, max, t0 })); void update(value, max, t0) }} style={{ width: 140 }} /><span>°C</span></div></label>
+      <label className="spn-field">Effective Maximum Temperature, Te,max<div className="spn-input-unit-row" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input className="spn-input" type="number" value={max} onChange={e => { const value = e.target.value; setMax(value); localStorage.setItem('kopruq.uniform-temperature.inputs', JSON.stringify({ min, max: value, t0 })); void update(min, value, t0) }} style={{ width: 140 }} /><span>°C</span></div></label>
+      <label className="spn-field">Initial Temperature, T0<div className="spn-input-unit-row" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><input className="spn-input" type="number" value={t0} onChange={e => { const value = e.target.value; setT0(value); localStorage.setItem('kopruq.uniform-temperature.inputs', JSON.stringify({ min, max, t0: value })); void update(min, max, value) }} style={{ width: 140 }} /><span>°C</span></div></label>
     </div>
     <h3 className="spn-card-title" style={{ marginTop: 20 }}>Uniform Temperature Actions</h3>
     <table className="spn-table"><thead><tr><th>Material</th><th>Contraction</th><th>Expansion</th></tr></thead><tbody>

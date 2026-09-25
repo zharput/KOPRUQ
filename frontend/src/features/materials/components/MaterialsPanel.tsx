@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { publishFamilySelection } from '../../family-registry/model/registry'
 import { EN_CONCRETE_CLASS_IDS } from '../model/materialCatalog'
 
@@ -33,7 +33,7 @@ const INITIAL_MATERIALS: MaterialRow[] = [
   { id: 'CAST_IN_SITU_DECK', no: 7, element: 'Reinforced concrete cast-in-situ bridge deck', concreteClass: 'C35/45' },
   { id: 'TRANSVERSE_BEAMS', no: 8, element: 'Transverse beams', concreteClass: 'C35/45' },
 ]
-const STORAGE_KEY = 'spanova.project-design-system.material-assignments'
+const STORAGE_KEY = 'kopruq.project-design-system.material-assignments'
 function readMaterials(): MaterialRow[] {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as Partial<MaterialRow>[] | null
@@ -43,7 +43,7 @@ function readMaterials(): MaterialRow[] {
 
 export default function MaterialsPanel() {
   const [materials, setMaterials] = useState<MaterialRow[]>(readMaterials)
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(materials)); window.dispatchEvent(new Event('spanova:material-catalog-changed')) }, [materials])
+  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(materials)); window.dispatchEvent(new Event('kopruq:material-catalog-changed')) }, [materials])
 
   function updateClass(no: number, concreteClass: string) {
     setMaterials((prev) => prev.map((m) => (m.no === no ? { ...m, concreteClass } : m)))

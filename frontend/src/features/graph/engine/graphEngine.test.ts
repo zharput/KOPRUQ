@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import type { GraphParameterValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
+import type { GraphParameterValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 import { executeGraph, portCanConnect, validateConnection, validateGraph } from './graphEngine'
 import { deserializeGraph, serializeGraph } from '../state/graphStore'
 import { getNodeDefinition } from '../registry/nodeRegistry'
 import { canConnect } from '../registry/nodeRegistry'
 
-function node(id: string, type: string, value?: number) : SpanovaNode {
+function node(id: string, type: string, value?: number) : KopruqNode {
   const parameters: Record<string, GraphParameterValue> = type === 'input.number' || type === 'input.integer' ? { value: value ?? 0 } : type === 'input.range' ? { min: 30, max: 50, step: 5 } : {}
   const label = type.split('.').at(-1) ?? type
   return { id, type, name: `${label}-${id}`, position: { x: 20, y: 40 }, parameters }
 }
-function graph(nodes: SpanovaNode[], connections: SpanovaConnection[] = []): SpanovaGraph { return { id: 'G-1', name: 'Test Graph', schemaVersion: 1, nodes, connections } }
-function edge(id: string, source: string, sourcePort: string, target: string, targetPort: string): SpanovaConnection { return { id, sourceNodeId: source, sourcePortId: sourcePort, targetNodeId: target, targetPortId: targetPort } }
+function graph(nodes: KopruqNode[], connections: KopruqConnection[] = []): KopruqGraph { return { id: 'G-1', name: 'Test Graph', schemaVersion: 1, nodes, connections } }
+function edge(id: string, source: string, sourcePort: string, target: string, targetPort: string): KopruqConnection { return { id, sourceNodeId: source, sourcePortId: sourcePort, targetNodeId: target, targetPortId: targetPort } }
 
-describe('SPANOVA Graph engine', () => {
+describe('KOPRUQ Graph engine', () => {
   it('executes Number 30 × Number 2 into Watch = 60', async () => {
     const result = await executeGraph(graph([node('n1', 'input.number', 30), node('n2', 'input.number', 2), node('mul', 'math.multiply'), node('watch', 'output.watch')], [edge('e1', 'n1', 'value', 'mul', 'a'), edge('e2', 'n2', 'value', 'mul', 'b'), edge('e3', 'mul', 'result', 'watch', 'value')]))
     expect(result.errors).toEqual({})
@@ -157,7 +157,7 @@ describe('SPANOVA Graph engine', () => {
     expect(result.logs.at(-1)).toMatchObject({ level: 'ERROR' })
   })
 
-  it('round-trips the SPANOVA serialization independently of React Flow nodes', () => {
+  it('round-trips the KOPRUQ serialization independently of React Flow nodes', () => {
     const original = graph([node('n1', 'input.number', 30), node('watch', 'output.watch')], [edge('e1', 'n1', 'value', 'watch', 'value')])
     expect(deserializeGraph(serializeGraph(original))).toEqual(original)
     expect(() => deserializeGraph('{"schemaVersion":2}')).toThrow('Unsupported or invalid')

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import { GenerationTable } from '../../../shared/ui/DesignSystemUi'
 import { generateBearingVariants, statusOf } from '../model/service'
@@ -53,7 +53,7 @@ export default function BearingFamiliesPanel() {
   }
 
   return <div className="spn-workflow"><div className="spn-card">
-    <div className="spn-shape-card-header"><div><h2 className="spn-card-title">BEARING</h2><p className="spn-card-subtitle">Project Design System / canonical family definition</p></div><label className="spn-checklist-item"><input type="checkbox" checked={family.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Use in SPANOVA analyses</label></div>
+    <div className="spn-shape-card-header"><div><h2 className="spn-card-title">BEARING</h2><p className="spn-card-subtitle">Project Design System / canonical family definition</p></div><label className="spn-checklist-item"><input type="checkbox" checked={family.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Use in KOPRUQ analyses</label></div>
     <div className="spn-field-grid" style={{ gridTemplateColumns: '1fr 1fr' }}><label className="spn-field">Family Name<input className="spn-input" value={family.name} onChange={(event) => update({ name: event.target.value })} /></label><label className="spn-field">Bearing Type<select className="spn-input" value={family.bearingType} onChange={() => update({ bearingType: 'ELASTOMERIC' })}><option value="ELASTOMERIC">Elastomeric</option></select></label></div>
     <BearingSchematic /><h3 className="spn-card-title spn-cap-section">SECTION GENERATION</h3><GenerationTable dimensions={dimensions} onUpdateDimension={(key, patch) => updateRule(key as 'length' | 'width' | 'height', patch)} notConfiguredLabel="NOT CONFIGURED" />
     <p>Generated Bearing Variants: <strong>{variants.length}</strong></p><p>Status: <strong>{statusOf(family)}</strong></p>{error && <p role="alert" className="spn-validation-error">{error}</p>}

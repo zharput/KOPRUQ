@@ -1,12 +1,12 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { makeQuantity } from '../domain/quantities'
-import type { SpanovaNode } from '../domain/types'
+import type { KopruqNode } from '../domain/types'
 import { getNodeDefinition, getNodeDefinitions } from '../registry/nodeRegistry'
 import NodeInspector from './NodeInspector'
 
 const handlers = { onNodeChange: vi.fn(), onParameterChange: vi.fn() }
-function node(type: string, id = 'internal-uuid-7f91'): SpanovaNode { return { id, type, name: getNodeDefinition(type)!.label, position: { x: 0, y: 0 }, parameters: getNodeDefinition(type)!.createDefaultParameters({ length: 'm' }) } }
+function node(type: string, id = 'internal-uuid-7f91'): KopruqNode { return { id, type, name: getNodeDefinition(type)!.label, position: { x: 0, y: 0 }, parameters: getNodeDefinition(type)!.createDefaultParameters({ length: 'm' }) } }
 
 describe('Node Inspector', () => {
   it('converts a local numeric value when its unit selector changes', () => {

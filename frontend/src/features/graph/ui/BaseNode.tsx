@@ -1,5 +1,5 @@
-﻿import { Handle, Position, type NodeProps } from '@xyflow/react'
-import type { GraphParameterValue, SpanovaNode } from '../domain/types'
+import { Handle, Position, type NodeProps } from '@xyflow/react'
+import type { GraphParameterValue, KopruqNode } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { getNodeDefinition } from '../registry/nodeRegistry'
 import { convertQuantity, formatDisplayValue, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type QuantityKind } from '../domain/quantities'
@@ -44,7 +44,7 @@ export default function BaseNode({ data, selected }: NodeProps<FlowGraphNode>) {
   </div>
 }
 
-function rangeEditorValue(node: SpanovaNode,data: FlowGraphNode['data'],portId: string): GraphParameterValue {
+function rangeEditorValue(node: KopruqNode,data: FlowGraphNode['data'],portId: string): GraphParameterValue {
   const key=portId==='start'?'min':portId==='end'?'max':'step',value=data.connectedInputs?.[portId]?.value
   if(typeof value==='number')return value
   if(typeof value==='object'&&value!==null&&!Array.isArray(value)&&'quantityKind'in value){
@@ -53,7 +53,7 @@ function rangeEditorValue(node: SpanovaNode,data: FlowGraphNode['data'],portId: 
   const raw = node.parameters[key] ?? ''
   return typeof raw === 'number' && node.parameters.quantityKind !== 'dimensionless' ? toDisplayValue(quantityFromCanonical(raw, node.parameters.quantityKind as QuantityKind, String(node.parameters.unit ?? '1')), dimensionForKind(node.parameters.quantityKind as QuantityKind), data.projectUnits) : raw
 }
-function rangeInternalValue(node: SpanovaNode, value: number | string, units: FlowGraphNode['data']['projectUnits']): number { const numeric=Number(value), kind=node.parameters.quantityKind as QuantityKind|undefined; if(!kind||kind==='dimensionless') return numeric; const source=kind==='length'?(units?.length??'m'):String(node.parameters.unit??'1'); return convertQuantity(numeric,source,String(node.parameters.unit??source)) }
+function rangeInternalValue(node: KopruqNode, value: number | string, units: FlowGraphNode['data']['projectUnits']): number { const numeric=Number(value), kind=node.parameters.quantityKind as QuantityKind|undefined; if(!kind||kind==='dimensionless') return numeric; const source=kind==='length'?(units?.length??'m'):String(node.parameters.unit??'1'); return convertQuantity(numeric,source,String(node.parameters.unit??source)) }
 
 
 function InlineValue({ nodeId, type, value, onChange }: { nodeId: string; type: string; value: GraphParameterValue | undefined; onChange: (id: string, key: string, value: GraphParameterValue) => void }) {
@@ -82,7 +82,7 @@ function displayLength(value: GraphParameterValue | undefined, units: FlowGraphN
   if (!Number.isFinite(numeric)) return value
   return Number(toDisplayValue(numeric, 'Length', units).toPrecision(10)).toString()
 }
-function LengthNodeEditor({ node, units, onParameterChange }: { node: SpanovaNode; units: FlowGraphNode['data']['projectUnits']; onParameterChange: (id: string, key: string, value: GraphParameterValue) => void }) {
+function LengthNodeEditor({ node, units, onParameterChange }: { node: KopruqNode; units: FlowGraphNode['data']['projectUnits']; onParameterChange: (id: string, key: string, value: GraphParameterValue) => void }) {
   const mode = String(node.parameters.mode ?? 'single')
   const commit = (key: string, value: number | string) => {
     const numeric = Number(value)

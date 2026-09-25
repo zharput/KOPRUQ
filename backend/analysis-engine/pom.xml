@@ -4,15 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.spanova</groupId>
-    <artifactId>spanova-backend</artifactId>
+    <groupId>com.kopruq</groupId>
+    <artifactId>kopruq-backend</artifactId>
     <version>0.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>analysis-engine</artifactId>
   <packaging>jar</packaging>
 
-  <!-- SPANOVA's own native analysis engine (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+  <!-- KOPRUQ's own native analysis engine (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
        addendum P): linear-elastic 3D direct-stiffness-method solver for
        frame elements + elastic-link elements. Implements the same
        AnalysisEngine port as midas-adapter - depends only on
@@ -22,7 +22,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.spanova</groupId>
+      <groupId>com.kopruq</groupId>
       <artifactId>analysis-api</artifactId>
       <version>${project.version}</version>
     </dependency>

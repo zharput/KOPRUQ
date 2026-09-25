@@ -10,7 +10,7 @@ export type GraphExecutionState = 'idle' | 'running' | 'success' | 'error'
 export type GraphNodePosition = { x: number; y: number }
 export type GraphParameterValue = number | boolean | string | number[]
 
-export interface SpanovaNode {
+export interface KopruqNode {
   id: string
   type: string
   name: string
@@ -18,7 +18,7 @@ export interface SpanovaNode {
   parameters: Record<string, GraphParameterValue>
 }
 
-export interface SpanovaConnection {
+export interface KopruqConnection {
   id: string
   sourceNodeId: string
   sourcePortId: string
@@ -26,15 +26,15 @@ export interface SpanovaConnection {
   targetPortId: string
 }
 
-export interface SpanovaGraph {
+export interface KopruqGraph {
   id: string
   name: string
   schemaVersion: 1
   /** Optional for legacy documents; present for bridge-owned documents. */
   projectId?: string
   bridgeId?: string
-  nodes: SpanovaNode[]
-  connections: SpanovaConnection[]
+  nodes: KopruqNode[]
+  connections: KopruqConnection[]
 }
 
 export interface GraphExecutionResult {

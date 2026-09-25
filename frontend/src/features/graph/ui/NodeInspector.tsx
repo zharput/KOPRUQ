@@ -1,4 +1,4 @@
-import type { GraphExecutionState, GraphValue, MaterialValue, SpanovaConnection, SpanovaNode } from '../domain/types'
+import type { GraphExecutionState, GraphValue, MaterialValue, KopruqConnection, KopruqNode } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { convertQuantity, formatQuantity, toDisplayValue, unitsForKind, type PhysicalDimension, type QuantityKind } from '../domain/quantities'
 import { getNodeDefinition, previewDesignOutput } from '../registry/nodeRegistry'
@@ -10,17 +10,17 @@ import InspectorSection from './InspectorSection'
 import InspectorParameterRow from './InspectorParameterRow'
 
 type Props = {
-  node?: SpanovaNode
-  selectedNodes?: SpanovaNode[]
+  node?: KopruqNode
+  selectedNodes?: KopruqNode[]
   states: Record<string, GraphExecutionState>
   errors: Record<string, string>
   outputs: Record<string, Record<string, GraphValue>>
   resolvedInputs?: Record<string, Record<string, GraphValue>>
   previewInputs?: Record<string, { sourceName: string; value?: GraphValue; error?: string; range?: { mode: 'single' | 'range'; value?: number; min?: number; max?: number; delta?: number } }>
-  connections?: SpanovaConnection[]
+  connections?: KopruqConnection[]
   concreteMaterial?: MaterialValue
   projectUnits?: ProjectUnitPreferences
-  onNodeChange: (id: string, patch: Partial<SpanovaNode>) => void
+  onNodeChange: (id: string, patch: Partial<KopruqNode>) => void
   onParameterChange: (id: string, key: string, value: number | boolean | string) => void
 }
 
@@ -62,8 +62,8 @@ export default function NodeInspector({ node, selectedNodes = [], states, errors
 }
 
 function humanParameterLabel(value: string) { return value.replace(/ local default$/i, '').replace(/ quantity kind$/i, ' kind') }
-function quantityParameterValue(node: SpanovaNode, key: string, units?: ProjectUnitPreferences): number | string | boolean | undefined { const kind=node.parameters.quantityKind as QuantityKind|undefined, unit=String(node.parameters.unit??'1'), value=node.parameters[key]; if(!kind||kind==='dimensionless'||typeof value!=='number'||!['value','min','max','step'].includes(key)) return typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' ? value : undefined; return toDisplayValue((unitsForKind(kind).find(item=>item.id===unit)?.toCanonical(value) ?? value),dimensionForKind(kind),units) }
-function quantityParameterInternalValue(node: SpanovaNode,key:string,value:number|string|boolean,units?:ProjectUnitPreferences): number|string|boolean { const kind=node.parameters.quantityKind as QuantityKind|undefined,unit=String(node.parameters.unit??'1'); if(!kind||kind==='dimensionless'||typeof value!=='number'||!['value','min','max','step'].includes(key)) return value; const source=kind==='length'?(units?.length??'m'):unit; return convertQuantity(value,source,unit) }
+function quantityParameterValue(node: KopruqNode, key: string, units?: ProjectUnitPreferences): number | string | boolean | undefined { const kind=node.parameters.quantityKind as QuantityKind|undefined, unit=String(node.parameters.unit??'1'), value=node.parameters[key]; if(!kind||kind==='dimensionless'||typeof value!=='number'||!['value','min','max','step'].includes(key)) return typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean' ? value : undefined; return toDisplayValue((unitsForKind(kind).find(item=>item.id===unit)?.toCanonical(value) ?? value),dimensionForKind(kind),units) }
+function quantityParameterInternalValue(node: KopruqNode,key:string,value:number|string|boolean,units?:ProjectUnitPreferences): number|string|boolean { const kind=node.parameters.quantityKind as QuantityKind|undefined,unit=String(node.parameters.unit??'1'); if(!kind||kind==='dimensionless'||typeof value!=='number'||!['value','min','max','step'].includes(key)) return value; const source=kind==='length'?(units?.length??'m'):unit; return convertQuantity(value,source,unit) }
 function dimensionForKind(kind: QuantityKind): PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string,PhysicalDimension>)[kind]??'Dimensionless' }
 function formatGraphValue(value: GraphValue): string {
   if (Array.isArray(value)) return value.length ? `${value.slice(0,3).map(formatGraphValue).join(', ')}${value.length>3?` … (${value.length} values)`:''}` : 'No values'
@@ -77,7 +77,7 @@ function formatGraphValue(value: GraphValue): string {
   return String(value)
 }
 function GraphValuePreview({ value }: { value: GraphValue }) { return <div className="spn-graph-result-preview">{Array.isArray(value) ? value.slice(0,10).map((item,index)=><div className="spn-graph-inspector-row" key={index}><span>{index+1}</span><strong>{formatGraphValue(item)}</strong></div>) : <strong>{formatGraphValue(value)}</strong>}{Array.isArray(value)&&value.length>10&&<small>Showing 10 of {value.length} values.</small>}</div> }
-function MultiSelectionInspector({ nodes }: { nodes: SpanovaNode[] }) {
+function MultiSelectionInspector({ nodes }: { nodes: KopruqNode[] }) {
   const counts = new Map<string, number>()
   for (const node of nodes) { const label = getNodeDefinition(node.type)?.label ?? 'Unknown node'; counts.set(label, (counts.get(label) ?? 0) + 1) }
   return <div className="spn-graph-inspector spn-graph-multi-inspector"><h3>MULTIPLE SELECTION</h3><div className="spn-graph-inspector-row"><span>Selected Nodes</span><strong>{nodes.length}</strong></div>{[...counts].map(([label, count]) => <div className="spn-graph-inspector-row" key={label}><span>{label}</span><strong>{count}</strong></div>)}</div>

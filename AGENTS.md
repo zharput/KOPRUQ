@@ -1,8 +1,8 @@
-# SPANOVA --- Codex Project Instructions
+# KOPRUQ --- Codex Project Instructions
 
 ## 1. Project Identity
 
-SPANOVA is a professional Computational & Generative Bridge Design
+KOPRUQ is a professional Computational & Generative Bridge Design
 Platform.
 
 Primary purpose: - bridge site intelligence - terrain and alignment
@@ -11,13 +11,13 @@ preliminary structural analysis - bridge optimization - corridor-level
 optimization - engineering rule automation - external solver
 integration - BIM integration
 
-SPANOVA must not become only a CAD application, FEM application, 3D
-viewer, or AI chat interface. SPANOVA is the engineering intelligence
+KOPRUQ must not become only a CAD application, FEM application, 3D
+viewer, or AI chat interface. KOPRUQ is the engineering intelligence
 and automation layer above these systems.
 
 Conceptually:
 
-Engineer → SPANOVA → Generate / Analyze / Check / Optimize → OpenSees /
+Engineer → KOPRUQ → Generate / Analyze / Check / Optimize → OpenSees /
 MIDAS Civil NX → ALLPLAN Civil → Final BIM / Drawings / Documentation
 
 ## 2. Existing Development Context
@@ -96,9 +96,9 @@ engineering rules, or approved project input.
 
 ## 6. Canonical Domain Model
 
-SPANOVA needs a solver-independent bridge model.
+KOPRUQ needs a solver-independent bridge model.
 
-External systems must not define the SPANOVA domain.
+External systems must not define the KOPRUQ domain.
 
 Conceptually:
 
@@ -199,7 +199,7 @@ Canonical terrain must not depend on Three.js.
 
 ## 13. LandXML
 
-LandXML is an IMPORT FORMAT. It is NOT the SPANOVA terrain domain model.
+LandXML is an IMPORT FORMAT. It is NOT the KOPRUQ terrain domain model.
 
 Use: LandXML → Parser → Import DTOs → Mapper → TerrainModel / Alignment
 / VerticalProfile
@@ -208,7 +208,7 @@ Never couple Bridge Core directly to LandXML.
 
 ## 14. Bentley LandXML Requirement
 
-SPANOVA must support Bentley InRoads V8i LandXML 1.0.
+KOPRUQ must support Bentley InRoads V8i LandXML 1.0.
 
 Representative production data may contain: - metric units - large TIN
 surfaces - boundaries - void boundaries - breaklines - explicit Pnts -
@@ -377,12 +377,12 @@ Foundation stiffness affects global analysis and may require iteration.
 
 Use a solver abstraction: IAnalysisEngine.
 
-Implementations: - SpanovaFastSolver - OpenSeesAdapter -
+Implementations: - KopruqFastSolver - OpenSeesAdapter -
 MidasCivilNxAdapter
 
 Future adapters may include SCIA, SOFiSTiK and others.
 
-## 30. SPANOVA Fast Solver
+## 30. KOPRUQ Fast Solver
 
 Purpose: screen thousands of alternatives quickly.
 
@@ -409,7 +409,7 @@ terms where required.
 
 ## 32. Solver Validation
 
-SPANOVA reduced models must be validated against OpenSees and MIDAS
+KOPRUQ reduced models must be validated against OpenSees and MIDAS
 Civil NX.
 
 Compare: - T1/T2/T3 - reactions - pier M/V - bearing forces - bearing
@@ -499,7 +499,7 @@ Also provide longitudinal profile.
 User should define allowable superstructure families, span ranges, pier
 families, site constraints and standardization preferences.
 
-SPANOVA generates BridgeLayoutAlternative\[\].
+KOPRUQ generates BridgeLayoutAlternative\[\].
 
 The engineer chooses from feasible alternatives.
 
@@ -609,7 +609,7 @@ How success will be tested.
 
 Then wait if the task is architectural or high-impact.
 
-## 50. Key SPANOVA Principle
+## 50. Key KOPRUQ Principle
 
 Always preserve this hierarchy:
 

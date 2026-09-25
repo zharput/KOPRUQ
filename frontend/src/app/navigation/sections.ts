@@ -15,7 +15,7 @@
  * P02-P05 - re-attached here from the retired 'bridge-design' leaf, since
  * "Bridge Alternatives" is this engineer-given tree's closest semantic
  * match: a results table of structural alternatives, exactly what that
- * screen already produces), 'spanova-fast-solver' (FastSolverPanel,
+ * screen already produces), 'kopruq-fast-solver' (FastSolverPanel,
  * addendum P). Every leaf with an entry in {@link BIG_MENU_ITEMS} is also
  * real (BigMenuPanel). Every other leaf is an honest placeholder (see
  * PlaceholderPanel).
@@ -97,7 +97,7 @@ export type SectionId =
   | 'bridge-foundations'
   | 'bridge-alternatives'
   | 'model-reduction'
-  | 'spanova-fast-solver'
+  | 'kopruq-fast-solver'
   | 'analysis-queue'
   | 'results'
   | 'opensees-verification'
@@ -147,7 +147,7 @@ export const WORKING_SECTIONS: ReadonlySet<SectionId> = new Set([
   'foundation-families',
   'layout-generator',
   'bridge-alternatives',
-  'spanova-fast-solver',
+  'kopruq-fast-solver',
 ])
 
 export interface SectionMeta {
@@ -216,7 +216,7 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
     label: 'Analysis',
     sections: [
       { id: 'model-reduction', label: 'Model Reduction' },
-      { id: 'spanova-fast-solver', label: 'SPANOVA Fast Solver' },
+      { id: 'kopruq-fast-solver', label: 'KOPRUQ Fast Solver' },
       { id: 'analysis-queue', label: 'Analysis Queue' },
       { id: 'results', label: 'Results' },
       { id: 'opensees-verification', label: 'OpenSees Verification' },

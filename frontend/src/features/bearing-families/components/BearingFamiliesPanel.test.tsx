@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import BearingFamiliesPanel from './BearingFamiliesPanel'
 import SystemAssemblyPanel from '../../system-assembly/components/SystemAssemblyPanel'
 
-const storeKey = 'spanova.project-design-system.bearing-families'
+const storeKey = 'kopruq.project-design-system.bearing-families'
 function setRule(label: string, min: number, max: number, delta: number) {
   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Min` }), { target: { value: String(min) } })
   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Max` }), { target: { value: String(max) } })

@@ -1579,9 +1579,9 @@
 .spn-engineering-family .spn-graph-inspector-row { font-size: 12px; }
 .spn-engineering-family .spn-graph-inspector-row strong { color: var(--text-primary); font-size: 13px; }
 .spn-graph-multi-inspector h4 { margin: 6px 0 0; color: var(--text-muted); font-size: 12px; }
-:root { --graph-structural-accent: var(--sp-node-structural-family); --graph-window-selection: var(--sp-selection-border); --graph-window-selection-fill: rgba(104,117,134,.08); --graph-crossing-selection: var(--sp-selection-hover); --graph-crossing-selection-fill: rgba(70,80,93,.08); --graph-panel-title-font-size: 14px; --graph-panel-section-font-size: 11px; --graph-panel-body-font-size: 13px; --graph-panel-secondary-font-size: 11px; --graph-dimension-color: var(--sp-drawing-dimension); --graph-axis-color: var(--sp-drawing-axis); --spanova-edge-color:var(--sp-link-default); --spanova-node-body-bg:var(--sp-node-body); --node-header-text:var(--sp-text-inverse); }
+:root { --graph-structural-accent: var(--sp-node-structural-family); --graph-window-selection: var(--sp-selection-border); --graph-window-selection-fill: rgba(104,117,134,.08); --graph-crossing-selection: var(--sp-selection-hover); --graph-crossing-selection-fill: rgba(70,80,93,.08); --graph-panel-title-font-size: 14px; --graph-panel-section-font-size: 11px; --graph-panel-body-font-size: 13px; --graph-panel-secondary-font-size: 11px; --graph-dimension-color: var(--sp-drawing-dimension); --graph-axis-color: var(--sp-drawing-axis); --kopruq-edge-color:var(--sp-link-default); --kopruq-node-body-bg:var(--sp-node-body); --node-header-text:var(--sp-text-inverse); }
 .spn-graph-node[class*="category-"] .spn-graph-node-title { background:var(--node-header); }
-.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--spanova-edge-color) !important; }
+.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--kopruq-edge-color) !important; }
 /* Graph Interaction System V1: interaction state is independent of category identity. */
 .spn-graph-node { background: var(--sp-node-body); box-shadow: var(--sp-node-shadow); transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease; }
 .spn-graph-node:hover { border-color: var(--sp-hover-border) !important; background: var(--sp-hover-surface); }
@@ -1721,7 +1721,7 @@
 .spn-assembly-centered-output .react-flow__handle { position: absolute; top: 50%; right: calc(-1 * (var(--spn-node-handle-size) / 2)); left: auto; transform: translateY(-50%); }
 .spn-graph-node > .react-flow__handle { width:var(--spn-node-handle-size); height:var(--spn-node-handle-size); box-sizing:border-box; border:var(--spn-node-handle-border); background:var(--spn-node-handle-background); }
 .spn-graph-list-node > .react-flow__handle { left: calc(-1 * (var(--spn-node-handle-size) / 2)); }
-.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--spanova-edge-color) !important; }
+.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--kopruq-edge-color) !important; }
 .spn-graph-node .spn-engineering-input-label,
 .spn-graph-node .spn-engineering-input-value,
 .spn-graph-node .spn-engineering-local-value,

@@ -5,7 +5,7 @@ import type { SectionId } from './navigation/sections'
 import { BIG_MENU_ITEMS, WORKING_SECTIONS } from './navigation/sections'
 import { ProjectPanel, ProjectDashboardPanel, type BridgeRow } from '../features/project'
 import { SiteLayoutPanel, type LayoutSeed } from '../features/layout-generator'
-import { FastSolverPanel } from '../features/spanova-fast-solver'
+import { FastSolverPanel } from '../features/kopruq-fast-solver'
 import { LoadsPanel } from '../features/loads'
 import { MaterialsPanel } from '../features/materials'
 import { SuperstructureFamiliesPanel, type CrossSectionValues } from '../features/superstructure-families'
@@ -113,7 +113,7 @@ function SectionRoute({
       />
     )
   }
-  if (active === 'spanova-fast-solver') return <FastSolverPanel />
+  if (active === 'kopruq-fast-solver') return <FastSolverPanel />
   if (active === 'loads') return <LoadsPanel crossSectionValues={crossSectionValues} />
   if (active === 'materials') return <MaterialsPanel />
   if (active === 'system-assembly') return <SystemAssemblyPanel />

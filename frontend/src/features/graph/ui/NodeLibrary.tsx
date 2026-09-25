@@ -21,6 +21,6 @@ export default function NodeLibrary({ onAdd }: { onAdd: (type: string) => void }
     </div>
   </div>
 }
-function LibraryItem({definition,onAdd}:{definition:ReturnType<typeof getNodeDefinitions>[number];onAdd:(type:string)=>void}){return <button type="button" className="spn-graph-library-item" draggable onClick={()=>onAdd(definition.type)} onDragStart={event=>{event.dataTransfer.setData('application/spanova-node',definition.type);event.dataTransfer.effectAllowed='copy'}} title={definition.description}><NodeIcon type={definition.type} size={14} /><span>{definition.label}</span></button>}
+function LibraryItem({definition,onAdd}:{definition:ReturnType<typeof getNodeDefinitions>[number];onAdd:(type:string)=>void}){return <button type="button" className="spn-graph-library-item" draggable onClick={()=>onAdd(definition.type)} onDragStart={event=>{event.dataTransfer.setData('application/kopruq-node',definition.type);event.dataTransfer.effectAllowed='copy'}} title={definition.description}><NodeIcon type={definition.type} size={14} /><span>{definition.label}</span></button>}
 
 

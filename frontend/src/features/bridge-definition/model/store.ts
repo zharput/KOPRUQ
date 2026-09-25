@@ -1,7 +1,7 @@
 import type { BridgeRow } from '../../project/model/types'
 import type { AxisFamilyAssignments, BridgeAxis, BridgeDefinitionStore, BridgeInstanceDefinition } from './types'
 
-const STORAGE_KEY = 'spanova.bridge-definitions.v1'
+const STORAGE_KEY = 'kopruq.bridge-definitions.v1'
 const blankAssignments = (): AxisFamilyAssignments => ({
   pierFamilyId: null, pierHeightM: null, pierCapFamilyId: null, foundationFamilyId: null, foundationElevationM: null, soilReference: '',
   bearingFamilyId: null, bearingQuantity: null, bearingOrientation: '', longitudinalBehavior: '', transverseBehavior: '',

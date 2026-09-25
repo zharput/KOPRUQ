@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "SPANOVA → GitHub",
+            "label": "KOPRUQ → GitHub",
             "type": "process",
             "command": "powershell.exe",
             "args": [
@@ -10,7 +10,7 @@
                 "-ExecutionPolicy",
                 "Bypass",
                 "-Command",
-                "git add .; if (git status --porcelain) { $branch = git branch --show-current; $date = Get-Date -Format 'yyyy-MM-dd_HH-mm'; git commit -m ('SPANOVA_backup_' + $date); if ($LASTEXITCODE -eq 0) { git push origin $branch; if ($LASTEXITCODE -eq 0) { Write-Host ''; Write-Host ('SPANOVA successfully pushed to GitHub [' + $branch + ']') } } } else { Write-Host ''; Write-Host 'SPANOVA: No new changes to push.' }"
+                "git add .; if (git status --porcelain) { $branch = git branch --show-current; $date = Get-Date -Format 'yyyy-MM-dd_HH-mm'; git commit -m ('KOPRUQ_backup_' + $date); if ($LASTEXITCODE -eq 0) { git push origin $branch; if ($LASTEXITCODE -eq 0) { Write-Host ''; Write-Host ('KOPRUQ successfully pushed to GitHub [' + $branch + ']') } } } else { Write-Host ''; Write-Host 'KOPRUQ: No new changes to push.' }"
             ],
             "problemMatcher": [],
             "presentation": {

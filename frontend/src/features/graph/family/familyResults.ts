@@ -1,4 +1,4 @@
-import type { GraphExecutionResult, GraphValue, SpanovaGraph, SpanovaNode } from '../domain/types'
+import type { GraphExecutionResult, GraphValue, KopruqGraph, KopruqNode } from '../domain/types'
 
 export type FamilyCategory = 'SPAN_ARRANGEMENT' | 'GIRDER' | 'SUPERSTRUCTURE' | 'PIER' | 'PIER_CAP' | 'FOUNDATION' | 'BEARING' | 'ABUTMENT'
 export type SnapshotFreshness = 'NO_RESULT' | 'VALID' | 'STALE' | 'FAILED' | 'INCOMPLETE'
@@ -43,16 +43,16 @@ const OUTPUT_CATEGORIES: Readonly<Record<string, FamilyCategory>> = {
   'abutmentCandidate[]': 'ABUTMENT',
 }
 
-export function graphFingerprint(graph: SpanovaGraph): string {
+export function graphFingerprint(graph: KopruqGraph): string {
   return stableStringify({ id: graph.id, bridgeId: graph.bridgeId ?? null, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })).sort(byId), connections: graph.connections.slice().sort(byId).map(({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId }) => ({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId })) })
 }
 
-export function adaptGraphExecutionToFamilySnapshots(graph: SpanovaGraph, result: GraphExecutionResult, generatedAt = new Date().toISOString()): FamilyCalculationSnapshot[] {
+export function adaptGraphExecutionToFamilySnapshots(graph: KopruqGraph, result: GraphExecutionResult, generatedAt = new Date().toISOString()): FamilyCalculationSnapshot[] {
   const fingerprint = graphFingerprint(graph)
   return graph.nodes.flatMap(node => familySnapshotsForNode(graph, node, result, fingerprint, generatedAt))
 }
 
-function familySnapshotsForNode(graph: SpanovaGraph, node: SpanovaNode, result: GraphExecutionResult, fingerprint: string, generatedAt: string): FamilyCalculationSnapshot[] {
+function familySnapshotsForNode(graph: KopruqGraph, node: KopruqNode, result: GraphExecutionResult, fingerprint: string, generatedAt: string): FamilyCalculationSnapshot[] {
   const outputs = result.values[node.id]
   const errors = result.errors[node.id] ? [result.errors[node.id]] : []
   if (!outputs) return errors.length ? [makeSnapshot(graph, node, outputCategory(node, 'candidates') ?? 'PIER', fingerprint, [], generatedAt, 'FAILED', errors)] : []
@@ -66,7 +66,7 @@ function familySnapshotsForNode(graph: SpanovaGraph, node: SpanovaNode, result: 
   })
 }
 
-function outputCategory(node: SpanovaNode, port: string): FamilyCategory | undefined {
+function outputCategory(node: KopruqNode, port: string): FamilyCategory | undefined {
   const definition = node.type
   if (port === 'candidates') {
     if (definition.includes('span_arrangement')) return 'SPAN_ARRANGEMENT'
@@ -81,12 +81,12 @@ function outputCategory(node: SpanovaNode, port: string): FamilyCategory | undef
   return OUTPUT_CATEGORIES[port]
 }
 
-function alternative(graph: SpanovaGraph, node: SpanovaNode, familyCategory: FamilyCategory, candidateData: GraphValue, index: number): FamilyAlternative {
+function alternative(graph: KopruqGraph, node: KopruqNode, familyCategory: FamilyCategory, candidateData: GraphValue, index: number): FamilyAlternative {
   const candidateId = isObject(candidateData) && typeof candidateData.id === 'string' ? candidateData.id : `${node.id}:${index}`
   return { ...(graph.projectId ? { projectId: graph.projectId } : {}), bridgeId: graph.bridgeId ?? '', graphDocumentId: graph.id, sourceNodeId: node.id, sourceNodeType: node.type, familyCategory, candidateId, candidateData }
 }
 
-function makeSnapshot(graph: SpanovaGraph, node: SpanovaNode, familyCategory: FamilyCategory, fingerprint: string, candidates: FamilyAlternative[], generatedAt: string, status: 'SUCCESS' | 'FAILED' | 'INCOMPLETE', errors: string[]): FamilyCalculationSnapshot {
+function makeSnapshot(graph: KopruqGraph, node: KopruqNode, familyCategory: FamilyCategory, fingerprint: string, candidates: FamilyAlternative[], generatedAt: string, status: 'SUCCESS' | 'FAILED' | 'INCOMPLETE', errors: string[]): FamilyCalculationSnapshot {
   const freshness: SnapshotFreshness = status === 'SUCCESS' ? candidates.length ? 'VALID' : 'NO_RESULT' : status
   return { snapshotId: `${graph.bridgeId ?? 'unassigned'}:${graph.id}:${node.id}:${familyCategory}`, ...(graph.projectId ? { projectId: graph.projectId } : {}), bridgeId: graph.bridgeId ?? '', graphDocumentId: graph.id, sourceNodeId: node.id, sourceNodeType: node.type, sourceNodeName: node.name, familyCategory, graphFingerprint: fingerprint, candidates, generatedAt, freshness, executionStatus: status, errors }
 }

@@ -51,5 +51,5 @@ export function useFamilyCatalog<T extends FamilyRecord>(category: FamilyReposit
 }
 
 function storageKey(category: FamilyRepositoryCategory): string {
-  return ({ PIER: 'spanova.project-design-system.pier-families', PIER_CAP: 'spanova.project-design-system.pier-cap-families', FOUNDATION: 'spanova.project-design-system.foundation-families', BEARING: 'spanova.project-design-system.bearing-families', MATERIAL: 'spanova.project-design-system.material-assignments' })[category]
+  return ({ PIER: 'kopruq.project-design-system.pier-families', PIER_CAP: 'kopruq.project-design-system.pier-cap-families', FOUNDATION: 'kopruq.project-design-system.foundation-families', BEARING: 'kopruq.project-design-system.bearing-families', MATERIAL: 'kopruq.project-design-system.material-assignments' })[category]
 }

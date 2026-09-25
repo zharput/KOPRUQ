@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { cloneGraphSelection, copyGraphSelection, sameGraphSelection } from './graphClipboard'
-import type { SpanovaGraph } from '../domain/types'
+import type { KopruqGraph } from '../domain/types'
 
-const graph: SpanovaGraph = {
+const graph: KopruqGraph = {
   id: 'g', name: 'copy test', schemaVersion: 1,
   nodes: [
     { id: 'a', type: 'input.number', name: 'Number A', position: { x: 10, y: 20 }, parameters: { value: 3 } },
@@ -43,7 +43,7 @@ describe('Graph clipboard', () => {
   })
 
   it('clones a live Range -> Pier Cap -> Watch subgraph with internal edges and local cap state',()=>{
-    const capGraph:SpanovaGraph={id:'cap-clipboard',name:'cap clipboard',schemaVersion:1,nodes:[
+    const capGraph:KopruqGraph={id:'cap-clipboard',name:'cap clipboard',schemaVersion:1,nodes:[
       {id:'range',type:'input.range',name:'Range',position:{x:0,y:0},parameters:{min:10,max:14,step:2,quantityKind:'length',unit:'m'}},
       {id:'cap',type:'substructure.pier-cap.rectangular',name:'Rectangular Cap',position:{x:250,y:0},parameters:{lengthValue:12,lengthUnit:'m',widthValue:3,widthUnit:'m',heightValue:2,heightUnit:'m',materialId:'C35/45'}},
       {id:'watch',type:'output.watch',name:'Watch',position:{x:500,y:0},parameters:{}},
@@ -60,7 +60,7 @@ describe('Graph clipboard', () => {
   })
 
   it('clones Foundation authoring values and its Range/Watch wiring with fresh node and edge IDs',()=>{
-    const foundationGraph:SpanovaGraph={id:'foundation-clipboard',name:'foundation clipboard',schemaVersion:1,nodes:[
+    const foundationGraph:KopruqGraph={id:'foundation-clipboard',name:'foundation clipboard',schemaVersion:1,nodes:[
       {id:'range',type:'input.integer-list',name:'Integer List',position:{x:0,y:0},parameters:{valuesText:'3, 4, 5'}},
       {id:'foundation',type:'substructure.foundation.piled',name:'Piled Foundation',position:{x:250,y:0},parameters:{pileDiameterValue:1.2,pileDiameterUnit:'m',pileCountXValue:4,pileSpacingXValue:3.6,pileSpacingXUnit:'m',pileCountYValue:3,pileSpacingYValue:3.6,pileSpacingYUnit:'m',capHeightValue:2.5,capHeightUnit:'m',materialId:'C35/45'}},
       {id:'watch',type:'output.watch',name:'Watch',position:{x:500,y:0},parameters:{}},
@@ -74,7 +74,7 @@ describe('Graph clipboard', () => {
   })
 
   it('clones Elastomeric Bearing authoring values and internal connections without candidate cache',()=>{
-    const bearingGraph:SpanovaGraph={id:'bearing-clipboard',name:'bearing clipboard',schemaVersion:1,nodes:[
+    const bearingGraph:KopruqGraph={id:'bearing-clipboard',name:'bearing clipboard',schemaVersion:1,nodes:[
       {id:'range',type:'input.range',name:'Range',position:{x:0,y:0},parameters:{min:2000,max:5000,step:3000,quantityKind:'dimensionless',unit:'1'}},
       {id:'bearing',type:'substructure.bearing.elastomeric',name:'Elastomeric Bearing',position:{x:250,y:0},parameters:{lengthXValue:.6,lengthXUnit:'m',widthYValue:.7,widthYUnit:'m',totalHeightValue:.15,totalHeightUnit:'m',kxValue:3000,kxUnit:'kN/m',kyValue:30000,kyUnit:'kN/m',kzValue:100000,kzUnit:'kN/m',krxValue:100000,krxUnit:'kNm/rad',kryValue:100000,kryUnit:'kNm/rad',krzValue:100000,krzUnit:'kNm/rad'}},
       {id:'watch',type:'output.watch',name:'Watch',position:{x:500,y:0},parameters:{}},

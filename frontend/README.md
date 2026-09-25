@@ -1,8 +1,8 @@
-# SPANOVA frontend
+# KOPRUQ frontend
 
-React + TypeScript (Vite) frontend for the SPANOVA Computational &
+React + TypeScript (Vite) frontend for the KOPRUQ Computational &
 Generative Bridge Design platform. See the repo root's `README.md` for
-what SPANOVA is and how the backend fits in; `../docs/architecture.md`
+what KOPRUQ is and how the backend fits in; `../docs/architecture.md`
 for the dated log of what's actually been built here and why.
 
 ## Architecture
@@ -20,7 +20,7 @@ Component-based, domain/feature-sliced (`app/ -> pages/ -> features/<domain>/
   `app/router.tsx`'s route table is the composition point for those.
 - `src/features/<domain>/` - one folder per domain screen (`project`,
   `materials`, `loads`, `pier-families`, `girder-library`,
-  `layout-generator`, `bridge-alternatives`, `spanova-fast-solver`,
+  `layout-generator`, `bridge-alternatives`, `kopruq-fast-solver`,
   `cost-database`, ...), each with `components/`, and `model/`/`api/`/
   `hooks/` as needed. A feature exposes a public `index.ts` barrel;
   nothing reaches into another feature's internal files directly.

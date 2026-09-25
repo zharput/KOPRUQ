@@ -1,10 +1,10 @@
-import type { GraphExecutionResult, GraphPortType, GraphValue, SpanovaConnection, SpanovaGraph } from '../domain/types'
+import type { GraphExecutionResult, GraphPortType, GraphValue, KopruqConnection, KopruqGraph } from '../domain/types'
 import { canConnect, getNodeDefinition, type GraphExecutionServices } from '../registry/nodeRegistry'
 import { resolveEngineeringInput } from '../domain/engineeringInputs'
 
 export type GraphValidationIssue = { nodeId?: string; message: string }
 
-export function validateConnection(graph: SpanovaGraph, connection: Omit<SpanovaConnection, 'id'>): GraphValidationIssue | undefined {
+export function validateConnection(graph: KopruqGraph, connection: Omit<KopruqConnection, 'id'>): GraphValidationIssue | undefined {
   const source = graph.nodes.find((node) => node.id === connection.sourceNodeId)
   const target = graph.nodes.find((node) => node.id === connection.targetNodeId)
   const sourcePort = source && getNodeDefinition(source.type)?.outputs.find((port) => port.id === connection.sourcePortId)
@@ -34,7 +34,7 @@ export function validateConnection(graph: SpanovaGraph, connection: Omit<Spanova
   return undefined
 }
 
-export function validateGraph(graph: SpanovaGraph): GraphValidationIssue[] {
+export function validateGraph(graph: KopruqGraph): GraphValidationIssue[] {
   const issues: GraphValidationIssue[] = []
   const nodeIds = new Set(graph.nodes.map((node) => node.id))
   for (const node of graph.nodes) {
@@ -56,7 +56,7 @@ export function validateGraph(graph: SpanovaGraph): GraphValidationIssue[] {
   return issues
 }
 
-export function topologicalSort(graph: SpanovaGraph): string[] {
+export function topologicalSort(graph: KopruqGraph): string[] {
   const indegree = new Map(graph.nodes.map((node) => [node.id, 0]))
   const outgoing = new Map(graph.nodes.map((node) => [node.id, [] as string[]]))
   graph.connections.forEach((edge) => { if (indegree.has(edge.sourceNodeId) && indegree.has(edge.targetNodeId)) { indegree.set(edge.targetNodeId, indegree.get(edge.targetNodeId)! + 1); outgoing.get(edge.sourceNodeId)!.push(edge.targetNodeId) } })
@@ -67,7 +67,7 @@ export function topologicalSort(graph: SpanovaGraph): string[] {
   return ordered
 }
 
-export async function executeGraph(graph: SpanovaGraph, signal?: AbortSignal, services?: GraphExecutionServices): Promise<GraphExecutionResult> {
+export async function executeGraph(graph: KopruqGraph, signal?: AbortSignal, services?: GraphExecutionServices): Promise<GraphExecutionResult> {
   const issues = validateGraph(graph)
   const result: GraphExecutionResult = { values: {}, resolvedInputs: {}, watchValues: {}, errors: {}, logs: [] }
   if (issues.length) {
@@ -108,8 +108,8 @@ export async function executeGraph(graph: SpanovaGraph, signal?: AbortSignal, se
   return result
 }
 
-function hasCycle(ids: string[], connections: SpanovaConnection[]) { try { topologicalSort({ id: '', name: '', schemaVersion: 1, nodes: ids.map((id) => ({ id, type: '', name: id, position: { x: 0, y: 0 }, parameters: {} })), connections }); return false } catch { return true } }
-function findCycle(ids: string[], connections: SpanovaConnection[]): string[] {
+function hasCycle(ids: string[], connections: KopruqConnection[]) { try { topologicalSort({ id: '', name: '', schemaVersion: 1, nodes: ids.map((id) => ({ id, type: '', name: id, position: { x: 0, y: 0 }, parameters: {} })), connections }); return false } catch { return true } }
+function findCycle(ids: string[], connections: KopruqConnection[]): string[] {
   const adjacency = new Map(ids.map((id) => [id, [] as string[]]))
   connections.forEach((edge) => adjacency.get(edge.sourceNodeId)?.push(edge.targetNodeId))
   const visiting = new Set<string>(), visited = new Set<string>(), path: string[] = []

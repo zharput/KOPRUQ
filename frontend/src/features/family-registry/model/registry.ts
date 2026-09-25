@@ -1,4 +1,4 @@
-﻿export type FamilyCategory = 'SUPERSTRUCTURE' | 'GIRDER' | 'PIER' | 'PIER_CAP' | 'ABUTMENT' | 'FOUNDATION' | 'BEARING' | 'MATERIAL'
+export type FamilyCategory = 'SUPERSTRUCTURE' | 'GIRDER' | 'PIER' | 'PIER_CAP' | 'ABUTMENT' | 'FOUNDATION' | 'BEARING' | 'MATERIAL'
 export type FamilyRegistryRecord = { id: string; name: string; category: FamilyCategory; type: string; enabled: boolean | null; summary: string }
 export type FamilyReference = { bridgeId: string; location: string }
 export type FamilySelection = { category: FamilyCategory; id: string | null }
@@ -7,10 +7,10 @@ import { PRECAST_DIMENSIONS } from '../../girder-library/model/variants'
 import { getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
 
 const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
-  GIRDER: 'spanova:girder-catalog-changed',
-  MATERIAL: 'spanova:material-catalog-changed',
-  PIER: 'spanova:pier-catalog-changed', PIER_CAP: 'spanova:pier-cap-catalog-changed',
-  FOUNDATION: 'spanova:foundation-catalog-changed', BEARING: 'spanova:bearing-catalog-changed',
+  GIRDER: 'kopruq:girder-catalog-changed',
+  MATERIAL: 'kopruq:material-catalog-changed',
+  PIER: 'kopruq:pier-catalog-changed', PIER_CAP: 'kopruq:pier-cap-catalog-changed',
+  FOUNDATION: 'kopruq:foundation-catalog-changed', BEARING: 'kopruq:bearing-catalog-changed',
 }
 
 function readArray(key: string): Record<string, unknown>[] {
@@ -21,7 +21,7 @@ const val = (row: Record<string, unknown>, key: string) => row[key] == null ? ''
 /** Reads existing feature-owned catalogs; this adapter does not own or persist family data. */
 export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
   if (category === 'MATERIAL') {
-    const classes = new Set(readArray('spanova.project-design-system.material-assignments').map((row) => val(row, 'concreteClass')).filter(Boolean))
+    const classes = new Set(readArray('kopruq.project-design-system.material-assignments').map((row) => val(row, 'concreteClass')).filter(Boolean))
     return [...classes].sort().map((concreteClass) => ({ id: `EN1992-1-1:${concreteClass}`, name: concreteClass, category, type: 'CONCRETE', enabled: true, summary: 'EN 1992-1-1 concrete strength class reference; engineering material properties are not configured in this panel.' }))
   }
   if (category === 'GIRDER') {
@@ -46,7 +46,7 @@ export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
 export function getFamilyReferences(category: FamilyCategory, id: string): FamilyReference[] {
   if (typeof localStorage === 'undefined') return []
   let stored: { definitions?: Record<string, Record<string, unknown>> } = {}
-  try { stored = JSON.parse(localStorage.getItem('spanova.bridge-definitions.v1') ?? '{}') as typeof stored } catch { return [] }
+  try { stored = JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}') as typeof stored } catch { return [] }
   const found: FamilyReference[] = []
   for (const [bridgeId, definition] of Object.entries(stored.definitions ?? {})) {
     const assignments = definition.axisAssignments && typeof definition.axisAssignments === 'object' ? definition.axisAssignments as Record<string, Record<string, unknown>> : {}
@@ -64,7 +64,7 @@ export function getFamilyReferences(category: FamilyCategory, id: string): Famil
 }
 
 export function publishFamilySelection(category: FamilyCategory, id: string | null): void {
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent<FamilySelection>('spanova:family-selection-changed', { detail: { category, id } }))
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent<FamilySelection>('kopruq:family-selection-changed', { detail: { category, id } }))
 }
 
 export function familyChangedEvent(category: FamilyCategory): string | undefined { return CHANGE_EVENTS[category] }

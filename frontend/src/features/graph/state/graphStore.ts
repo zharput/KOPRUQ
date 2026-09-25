@@ -1,25 +1,25 @@
-import type { GraphParameterValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
+import type { GraphParameterValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 import { validateConnection } from '../engine/graphEngine'
 import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
 import { readProjectState } from '../../project/model/projectWorkspace'
 
-const STORAGE_KEY = 'spanova.graph.documents.v1'
-const EVENT = 'spanova:graph-store-changed'
-export type GraphDocuments = { activeGraphId: string; graphs: SpanovaGraph[] }
+const STORAGE_KEY = 'kopruq.graph.documents.v1'
+const EVENT = 'kopruq:graph-store-changed'
+export type GraphDocuments = { activeGraphId: string; graphs: KopruqGraph[] }
 export type GraphStoreSnapshot = GraphDocuments & { canUndo: boolean; canRedo: boolean }
-const undo = new Map<string, SpanovaGraph[]>(), redo = new Map<string, SpanovaGraph[]>()
+const undo = new Map<string, KopruqGraph[]>(), redo = new Map<string, KopruqGraph[]>()
 const subscribers = new Set<() => void>()
 let documents: GraphDocuments | undefined
-let dragStart: SpanovaGraph | undefined
+let dragStart: KopruqGraph | undefined
 let snapshot: GraphStoreSnapshot | undefined
 
-export function createEmptyGraph(name = 'Untitled Graph', ownership?: Pick<SpanovaGraph, 'projectId' | 'bridgeId'>): SpanovaGraph {
+export function createEmptyGraph(name = 'Untitled Graph', ownership?: Pick<KopruqGraph, 'projectId' | 'bridgeId'>): KopruqGraph {
   return { id: globalThis.crypto?.randomUUID?.() ?? `graph-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, schemaVersion: 1, ...ownership, nodes: [], connections: [] }
 }
-export function serializeGraph(graph: SpanovaGraph): string { return JSON.stringify(graph, null, 2) }
-export function deserializeGraph(raw: string): SpanovaGraph {
-  const graph = JSON.parse(raw) as SpanovaGraph
-  if (graph.schemaVersion !== 1 || typeof graph.id !== 'string' || typeof graph.name !== 'string' || !Array.isArray(graph.nodes) || !Array.isArray(graph.connections)) throw new Error('Unsupported or invalid SPANOVA graph document.')
+export function serializeGraph(graph: KopruqGraph): string { return JSON.stringify(graph, null, 2) }
+export function deserializeGraph(raw: string): KopruqGraph {
+  const graph = JSON.parse(raw) as KopruqGraph
+  if (graph.schemaVersion !== 1 || typeof graph.id !== 'string' || typeof graph.name !== 'string' || !Array.isArray(graph.nodes) || !Array.isArray(graph.connections)) throw new Error('Unsupported or invalid KOPRUQ graph document.')
   return graph
 }
 function readDocuments(): GraphDocuments {
@@ -64,7 +64,7 @@ export function subscribeGraphStore(listener: () => void) {
   return () => subscribers.delete(listener)
 }
 export function getActiveGraph() { const state = getDocuments(); return state.graphs.find((graph) => graph.id === state.activeGraphId) ?? state.graphs[0] }
-function replaceActiveGraph(next: SpanovaGraph, history = true) {
+function replaceActiveGraph(next: KopruqGraph, history = true) {
   const previous = getActiveGraph()
   if (history && !dragStart) { if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] history commit'); undo.set(previous.id, [...(undo.get(previous.id) ?? []), structuredClone(previous)].slice(-100)); redo.set(previous.id, []) }
   documents = { ...getDocuments(), graphs: getDocuments().graphs.map((graph) => graph.id === previous.id ? next : graph) }
@@ -79,10 +79,10 @@ export function addNode(type: string, position: { x: number; y: number }) {
   replaceActiveGraph({ ...graph, nodes: [...graph.nodes, node] })
   return node.id
 }
-export function updateNode(id: string, change: (node: SpanovaNode) => SpanovaNode) { const graph = getActiveGraph(); replaceActiveGraph({ ...graph, nodes: graph.nodes.map((node) => node.id === id ? change(node) : node) }) }
+export function updateNode(id: string, change: (node: KopruqNode) => KopruqNode) { const graph = getActiveGraph(); replaceActiveGraph({ ...graph, nodes: graph.nodes.map((node) => node.id === id ? change(node) : node) }) }
 export function setNodeParameter(id: string, key: string, value: GraphParameterValue) { updateNode(id, (node) => ({ ...node, parameters: { ...node.parameters, [key]: value } })) }
 export function deleteNodes(ids: string[]) { const graph = getActiveGraph(), selected = new Set(ids); replaceActiveGraph({ ...graph, nodes: graph.nodes.filter((node) => !selected.has(node.id)), connections: graph.connections.filter((edge) => !selected.has(edge.sourceNodeId) && !selected.has(edge.targetNodeId)) }) }
-export function addConnection(connection: SpanovaConnection) {
+export function addConnection(connection: KopruqConnection) {
   const graph = getActiveGraph()
   if (graph.connections.some(item => item.id === connection.id || (item.sourceNodeId === connection.sourceNodeId && item.sourcePortId === connection.sourcePortId && item.targetNodeId === connection.targetNodeId && item.targetPortId === connection.targetPortId))) return false
   const validationGraph = { ...graph, connections: graph.connections.filter(item => item.targetNodeId !== connection.targetNodeId || item.targetPortId !== connection.targetPortId) }
@@ -92,7 +92,7 @@ export function addConnection(connection: SpanovaConnection) {
   return true
 }
 /** Replace or remove an existing edge as one authoring/history transaction. */
-export function reconnectConnection(edgeId: string, replacement?: Omit<SpanovaConnection, 'id'>) {
+export function reconnectConnection(edgeId: string, replacement?: Omit<KopruqConnection, 'id'>) {
   const graph = getActiveGraph(), existing = graph.connections.find(edge => edge.id === edgeId)
   if (!existing) return false
   const withoutEdge = graph.connections.filter(edge => edge.id !== edgeId)
@@ -107,7 +107,7 @@ export function reconnectConnection(edgeId: string, replacement?: Omit<SpanovaCo
   return true
 }
 /** Commit a pasted subgraph in one GraphStore history operation. */
-export function pasteGraphSelection(nodes: SpanovaNode[], connections: SpanovaConnection[]) {
+export function pasteGraphSelection(nodes: KopruqNode[], connections: KopruqConnection[]) {
   if (!nodes.length) return []
   const graph = getActiveGraph()
   const ids = new Set(nodes.map(node => node.id))

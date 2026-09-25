@@ -26,7 +26,7 @@ screening/basic/detailed/final analysis levels, job queue with a
 configurable concurrency policy, model-family reuse, engineering QA after
 MIDAS, bearing/foundation/global design iteration, failure handling,
 reproducibility, caching) is sound and needs no structural correction.
-It also matches what SPANOVA already scaffolded since P00:
+It also matches what KOPRUQ already scaffolded since P00:
 `backend/analysis-api` (port) and `backend/midas-adapter` (adapter) exist
 specifically for this.
 
@@ -60,14 +60,14 @@ mechanics turned out more specific than "an API" implies):
    external configuration (never hardcoded, never committed) and must
    tolerate it changing.
 3. **Java naming**: the prompt's `IAnalysisEngine` follows C#/.NET
-   convention (interface-prefix `I`). Existing SPANOVA Java code has no
+   convention (interface-prefix `I`). Existing KOPRUQ Java code has no
    `I`-prefixed interfaces; proposing `AnalysisEngine` as the interface
    name below to match the codebase's own convention - purely cosmetic,
    flagging it rather than silently renaming without saying so.
 
 ## 2. Capability matrix
 
-| Capability | Required by SPANOVA | Supported by MIDAS Civil NX Open API? | Source | Limitation / uncertainty | Strategy |
+| Capability | Required by KOPRUQ | Supported by MIDAS Civil NX Open API? | Source | Limitation / uncertainty | Strategy |
 |---|---|---|---|---|---|
 | New/open/close/save project | Yes | **Yes** - `/doc/NEW`, `/doc/OPEN`, `/doc/CLOSE`, `/doc/SAVE`, `/doc/SAVEAS` | JSON Manual | POST only, body under `"Argument"` key | `midas-adapter` lifecycle calls |
 | Node creation | Yes | **Yes** - `/db/NODE` (POST/GET/PUT/DELETE) | JSON Manual; confirmed example: `PUT /db/NODE {"Assign":{"1":{"X":-1,"Y":-1,"Z":-1}}}` (Python lib docs) | - | Direct mapping from `SpanLayout`/`Girder` geometry |
@@ -83,7 +83,7 @@ mechanics turned out more specific than "an API" implies):
 | Seismic (response spectrum + time history) | Not in P01 | **Yes** - `/db/SPFC` (many national codes), `/db/SPLC`, full time-history endpoint family | JSON Manual | - | MIDAS-P08 scope |
 | Construction stages | Not in P01 | **Yes** - `/db/STAG`, `CSCS`, `TMLD`, `CRPC` (creep), `STBK`, `CMCS` (camber) | JSON Manual | - | MIDAS-P06 scope |
 | Prestressing / tendons | Not in P01 | **Yes** - `/db/TDNT`, `TDNA`, `TDPL`, `PRST`, `PTNS` | JSON Manual | - | MIDAS-P07 scope |
-| Load combinations | Not in P01 | **Yes** - `/db/LCOM-GEN/CONC/STEEL/SRC/STLCOMP/SEISMIC`, design-code-specific | JSON Manual | - | MIDAS-P04 (MIDAS-numbering, not SPANOVA's own P04) |
+| Load combinations | Not in P01 | **Yes** - `/db/LCOM-GEN/CONC/STEEL/SRC/STLCOMP/SEISMIC`, design-code-specific | JSON Manual | - | MIDAS-P04 (MIDAS-numbering, not KOPRUQ's own P04) |
 | Run analysis | Yes | **Yes** - `POST /doc/ANAL`, empty body `{}` | JSON Manual + Python lib | Synchronous vs. async behavior, and how a long analysis's status is polled, **not yet confirmed** - the DOC section's own description doesn't say | Verify empirically in MIDAS-P01 (does the HTTP call block until done, or return immediately with a job token?) |
 | Reactions | Yes | **Yes** - `POST /post/table` with `TABLE_TYPE` for Reaction-Local/Global/Surface Spring | JSON Manual + POST/TABLE guide (full JSON structure read: `TABLE_TYPE`, `NODE_ELEMS`, `UNIT`, `COMPONENTS`, `STYLES`, `EXPORT_PATH`) | Exact `TABLE_TYPE` string values (e.g. is it `"REACTIONG"`?) not yet cross-checked against the Reaction result-table detail page | Read that one detail page during MIDAS-P01 implementation |
 | Displacements | Yes | **Yes** - `POST /post/table`, Displacement-Local/Global | Same as above | Same as above | Same as above |
@@ -126,7 +126,7 @@ module needed.
 
 ```
 backend/analysis-api/            (solver-independent port - existing module)
-  com.spanova.analysis
+  com.kopruq.analysis
     AnalysisEngine                 interface: submit/getStatus/getResults/cancel
     AnalysisRequest                record (see section 5)
     AnalysisResult                 record (see section 5)
@@ -134,16 +134,16 @@ backend/analysis-api/            (solver-independent port - existing module)
     AnalysisLevel                  enum: SCREENING, BASIC, DETAILED, FINAL
 
 backend/midas-adapter/           (MIDAS-specific - existing module)
-  com.spanova.midas
+  com.kopruq.midas
     MidasCivilNxAnalysisEngine     implements AnalysisEngine
     MidasApiClient                 raw HTTP: base URL + MAPI-Key header, call(method, path, body)
     MidasModelBuilder               AnalysisRequest -> sequence of /db/* calls
     MidasResultExtractor           /post/table calls -> raw result JSON
     MidasResultMapper              raw MIDAS result -> AnalysisResult, via ModelMapping
-    ModelMapping                   SPANOVA id <-> MIDAS id table
+    ModelMapping                   KOPRUQ id <-> MIDAS id table
 
 backend/api/                     (orchestration - existing module, new package)
-  com.spanova.api.analysis
+  com.kopruq.api.analysis
     AnalysisJobManager, AnalysisQueue, SolverConcurrencyPolicy,
     AnalysisCache, AnalysisFingerprintService, EngineeringQaService,
     DesignIterationManager
@@ -203,9 +203,9 @@ public record AnalysisResult(
         List<String> criticalCases) { }        // P01: empty
 ```
 
-`ModelMapping` (SPANOVA id <-> MIDAS numeric id) is required even for
+`ModelMapping` (KOPRUQ id <-> MIDAS numeric id) is required even for
 P01, since result extraction needs to know which MIDAS node/element
-corresponds to which SPANOVA object.
+corresponds to which KOPRUQ object.
 
 ## 6. Proposed MIDAS-P01 sequence
 
@@ -227,7 +227,7 @@ the general pipeline.**
    immediately (needing a status-poll loop)?
 5. `MidasResultExtractor` calls `POST /post/table` with
    `TABLE_TYPE` for reactions and displacements, `NODE_ELEMS` selecting
-   the model's own nodes, `UNIT` set to match SPANOVA's SI convention.
+   the model's own nodes, `UNIT` set to match KOPRUQ's SI convention.
 6. `MidasResultMapper` converts the raw table response into
    `AnalysisResult` via `ModelMapping`.
 7. Automated test compares the mapped `AnalysisResult` against a
@@ -246,15 +246,15 @@ the general pipeline.**
 2. The engineer runs the analysis there and records the reference
    reactions and displacements themselves (or exports them via Civil
    NX's normal result tables).
-3. SPANOVA's MIDAS-P01 code builds the *same* geometry/material/section/
+3. KOPRUQ's MIDAS-P01 code builds the *same* geometry/material/section/
    load through the API (step 6 above) and extracts the same result
    quantities via the API.
 4. An automated test (`MidasCivilNxAnalysisEngineTest` or similar,
-   `backend/midas-adapter/src/test`) asserts SPANOVA's API-derived values
+   `backend/midas-adapter/src/test`) asserts KOPRUQ's API-derived values
    match the engineer's manually-recorded reference within a tolerance
    the engineer specifies.
-5. This is the P01 "round trip" proof: SPANOVA can create a model MIDAS
-   accepts, MIDAS solves it, SPANOVA retrieves matching results - before
+5. This is the P01 "round trip" proof: KOPRUQ can create a model MIDAS
+   accepts, MIDAS solves it, KOPRUQ retrieves matching results - before
    any batching, optimization, or additional load types are attempted.
 
 ## Open items before MIDAS-P01 can start (blocking, need the engineer)

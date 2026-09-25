@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 /**
  * Bridges > Layout Design Space - matches the engineer's own mockup
- * exactly (2026-09-10): which abutment positions SPANOVA determines,
+ * exactly (2026-09-10): which abutment positions KOPRUQ determines,
  * which superstructure types/span ranges and pier shapes are allowed,
  * and which site constraints the Layout Generator should respect.
  *
@@ -64,8 +64,8 @@ export default function LayoutDesignSpacePanel() {
       <div className="spn-card">
         <h2 className="spn-card-title">Abutments</h2>
         <div className="spn-checklist">
-          <Checkbox label="SPANOVA determines C1" checked={determineC1} onChange={setDetermineC1} />
-          <Checkbox label="SPANOVA determines C2" checked={determineC2} onChange={setDetermineC2} />
+          <Checkbox label="KOPRUQ determines C1" checked={determineC1} onChange={setDetermineC1} />
+          <Checkbox label="KOPRUQ determines C2" checked={determineC2} onChange={setDetermineC2} />
         </div>
       </div>
 

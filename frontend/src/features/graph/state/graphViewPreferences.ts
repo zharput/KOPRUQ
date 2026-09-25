@@ -1,6 +1,6 @@
 export type ConnectionStyle = 'smooth' | 'orthogonal'
 export interface GraphViewPreferences { connectionStyle: ConnectionStyle }
-const STORAGE_KEY = 'spanova.graph.view-preferences.v1'
+const STORAGE_KEY = 'kopruq.graph.view-preferences.v1'
 export const DEFAULT_GRAPH_VIEW_PREFERENCES: GraphViewPreferences = { connectionStyle: 'smooth' }
 
 export function readGraphViewPreferences(): GraphViewPreferences {

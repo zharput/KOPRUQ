@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import type { GraphValue, SpanovaConnection, SpanovaNode } from '../domain/types'
+import type { GraphValue, KopruqConnection, KopruqNode } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getUnit } from '../domain/quantities'
 import type { EngineeringInspectorSchema } from '../registry/nodeRegistry'
 import { displayLength, displayRange, geometryValues } from './engineeringSchematicValues'
 import { bulbTeeGirderPath } from '../../../shared/ui/BulbTeeGirderShape'
 
-type Props = { schema: EngineeringInspectorSchema; node: SpanovaNode; candidates: GraphValue[]; previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string }>; connections: SpanovaConnection[]; projectUnits?: ProjectUnitPreferences }
+type Props = { schema: EngineeringInspectorSchema; node: KopruqNode; candidates: GraphValue[]; previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string }>; connections: KopruqConnection[]; projectUnits?: ProjectUnitPreferences }
 
 export function EngineeringSchematic({ schema, node, candidates, previewInputs, connections, projectUnits }: Props) {
   if (schema.schematic === 'superstructure') return <StaticSuperstructureCard node={node} candidates={candidates} previewInputs={previewInputs} connected={new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))} projectUnits={projectUnits} />
@@ -42,7 +42,7 @@ function AbutmentSchematic({ candidates }: { candidates: GraphValue[] }) {
     <text x="260" y="252" textAnchor="middle" className="engineering-view-title">FOUNDATION PLAN</text><rect className="engineering-outline" x="130" y="270" width="260" height="60"/><rect className="engineering-outline" x="160" y="282" width="200" height="36"/><text x="260" y="350" textAnchor="middle" className="engineering-dimension">{g?.foundationArea ? `Area = ${g.foundationArea} m²` : 'Foundation geometry unavailable'}</text>
   </svg></SchematicCard>
 }
-function StaticSuperstructureCard(p: { node: SpanovaNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
+function StaticSuperstructureCard(p: { node: KopruqNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
   const candidate = p.candidates.find(item => typeof item === 'object' && item !== null && !Array.isArray(item) && 'girderAxisPositions' in item) as { girderAxisPositions?: number[]; girderCount?: number; deckWidth?: number } | undefined
   const count = Math.max(2, Math.round(candidate?.girderCount ?? representativeNumber(p, 'girderCount', 'girderCount') ?? 6))
   const width = candidate?.deckWidth ?? representativeMetres(p.node, p.candidates, p.previewInputs, p.connected, 'deckWidth', 'deckWidth') ?? 13.8
@@ -242,18 +242,18 @@ function FoundationSchematic({ node, candidates, previewInputs, connected, proje
   </SchematicCard>
 }
 
-function ShallowPlan(p: { node: SpanovaNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
+function ShallowPlan(p: { node: KopruqNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
   const Lx=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'Lx','Lx',p.projectUnits), Ly=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'Ly','Ly',p.projectUnits)
   const { x, y, w, h } = planRect(representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'Lx','Lx')??8, representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'Ly','Ly')??6, 53, 36, 194, 111)
   return <><rect className="engineering-outline" x={x} y={y} width={w} height={h}/><DimensionHorizontal x1={x} x2={x+w} y={31} toY={y} label={`Lx = ${Lx}`}/><DimensionVertical y1={y} y2={y+h} x={242} toX={x+w} label={`Ly=${Ly.replace(' ','')}`} compact/><BridgeAxis y={y+h+13}/></>
 }
-function ShallowSection(p: { node: SpanovaNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
+function ShallowSection(p: { node: KopruqNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
   const h=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'height','height',p.projectUnits), Lx=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'Lx','Lx',p.projectUnits)
   const rect={x:70,y:275,width:160,height:65}
   return <><rect className="engineering-outline" {...rect}/><DimensionHorizontal x1={rect.x} x2={rect.x+rect.width} y={258} toY={rect.y} label={`Lx = ${Lx}`}/><DimensionVertical y1={rect.y} y2={rect.y+rect.height} x={236} toX={rect.x+rect.width} label={`H=${h.replace(' ','')}`} compact/></>
 }
 
-function PiledPlan(p: { node: SpanovaNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
+function PiledPlan(p: { node: KopruqNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
   const Lx=derivedValue(p,'Lx'), Ly=derivedValue(p,'Ly'), D=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'pileDiameter','pileDiameter',p.projectUnits), nx=numberValue(p,'pileCountX','pileCountX'), ny=numberValue(p,'pileCountY','pileCountY'), ax=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'pileSpacingX','pileSpacingX',p.projectUnits), ay=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'pileSpacingY','pileSpacingY',p.projectUnits)
   const nxv=representativeNumber(p,'pileCountX','pileCountX')??2, nyv=representativeNumber(p,'pileCountY','pileCountY')??2, d=representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'pileDiameter','pileDiameter')??1, axv=representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'pileSpacingX','pileSpacingX')??3, ayv=representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'pileSpacingY','pileSpacingY')??3
   const Lxv=Math.max(2*d+(nxv-1)*axv,.01), Lyv=Math.max(2*d+(nyv-1)*ayv,.01), {x,y,w,h}=planRect(Lxv,Lyv,58,42,184,94)
@@ -261,7 +261,7 @@ function PiledPlan(p: { node: SpanovaNode; candidates: GraphValue[]; previewInpu
   const piles=Array.from({length:cols*rows},(_,i)=>{const c=i%cols,r=Math.floor(i/cols),cx=x+(d/Lxv+(cols===1?0:c/(cols-1)*(Lxv-2*d)/Lxv))*w,cy=y+(d/Lyv+(rows===1?0:r/(rows-1)*(Lyv-2*d)/Lyv))*h;return <circle key={`${c}-${r}`} className="engineering-pile" cx={cx} cy={cy} r={radius}/>})
   return <><rect className="engineering-outline" x={x} y={y} width={w} height={h}/>{piles}<DimensionHorizontal x1={x} x2={x+w} y={33} toY={y} label={`Lx = ${Lx}`}/><DimensionVertical y1={y} y2={y+h} x={242} toX={x+w} label={`Ly=${Ly.replaceAll(' ','')}`} compact/><text className="engineering-dimension" x="150" y="153" textAnchor="middle">Nx = {nx}   Ny = {ny}</text><text className="engineering-dimension" x="150" y="168" textAnchor="middle">ax = {ax}   ay = {ay}   D = {D}</text><BridgeAxis y={187}/></>
 }
-function PiledSection(p: { node: SpanovaNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
+function PiledSection(p: { node: KopruqNode; candidates: GraphValue[]; previewInputs: Props['previewInputs']; connected: Set<string>; projectUnits?: ProjectUnitPreferences }) {
   const H=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'capHeight','capHeight',p.projectUnits), D=dimensionValue(p.node,p.candidates,p.previewInputs,p.connected,'pileDiameter','pileDiameter',p.projectUnits), count=representativeNumber(p,'pileCountX','pileCountX')??2, spacing=representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'pileSpacingX','pileSpacingX')??3, diameter=representativeMetres(p.node,p.candidates,p.previewInputs,p.connected,'pileDiameter','pileDiameter')??1.2
   const length=representativeDerived(p,'Lx')??(2*diameter+(count-1)*spacing), rect={x:82,y:276,width:136,height:34}, piles=Math.max(1,Math.min(8,Math.floor(count))), pileW=clamp(diameter/Math.max(length,.01)*rect.width,8,26), pileCenters=Array.from({length:piles},(_,i)=>rect.x+(diameter+(piles===1?0:i*spacing))/Math.max(length,.01)*rect.width)
   return <><rect className="engineering-outline" {...rect}/>{pileCenters.map((x,i)=><rect key={i} className="engineering-pile-section" x={x-pileW/2} y={rect.y+rect.height} width={pileW} height={57}/>)}<DimensionHorizontal x1={rect.x} x2={rect.x+rect.width} y={260} toY={rect.y} label={`Lx = ${derivedValue(p,'Lx')}`}/><DimensionVertical y1={rect.y} y2={rect.y+rect.height} x={238} toX={rect.x+rect.width} label={`H = ${H}`} compact/><DimensionHorizontal x1={pileCenters[0]-pileW/2} x2={pileCenters[0]+pileW/2} y={395} toY={367} label={`D = ${D}`} compact/></>
@@ -277,7 +277,7 @@ function BearingSchematic({ node, candidates, previewInputs, connected, projectU
   </svg></SchematicCard>
 }
 
-function dimensionValue(node: SpanovaNode, candidates: GraphValue[], previewInputs: Props['previewInputs'], connected: Set<string>, port: string, key: string, projectUnits?: ProjectUnitPreferences) {
+function dimensionValue(node: KopruqNode, candidates: GraphValue[], previewInputs: Props['previewInputs'], connected: Set<string>, port: string, key: string, projectUnits?: ProjectUnitPreferences) {
   const fromCandidates=geometryValues(candidates,key)
   if(fromCandidates.length)return displayRange(fromCandidates,projectUnits)
   if(connected.has(port))return formatInputLength(previewInputs[port]?.value,projectUnits)
@@ -286,12 +286,12 @@ function dimensionValue(node: SpanovaNode, candidates: GraphValue[], previewInpu
   if(typeof raw==='number'&&source?.kind==='length')return displayLength(source.toCanonical(raw),projectUnits)
   return '—'
 }
-function representativeMetres(node:SpanovaNode,candidates:GraphValue[],preview:Props['previewInputs'],connected:Set<string>,port:string,key:string){const v=geometryValues(candidates,key)[0];if(v!==undefined)return v;if(connected.has(port))return inputValues(preview[port]?.value)[0];const raw=node.parameters[`${key}Value`],unit=getUnit(String(node.parameters[`${key}Unit`]??'m'));return typeof raw==='number'&&unit?.kind==='length'?unit.toCanonical(raw):undefined}
-function localLengthParameter(node: SpanovaNode, key: string) { const raw = node.parameters[`${key}Value`], unit = getUnit(String(node.parameters[`${key}Unit`] ?? 'm')); return typeof raw === 'number' && unit?.kind === 'length' ? unit.toCanonical(raw) : undefined }
-function representativeNumber(p:{node:SpanovaNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const v=geometryValues(p.candidates,key)[0];if(v!==undefined)return v;if(p.connected.has(port)){const raw=p.previewInputs[port]?.value;return inputValues(raw)[0]}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?value:undefined}
+function representativeMetres(node:KopruqNode,candidates:GraphValue[],preview:Props['previewInputs'],connected:Set<string>,port:string,key:string){const v=geometryValues(candidates,key)[0];if(v!==undefined)return v;if(connected.has(port))return inputValues(preview[port]?.value)[0];const raw=node.parameters[`${key}Value`],unit=getUnit(String(node.parameters[`${key}Unit`]??'m'));return typeof raw==='number'&&unit?.kind==='length'?unit.toCanonical(raw):undefined}
+function localLengthParameter(node: KopruqNode, key: string) { const raw = node.parameters[`${key}Value`], unit = getUnit(String(node.parameters[`${key}Unit`] ?? 'm')); return typeof raw === 'number' && unit?.kind === 'length' ? unit.toCanonical(raw) : undefined }
+function representativeNumber(p:{node:KopruqNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const v=geometryValues(p.candidates,key)[0];if(v!==undefined)return v;if(p.connected.has(port)){const raw=p.previewInputs[port]?.value;return inputValues(raw)[0]}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?value:undefined}
 function representativeDerived(p:{candidates:GraphValue[]},axis:'Lx'|'Ly'){for(const item of p.candidates){if(typeof item!=='object'||item===null||Array.isArray(item)||!('geometry'in item))continue;const derived=(item.geometry as Record<string,unknown>).derived as Record<string,unknown>|undefined;if(typeof derived?.[axis]==='number')return derived[axis]}return undefined}
-function numberValue(p:{node:SpanovaNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const values=p.candidates.map(item=>candidateProperty(item,key)).filter((v):v is number=>v!==undefined);if(values.length)return values.length===1?String(values[0]):`${Math.min(...values)}–${Math.max(...values)}`;if(p.connected.has(port)){const values=inputValues(p.previewInputs[port]?.value);return values.length?values.join('–'):'—'}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?String(value):'—'}
-function derivedValue(p:{node:SpanovaNode;candidates:GraphValue[];projectUnits?:ProjectUnitPreferences},axis:'Lx'|'Ly'){const values=p.candidates.map(item=>{if(typeof item!=='object'||item===null||Array.isArray(item)||!('geometry'in item))return undefined;const g=item.geometry as Record<string,unknown>,derived=g.derived as Record<string,unknown>|undefined;return typeof derived?.[axis]==='number'?derived[axis]:undefined}).filter((v):v is number=>v!==undefined);return values.length?displayRange(values,p.projectUnits):'—'}
+function numberValue(p:{node:KopruqNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const values=p.candidates.map(item=>candidateProperty(item,key)).filter((v):v is number=>v!==undefined);if(values.length)return values.length===1?String(values[0]):`${Math.min(...values)}–${Math.max(...values)}`;if(p.connected.has(port)){const values=inputValues(p.previewInputs[port]?.value);return values.length?values.join('–'):'—'}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?String(value):'—'}
+function derivedValue(p:{node:KopruqNode;candidates:GraphValue[];projectUnits?:ProjectUnitPreferences},axis:'Lx'|'Ly'){const values=p.candidates.map(item=>{if(typeof item!=='object'||item===null||Array.isArray(item)||!('geometry'in item))return undefined;const g=item.geometry as Record<string,unknown>,derived=g.derived as Record<string,unknown>|undefined;return typeof derived?.[axis]==='number'?derived[axis]:undefined}).filter((v):v is number=>v!==undefined);return values.length?displayRange(values,p.projectUnits):'—'}
 function candidateProperty(item:GraphValue,key:string):number|undefined {if(typeof item!=='object'||item===null||Array.isArray(item)||!('geometry'in item))return;const value=(item.geometry as Record<string,unknown>)[key];return typeof value==='number'?value:undefined}
 function inputValues(value:GraphValue|undefined):number[]{if(value===undefined)return[];const values=Array.isArray(value)?value:[value];return values.flatMap(item=>{if(typeof item==='number')return Number.isFinite(item)?[item]:[];if(typeof item==='object'&&item!==null&&'quantityKind'in item&&item.quantityKind==='length')return[item.value];return[]})}
 function formatInputLength(value:GraphValue|undefined,units?:ProjectUnitPreferences){return displayRange(inputValues(value),units)}

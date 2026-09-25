@@ -1,5 +1,5 @@
 /**
- * The single axis-swap point between SPANOVA's engineering convention
+ * The single axis-swap point between KOPRUQ's engineering convention
  * (x,y horizontal, z vertical - matches `spatial-core.Point3D`/
  * `alignment.ChainagePosition`) and Three.js's Y-up convention. Used
  * exclusively by this feature's mesh/alignment builders - never

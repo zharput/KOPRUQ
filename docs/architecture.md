@@ -1,4 +1,4 @@
-﻿# SPANOVA Architecture
+# KOPRUQ Architecture
 
 Status: **P06's MIDAS-P01 round trip + real VIA-35 model done; P10's UI
 shell also done, out of milestone order; SITE-P01's `spatial-core` +
@@ -8,10 +8,10 @@ seamed into Bridge Design (P03's structural generation - pick a feasible
 layout -> runs with its bridge length/span locked in); sidebar
 navigation now matches the engineer's full target menu exactly (~45
 leaves, 6 collapsible groups + Home/3D & Visualization/Reports
-standalone); **the native `spanova-analysis-engine` (addendum P) is now
+standalone); **the native `kopruq-analysis-engine` (addendum P) is now
 real** - a linear-elastic 3D direct-stiffness solver, verified against
 closed-form results and live-run on the engineer's own 5-span
-frame-bridge test case (SPANOVA Fast Solver screen)** for the new
+frame-bridge test case (KOPRUQ Fast Solver screen)** for the new
 polyglot stack - see `docs/roadmap.md`. This document describes the *shape* of the system as
 of `docs/ARCHITECTURE_AMENDMENT_V2.md`, now also being extended per
 `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` (site/corridor/layout platform +
@@ -31,20 +31,20 @@ compatible one-time migration for older records and persistence retains the
 identity across reloads, edits, sorting and imports. The display `no` value
 (`VIA-01`, etc.) is not used as the Graph identity.
 
-Graph documents retain the existing `spanova.graph.documents.v1` format and
+Graph documents retain the existing `kopruq.graph.documents.v1` format and
 schema, with optional `bridgeId` and `projectId` ownership metadata. Selecting
 a Project bridge reuses its owned document or creates one empty document with
 no default nodes. Legacy unassigned documents remain in the same store and
 are not assigned by name. Graph-store history remains keyed by Graph document
 ID, so switching bridges does not share undo/redo state.
 
-SPANOVA has its own independent **Bridge Core**. It must never depend on
+KOPRUQ has its own independent **Bridge Core**. It must never depend on
 MIDAS, ALLPLAN, SCIA, a specific FEM solver, or a specific BIM format.
 External engineering applications are reached only through adapter
 modules.
 
 ```
-                    SPANOVA
+                    KOPRUQ
                        |
                  BRIDGE CORE (backend/bridge-core)
                        |
@@ -58,7 +58,7 @@ modules.
 ## Repository / module structure
 
 ```
-SPANOVA/
+KOPRUQ/
 â”œâ”€â”€ frontend/                      React + TypeScript (Vite), web app (browser-based)
 â”œâ”€â”€ backend/                       Maven multi-module, Java 21
 â”‚   â”œâ”€â”€ pom.xml                     parent (dependency management: Spring Boot 3.5.16 BOM, JUnit 5 BOM)
@@ -76,7 +76,7 @@ SPANOVA/
 â”‚   â”œâ”€â”€ optimization-service/        placeholder only
 â”‚   â””â”€â”€ ai-service/                  placeholder only
 â”œâ”€â”€ docs/
-â”‚   â”œâ”€â”€ SPANOVA_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
+â”‚   â”œâ”€â”€ KOPRUQ_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
 â”‚   â”œâ”€â”€ ARCHITECTURE_AMENDMENT_V2.md  supersedes spec sections 3/4/12-14/19-20's tech choices
 â”‚   â”œâ”€â”€ architecture.md              this file
 â”‚   â””â”€â”€ roadmap.md                   milestone status
@@ -128,7 +128,7 @@ Earlier in the 2026-09-09 session the engineer asked for the frontend to
 be a Windows desktop app rather than a website; `frontend/src-tauri/`
 (Rust, via `npx tauri init`) was scaffolded, wrapped the same React/Vite
 app in a native WebView2 window, and was verified working (`npm run
-tauri dev` opened a real "SPANOVA" window, confirmed by screenshot; a
+tauri dev` opened a real "KOPRUQ" window, confirmed by screenshot; a
 real Vite-vs-Cargo `EBUSY` file-watcher bug was hit and fixed along the
 way). Later the same session, the engineer reconsidered and confirmed:
 **frontend is a plain React + Vite web app** - `frontend/src-tauri/` and
@@ -193,7 +193,7 @@ forbids guessing them):
 ## P02 API surface (`backend/api`, `frontend`)
 
 `POST /api/kernel-state` - the only endpoint so far. Request/response
-DTOs live in `com.spanova.api.kernel`. Note for every future endpoint:
+DTOs live in `com.kopruq.api.kernel`. Note for every future endpoint:
 Maven's compiler plugin now passes `-parameters` (parent `pom.xml`) so
 Jackson can (de)serialize `bridge-core`'s Java records directly without
 per-field `@JsonProperty` annotations - keep relying on this rather than
@@ -213,11 +213,11 @@ the same `KernelStateRequest` DTO as `/api/kernel-state`, which now
 carries `toBridge()`/`toDesignSpace()` mapper methods so both endpoints
 build their `bridge-core` objects the same way without duplicating the
 mapping. Returns `List<AlternativeRow>`, a flat presentation DTO
-(`com.spanova.api.alternatives`) built from `bridge-core`'s
+(`com.kopruq.api.alternatives`) built from `bridge-core`'s
 `BridgeAlternative` - kept out of `bridge-core` itself since it's purely
 an API/table-shaping concern.
 
-`AlternativeGenerator` (`com.spanova.generative`) enumerates uniform
+`AlternativeGenerator` (`com.kopruq.generative`) enumerates uniform
 span layouts x girder count x girder depth within the posted
 `DesignSpace`, stepped by `DesignSpace.DEFAULT_GIRDER_DEPTH_STEP_M`.
 "Feasible" at generation time means exactly this generator's own
@@ -229,7 +229,7 @@ table - no dashboard styling yet (P10 scope).
 
 ## P04 Rules Engine (`backend/rules-engine`, `backend/api`, `frontend`)
 
-`com.spanova.rules`: `EngineeringRule` interface (`id()`,
+`com.kopruq.rules`: `EngineeringRule` interface (`id()`,
 `description()`, `evaluate(BridgeAlternative, Bridge, DesignSpace)`),
 `RuleEvaluation` (passed + reason), `RuleOutcome` (one rule's identity
 paired with its evaluation - the unit of traceability), `RuleEngineResult`
@@ -271,7 +271,7 @@ model doesn't have yet. No backend change - purely a rendering of what
 Full research write-up: `docs/MIDAS_INTEGRATION_ANALYSIS.md`. Summary of
 what's actually built:
 
-`com.spanova.analysis` (solver-independent - no MIDAS reference
+`com.kopruq.analysis` (solver-independent - no MIDAS reference
 anywhere): `AnalysisEngine` port (`submit`/`getStatus`/`getResults`/
 `cancel`), `AnalysisRequest` (nodes/elements/materials/sections/
 supports/loadCases/selfWeights), `AnalysisResult` (reactions/
@@ -281,7 +281,7 @@ only) - the record shapes are already generic enough that load
 combinations, moving loads, construction stages etc. add new fields
 later without reshaping the port.
 
-`com.spanova.midas` implements that port:
+`com.kopruq.midas` implements that port:
 - `MidasApiClient` - the only class touching the network. Plain
   `java.net.http.HttpClient` (JDK-provided, no extra HTTP library) with
   a `MAPI-Key` header. Base URL and key come from
@@ -317,7 +317,7 @@ calculation.
 **Not done yet**: a real `BridgeAlternative` is not wired into
 `AnalysisRequest` - both MIDAS-P01's test beam and the VIA-35 model below
 are hand-built requests, not generated alternatives. `ModelMapping`
-(SPANOVA id <-> MIDAS id, needed once real `BridgeAlternative`s with
+(KOPRUQ id <-> MIDAS id, needed once real `BridgeAlternative`s with
 named piers/girders are involved) does not exist yet - node/element ids
 are used directly as MIDAS ids, which is fine for hand-built test models
 but is a simplification to revisit.
@@ -343,7 +343,7 @@ yet) - explicitly flagged simplifications, not invented values.
 ## P10 UI shell (`frontend/`, out of milestone order)
 
 The engineer chose to skip P07-P09 for now and build the professional UI
-shell early, matching the target mockup (`Spanova_menÃ¼.jpg`). `App.tsx`
+shell early, matching the target mockup (`Kopruq_menÃ¼.jpg`). `App.tsx`
 is now `Sidebar` + `TopBar` + a content area that swaps between
 `GenerateWorkflow` (P02-P05's form/GENERATE/table/preview, relocated
 unchanged) for "Design Space"/"Generate", `HomePanel` (only the Quick
@@ -406,7 +406,7 @@ anything is built on top of it.
 - **Not done yet, by design**: no REST endpoint, no frontend, no
   `TerrainModel`/`constraints`/`Corridor`/`BridgeLayoutEngine` (those are
   later roadmap steps in `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` section
-  L), no `spanova-analysis-engine` (addendum P - a separate, unstarted
+  L), no `kopruq-analysis-engine` (addendum P - a separate, unstarted
   roadmap item).
 
 ## LAYOUT-P01 bridge-layout engine (`backend/constraints`, `backend/bridge-layout`)
@@ -475,7 +475,7 @@ replaced P10's flat sidebar with the grouped structure
 honest subset of it, not the full ~70-leaf tree (see that section's own
 "scaffold the groups first, add leaves incrementally" guidance).
 
-- **`api` module**: new `com.spanova.api.layout` package -
+- **`api` module**: new `com.kopruq.api.layout` package -
   `LayoutGenerationRequest` (mirrors `KernelStateRequest`'s
   request-&gt;domain-object mapping pattern: builds a single-segment
   straight `Alignment`, a `BridgeSite`, a `LayoutDesignSpace` from form
@@ -486,7 +486,7 @@ honest subset of it, not the full ~70-leaf tree (see that section's own
   Live-verified over real HTTP (curl) with the exact scenario
   `BridgeLayoutEngineTest` already proves by hand-computation - same
   result both ways, then the test process was stopped immediately (see
-  `spanova_working_style` lesson on this).
+  `kopruq_working_style` lesson on this).
 - **Frontend navigation (`sections.ts`, `Sidebar.tsx`)**: `SIDEBAR_GROUPS`
   replaces the flat `SIDEBAR_SECTIONS` list - 7 collapsible groups
   (Project, Site & Corridor, Design, Generate, Analysis, Optimization,
@@ -621,16 +621,16 @@ a trimmed-down version of it.
   Reports standalone; Settings/Help footer). Re-verified Layout Generator
   and Project Information still work under their new ids. No console
   errors. Both test processes stopped after (see
-  `spanova_working_style` memory - `preview_stop` left a stray
+  `kopruq_working_style` memory - `preview_stop` left a stray
   `node.exe` behind twice this session; had to be killed manually via
   `Get-Process`/`Stop-Process` before the next `preview_start`).
 - **Not done yet, by design**: the ~40 placeholder leaves are exactly
   that - placeholders. This step is a navigation/information-architecture
   change only, not ~40 new feature implementations.
 
-## Native analysis engine - `spanova-analysis-engine` (`backend/analysis-engine`, addendum P)
+## Native analysis engine - `kopruq-analysis-engine` (`backend/analysis-engine`, addendum P)
 
-Sixth step, same session: SPANOVA's own linear-elastic 3D direct-stiffness
+Sixth step, same session: KOPRUQ's own linear-elastic 3D direct-stiffness
 solver - the FAST/primary tier of the FAST/INTERMEDIATE/FINAL
 `AnalysisEngine` hierarchy this document already anticipated (section B;
 addendum P). Implements the existing `AnalysisEngine` port from
@@ -673,7 +673,7 @@ piers) rather than a synthetic example.
     applies boundary conditions (DOF reduction), solves, backs out
     reactions - the pure numerics, separated from the port/job wrapper
     so it is directly unit-testable.
-  - `SpanovaAnalysisEngine implements AnalysisEngine` - same
+  - `KopruqAnalysisEngine implements AnalysisEngine` - same
     synchronous-submit-to-completion shape as `MidasCivilNxAnalysisEngine`
     (MIDAS-P01 precedent), in-memory job map.
 - **Validated against textbook closed-form results**
@@ -686,7 +686,7 @@ piers) rather than a synthetic example.
   tolerance of 1e-9 (i.e. exactly, modulo floating point). These three
   cases independently exercise bending, axial, torsion-adjacent geometry,
   and the elastic link - not just one code path.
-- **`backend/api`'s `com.spanova.api.fastsolver` package**: `FastSolverRequest`
+- **`backend/api`'s `com.kopruq.api.fastsolver` package**: `FastSolverRequest`
   (the engineer's own form fields: span arrangement, pier heights, column/
   cap-beam dimensions, bearing stiffness, concrete fck, SDL),
   `FastSolverModelBuilder` (builds the actual `AnalysisRequest` - **modelling
@@ -702,7 +702,7 @@ piers) rather than a synthetic example.
   labelled rows (C1, P1-Left/Right, ..., C2) plus an independent
   equilibrium check (`totalAppliedLoadKn` computed directly from the
   model's own geometry vs. `totalReactionKn` from the solve).
-- **`FastSolverPanel.tsx`** (new): 'spanova-fast-solver' is real now, not
+- **`FastSolverPanel.tsx`** (new): 'kopruq-fast-solver' is real now, not
   a placeholder - a form defaulting to the engineer's own given values
   (185 m, 30+40+50+40+25 spans, pier heights 10/15/20/8 m, 2m x 4m
   columns spaced 8 m apart, 3.0 x 1.5 m cap beams, C30/37, SDL 10 kN/m,
@@ -759,7 +759,7 @@ not a nested sidebar tree) and a "Layout Design Space" screen
   instruction that clicking "Loads" shows the types in the main content
   area, not a nested sidebar tree.
 - **`LayoutDesignSpacePanel.tsx`** (new): 'layout-design-space' is real
-  now - matches the engineer's mockup exactly (Abutments: "SPANOVA
+  now - matches the engineer's mockup exactly (Abutments: "KOPRUQ
   determines C1/C2"; Superstructure: PC-01 30-40m/PC-02 35-45m/SC-01
   45-65m/SC-02 60-80m; Piers: Circular/Rectangular; Constraints: avoid
   road/railway/main river channel/poor ground, minimize tall
@@ -1079,9 +1079,9 @@ import button on Bridge Information.
 
 Same day, next request: apply the Loads tab-row pattern to Superstructure
 Families, and build Pier Families for real - 4 cross-section shapes with
-a per-shape "use in SPANOVA analyses" checkbox and min/max/delta
+a per-shape "use in KOPRUQ analyses" checkbox and min/max/delta
 dimension ranges (the engineer's own worked example: Circular D
-200-300cm step 25cm -> SPANOVA analyzes 200/225/250/275/300cm), scoped
+200-300cm step 25cm -> KOPRUQ analyzes 200/225/250/275/300cm), scoped
 explicitly to only the bridges that selected that shape.
 
 - **`TabDetailPanel.tsx`** (new, extracted from `LoadsPanel.tsx`): the
@@ -1094,7 +1094,7 @@ explicitly to only the bridges that selected that shape.
   interactivity, even though the detail parameters themselves aren't
   provided yet (same honest-placeholder text pattern as Loads).
 - **`PierFamiliesPanel.tsx`** (new) - 'pier-families' is real now. Per
-  shape (Rectangular/Circular/Oval/Box): a checkbox ("Use in SPANOVA
+  shape (Rectangular/Circular/Oval/Box): a checkbox ("Use in KOPRUQ
   analyses"), a redrawn inline-SVG cross-section diagram (cleaner than
   yesterday's source sketch - filled shape in the app's accent color,
   hand-drawn dimension-line arrows via small `HDim`/`VDim` helper
@@ -1125,7 +1125,7 @@ explicitly to only the bridges that selected that shape.
   Pier Families renders all 4 diagrams and tables, Circular's D column
   shows "200, 225, 250, 275, 300" as given; live-edited Rectangular's B
   min/max/delta (100/150/25) and confirmed the value list recalculated
-  to "100, 125, 150" immediately; confirmed the "Use in SPANOVA
+  to "100, 125, 150" immediately; confirmed the "Use in KOPRUQ
   analyses" checkbox toggles. No console errors. Test processes stopped
   after.
 - **Not done yet, by design**: none of this is wired into backend
@@ -1198,7 +1198,7 @@ drawing.
   `table-layout: auto`, and each pier shape rendered its own,
   independent `<table>` - so each table picked its own Min/Max/Delta
   column widths from its own content (label text length, the length of
-  its own "Values SPANOVA will use" list vs. "Not configured yet").
+  its own "Values KOPRUQ will use" list vs. "Not configured yet").
   Nothing tied one shape's table columns to another's.
 - **`paramSweep.tsx`** (new, shared) - extracted the "checkbox + diagram
   + min/max/delta table" card into `ParamSweepCard` (plus `Dimension`,
@@ -1271,7 +1271,7 @@ drawing.
 ### Update, same day: Oval's squeezed Values column fixed; precast girder diagram corrected against a clean reference drawing
 
 The engineer's very next message flagged two things still wrong: (1)
-Pier Families' Oval card's "Values SPANOVA will use" text was still
+Pier Families' Oval card's "Values KOPRUQ will use" text was still
 visibly cramped (screenshotted, circled in red - "Not configured yet"
 wrapping across 3 lines), and (2) sent a clean, purely-labeled reference
 diagram of the precast girder (no dimension values, just names) that
@@ -1316,19 +1316,19 @@ clarified what each of the 8 parameters actually measures.
 
 ## Frontend architecture migration - component-based, domain/feature-sliced (`frontend/`, 2026-09-12)
 
-The engineer flagged architectural problems in the real SPANOVA frontend
+The engineer flagged architectural problems in the real KOPRUQ frontend
 (everything flat under one `src/components/` folder, navigation a
 hand-rolled `active`-state switch, forms uncontrolled `useState` with no
 validation, the 3 backend-calling screens mixing `fetch()` directly into
 the UI) and provided a reference project,
-`C:\_ZHarput_Data\spanova-frontend` (also `CemHarput/spanova-frontend` on
+`C:\_ZHarput_Data\kopruq-frontend` (also `CemHarput/kopruq-frontend` on
 GitHub) - a **separate demo app** built to its own spec
-(`SPANOVA_React_Implementation_Plani.md`), not something whose
-screens/content should replace SPANOVA's own. The ask was to apply that
+(`KOPRUQ_React_Implementation_Plani.md`), not something whose
+screens/content should replace KOPRUQ's own. The ask was to apply that
 project's **architectural pattern** - `app/ -> pages/ -> features/<domain>/
 -> shared/`, plus its full tech stack (React Router, TanStack Query, React
 Hook Form + Zod, TanStack Table, Radix UI, Recharts, Vitest/RTL) - to the
-real SPANOVA frontend, confirmed via a clarifying question (the engineer
+real KOPRUQ frontend, confirmed via a clarifying question (the engineer
 chose full-stack adoption over a folder-only reorg), with the hard
 requirement that nothing already working breaks.
 
@@ -1362,7 +1362,7 @@ Executed as 4 sequential milestones (matching this repo's own
   not allowed to have, per the reference's own rule.
 - **Why there's only one `pages/` entry (`home`), not one per screen**:
   the reference's `pages/` composes *multiple* features into one screen;
-  SPANOVA shows exactly one section at a time, and `app/router.tsx`'s
+  KOPRUQ shows exactly one section at a time, and `app/router.tsx`'s
   route table plays that composition role for every other section - a
   separate pass-through `pages/<section>/` file per screen would be pure
   ceremony. `home` is different: it's the one screen that reads across a
@@ -1407,7 +1407,7 @@ Executed as 4 sequential milestones (matching this repo's own
 
 `GenerateWorkflow` (bridge-alternatives), `SiteLayoutPanel`
 (layout-generator, including its add/remove-able no-pier-zone list via
-`useFieldArray`), `FastSolverPanel` (spanova-fast-solver, including its
+`useFieldArray`), `FastSolverPanel` (kopruq-fast-solver, including its
 fixed-length span/pier-height arrays, registered by index - no
 `useFieldArray` needed since that test case's own geometry never
 adds/removes a span or pier). For each: a Zod schema
@@ -1475,7 +1475,7 @@ browser-install step and scenario design, not silently dropped.
 - **TanStack Table**: no current table needs sorting/filtering; forcing
   it onto `GenerateWorkflow`'s/`SiteLayoutPanel`'s read-only result
   tables would add UI capability nobody asked for.
-- **Recharts**: nothing in SPANOVA has chart-able data yet (P08/P09
+- **Recharts**: nothing in KOPRUQ has chart-able data yet (P08/P09
   aren't built); a demo chart with fake data would violate this repo's
   own "never invent engineering content" discipline.
 - **Radix Dialog**: no modal/dialog exists in the app; not forced in
@@ -1540,21 +1540,21 @@ smaller/cropped sidebar logo.
   strong the CSS was).
 - **Dark/light theme toggle** (`shared/ui/ThemeToggle.tsx`, sun/moon
   icon in TopBar's row 1): toggles `data-theme` on `<html>` and persists
-  to `localStorage` (`spanova.theme`); `main.tsx` applies the saved value
+  to `localStorage` (`kopruq.theme`); `main.tsx` applies the saved value
   synchronously before the first paint to avoid a flash. `index.css`
   gained a full `:root[data-theme='light']` palette (background/surface/
   border/text variables) alongside the existing dark set - every
   component already styled via `var(--...)` needed no further change.
   **The sidebar deliberately stays a fixed dark palette in both themes**
   (new non-themed `--sidebar-*` variables, not overridden by
-  `[data-theme='light']`): the SPANOVA logo PNG has a dark navy
+  `[data-theme='light']`): the KOPRUQ logo PNG has a dark navy
   background baked into the image itself, so a light sidebar would show
   it as a mismatched dark rectangle - a permanently-dark sidebar next to
   a light-or-dark content area is a common, deliberate pattern (VS Code,
   Vercel, Linear, etc.), not an oversight, and was the only way to keep
   the light theme looking coherent without re-exporting the logo image.
 - **Logo cropped, not re-exported**: the PNG (1536x1024) has the bridge
-  graphic + "SPANOVA" wordmark in its top ~74% and a barely-legible
+  graphic + "KOPRUQ" wordmark in its top ~74% and a barely-legible
   tagline ("COMPUTATIONAL & GENERATIVE BRIDGE DESIGN") in the rest -
   the engineer asked to make it legible or drop it, and not oversize the
   logo. Cannot edit a raster image's pixels directly, so
@@ -1799,7 +1799,7 @@ and feature changes.
 A new root-level `README.md` (project overview, doc index, repository
 layout, `start-dev.bat`/manual quick start, build status summary).
 `frontend/README.md` was still the unedited Vite template text (never
-mentioned SPANOVA) - rewritten with the real feature-sliced
+mentioned KOPRUQ) - rewritten with the real feature-sliced
 architecture, the actual `npm` commands, notable dependencies (React
 Router/TanStack Query/RHF+Zod/`xlsx` from the official SheetJS CDN/
 Radix Tabs/the still-unused TanStack Table+Recharts+Radix Dialog), and
@@ -2041,12 +2041,12 @@ added - flagged explicitly, not silently contradicted.
     results aren't persisted server-side today), so this matches the
     rest of the codebase rather than introducing a database decision
     nobody asked for.
-- **New `backend/api` endpoints**: `com.spanova.api.terrain.TerrainController`
+- **New `backend/api` endpoints**: `com.kopruq.api.terrain.TerrainController`
   (`POST /api/terrain/import`, `GET /api/terrain/{id}/mesh` - a flat,
   indexed-buffer-friendly payload, "do not send one object per
   triangle", vertices already translated by `localOrigin` so real-world
   coordinates never reach the frontend; `GET /api/terrain/{id}/elevation`)
-  and `com.spanova.api.alignment.AlignmentController`
+  and `com.kopruq.api.alignment.AlignmentController`
   (`POST /api/alignment/sample`) - a thin wrapper reusing the existing,
   already-tested `Alignment.toXYZ` to sample a straight alignment's
   (x,y) at a chainage step; **deliberately returns no z** (no vertical
@@ -2136,7 +2136,7 @@ round **extends** TERRAIN-P01's domain objects and the entire
 `features/terrain-viewer` 3D stack rather than rebuilding them.
 
 - **New backend module `backend/landxml-import`** (Spring-free, flat
-  `com.spanova.landxml` package - matches this project's actual module
+  `com.kopruq.landxml` package - matches this project's actual module
   convention, not the deeply-layered domain/application/infrastructure
   structure the engineer's own reference prompt suggested, which
   doesn't match how `terrain`/`alignment`/`constraints` are actually
@@ -2187,7 +2187,7 @@ round **extends** TERRAIN-P01's domain objects and the entire
   inline - fine when it was the only writer, but `LandXmlController`
   needed to write into the *same* repository so the existing
   `/api/terrain/{id}/mesh`/`elevation` endpoints could find a LandXML-
-  imported terrain too. New `com.spanova.api.config.SharedRepositoriesConfig`
+  imported terrain too. New `com.kopruq.api.config.SharedRepositoriesConfig`
   (`@Configuration`, two `@Bean`s: `TerrainRepository`,
   `LandXmlImportRepository`) - the only two components in this app that
   needed Spring-managed singleton sharing; every other service stays a
@@ -2279,7 +2279,7 @@ existed either, so the CODE/NA/OVERRIDE badge UI here is new), planned,
 approved, then implemented.
 
 - **New backend module `backend/traffic-loads`** (Spring-free, flat
-  `com.spanova.trafficloads` package - same convention as `terrain`/
+  `com.kopruq.trafficloads` package - same convention as `terrain`/
   `landxml-import`): `ParameterProvenance` (`CODE_DEFAULT`/
   `NATIONAL_ANNEX`/`PROJECT_OVERRIDE`) and `ParameterValue<T>` (a
   generic record with a *nullable* `value` - represents "genuinely
@@ -2426,7 +2426,7 @@ approved, then implemented.
 
 ## Unified application shell, Phase 2A (`frontend/src/app/`, 2026-09-17)
 
-- `/` and `/home` now redirect to `/project`; the SPANOVA wordmark also
+- `/` and `/home` now redirect to `/project`; the KOPRUQ wordmark also
   navigates to `/project`. The legacy Home screen is no longer a separate
   application entry point.
 - Every path renders the permanent TopWorkspaceNav. Workspace routes use
@@ -2464,7 +2464,7 @@ approved, then implemented.
   shape. It stores identity, stakeholder/date/description, location, design
   code selections, units, coordinate system fields and extensible criteria.
   Existing `BridgeRow[]` remains the bridge inventory model. Both are held in
-  app-owned state and persisted together in `spanova.project-workspace.v1`;
+  app-owned state and persisted together in `kopruq.project-workspace.v1`;
   no second project persistence mechanism was added.
 - Edit Project uses an inspector draft. Save updates shared app state and
   persistence; Cancel discards the draft. Workspace navigation preserves
@@ -2491,7 +2491,7 @@ approved, then implemented.
 
 ## Bridge Definition workspace, Phase 2C (2026-09-17)
 
-- Added the canonical Bridge Definition workspace with the requested hierarchical Alignment, Span Arrangement, Superstructure, Supports, Foundations, Bearings, Construction, Constraints and Assembly navigation. A selector reuses the existing project bridge inventory; selection and each bridge definition are persisted in `spanova.bridge-definitions.v1`.
+- Added the canonical Bridge Definition workspace with the requested hierarchical Alignment, Span Arrangement, Superstructure, Supports, Foundations, Bearings, Construction, Constraints and Assembly navigation. A selector reuses the existing project bridge inventory; selection and each bridge definition are persisted in `kopruq.bridge-definitions.v1`.
 - Bridge-instance spans are explicitly entered as individual lengths. Existing `BridgeRow.spansM` values remain inventory alternatives and are shown as such; they are not silently copied into a selected layout. Support axes and chainages are derived from the explicit sequence. Family relationships are stored as existing catalog IDs, including girder variant/family IDs and pier, pier cap, foundation and bearing IDs. Bridge-specific heights, elevations, bearing arrangement, deck override, constraints, method and descriptive stage note stay on the bridge definition.
 - Project terrain dataset and LandXML import references were added to the existing Project workspace record, so multiple bridges can share source data. Existing LandXML import, terrain DTM, terrain viewer and profile chart components are mounted in the new workspace. Plan/Profile drawings are schematic views of the same entered span/axis data; the 3D viewer currently displays the existing terrain/alignment content and does not generate a bridge model.
 - Migration map: `/alignment`, `/terrain-dtm`, `/3d-visualization`, `/constraints`, `/bridge-site`, and existing bridge component URLs now enter Bridge Definition. `/bridge-inventory` enters Project > Bridge Information. GIS/Satellite, Geotechnical and Hydrology remain Project-level integrations. Layout Generator, Layout Alternatives, Selected Layout and Bridge Alternatives remain generation workflows (Graph workspace/legacy feature routes), and were not moved into Bridge Definition.
@@ -2505,13 +2505,13 @@ approved, then implemented.
 | Category | Existing model and editor | Preview / persistence / identity | Phase 2D destination |
 |---|---|---|---|
 | Superstructure | `SuperstructureFamiliesPanel` with existing Precast cross-section inputs; PSC and Steel/Composite are placeholders | Existing diagram; values stay in app-owned cross-section state; no stable superstructure family ID | Reused under Family Tables. No new family record or ID invented. |
-| Girder | `GirderLibraryPanel`; Precast parameter sweep and generated variants; Steel/Box remain placeholders | Existing girder shape; dimensions/enabled persisted at `spanova.girder-library.precast`; canonical `PG-200`, generated variant IDs `PG-Hâ€¦` | Reused; registry adapter maps existing definition to `PG-200`, without another store. |
-| Pier | Most complete existing family workflow, used as interaction reference | Existing section generator, shape preview, height applicability and persisted stable IDs at `spanova.project-design-system.pier-families` | Reused unchanged in its engineering calculations; catalog selection also updates Family Inspector. |
-| Pier Cap | Existing Pier Cap rule model, variant generator, schematic and catalog | Persisted stable IDs at `spanova.project-design-system.pier-cap-families` | Reused; Bridge Definition usage is indexed for delete protection. |
+| Girder | `GirderLibraryPanel`; Precast parameter sweep and generated variants; Steel/Box remain placeholders | Existing girder shape; dimensions/enabled persisted at `kopruq.girder-library.precast`; canonical `PG-200`, generated variant IDs `PG-Hâ€¦` | Reused; registry adapter maps existing definition to `PG-200`, without another store. |
+| Pier | Most complete existing family workflow, used as interaction reference | Existing section generator, shape preview, height applicability and persisted stable IDs at `kopruq.project-design-system.pier-families` | Reused unchanged in its engineering calculations; catalog selection also updates Family Inspector. |
+| Pier Cap | Existing Pier Cap rule model, variant generator, schematic and catalog | Persisted stable IDs at `kopruq.project-design-system.pier-cap-families` | Reused; Bridge Definition usage is indexed for delete protection. |
 | Abutment | No reusable Abutment family model/editor/catalog found; prior route is a placeholder | No stable family IDs or reusable geometry/persistence to migrate | Shown disabled with an explicit unavailable state; no fake family created. |
-| Foundation | Existing shallow/piled family model, generator, validation and plan/elevation schematic | Persisted stable IDs at `spanova.project-design-system.foundation-families`; current service derives piled Lx/Ly using X/Y spacing independently | Reused in one Foundation editor; clicking a catalog row loads it for editing. |
-| Bearing | Existing Elastomeric family/rule model, generator, validation and schematic | Persisted stable IDs at `spanova.project-design-system.bearing-families` | Reused; Bridge Definition usage is indexed for delete protection. |
-| Material | Existing concrete class by structural element table, using EN 1992-1-1 class names | Previously transient; assignments now persist under `spanova.project-design-system.material-assignments` with stable element keys. This is still a class assignment table, not a full material property model. | Reused under Family Tables; class-code adapters identify the shown material entries. No mechanical properties invented. |
+| Foundation | Existing shallow/piled family model, generator, validation and plan/elevation schematic | Persisted stable IDs at `kopruq.project-design-system.foundation-families`; current service derives piled Lx/Ly using X/Y spacing independently | Reused in one Foundation editor; clicking a catalog row loads it for editing. |
+| Bearing | Existing Elastomeric family/rule model, generator, validation and schematic | Persisted stable IDs at `kopruq.project-design-system.bearing-families` | Reused; Bridge Definition usage is indexed for delete protection. |
+| Material | Existing concrete class by structural element table, using EN 1992-1-1 class names | Previously transient; assignments now persist under `kopruq.project-design-system.material-assignments` with stable element keys. This is still a class assignment table, not a full material property model. | Reused under Family Tables; class-code adapters identify the shown material entries. No mechanical properties invented. |
 
 - Added a Family Tables workspace with the supported categories above, central existing editors/tables/previews and a context Inspector. Foundation replaces the separate Pile shortcut with its existing Shallow/Piled type selector. Existing `SystemAssemblyPanel` is a family-composition template, Preferred Span is a girder rule, and Standardization Rules are not reusable component families; their source/legacy routes remain, but they are not shown as family categories.
 - The new `family-registry` module is a read-through adapter over feature-owned stores, not a second database. It supplies stable-ID lookup and bridge-usage references. Pier, Pier Cap, Foundation and Bearing deletion is blocked while an ID is referenced by a bridge definition; the error lists bridge and axis. Girder, Superstructure and Material have no family deletion operation in their existing editors.
@@ -2521,7 +2521,7 @@ approved, then implemented.
 
 ## Architecture realignment and Family Repository, Phase 2E (2026-09-17)
 
-- Removed Bridge Definition from primary top navigation while retaining `/bridge-definition` as an internal compatibility/development route. Existing bridge definitions and UI modules remain intact. See `docs/spanova-data-architecture.md` for the ownership boundary and reuse inventory.
+- Removed Bridge Definition from primary top navigation while retaining `/bridge-definition` as an internal compatibility/development route. Existing bridge definitions and UI modules remain intact. See `docs/kopruq-data-architecture.md` for the ownership boundary and reuse inventory.
 - Added `family-registry/model/familyRepository.ts` as the shared access boundary over existing catalog keys, plus `useFamilyCatalog` for the supported editable family catalogs. Pier, Pier Cap, Foundation and Bearing editors now publish edits through the shared repository subscription. Existing keys, payload formats and IDs are preserved.
 - Bridge Definition and System Assembly resolve those family records through the repository. Girder Library's existing singleton payload is read/written through a repository adapter without changing its storage shape. Family selection/Inspector records remain projections, not another catalog.
 - Added a Graph family reference/parameter-schema adapter. References contain category and stable `familyId`; resolution reads the current persisted family data. Added the `GeneratedBridgeModel` output boundary only; no Graph nodes, generation, FEM or optimization were implemented.
@@ -2530,10 +2530,10 @@ approved, then implemented.
 
 ## Visual Graph Foundation, Phase 3A (2026-09-17)
 
-- The Graph workspace uses the existing `WorkspaceLayout`; its left panel is the registry-driven Node Library, the center is the XYFlow canvas, and the right panel is the node Inspector. The canvas adapter translates between XYFlow view nodes/edges and the independent, serializable SPANOVA graph domain.
+- The Graph workspace uses the existing `WorkspaceLayout`; its left panel is the registry-driven Node Library, the center is the XYFlow canvas, and the right panel is the node Inspector. The canvas adapter translates between XYFlow view nodes/edges and the independent, serializable KOPRUQ graph domain.
 - The graph registry currently exposes only Number, Integer, Boolean, Range, Add, Subtract, Multiply, Divide and Watch. Registry schemas define ports, parameters, defaults, validation and execution. Engineering, family, bridge, loads and analysis nodes are reserved types only and are not exposed or executable in this phase.
 - The graph engine validates node types, parameter keys and values, port compatibility, single-input connections, required inputs and cycles before topological execution. It reports per-node results and errors to Watch, node states and Graph Log.
-- `GraphStore` persists multiple graph documents at `spanova.graph.documents.v1`, with per-document edit history and JSON round-trip. React Flow remains a replaceable UI adapter and does not own authoritative graph data.
+- `GraphStore` persists multiple graph documents at `kopruq.graph.documents.v1`, with per-document edit history and JSON round-trip. React Flow remains a replaceable UI adapter and does not own authoritative graph data.
 - Phase boundary: no Family Repository, Loads, Bridge Definition, generated bridge model or Analysis integration was added. The next integration point is Phase 3B family data nodes.
 
 ## Graph Connection Stability and Authoring Architecture Lock, Phase 3A.1 (2026-09-17)
@@ -2541,7 +2541,7 @@ approved, then implemented.
 - Live browser reproduction identified a React Flow `StoreUpdater` update-depth loop. `onSelectionChange` unconditionally created new selected-ID arrays; those arrays rebuilt the controlled node objects, React Flow synchronized them back into its store, and repeated selection updates re-entered the cycle. The development console reported `Maximum update depth exceeded` from `StoreUpdater` / `setNodes`.
 - The Graph Store is now the sole persistent topology source. Node and edge props are memoized projections; selection updates are ignored when IDs did not change. Only in-progress node drag positions live temporarily in UI state and commit once at drag end. Interactive connection checks are pure Level 1 port/existence/type/multiplicity checks; cycles and readiness are checked by full validation on Run. A valid connection causes one store update and one undo entry; duplicate/invalid connections are ignored.
 - Watch uses the explicit `display:any` sink type for supported display values (number, integer, boolean, string, and numeric arrays). Engineering port types remain domain-specific and cannot connect to this display sink.
-- **Architecture lock:** Graph is SPANOVA's future primary engineering definition and authoring environment. Engineering values and candidate families will be node-driven; Family Tables remains transitional UI and stays in primary navigation for now. Reuse validated domain calculations from existing features as one implementation, called by nodes, rather than copying calculations into UI or graph code. Graph execution remains headless and independent from React/XYFlow. Generated bridge models are outputs of Graph generation, not manually authored Bridge Definition state.
+- **Architecture lock:** Graph is KOPRUQ's future primary engineering definition and authoring environment. Engineering values and candidate families will be node-driven; Family Tables remains transitional UI and stays in primary navigation for now. Reuse validated domain calculations from existing features as one implementation, called by nodes, rather than copying calculations into UI or graph code. Graph execution remains headless and independent from React/XYFlow. Generated bridge models are outputs of Graph generation, not manually authored Bridge Definition state.
 - Future node classes are Data, Engineering, and Logic/Generator. Future ports are typed domain values and candidate lists (materials, girders, piers, caps, piles, foundations, bearings, alignments, terrain, bridges, analysis, design and optimization results); these are documented direction only and are not implemented in Phase 3A.1. Scalar/list propagation and candidate pairing semantics must be specified before engineering-node implementation. Project environmental data remains Project-owned; Loads workspace remains unchanged in this phase.
 - Phase 3B replaces the former read-only Family Repository node proposal: begin the engineering node library for Material, Pier and Foundation, with exact domain contracts and reuse boundaries defined before implementation. No engineering nodes were added in this stability phase.
 
@@ -2558,7 +2558,7 @@ approved, then implemented.
 ## Graph connection display styles, Phase 3A.2 (2026-09-17)
 
 - The Graph canvas exposes Smooth and Orthogonal connection rendering. With installed `@xyflow/react` 12.11.3, Smooth maps to its built-in `default` Bezier edge and Orthogonal maps to built-in `step` routing.
-- The preference is stored separately from graph documents at `spanova.graph.view-preferences.v1`, defaults to Smooth, and is restored when the Graph workspace opens. It is not part of `SpanovaConnection` or graph undo history.
+- The preference is stored separately from graph documents at `kopruq.graph.view-preferences.v1`, defaults to Smooth, and is restored when the Graph workspace opens. It is not part of `KopruqConnection` or graph undo history.
 - Switching style only remaps the memoized React Flow edge projection. It does not write GraphStore, alter IDs/topology/node positions, validate or execute the graph, or serialize connections.
 
 ## Pier engineering nodes, Phase 3B.2 (2026-09-18)
@@ -2593,7 +2593,7 @@ approved, then implemented.
 
 - Existing XYFlow edge endpoints enter a temporary reconnection interaction. GraphStore changes only on release: valid replacements preserve the connection ID and commit as one undoable update; returning to the same source or releasing on empty canvas removes the connection in one undoable update; Escape calls XYFlow's cancellation action and preserves the edge. Invalid drops on another handle preserve the original edge.
 - Reconnect validation projects a temporary graph without the edge being edited. This permits replacing an occupied target input while retaining pure compatibility checks and avoiding GraphStore changes during pointer movement.
-- React Flow selection arrays are compared by membership before state updates. Selection/runtime state remains outside GraphStore and clipboard data. Clipboard stores only cloned SpanovaNode/SpanovaConnection authoring data and clones with fresh IDs.
+- React Flow selection arrays are compared by membership before state updates. Selection/runtime state remains outside GraphStore and clipboard data. Clipboard stores only cloned KopruqNode/KopruqConnection authoring data and clones with fresh IDs.
 - The adapter cheaply previews deterministic primitive, range, quantity and configured concrete input outputs, resolving them at the target port with project units. Run results override preview values; failed resolution/execution displays an error state. Pier generation is not run during rendering.
 - Added generic read-only List output node; it accepts the generic display input, renders primitive/quantity/domain rows, formats PierCandidates with project units, and expands candidate fields. It renders 50 rows per page inside a fixed-height scroll region.
 - Exact mixed-input Pier generation and Range-to-Pier-to-List execution order are covered by engine tests. No additional engineering family was added.
@@ -2719,7 +2719,7 @@ approved, then implemented.
 - Foundation Inspector SVGs now show the actual shallow footing and piled cap bodies in PLAN and SECTION, including pile positions/extensions, dimensions, derived Lx/Ly and Bridge Axis. Pile extension is schematic only when no engineering length exists.
 - Bearing PLAN dimension spacing separates the title, arrows, labels and outline at compact Inspector widths. H-section Pier remains 90-degree oriented and uses a visibly substantial continuous concrete web while reading the unchanged B, D, tw and tf values.
 - The active workspace navigation mounts the shared persisted Dark/Light toggle. Theme variables cover the shell, graph, nodes, Inspector, controls and dialogs while preserving structural orange and connection visibility.
-- The original `Spanova_logo.png` is served unchanged from `frontend/public/Spanova_logo.png` and is displayed with contain sizing in the navigation brand link.
+- The original `Kopruq_logo.png` is served unchanged from `frontend/public/Kopruq_logo.png` and is displayed with contain sizing in the navigation brand link.
 
 ## Light Mode, Foundation, H-Section and Bearing Drawing Corrections, Phase 3E.4 (2026-09-19)
 
@@ -2755,7 +2755,7 @@ Precast Girder local defaults now use independent existing Family dimension valu
 
 ## Precast Inspector Geometry and Unit Precision, Phase 3F.2 (2026-09-19)
 
-`convertQuantity` now removes binary floating-point presentation noise with a precision-preserving significant-digit normalization. The shared `bulbTeeGirderPath` function is used as the canonical Family/Inspector outline source, with independent H, tf, bf, w, th1, th2, bh1 and bh2 dimensions. Chrome verification captured `%TEMP%/spanova-precast-3f2.png` and confirmed the Girder Height unit switch displays exactly `1900` for `mm`.
+`convertQuantity` now removes binary floating-point presentation noise with a precision-preserving significant-digit normalization. The shared `bulbTeeGirderPath` function is used as the canonical Family/Inspector outline source, with independent H, tf, bf, w, th1, th2, bh1 and bh2 dimensions. Chrome verification captured `%TEMP%/kopruq-precast-3f2.png` and confirmed the Girder Height unit switch displays exactly `1900` for `mm`.
 
 ## Precast Girder Candidate Preview and List Compatibility, Phase 3F.3 (2026-09-19)
 

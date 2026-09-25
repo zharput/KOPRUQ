@@ -81,7 +81,7 @@ const ICONS: Record<SectionId, LucideIcon> = {
   'bridge-foundations': Building2,
   'bridge-alternatives': PenTool,
   'model-reduction': Cpu,
-  'spanova-fast-solver': Zap,
+  'kopruq-fast-solver': Zap,
   'analysis-queue': ListChecks,
   results: BarChart2,
   'opensees-verification': CheckCircle2,
@@ -135,7 +135,7 @@ export default function Sidebar() {
     <aside className="spn-sidebar">
       <div className="spn-sidebar-logo">
         <div className="spn-sidebar-logo-crop">
-          <img src="/spanova-logo.png" alt="SPANOVA" />
+          <img src="/kopruq-logo.png" alt="KOPRUQ" />
         </div>
       </div>
 

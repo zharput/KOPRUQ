@@ -6,13 +6,13 @@ vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div clas
 
 beforeEach(() => {
   window.history.pushState({}, '', '/')
-  localStorage.removeItem('spanova.project-workspace.v1')
-  localStorage.removeItem('spanova.bridge-definitions.v1')
-  localStorage.removeItem('spanova.project-design-system.pier-families')
-  localStorage.removeItem('spanova.project-design-system.pier-cap-families')
-  localStorage.removeItem('spanova.project-design-system.foundation-families')
-  localStorage.removeItem('spanova.project-design-system.bearing-families')
-  localStorage.removeItem('spanova.graph.documents.v1')
+  localStorage.removeItem('kopruq.project-workspace.v1')
+  localStorage.removeItem('kopruq.bridge-definitions.v1')
+  localStorage.removeItem('kopruq.project-design-system.pier-families')
+  localStorage.removeItem('kopruq.project-design-system.pier-cap-families')
+  localStorage.removeItem('kopruq.project-design-system.foundation-families')
+  localStorage.removeItem('kopruq.project-design-system.bearing-families')
+  localStorage.removeItem('kopruq.graph.documents.v1')
 })
 
 describe('App workspace shell', () => {
@@ -22,16 +22,16 @@ describe('App workspace shell', () => {
     expect(screen.getByRole('heading', { name: 'Project Overview' })).toBeInTheDocument()
     expect(within(screen.getByRole('complementary', { name: 'Project sections' })).getByRole('button', { name: 'Overview' })).toHaveClass('active')
     expect(screen.getByRole('link', { name: 'Project' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.queryByText('Welcome to SPANOVA')).not.toBeInTheDocument()
+    expect(screen.queryByText('Welcome to KOPRUQ')).not.toBeInTheDocument()
     expect(document.querySelector('.spn-sidebar')).not.toBeInTheDocument()
   })
 
-  it('returns to Project Overview when the SPANOVA logo is clicked', async () => {
+  it('returns to Project Overview when the KOPRUQ logo is clicked', async () => {
     window.history.pushState({}, '', '/graph')
     render(<App />)
     const user = userEvent.setup()
     expect(screen.getByRole('heading', { name: 'Graph Workspace' })).toBeInTheDocument()
-    await user.click(screen.getByRole('link', { name: 'SPANOVA Project Overview' }))
+    await user.click(screen.getByRole('link', { name: 'KOPRUQ Project Overview' }))
     expect(window.location.pathname).toBe('/project')
     expect(screen.getByRole('link', { name: 'Project' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('heading', { name: 'Project Overview' })).toBeInTheDocument()
@@ -98,7 +98,7 @@ describe('App workspace shell', () => {
   })
 
   it('shows the selected family ID and blocks deletion while Bridge Definition uses it', async () => {
-    localStorage.setItem('spanova.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
+    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
     render(<App />)
     const user = userEvent.setup()
     await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
@@ -159,7 +159,7 @@ describe('App workspace shell', () => {
 
   it('derives support axes from explicit bridge spans and assigns family IDs without copying catalog data', async () => {
     const pierCatalog = [{ id: 'PIER-01', name: 'Pier Family A', enabled: true }]
-    localStorage.setItem('spanova.project-design-system.pier-families', JSON.stringify(pierCatalog))
+    localStorage.setItem('kopruq.project-design-system.pier-families', JSON.stringify(pierCatalog))
     window.history.pushState({}, '', '/bridge-definition')
     render(<App />)
     const user = userEvent.setup()
@@ -171,8 +171,8 @@ describe('App workspace shell', () => {
     await user.click(screen.getByText('P1'))
     const pierFamily = screen.getByRole('combobox', { name: 'Pier Family' })
     await user.selectOptions(pierFamily, 'PIER-01')
-    expect(JSON.parse(localStorage.getItem('spanova.bridge-definitions.v1') ?? '{}').definitions['VIA-01'].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
-    expect(JSON.parse(localStorage.getItem('spanova.project-design-system.pier-families') ?? '[]')).toEqual(pierCatalog)
+    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}').definitions['VIA-01'].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
+    expect(JSON.parse(localStorage.getItem('kopruq.project-design-system.pier-families') ?? '[]')).toEqual(pierCatalog)
   })
 
   it('opens the existing Loads feature at /loads', async () => {
@@ -248,7 +248,7 @@ describe('App workspace shell', () => {
     await user.type(editProperties.getByLabelText('Project Name'), 'Test Bridge Project')
     await user.click(editProperties.getByRole('button', { name: 'Save' }))
     expect(document.querySelector('.spn-project-name')).toHaveTextContent('Test Bridge Project')
-    expect(JSON.parse(localStorage.getItem('spanova.project-workspace.v1') ?? '{}').project.name).toBe('Test Bridge Project')
+    expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.name).toBe('Test Bridge Project')
   })
 
   it('preserves Project state across workspace navigation and browser refresh', async () => {
@@ -259,7 +259,7 @@ describe('App workspace shell', () => {
     await user.type(properties.getByLabelText('Project Name'), 'Persistent Project')
     await user.click(properties.getByRole('button', { name: 'Save' }))
     await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
-    await user.click(screen.getByRole('link', { name: 'SPANOVA Project Overview' }))
+    await user.click(screen.getByRole('link', { name: 'KOPRUQ Project Overview' }))
     expect(document.querySelector('.spn-project-name')).toHaveTextContent('Persistent Project')
     firstApp.unmount()
     const app = render(<App />)

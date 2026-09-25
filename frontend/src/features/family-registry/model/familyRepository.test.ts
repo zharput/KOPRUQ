@@ -14,7 +14,7 @@ describe('Family Repository', () => {
     saveFamilyRecords('PIER', [updated])
     expect(getFamilyRecord('PIER', 'P-01')).toEqual(updated)
     expect(graphFamilyAdapter.resolve(ref)).toEqual(updated)
-    expect(localStorage.getItem('spanova.project-design-system.pier-families')).toContain('P-01')
+    expect(localStorage.getItem('kopruq.project-design-system.pier-families')).toContain('P-01')
   })
 
   it('exposes editable and derived piled foundation parameters without duplicating values', () => {

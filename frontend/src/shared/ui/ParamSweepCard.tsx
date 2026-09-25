@@ -11,7 +11,7 @@ import type { Dimension } from './generation'
  * callbacks), so it lives in `shared/ui` per the architecture migration
  * (2026-09-12) rather than in either feature.
  *
- * <p>Values-SPANOVA-will-use convention (spec section 22 - never invent
+ * <p>Values-KOPRUQ-will-use convention (spec section 22 - never invent
  * a spread): a dimension's min/max/delta all exactly 0 means "not
  * configured yet" (shown as such, not as a value list). Otherwise, if
  * min === max, that is a single confirmed value (not a fabricated
@@ -51,7 +51,7 @@ export function VDim({ y1, y2, x, label, labelX }: { y1: number; y2: number; x: 
 }
 
 /**
- * One card: a header row (title + "use in SPANOVA analyses" checkbox),
+ * One card: a header row (title + "use in KOPRUQ analyses" checkbox),
  * a full-width diagram row, and a min/max/delta parameter table below
  * it (2026-09-13, engineer's own instruction: diagram as a full row on
  * top, parameters underneath - not side by side as before, which also
@@ -91,7 +91,7 @@ export function ParamSweepCard({
             disabled={!onToggleEnabled}
             onChange={(e) => onToggleEnabled?.(e.target.checked)}
           />
-          <span>Use in SPANOVA analyses</span>
+          <span>Use in KOPRUQ analyses</span>
         </label>
       </div>
 

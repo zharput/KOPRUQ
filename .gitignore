@@ -1,5 +1,5 @@
 # ============================================================
-# SPANOVA - .gitignore
+# KOPRUQ - .gitignore
 # ============================================================
 
 
@@ -112,18 +112,19 @@ Desktop.ini
 
 
 # ------------------------------------------------------------
-# SPANOVA - Local Terrain / Large Project Data
+# KOPRUQ - Local Terrain / Large Project Data
 # ------------------------------------------------------------
-spanova_data/SP2 HARITA.xml
-spanova_data/SP2.dtm
+kopruq_data/SP2 HARITA.xml
+kopruq_data/SP2.dtm
+kopruq_data/SP2_DTM.dwg
 
 
 # ------------------------------------------------------------
-# SPANOVA - Local Generated / Temporary Data
+# KOPRUQ - Local Generated / Temporary Data
 # ------------------------------------------------------------
-spanova_data/temp/
-spanova_data/cache/
-spanova_data/generated/
+kopruq_data/temp/
+kopruq_data/cache/
+kopruq_data/generated/
 
 
 # ------------------------------------------------------------

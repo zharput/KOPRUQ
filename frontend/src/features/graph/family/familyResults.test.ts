@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import type { GraphExecutionResult, SpanovaGraph } from '../domain/types'
+import type { GraphExecutionResult, KopruqGraph } from '../domain/types'
 import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from './familyResults'
 
-const graph = (bridgeId = 'bridge-1', parameter = 3): SpanovaGraph => ({ id: 'graph-1', bridgeId, projectId: 'project-1', name: 'Graph', schemaVersion: 1, nodes: [{ id: 'pier-1', type: 'substructure.pier.rectangular', name: 'Pier', position: { x: 10, y: 20 }, parameters: { widthValue: parameter, widthUnit: 'm' } }], connections: [] })
+const graph = (bridgeId = 'bridge-1', parameter = 3): KopruqGraph => ({ id: 'graph-1', bridgeId, projectId: 'project-1', name: 'Graph', schemaVersion: 1, nodes: [{ id: 'pier-1', type: 'substructure.pier.rectangular', name: 'Pier', position: { x: 10, y: 20 }, parameters: { widthValue: parameter, widthUnit: 'm' } }], connections: [] })
 const result = (candidateId = 'candidate-1'): GraphExecutionResult => ({ values: { 'pier-1': { candidates: [{ id: candidateId, pierType: 'RECTANGULAR', geometry: { width: 3, depth: 1.5 }, columnCount: 1, heightM: 10, material: { domainType: 'ConcreteMaterial', id: 'c40', name: 'C40/50', properties: {} } }] } }, resolvedInputs: {}, watchValues: {}, errors: {}, logs: [] })
 
 describe('Family calculation result adapter', () => {

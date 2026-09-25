@@ -1,17 +1,17 @@
-# SPANOVA Site/Corridor & Bridge Layout Platform - Architecture Analysis
+# KOPRUQ Site/Corridor & Bridge Layout Platform - Architecture Analysis
 
 Status: **analysis only, no code written.** Per the engineer's own
 instruction (2026-09-10): review, propose, then stop for approval.
 
 ## 0. Relationship to the existing spec - this is not a new direction
 
-`docs/SPANOVA_MASTER_SPEC.md` already named this scope, deliberately
+`docs/KOPRUQ_MASTER_SPEC.md` already named this scope, deliberately
 deferred:
 
 - Section 7 (Bridge Kernel) lists `Alignment`, `Terrain`, `Geotechnics`,
   `Constraints` directly under `Bridge` in "the long-term domain model"
   and says explicitly "Do NOT implement all of these immediately."
-- Section 19 (original C# solution structure) names a `Spanova.Geometry`
+- Section 19 (original C# solution structure) names a `Kopruq.Geometry`
   module for "Alignment, Span layout, Bridge geometry logic" - never
   built (see `docs/architecture.md`'s own "open questions" list, which
   already flagged this exact gap).
@@ -74,7 +74,7 @@ Alternative" and "Analysis" layers at the bottom of a much taller stack.
 | Layout vs. structural optimization split (§16) | MISSING (optimization itself doesn't exist yet at all - P09) |
 | Project/corridor optimization (§17) | MISSING |
 | Site Intelligence / external data (§18-23) | MISSING |
-| Fast solver / OpenSees / MIDAS separation (§24-25) | **PARTIAL** - the `AnalysisEngine` port (P06) already exists and already proves the pattern works (MIDAS is the only implementation so far, but the interface has no MIDAS-specific method, and `EurocodeConcrete`/domain types in `analysis-api` are solver-independent) - adding `SpanovaFastSolver`/`OpenSeesAdapter` later is additive, not a redesign |
+| Fast solver / OpenSees / MIDAS separation (§24-25) | **PARTIAL** - the `AnalysisEngine` port (P06) already exists and already proves the pattern works (MIDAS is the only implementation so far, but the interface has no MIDAS-specific method, and `EurocodeConcrete`/domain types in `analysis-api` are solver-independent) - adding `KopruqFastSolver`/`OpenSeesAdapter` later is additive, not a redesign |
 | Frontend navigation (§26) | **NEEDS REFACTOR** - see K below |
 | Bridge Site screen (§27-29) | MISSING - closest existing analog is `ProjectPanel.tsx`, which is a static fact sheet with zero map/spatial content |
 | Layout Generator / Alternatives screens (§30-31) | MISSING (existing `GenerateWorkflow` table is structural-alternative-only, not layout-alternative) |
@@ -248,7 +248,7 @@ public record ConstraintCheckResult(String constraintId, boolean violated, Strin
 
 /** Converts an approved BridgeLayoutAlternative into bridge-core's existing BridgeAlternative generation scope - the seam between the new layer and everything already built. */
 public interface StructuralAlternativeBuilder {
-    com.spanova.bridgecore.DesignSpace toStructuralDesignSpace(BridgeLayoutAlternative layout, LayoutDesignSpace layoutSpace);
+    com.kopruq.bridgecore.DesignSpace toStructuralDesignSpace(BridgeLayoutAlternative layout, LayoutDesignSpace layoutSpace);
 }
 
 
@@ -557,7 +557,7 @@ milestone (explain -> assumptions -> ask -> approved scope only -> stop):
 9. **`StructuralAlternativeBuilder`** - the seam connecting a selected
    `BridgeLayoutAlternative` into the *existing* `generative-engine`/
    `rules-engine`/`analysis-api` chain, now targeting the native
-   `spanova-analysis-engine` (see addendum P) instead of `midas-adapter`.
+   `kopruq-analysis-engine` (see addendum P) instead of `midas-adapter`.
 10. Geotechnical/hydraulic/seismic spatial models, foundation-level
     derivation - layered in once layout generation itself is proven.
 11. Site Intelligence providers - only once a specific external service
@@ -653,10 +653,10 @@ already built.
 
 ---
 
-## P. Addendum (2026-09-10): MIDAS out, native SPANOVA analysis engine in
+## P. Addendum (2026-09-10): MIDAS out, native KOPRUQ analysis engine in
 
-**Engineer's instruction, verbatim intent:** SPANOVA will no longer use
-MIDAS Civil NX for analysis. SPANOVA gets its **own** analysis engine.
+**Engineer's instruction, verbatim intent:** KOPRUQ will no longer use
+MIDAS Civil NX for analysis. KOPRUQ gets its **own** analysis engine.
 Bridge models are simplified for speed: superstructure and piers as
 **1D frame elements**, bearings as **elastic-link elements** (same
 Kx/Ky/Kz-supplied-externally approach already agreed for P07), and
@@ -668,10 +668,10 @@ optimization loops (G, J above) - something a MIDAS WebSocket-relay
 round trip per request cannot do.
 
 **This is a direct, positive resolution of an open question this
-document itself raised**: non-negotiable principle "SPANOVA independent
+document itself raised**: non-negotiable principle "KOPRUQ independent
 from MIDAS/OpenSees" (prompt section 41) and the `IAnalysisEngine`
 FAST/INTERMEDIATE/FINAL hierarchy referenced in B above already
-anticipated a `SpanovaFastSolver`. This instruction confirms that
+anticipated a `KopruqFastSolver`. This instruction confirms that
 solver is not just a fast pre-screening tier alongside MIDAS - it
 **replaces** MIDAS as the analysis engine for the whole pipeline
 (existing structural-alternative flow *and* the new layout engine).
@@ -681,7 +681,7 @@ solver is not just a fast pre-screening tier alongside MIDAS - it
   `midas-adapter` chain (P06, verified live twice) stays as **working,
   historically-verified reference code**, but is no longer the target
   for new development. A new port implementation,
-  `spanova-analysis-engine` (module name pending), becomes the primary
+  `kopruq-analysis-engine` (module name pending), becomes the primary
   `AnalysisEngine` adapter.
 - **D (Bridge Layout Engine)** - the layout engine's own scoring
   (`PreliminaryQuantityEstimator`/`LayoutScoringEngine`) was already
@@ -701,14 +701,14 @@ solver is not just a fast pre-screening tier alongside MIDAS - it
   once a bridge alternative is selected (post-optimization), that single
   design gets a detailed MIDAS NX run for final verification. It is
   never invoked during optimization/layout screening - that is entirely
-  `spanova-analysis-engine`'s job. This is the FINAL tier of the
+  `kopruq-analysis-engine`'s job. This is the FINAL tier of the
   FAST/INTERMEDIATE/FINAL `AnalysisEngine` hierarchy already anticipated
   in section B.
 
 **Engineering questions - resolved 2026-09-10:**
 
 1. **Analysis method**: linear-elastic only. No geometric or material
-   nonlinearity. Confirmed - `spanova-analysis-engine` implements the
+   nonlinearity. Confirmed - `kopruq-analysis-engine` implements the
    classical linear direct stiffness method, nothing else, for now.
 2. **Foundation springs**: **all 6 DOF** used (Kx, Ky, Kz, Krx, Kry,
    Krz) - not translational-only. Real per-site values will be entered
@@ -734,7 +734,7 @@ solver is not just a fast pre-screening tier alongside MIDAS - it
    alternative gets a detailed MIDAS run. MIDAS is never invoked inside
    an optimization loop. This maps exactly onto the
    FAST/INTERMEDIATE/FINAL `AnalysisEngine` hierarchy this document
-   already anticipated in section B: `spanova-analysis-engine` =
+   already anticipated in section B: `kopruq-analysis-engine` =
    FAST/primary, `midas-adapter` (P06, unchanged) = FINAL, invoked once
    per selected design, not per candidate. No `OpenSeesAdapter`
    (INTERMEDIATE) was requested - not in scope unless asked for later.

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import FoundationFamiliesPanel from './FoundationFamiliesPanel'
 import SystemAssemblyPanel from '../../system-assembly/components/SystemAssemblyPanel'
 
-const key = 'spanova.project-design-system.foundation-families'
+const key = 'kopruq.project-design-system.foundation-families'
 function setRule(label: string, min: number, max: number, delta: number) {
   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Min` }), { target: { value: String(min) } })
   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Max` }), { target: { value: String(max) } })

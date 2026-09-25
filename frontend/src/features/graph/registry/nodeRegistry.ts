@@ -1,4 +1,4 @@
-import type { GraphParameterValue, GraphPortType, GraphValue, MaterialValue, SpanovaNode } from '../domain/types'
+import type { GraphParameterValue, GraphPortType, GraphValue, MaterialValue, KopruqNode } from '../domain/types'
 import { getUnit, makeQuantity, quantityFromCanonical, QUANTITY_KINDS as UNIT_KINDS, type QuantityKind, type UnitId, unitsForKind } from '../domain/quantities'
 import { EN_CONCRETE_CLASS_IDS, STRUCTURAL_STEEL_OPTIONS } from '../../materials/model/materialCatalog'
 import { generatePierCandidatesWithStats, localLength, normalizeCandidateInput } from '../domain/pierCandidates'
@@ -16,12 +16,12 @@ export type { NodeCategory } from '../domain/nodeVisualThemes'
 export type ParameterDescriptor = { key: string; label: string; dataType: 'number' | 'integer' | 'boolean' | 'string' | 'select'; min?: number; step?: number; options?: readonly { value: string; label: string }[]; inputPortId?: string }
 export type NodePortDefinition = { id: string; label: string; type: GraphPortType; quantityKind?: QuantityKind; domainType?: MaterialValue['domainType']; required?: boolean; description?: string; group?: string }
 export interface GraphExecutionServices { resolveConcreteMaterial?: (materialId:string)=>Promise<MaterialValue>; projectUnits?: Partial<Record<QuantityKind, string>> }
-export type NodeExecutionContext = { node: SpanovaNode; inputs: Record<string, GraphValue>; services?: GraphExecutionServices }
+export type NodeExecutionContext = { node: KopruqNode; inputs: Record<string, GraphValue>; services?: GraphExecutionServices }
 export interface EngineeringInspectorSchema { schematic: 'pier' | 'pier-cap' | 'foundation' | 'bearing' | 'girder' | 'superstructure' | 'abutment' | 'span-arrangement'; parameterOrder: readonly string[] }
 export interface NodeDefinition { type: string; label: string; category: NodeCategory; description: string; inputs: NodePortDefinition[]; outputs: NodePortDefinition[]; parameterSchema: ParameterDescriptor[]; engineeringInspector?: EngineeringInspectorSchema; createDefaultParameters: (projectUnits?: Record<string,string>) => Record<string,GraphParameterValue>; validateParameters: (parameters: Record<string,GraphParameterValue>) => string[]; executor: (context:NodeExecutionContext)=>Record<string,GraphValue>|Promise<Record<string,GraphValue>> }
 export type NodeCreationContext = { id: string; name: string; position: { x: number; y: number }; projectUnits?: Record<string, string> }
 /** Single UI entry point for creating a persisted node from its registry definition. */
-export function createNode(definition: NodeDefinition, context: NodeCreationContext): SpanovaNode {
+export function createNode(definition: NodeDefinition, context: NodeCreationContext): KopruqNode {
   return { id: context.id, type: definition.type, name: context.name, position: context.position, parameters: definition.createDefaultParameters(context.projectUnits) }
 }
 const classOptions=EN_CONCRETE_CLASS_IDS.map(value=>({value,label:value}))
@@ -216,7 +216,7 @@ function mathResult(a:GraphValue|undefined,b:GraphValue|undefined,operation:'add
   return Array.isArray(a)||Array.isArray(b)?result as GraphValue:result[0] as GraphValue
 }
 function math(type:string,label:string,operation:'add'|'subtract'|'multiply'|'divide'):NodeDefinition{return{type,label,category:'MATH',description:`${label} scalar or list numeric values with singleton broadcasting.`,inputs:[{id:'a',label:'A',type:'numeric',required:true},{id:'b',label:'B',type:'numeric',required:true}],outputs:[{id:'result',label:'Result',type:'numeric'}],parameterSchema:[],createDefaultParameters:()=>({}),validateParameters:noParameters,executor:({inputs})=>({result:mathResult(inputs.a,inputs.b,operation)})}}
-function materialNode(type:string,label:string,domainType:MaterialValue['domainType'],options:readonly {value:string;label:string}[]=[]):NodeDefinition{return{type,label,category:'MATERIALS',description:`Create a typed ${label} material reference from configured project data.`,inputs:[],outputs:[{id:'material',label, type:domainType==='ConcreteMaterial'?'concreteMaterial':domainType==='ReinforcementMaterial'?'reinforcementMaterial':domainType==='PrestressingSteelMaterial'?'prestressingSteelMaterial':'structuralSteelMaterial',domainType}],parameterSchema:[{key:'materialId',label:'Material',dataType:'select',options}],createDefaultParameters:()=>({materialId:options.find(option=>option.value==='C40/50')?.value??options.find(option=>option.value==='S355')?.value??options[0]?.value??''}),validateParameters:p=>typeof p.materialId!=='string'||!options.some(o=>o.value===p.materialId)?[options.length?'Select a supported material.':`${label} catalog data are not configured in SPANOVA.`]:[],executor:async({node,services})=>{const id=node.parameters.materialId as string;if(!options.some(o=>o.value===id))throw new Error(`Unknown ${label} material ID: ${id}.`);if(domainType==='ConcreteMaterial'&&services?.resolveConcreteMaterial)return{material:await services.resolveConcreteMaterial(id)};if(domainType==='StructuralSteelMaterial')return{material:{domainType,id,name:id,properties:{elasticModulus:makeQuantity(210000,'stress','MPa'),poissonRatio:makeQuantity(.3,'dimensionless','1'),density:makeQuantity(7.85,'density','t/m3'),unitWeight:makeQuantity(76.98,'unitWeight','kN/m3')}}};return{material:{domainType,id,name:id,properties:{}}}}}}
+function materialNode(type:string,label:string,domainType:MaterialValue['domainType'],options:readonly {value:string;label:string}[]=[]):NodeDefinition{return{type,label,category:'MATERIALS',description:`Create a typed ${label} material reference from configured project data.`,inputs:[],outputs:[{id:'material',label, type:domainType==='ConcreteMaterial'?'concreteMaterial':domainType==='ReinforcementMaterial'?'reinforcementMaterial':domainType==='PrestressingSteelMaterial'?'prestressingSteelMaterial':'structuralSteelMaterial',domainType}],parameterSchema:[{key:'materialId',label:'Material',dataType:'select',options}],createDefaultParameters:()=>({materialId:options.find(option=>option.value==='C40/50')?.value??options.find(option=>option.value==='S355')?.value??options[0]?.value??''}),validateParameters:p=>typeof p.materialId!=='string'||!options.some(o=>o.value===p.materialId)?[options.length?'Select a supported material.':`${label} catalog data are not configured in KOPRUQ.`]:[],executor:async({node,services})=>{const id=node.parameters.materialId as string;if(!options.some(o=>o.value===id))throw new Error(`Unknown ${label} material ID: ${id}.`);if(domainType==='ConcreteMaterial'&&services?.resolveConcreteMaterial)return{material:await services.resolveConcreteMaterial(id)};if(domainType==='StructuralSteelMaterial')return{material:{domainType,id,name:id,properties:{elasticModulus:makeQuantity(210000,'stress','MPa'),poissonRatio:makeQuantity(.3,'dimensionless','1'),density:makeQuantity(7.85,'density','t/m3'),unitWeight:makeQuantity(76.98,'unitWeight','kN/m3')}}};return{material:{domainType,id,name:id,properties:{}}}}}}
 const assemblyDefinition: NodeDefinition = { type: 'structural.assembly', label: 'Assembly', category: 'BRIDGE', description: 'Assemble spans, supports and superstructure into a bridge arrangement.', inputs: [
   { id: 'spans', label: 'Span Arrangement', type: 'length[]', quantityKind: 'length', required: true },
   { id: 'superstructure', label: 'Superstructure', type: 'superstructureCandidate[]', required: true },
@@ -271,7 +271,7 @@ export const NODE_REGISTRY:readonly NodeDefinition[]=definitions
 const byType=new Map(definitions.map(d=>[d.type,d]))
 export function getNodeDefinition(type:string){return byType.get(type)}
 export function getNodeDefinitions(category?:NodeCategory){return category?definitions.filter(d=>d.category===category):definitions}
-export function previewDesignOutput(node:SpanovaNode,portId:string,inputs:Record<string,GraphValue>):GraphValue|undefined {
+export function previewDesignOutput(node:KopruqNode,portId:string,inputs:Record<string,GraphValue>):GraphValue|undefined {
   if(node.type==='input.range'&&portId==='values')return generateRangeValues(node,inputs)
   const operation=node.type==='math.add'?'add':node.type==='math.subtract'?'subtract':node.type==='math.multiply'?'multiply':node.type==='math.divide'?'divide':undefined
   if(operation&&portId==='result')return mathResult(inputs.a,inputs.b,operation)
@@ -342,7 +342,7 @@ export function previewDesignOutput(node:SpanovaNode,portId:string,inputs:Record
   }
   return undefined
 }
-export function previewPierCapStatistics(node:SpanovaNode, inputs:Record<string,GraphValue>, validCandidates:number) {
+export function previewPierCapStatistics(node:KopruqNode, inputs:Record<string,GraphValue>, validCandidates:number) {
   const capType=pierCapDefinitions.find(item=>item.type===node.type)?.type.replace('substructure.pier-cap.','').toUpperCase() as import('../domain/pierCapCandidates').PierCapType|undefined
   if(!capType)return undefined
   const definition=byType.get(node.type)!
@@ -350,23 +350,23 @@ export function previewPierCapStatistics(node:SpanovaNode, inputs:Record<string,
   const generatedCombinations=counts.reduce((count,length)=>count*length,1)
   return {generatedCombinations,invalidCombinations:generatedCombinations-validCandidates}
 }
-export function previewFoundationStatistics(node:SpanovaNode, inputs:Record<string,GraphValue>, validCandidates:number) {
+export function previewFoundationStatistics(node:KopruqNode, inputs:Record<string,GraphValue>, validCandidates:number) {
   const definition=byType.get(node.type);if(!definition)return undefined
   const counts=definition.inputs.filter(item=>item.id!=='material').map(port=>{const value=inputs[port.id]??(port.type==='integer[]'?node.parameters[`${port.id}Value`]:localLength(node.parameters[`${port.id}Value`] as number,node.parameters[`${port.id}Unit`] as UnitId));return normalizeCandidateInput(value as import('../domain/pierCandidates').LengthInput,port.id).length})
   const generatedCombinations=counts.reduce((count,length)=>count*length,1)
   return {generatedCombinations,invalidCombinations:generatedCombinations-validCandidates}
 }
-export function previewBearingStatistics(node:SpanovaNode, inputs:Record<string,GraphValue>, validCandidates:number) {
+export function previewBearingStatistics(node:KopruqNode, inputs:Record<string,GraphValue>, validCandidates:number) {
   if(node.type!=='substructure.bearing.elastomeric')return undefined
   const values=bearingInputValues(node,inputs)
   const generatedCombinations=BEARING_FIELDS.reduce((count,field)=>count*countBearingValues(values[field.key as keyof typeof values],field.kind,field.label),1)
   return {generatedCombinations,invalidCombinations:generatedCombinations-validCandidates}
 }
-function bearingInputValues(node:SpanovaNode,inputs:Record<string,GraphValue>){
+function bearingInputValues(node:KopruqNode,inputs:Record<string,GraphValue>){
   return Object.fromEntries(BEARING_FIELDS.map(field=>[field.key,inputs[field.key]??makeQuantity(node.parameters[`${field.key}Value`] as number,field.kind,node.parameters[`${field.key}Unit`] as UnitId)])) as unknown as Parameters<typeof generateElastomericBearingCandidates>[0]
 }
 function parseIntegerList(value:string){const tokens=value.split(',').map(item=>item.trim());const values=tokens.map(Number);const error=!value.trim()||values.some(item=>!Number.isFinite(item)||!Number.isInteger(item))?'Values must be a comma-separated list of finite integers.':undefined;return{values,error}}
-function generateRangeValues(node:SpanovaNode,inputs:Record<string,GraphValue>):GraphValue {
+function generateRangeValues(node:KopruqNode,inputs:Record<string,GraphValue>):GraphValue {
   const p=node.parameters as {min:number;max:number;step:number;quantityKind?:QuantityKind;unit?:UnitId};const kind=p.quantityKind??'dimensionless',unit=p.unit??'1'
   const start=rangeScalar(inputs.start,p.min,kind,unit),end=rangeScalar(inputs.end,p.max,kind,unit),step=rangeScalar(inputs.increment,p.step,kind,unit)
   if(![start,end,step].every(Number.isFinite))throw new Error('Range Start, End and Step must be finite.')

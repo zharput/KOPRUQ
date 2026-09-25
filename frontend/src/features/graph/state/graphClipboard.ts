@@ -1,14 +1,14 @@
-import type { SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
+import type { KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 
-export interface GraphClipboard { readonly nodes: readonly SpanovaNode[]; readonly connections: readonly SpanovaConnection[] }
-export interface ClonedGraphSelection { readonly nodes: SpanovaNode[]; readonly connections: SpanovaConnection[] }
+export interface GraphClipboard { readonly nodes: readonly KopruqNode[]; readonly connections: readonly KopruqConnection[] }
+export interface ClonedGraphSelection { readonly nodes: KopruqNode[]; readonly connections: KopruqConnection[] }
 
 /** React Flow may emit freshly allocated arrays, and may reorder selected IDs between updates. */
 export function sameGraphSelection(current: readonly string[], next: readonly string[]) {
   return current.length === next.length && current.every(id => next.includes(id))
 }
 
-export function copyGraphSelection(graph: SpanovaGraph, selectedNodeIds: readonly string[]): GraphClipboard {
+export function copyGraphSelection(graph: KopruqGraph, selectedNodeIds: readonly string[]): GraphClipboard {
   const selected = new Set(selectedNodeIds)
   const nodes = graph.nodes.filter(node => selected.has(node.id)).map(node => structuredClone(node))
   const included = new Set(nodes.map(node => node.id))

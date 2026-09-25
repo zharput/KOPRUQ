@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import { Boxes, Component, Layers, Mountain, Shield, TowerControl, Warehouse, Anchor } from 'lucide-react'
 import type { CrossSectionValues } from '../../superstructure-families'
 import SuperstructureFamiliesPanel from '../../superstructure-families/components/SuperstructureFamiliesPanel'
@@ -37,18 +37,18 @@ export default function FamilyTablesWorkspace({ crossSectionValues, setCrossSect
   const [snapshots, setSnapshots] = useState<FamilyCalculationSnapshot[]>([])
   const [projectUnits, setProjectUnits] = useState(() => readProjectState([]).project.units)
   const graphCategory = category as unknown as GraphFamilyCategory
-  const refreshSnapshots = () => { const graph = typeof localStorage === 'undefined' ? undefined : (() => { try { return JSON.parse(localStorage.getItem('spanova.graph.documents.v1') ?? 'null') as { graphs?: { id: string; bridgeId?: string }[] } | null } catch { return null } })(); const document = graph?.graphs?.find(item => item.bridgeId === bridgeId); setSnapshots(document ? getFamilySnapshots(bridgeId, document.id) : []) }
+  const refreshSnapshots = () => { const graph = typeof localStorage === 'undefined' ? undefined : (() => { try { return JSON.parse(localStorage.getItem('kopruq.graph.documents.v1') ?? 'null') as { graphs?: { id: string; bridgeId?: string }[] } | null } catch { return null } })(); const document = graph?.graphs?.find(item => item.bridgeId === bridgeId); setSnapshots(document ? getFamilySnapshots(bridgeId, document.id) : []) }
   useEffect(() => { if (!bridges.some(item => item.id === bridgeId)) setBridgeId(bridges[0]?.id ?? '') }, [bridges, bridgeId])
-  useEffect(() => { refreshSnapshots(); window.addEventListener('spanova:family-snapshots-changed', refreshSnapshots); return () => window.removeEventListener('spanova:family-snapshots-changed', refreshSnapshots) }, [bridgeId])
-  useEffect(() => { const refreshUnits = () => setProjectUnits(readProjectState([]).project.units); window.addEventListener('spanova:project-units-changed', refreshUnits); return () => window.removeEventListener('spanova:project-units-changed', refreshUnits) }, [])
+  useEffect(() => { refreshSnapshots(); window.addEventListener('kopruq:family-snapshots-changed', refreshSnapshots); return () => window.removeEventListener('kopruq:family-snapshots-changed', refreshSnapshots) }, [bridgeId])
+  useEffect(() => { const refreshUnits = () => setProjectUnits(readProjectState([]).project.units); window.addEventListener('kopruq:project-units-changed', refreshUnits); return () => window.removeEventListener('kopruq:project-units-changed', refreshUnits) }, [])
   useEffect(() => {
     const onSelection = (event: Event) => {
       const detail = (event as CustomEvent<FamilySelection>).detail
       setSelection(detail)
       setFamilies(getFamilies(detail.category))
     }
-    window.addEventListener('spanova:family-selection-changed', onSelection)
-    return () => window.removeEventListener('spanova:family-selection-changed', onSelection)
+    window.addEventListener('kopruq:family-selection-changed', onSelection)
+    return () => window.removeEventListener('kopruq:family-selection-changed', onSelection)
   }, [])
   useEffect(() => {
     const changed = familyChangedEvent(category)

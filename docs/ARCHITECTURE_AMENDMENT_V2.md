@@ -1,6 +1,6 @@
 # Architecture Amendment v2 (2026-09-09)
 
-This amends `docs/SPANOVA_MASTER_SPEC.md` sections 3, 4, 12-14 and 19-20.
+This amends `docs/KOPRUQ_MASTER_SPEC.md` sections 3, 4, 12-14 and 19-20.
 The master spec file itself is kept verbatim as the historical record of
 what was originally decided; this document is the current source of
 truth for the technology stack and adapter target. Everything else in
@@ -59,7 +59,7 @@ section 20):
 - The Bridge Kernel independence principle (spec section 3) - Bridge
   Core must not depend on MIDAS, ALLPLAN, SCIA or any solver; the MIDAS
   NX Adapter is the only place MIDAS-specific code may live (mirrors the
-  old "keep ALLPLAN-specific logic out of Spanova.Core" rule, spec
+  old "keep ALLPLAN-specific logic out of Kopruq.Core" rule, spec
   section 21).
 - The project file concept, quantities/cost/carbon phasing, optimization
   timing (after the deterministic workflow), AI policy - all unchanged.

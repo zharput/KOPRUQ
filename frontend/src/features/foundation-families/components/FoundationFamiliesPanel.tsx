@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import { GenerationTable } from '../../../shared/ui/DesignSystemUi'
 import { generateFoundationVariants, labelNumber, statusOf, values } from '../model/service'
@@ -62,7 +62,7 @@ export default function FoundationFamiliesPanel({ initialFoundationType = 'SHALL
   const changeType = (foundationType: FoundationType) => update({ ...blank(foundationType), id: family.id, name: family.name, enabled: family.enabled })
 
   return <div className="spn-workflow"><div className="spn-card">
-    <div className="spn-shape-card-header"><div><h2 className="spn-card-title">FOUNDATION</h2><p className="spn-card-subtitle">Project Design System / canonical family definition</p></div><label className="spn-checklist-item"><input type="checkbox" checked={family.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Use in SPANOVA analyses</label></div>
+    <div className="spn-shape-card-header"><div><h2 className="spn-card-title">FOUNDATION</h2><p className="spn-card-subtitle">Project Design System / canonical family definition</p></div><label className="spn-checklist-item"><input type="checkbox" checked={family.enabled} onChange={(event) => update({ enabled: event.target.checked })} /> Use in KOPRUQ analyses</label></div>
     <div className="spn-field-grid" style={{ gridTemplateColumns: '1fr 1fr' }}><label className="spn-field">Family Name<input className="spn-input" value={family.name} onChange={(event) => update({ name: event.target.value })} /></label><label className="spn-field">Foundation Type<select className="spn-input" value={family.foundationType} onChange={(event) => changeType(event.target.value as FoundationType)}><option value="SHALLOW">Shallow</option><option value="PILED">Piled</option></select></label></div>
     <FoundationSchematic family={family} variants={variants} />
     <h3 className="spn-card-title spn-cap-section">{family.foundationType === 'PILED' ? 'PILE ARRANGEMENT / SECTION GENERATION' : 'SECTION GENERATION'}</h3>

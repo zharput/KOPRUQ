@@ -8,21 +8,21 @@ export type FamilyRecord = { id: string; name?: string }
 export type FamilyParameterDescriptor = { key: string; label: string; dataType: 'number' | 'integer' | 'string' | 'boolean'; unit?: string; editable: boolean; derived: boolean }
 
 const CATALOGS: Record<FamilyRepositoryCategory, { key: string; event: string }> = {
-  PIER: { key: 'spanova.project-design-system.pier-families', event: 'spanova:pier-catalog-changed' },
-  PIER_CAP: { key: 'spanova.project-design-system.pier-cap-families', event: 'spanova:pier-cap-catalog-changed' },
-  FOUNDATION: { key: 'spanova.project-design-system.foundation-families', event: 'spanova:foundation-catalog-changed' },
-  BEARING: { key: 'spanova.project-design-system.bearing-families', event: 'spanova:bearing-catalog-changed' },
-  MATERIAL: { key: 'spanova.project-design-system.material-assignments', event: 'spanova:material-catalog-changed' },
+  PIER: { key: 'kopruq.project-design-system.pier-families', event: 'kopruq:pier-catalog-changed' },
+  PIER_CAP: { key: 'kopruq.project-design-system.pier-cap-families', event: 'kopruq:pier-cap-catalog-changed' },
+  FOUNDATION: { key: 'kopruq.project-design-system.foundation-families', event: 'kopruq:foundation-catalog-changed' },
+  BEARING: { key: 'kopruq.project-design-system.bearing-families', event: 'kopruq:bearing-catalog-changed' },
+  MATERIAL: { key: 'kopruq.project-design-system.material-assignments', event: 'kopruq:material-catalog-changed' },
 }
 
 /** Adapter over Girder Library's existing singleton payload; keeps its legacy shape and key. */
 export function getPrecastGirderDefinition<T>(fallback: T): T {
-  try { return (JSON.parse(localStorage.getItem('spanova.girder-library.precast') ?? 'null') as T | null) ?? fallback } catch { return fallback }
+  try { return (JSON.parse(localStorage.getItem('kopruq.girder-library.precast') ?? 'null') as T | null) ?? fallback } catch { return fallback }
 }
 export function savePrecastGirderDefinition(value: unknown): boolean {
   try {
-    localStorage.setItem('spanova.girder-library.precast', JSON.stringify(value))
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event('spanova:girder-catalog-changed'))
+    localStorage.setItem('kopruq.girder-library.precast', JSON.stringify(value))
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('kopruq:girder-catalog-changed'))
     return true
   } catch { return false }
 }

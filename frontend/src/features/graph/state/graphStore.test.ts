@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('Graph document store', () => {
-  beforeEach(() => { localStorage.removeItem('spanova.graph.documents.v1'); vi.resetModules() })
+  beforeEach(() => { localStorage.removeItem('kopruq.graph.documents.v1'); vi.resetModules() })
 
   it('creates one empty graph per bridge and reuses it by stable bridge id', async () => {
     const { getGraphForBridge, getGraphStoreSnapshot, selectOrCreateBridgeGraph } = await import('./graphStore')
@@ -25,7 +25,7 @@ describe('Graph document store', () => {
     expect(getGraphStoreSnapshot().graphs.map((graph) => graph.name)).toEqual(['Untitled Graph', 'Bridge Layout', 'Pier Study'])
     selectGraphDocument(firstId)
     deleteNodes([nodeId])
-    const saved = JSON.parse(localStorage.getItem('spanova.graph.documents.v1') ?? '{}')
+    const saved = JSON.parse(localStorage.getItem('kopruq.graph.documents.v1') ?? '{}')
     expect(saved.graphs.find((graph: { id: string }) => graph.id === firstId).nodes).toHaveLength(0)
     expect(saved.graphs.find((graph: { id: string }) => graph.id === secondId)).toBeDefined()
   })
@@ -37,7 +37,7 @@ describe('Graph document store', () => {
     const node=getActiveGraph().nodes.find(item=>item.id===id)!
     expect(node.parameters).toMatchObject({lengthValue:12,lengthUnit:'m',topWidthValue:3,stemWidthValue:1.5,totalHeightValue:2.5,flangeThicknessValue:.8,materialId:'C40/50'})
     expect(node.parameters).not.toHaveProperty('candidates')
-    const saved=JSON.parse(localStorage.getItem('spanova.graph.documents.v1')??'{}')
+    const saved=JSON.parse(localStorage.getItem('kopruq.graph.documents.v1')??'{}')
     expect(saved.graphs.at(-1).nodes.at(-1)).toEqual(node)
     undoGraph();expect(getActiveGraph().nodes).toHaveLength(0)
     redoGraph();expect(getActiveGraph().nodes.at(-1)).toEqual(node)
@@ -51,7 +51,7 @@ describe('Graph document store', () => {
     expect(addConnection(edge)).toBe(true)
     const current=getActiveGraph().nodes.find(item=>item.id===foundation)!
     expect(current.parameters).toMatchObject({pileDiameterValue:1.2,pileCountXValue:4,pileSpacingXValue:3.6,pileSpacingYValue:3.6,capHeightValue:2.5,materialId:'C40/50'})
-    const saved=JSON.parse(localStorage.getItem('spanova.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
+    const saved=JSON.parse(localStorage.getItem('kopruq.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
     expect(restored.connections).toEqual([edge])
     expect(restored.nodes.find((item:{id:string})=>item.id===foundation).parameters).toEqual(current.parameters)
     expect(restored.nodes.find((item:{id:string})=>item.id===foundation).parameters).not.toHaveProperty('candidates')
@@ -72,7 +72,7 @@ describe('Graph document store', () => {
     expect(addConnection(edges[0])).toBe(true);expect(addConnection(edges[1])).toBe(true)
     const authoring=getActiveGraph().nodes.find(item=>item.id===bearing)!
     expect(authoring.parameters).toMatchObject({lengthXValue:.6,lengthXUnit:'m',widthYValue:.7,totalHeightValue:.15,kxValue:0,kxUnit:'kN/m',krxValue:100000,krxUnit:'kNm/rad'})
-    const saved=JSON.parse(localStorage.getItem('spanova.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
+    const saved=JSON.parse(localStorage.getItem('kopruq.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
     expect(restored.connections).toEqual(edges)
     expect(restored.nodes.find((item:{id:string})=>item.id===bearing).parameters).toEqual(authoring.parameters)
     expect(authoring.parameters).not.toHaveProperty('candidates')
@@ -126,7 +126,7 @@ describe('Graph document store', () => {
     createGraphDocument('Paste Test')
     const first = addNode('input.number', { x: 0, y: 0 })!
     const second = addNode('output.watch', { x: 200, y: 0 })!
-    const cloned: import('../domain/types').SpanovaNode[] = [
+    const cloned: import('../domain/types').KopruqNode[] = [
       { id: 'copy-number', type: 'input.number', name: 'Number-1', position: { x: 30, y: 30 }, parameters: { value: 7 } },
       { id: 'copy-watch', type: 'output.watch', name: 'Watch-1', position: { x: 230, y: 30 }, parameters: {} },
     ]
@@ -172,7 +172,7 @@ describe('Graph document store', () => {
       { id: 'c', type: 'material.concrete', name: 'Concrete', position: { x: 0, y: 160 }, parameters: { materialId: 'C40/50' } },
       { id: 'p', type: 'substructure.pier.rectangular', name: 'Pier', position: { x: 240, y: 40 }, parameters: { BValue: 3, BUnit: 'm', DValue: 1.5, DUnit: 'm', heightValue: 10, heightUnit: 'm', columns: 1, materialId: 'C40/50' } },
       { id: 'l', type: 'output.list', name: 'List', position: { x: 480, y: 40 }, parameters: {} },
-    ] as import('../domain/types').SpanovaNode[]
+    ] as import('../domain/types').KopruqNode[]
     const connections = [
       { id: 'nb', sourceNodeId: 'n', sourcePortId: 'value', targetNodeId: 'p', targetPortId: 'width' },
       { id: 'id', sourceNodeId: 'i', sourcePortId: 'value', targetNodeId: 'p', targetPortId: 'depth' },

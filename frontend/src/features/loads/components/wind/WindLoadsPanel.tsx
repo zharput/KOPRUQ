@@ -3,7 +3,7 @@ import { useState } from 'react'
 const CATEGORIES = ['0', 'I', 'II', 'III', 'IV']
 
 export default function WindLoadsPanel({ deckWidthM }: { deckWidthM: number }) {
-  const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('spanova.wind-load.inputs') ?? 'null') as { vb?: string; terrain?: string; ze?: string } | null : null
+  const saved = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('kopruq.wind-load.inputs') ?? 'null') as { vb?: string; terrain?: string; ze?: string } | null : null
   const [vb, setVb] = useState(saved?.vb ?? ''), [terrain, setTerrain] = useState(saved?.terrain ?? 'II'), [ze, setZe] = useState(saved?.ze ?? ''), [details, setDetails] = useState(false), [result, setResult] = useState<any>(null)
   const calculate = async () => {
     const r = await fetch('http://localhost:8080/api/wind-loads/resolve', {
@@ -23,18 +23,18 @@ export default function WindLoadsPanel({ deckWidthM }: { deckWidthM: number }) {
       <label className="spn-field" style={fieldRowStyle}>
         <span>Basic Wind Velocity, vb</span>
         <div className="spn-input-unit-row" style={unitRowStyle}>
-          <input className="spn-input" type="number" value={vb} onChange={e => { const value = e.target.value; setVb(value); localStorage.setItem('spanova.wind-load.inputs', JSON.stringify({ vb: value, terrain, ze })) }} style={{ width: 140 }} />
+          <input className="spn-input" type="number" value={vb} onChange={e => { const value = e.target.value; setVb(value); localStorage.setItem('kopruq.wind-load.inputs', JSON.stringify({ vb: value, terrain, ze })) }} style={{ width: 140 }} />
           <span>m/s</span>
         </div>
       </label>
       <label className="spn-field" style={fieldRowStyle}>
         <span>Terrain Category</span>
-        <select className="spn-input" style={{ width: 160 }} value={terrain} onChange={e => { const value = e.target.value; setTerrain(value); localStorage.setItem('spanova.wind-load.inputs', JSON.stringify({ vb, terrain: value, ze })) }}>{CATEGORIES.map(x => <option key={x}>{x}</option>)}</select>
+        <select className="spn-input" style={{ width: 160 }} value={terrain} onChange={e => { const value = e.target.value; setTerrain(value); localStorage.setItem('kopruq.wind-load.inputs', JSON.stringify({ vb, terrain: value, ze })) }}>{CATEGORIES.map(x => <option key={x}>{x}</option>)}</select>
       </label>
       <label className="spn-field" style={fieldRowStyle}>
         <span>Reference Height, ze</span>
         <div className="spn-input-unit-row" style={unitRowStyle}>
-          <input className="spn-input" type="number" value={ze} onChange={e => { const value = e.target.value; setZe(value); localStorage.setItem('spanova.wind-load.inputs', JSON.stringify({ vb, terrain, ze: value })) }} style={{ width: 140 }} />
+          <input className="spn-input" type="number" value={ze} onChange={e => { const value = e.target.value; setZe(value); localStorage.setItem('kopruq.wind-load.inputs', JSON.stringify({ vb, terrain, ze: value })) }} style={{ width: 140 }} />
           <span>m</span>
         </div>
       </label>

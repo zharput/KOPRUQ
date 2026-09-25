@@ -29,7 +29,7 @@ import { ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefini
 import type { BridgeDefinitionStore } from '../features/bridge-definition/model/types'
 
 /**
- * Single SPANOVA shell: app-wide project state/providers stay above the
+ * Single KOPRUQ shell: app-wide project state/providers stay above the
  * URL-selected workspace, while old one-segment feature routes render
  * their existing screens in the workspace center. The legacy Sidebar
  * and TopBar sources remain available but are no longer mounted here.
@@ -38,7 +38,7 @@ function App() {
   const [summary, setSummary] = useState<GenerationSummary | null>(null)
   const [layoutSeed, setLayoutSeed] = useState<LayoutSeed | null>(null)
   const [projectState, setProjectState] = useState(() => readProjectState(INITIAL_BRIDGES))
-  useEffect(() => { persistProjectState(projectState); window.dispatchEvent(new Event('spanova:project-units-changed')) }, [projectState])
+  useEffect(() => { persistProjectState(projectState); window.dispatchEvent(new Event('kopruq:project-units-changed')) }, [projectState])
   const [bridgeDefinitions, setBridgeDefinitions] = useState<BridgeDefinitionStore>(() => readBridgeDefinitionStore(projectState.bridges))
   useEffect(() => { persistBridgeDefinitionStore(bridgeDefinitions) }, [bridgeDefinitions])
   const bridges = projectState.bridges

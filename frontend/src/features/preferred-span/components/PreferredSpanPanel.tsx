@@ -3,8 +3,8 @@ import { generatePrecastGirderVariants, PRECAST_DIMENSIONS, type GirderVariant }
 import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import type { PreferredSpanRule, PreferredSpanStatus, SuperstructureType } from '../model/types'
 
-const RULES_KEY = 'spanova.project-design-system.girder-span-rules'
-const GIRDER_KEY = 'spanova.girder-library.precast'
+const RULES_KEY = 'kopruq.project-design-system.girder-span-rules'
+const GIRDER_KEY = 'kopruq.girder-library.precast'
 
 function candidateSpans(minSpan: number, maxSpan: number, delta: number): number[] {
   if (!Number.isFinite(minSpan) || !Number.isFinite(maxSpan) || !Number.isFinite(delta) || minSpan <= 0 || maxSpan <= minSpan || delta <= 0 || delta > maxSpan - minSpan) return []
@@ -102,7 +102,7 @@ export default function PreferredSpanPanel() {
 }
 
 function GirderSpanTable({ variants, rules, onUpdate }: { variants: GirderVariant[]; rules: PreferredSpanRule[]; onUpdate: (id: string, patch: Partial<PreferredSpanRule>) => void }) {
-  return <div className="spn-param-table-wrap ds-preferred-table"><table className="spn-table ds-generation-table"><colgroup><col /><col /><col /><col /><col /><col /><col /></colgroup><thead><tr><th>Girder</th><th>Min Span</th><th>Max Span</th><th>Delta</th><th>Values SPANOVA Will Use</th><th>Primary Span</th><th>Status</th></tr></thead><tbody>{variants.map((variant) => { const rule = rules.find((item) => item.girderVariantId === variant.id); if (!rule) return null; const values = candidateSpans(rule.minSpan, rule.maxSpan, rule.spanDelta); const status = statusOf(rule, variants); return <tr key={variant.id}><td>{variant.label}</td><td><NumberCell value={rule.minSpan} onChange={(value) => onUpdate(rule.id, { minSpan: value })} /></td><td><NumberCell value={rule.maxSpan} onChange={(value) => onUpdate(rule.id, { maxSpan: value })} /></td><td><NumberCell value={rule.spanDelta} onChange={(value) => onUpdate(rule.id, { spanDelta: value })} /></td><td>{values.length ? values.join(', ') : '—'}</td><td><select className="spn-input" value={values.includes(rule.primarySpan) ? rule.primarySpan : ''} onChange={(event) => onUpdate(rule.id, { primarySpan: Number(event.target.value) })}><option value="" disabled>Select</option>{values.map((value) => <option key={value} value={value}>{value} m</option>)}</select></td><td>{status}</td></tr>})}</tbody></table></div>
+  return <div className="spn-param-table-wrap ds-preferred-table"><table className="spn-table ds-generation-table"><colgroup><col /><col /><col /><col /><col /><col /><col /></colgroup><thead><tr><th>Girder</th><th>Min Span</th><th>Max Span</th><th>Delta</th><th>Values KOPRUQ Will Use</th><th>Primary Span</th><th>Status</th></tr></thead><tbody>{variants.map((variant) => { const rule = rules.find((item) => item.girderVariantId === variant.id); if (!rule) return null; const values = candidateSpans(rule.minSpan, rule.maxSpan, rule.spanDelta); const status = statusOf(rule, variants); return <tr key={variant.id}><td>{variant.label}</td><td><NumberCell value={rule.minSpan} onChange={(value) => onUpdate(rule.id, { minSpan: value })} /></td><td><NumberCell value={rule.maxSpan} onChange={(value) => onUpdate(rule.id, { maxSpan: value })} /></td><td><NumberCell value={rule.spanDelta} onChange={(value) => onUpdate(rule.id, { spanDelta: value })} /></td><td>{values.length ? values.join(', ') : '—'}</td><td><select className="spn-input" value={values.includes(rule.primarySpan) ? rule.primarySpan : ''} onChange={(event) => onUpdate(rule.id, { primarySpan: Number(event.target.value) })}><option value="" disabled>Select</option>{values.map((value) => <option key={value} value={value}>{value} m</option>)}</select></td><td>{status}</td></tr>})}</tbody></table></div>
 }
 
 function NumberCell({ value, onChange }: { value: number; onChange: (value: number) => void }) {

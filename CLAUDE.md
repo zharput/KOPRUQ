@@ -4,9 +4,9 @@ Guidance for Claude Code sessions working in this repository.
 
 ## What this is
 
-SPANOVA is a Computational & Generative Bridge Design platform, built
+KOPRUQ is a Computational & Generative Bridge Design platform, built
 incrementally with the engineer, milestone by milestone. The
-authoritative specification is `docs/SPANOVA_MASTER_SPEC.md` - read it
+authoritative specification is `docs/KOPRUQ_MASTER_SPEC.md` - read it
 before making any architectural decision - **amended by
 `docs/ARCHITECTURE_AMENDMENT_V2.md`**, which replaces the original
 C#/.NET/Avalonia stack with the polyglot architecture described below.

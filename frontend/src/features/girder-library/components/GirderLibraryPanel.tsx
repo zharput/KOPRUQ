@@ -74,7 +74,7 @@ function PrecastGirderTab() {
   return (
     <div className="spn-workflow">
       <p className="spn-hint">
-        Min/max/delta define the cross-section values SPANOVA will step through during analysis/optimization, the
+        Min/max/delta define the cross-section values KOPRUQ will step through during analysis/optimization, the
         same convention as Pier Families. Precast Girder's defaults below are single given values (min = max, delta
         = 0), not an invented range - only its own value is used until the engineer provides a real min/max sweep
         for this girder. tf/bf are the top/bottom flange widths, th1/th2/bh1/bh2 are the flat-cap/taper thickness
@@ -101,7 +101,7 @@ function GirderPlaceholderTab({ title }: { title: string }) {
           <h3 className="spn-card-title">{title}</h3>
           <label className="spn-checklist-item">
             <input type="checkbox" checked={false} disabled />
-            <span>Use in SPANOVA analyses</span>
+            <span>Use in KOPRUQ analyses</span>
           </label>
         </div>
 

@@ -1,6 +1,6 @@
-# SPANOVA
+# KOPRUQ
 
-**Computational & Generative Bridge Design platform.** SPANOVA turns a
+**Computational & Generative Bridge Design platform.** KOPRUQ turns a
 bridge site (alignment, constraints, span search ranges) and a design
 space (superstructure/pier/girder families, materials, loads) into
 generated, analyzed, and eventually optimized structural alternatives -
@@ -16,9 +16,9 @@ kept under `archive/` for reference only, not a completed prerequisite.
 
 | Document | What it's for |
 | --- | --- |
-| `docs/SPANOVA_MASTER_SPEC.md` | The authoritative specification - domain model, milestone plan (P00-P12), the hard engineering-safety and milestone-gating rules. Read this first. |
+| `docs/KOPRUQ_MASTER_SPEC.md` | The authoritative specification - domain model, milestone plan (P00-P12), the hard engineering-safety and milestone-gating rules. Read this first. |
 | `docs/ARCHITECTURE_AMENDMENT_V2.md` | Replaces the original C#/.NET/Avalonia stack with the polyglot architecture described below - amends the master spec, doesn't replace it. |
-| `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` | A later, additive architecture change: bridge length and abutment/pier positions become *generated* design variables (a new `BridgeLayoutEngine`) instead of hand-typed inputs; SPANOVA gets its own native analysis engine, with MIDAS NX kept only as a post-selection verification tier. |
+| `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` | A later, additive architecture change: bridge length and abutment/pier positions become *generated* design variables (a new `BridgeLayoutEngine`) instead of hand-typed inputs; KOPRUQ gets its own native analysis engine, with MIDAS NX kept only as a post-selection verification tier. |
 | `docs/architecture.md` | Dated log of what has actually been built and verified, and how - the implementation record. |
 | `docs/roadmap.md` | Current milestone-by-milestone status table - what's done, what's next. |
 | `CLAUDE.md` | Working rules for AI-assisted development in this repo (milestone gating, "never invent engineering content," module boundaries). |
@@ -85,7 +85,7 @@ policy blocks the `npm.ps1` shim.
 Frontend: full navigation shell (sidebar/top bar, dark/light theme),
 real screens for Project Information/Dashboard, Materials, Loads, Cost
 Database, Pier Families, Girder Library, Superstructure Families,
-Layout Generator, Bridge Alternatives, and the SPANOVA Fast Solver -
+Layout Generator, Bridge Alternatives, and the KOPRUQ Fast Solver -
 built on React Router, TanStack Query, React Hook Form + Zod, and a
 small `app/features/shared` domain-sliced architecture (see
 `docs/architecture.md`'s matching sections for how and why). Backend:

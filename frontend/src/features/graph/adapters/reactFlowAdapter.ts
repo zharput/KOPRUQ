@@ -1,5 +1,5 @@
-﻿import type { Edge, Node } from '@xyflow/react'
-import type { GraphExecutionState, GraphParameterValue, GraphValue, MaterialValue, SpanovaConnection, SpanovaGraph, SpanovaNode } from '../domain/types'
+import type { Edge, Node } from '@xyflow/react'
+import type { GraphExecutionState, GraphParameterValue, GraphValue, MaterialValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 import { getNodeDefinition, previewDesignOutput, previewPierCapStatistics, previewFoundationStatistics, previewBearingStatistics } from '../registry/nodeRegistry'
 import { getGraphEdgeColor } from '../domain/nodeVisualThemes'
 import type { ConnectionStyle } from '../state/graphViewPreferences'
@@ -8,7 +8,7 @@ import { resolveEngineeringInput } from '../domain/engineeringInputs'
 import { makeQuantity, type QuantityKind, type UnitId } from '../domain/quantities'
 
 export type GraphNodeViewData = {
-  node: SpanovaNode
+  node: KopruqNode
   executionState: GraphExecutionState
   executionError?: string
   output?: GraphValue
@@ -31,9 +31,9 @@ export type GraphNodeViewData = {
   isDirty?: boolean
   onParameterChange: (nodeId: string, key: string, value: GraphParameterValue) => void
 }
-export type FlowGraphNode = Node<GraphNodeViewData, 'spanova'>
+export type FlowGraphNode = Node<GraphNodeViewData, 'kopruq'>
 
-export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: string[]; states?: Record<string, GraphExecutionState>; errors?: Record<string, string>; outputs?: Record<string, Record<string, GraphValue>>; resolvedInputs?: Record<string, Record<string, GraphValue>>; projectUnits?: ProjectUnitPreferences; projectUnitsKey?: string; isDirty?: boolean; onParameterChange: GraphNodeViewData['onParameterChange'] }): FlowGraphNode[] {
+export function toReactFlowNodes(graph: KopruqGraph, options: { selectedIds?: string[]; states?: Record<string, GraphExecutionState>; errors?: Record<string, string>; outputs?: Record<string, Record<string, GraphValue>>; resolvedInputs?: Record<string, Record<string, GraphValue>>; projectUnits?: ProjectUnitPreferences; projectUnitsKey?: string; isDirty?: boolean; onParameterChange: GraphNodeViewData['onParameterChange'] }): FlowGraphNode[] {
   const selectedIds = new Set(options.selectedIds ?? [])
   const previewCache = new Map<string, GraphValue | undefined>()
   const previewErrors = new Map<string,string>()
@@ -109,11 +109,11 @@ export function toReactFlowNodes(graph: SpanovaGraph, options: { selectedIds?: s
       try{const stats=previewBearingStatistics(node,inputs,Array.isArray(bearingPreview)?bearingPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=bearingPreview===undefined?undefined:stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
     }
     const previewError=previewErrors.get(node.id)
-    return { id: node.id, type: 'spanova', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewAbutmentCandidates: abutmentPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, projectUnitsKey: options.projectUnitsKey ?? options.projectUnits?.length ?? 'm', isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
+    return { id: node.id, type: 'kopruq', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewAbutmentCandidates: abutmentPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, projectUnitsKey: options.projectUnitsKey ?? options.projectUnits?.length ?? 'm', isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
   })
 }
 
-function previewOutput(node: SpanovaNode, portId: string): GraphValue | undefined {
+function previewOutput(node: KopruqNode, portId: string): GraphValue | undefined {
   if (portId === 'value' && node.type === 'input.length') {
     const make = (value: number) => makeQuantity(value, 'length', 'm')
     const mode = String(node.parameters.mode ?? 'single')
@@ -137,13 +137,13 @@ function previewOutput(node: SpanovaNode, portId: string): GraphValue | undefine
   return undefined
 }
 
-export function toReactFlowEdges(graph: SpanovaGraph, connectionStyle: ConnectionStyle = 'smooth'): Edge[] {
+export function toReactFlowEdges(graph: KopruqGraph, connectionStyle: ConnectionStyle = 'smooth'): Edge[] {
   return graph.connections.map((connection) => {
     return { id: connection.id, source: connection.sourceNodeId, sourceHandle: connection.sourcePortId, target: connection.targetNodeId, targetHandle: connection.targetPortId, type: connectionStyle === 'smooth' ? 'default' : 'step', animated: false, style: { stroke: getGraphEdgeColor(), strokeWidth: 1.7 } }
   })
 }
 
-export function fromReactFlowEdge(edge: Pick<Edge, 'id' | 'source' | 'sourceHandle' | 'target' | 'targetHandle'>): SpanovaConnection | undefined {
+export function fromReactFlowEdge(edge: Pick<Edge, 'id' | 'source' | 'sourceHandle' | 'target' | 'targetHandle'>): KopruqConnection | undefined {
   if (!edge.source || !edge.sourceHandle || !edge.target || !edge.targetHandle) return undefined
   return { id: edge.id, sourceNodeId: edge.source, sourcePortId: edge.sourceHandle, targetNodeId: edge.target, targetPortId: edge.targetHandle }
 }

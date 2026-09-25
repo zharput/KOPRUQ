@@ -181,7 +181,7 @@ export default function GenerateWorkflow({
  * Summary banner matching the mockup's hero section - live values from
  * the form, updating as the engineer types, not tied to a generated
  * result. No bridge photograph: a decorative line-art motif (echoing the
- * SPANOVA logo's own cable/deck silhouette) stands in for it rather than
+ * KOPRUQ logo's own cable/deck silhouette) stands in for it rather than
  * a fabricated or stock image of a specific bridge. "Precast girder" is
  * the only bridge type the generative engine models (spec section 8) -
  * not an invented label.

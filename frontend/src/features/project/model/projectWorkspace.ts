@@ -37,7 +37,7 @@ export const INITIAL_PROJECT: ProjectWorkspaceData = {
   criteria: { designLife: '', reliabilityClass: '', exposure: '', concreteClass: '', cover: '', philosophy: '' }, environment: { terrainDatasetId: null, landXmlImportId: null }, lastModified: '',
 }
 
-const STORAGE_KEY = 'spanova.project-workspace.v1'
+const STORAGE_KEY = 'kopruq.project-workspace.v1'
 export interface PersistedProjectState { project: ProjectWorkspaceData; bridges: BridgeRow[] }
 
 function newBridgeId() {

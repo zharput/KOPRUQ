@@ -23,7 +23,7 @@ import type { GenerationSummary } from '../../features/bridge-alternatives'
 export default function HomePanel({ summary }: { summary: GenerationSummary | null }) {
   return (
     <div className="spn-home">
-      <h1>Welcome to SPANOVA</h1>
+      <h1>Welcome to KOPRUQ</h1>
       <p className="spn-home-intro">
         Use <strong>Layout Generator</strong> (Bridges) to find candidate span arrangements, then{' '}
         <strong>Bridge Alternatives</strong> to produce feasible structural alternatives.

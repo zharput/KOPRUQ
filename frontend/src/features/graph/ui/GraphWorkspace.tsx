@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObjec
 import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange } from '@xyflow/react'
 import { Activity, CircleStop, Maximize2, Minus, Plus, Redo2, Save, Trash2, Undo2 } from 'lucide-react'
 import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
-import type { GraphExecutionState, GraphValue, MaterialValue, SpanovaGraph } from '../domain/types'
+import type { GraphExecutionState, GraphValue, MaterialValue, KopruqGraph } from '../domain/types'
 import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'
 import { getNodeDefinition } from '../registry/nodeRegistry'
@@ -21,7 +21,7 @@ import { markFamilySnapshotsStale, publishFamilySnapshots } from '../family/fami
 
 import { readProjectState, type ProjectWorkspaceData } from '../../project/model/projectWorkspace'
 
-const NODE_TYPES = { spanova: BaseNode }
+const NODE_TYPES = { kopruq: BaseNode }
 type AddNodeRef = MutableRefObject<((type: string) => string | undefined) | undefined>
 
 export default function GraphWorkspace({ project, setProject }: { project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void }) {
@@ -121,7 +121,7 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
 }
 
 function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, stop, onDelete, canUndo, canRedo, diagnostics, isDirty, project, setProject }: {
-  graph: SpanovaGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; onGraphShortcut: (event: React.KeyboardEvent<HTMLDivElement>) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; resolvedInputs: Record<string, Record<string, GraphValue>>; projectUnits: ProjectUnitPreferences; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; diagnostics: boolean; isDirty: boolean; project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void
+  graph: KopruqGraph; addRef: AddNodeRef; onNewGraph: () => void; onConnectionCreated: (message: string) => void; onGraphShortcut: (event: React.KeyboardEvent<HTMLDivElement>) => void; selectedNodeIds: string[]; selectedEdgeIds: string[]; setSelectedNodeId: (id: string | null) => void; setSelectedNodeIds: (ids: string[]) => void; setSelectedEdgeIds: (ids: string[]) => void; states: Record<string, GraphExecutionState>; errors: Record<string, string>; nodeOutputs: Record<string, Record<string, GraphValue>>; resolvedInputs: Record<string, Record<string, GraphValue>>; projectUnits: ProjectUnitPreferences; onParameterChange: (id: string, key: string, value: number | boolean | string | number[]) => void; log: GraphLogEntry[]; feedback: string; setFeedback: (value: string) => void; isRunning: boolean; run: () => void; stop: () => void; onDelete: () => void; canUndo: boolean; canRedo: boolean; diagnostics: boolean; isDirty: boolean; project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void
 }) {
   const bridges = readProjectState([]).bridges
   const activeBridge = bridges.find((bridge) => bridge.id === graph.bridgeId)
@@ -249,7 +249,7 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
   }
   const dropNode = (event: React.DragEvent) => {
     event.preventDefault()
-    const type = event.dataTransfer.getData('application/spanova-node')
+    const type = event.dataTransfer.getData('application/kopruq-node')
     if (!type || !getNodeDefinition(type) || !canvasRef.current) return
     const position = screenToFlowPosition({ x: event.clientX, y: event.clientY })
     addNode(type, { x: Math.round(position.x / 20) * 20, y: Math.round(position.y / 20) * 20 })
@@ -350,7 +350,7 @@ function QuickUnits({ project, setProject }: { project: ProjectWorkspaceData; se
   return <div className="spn-quick-units" aria-label="Quick Units"><label>Force <select value={project.units.force} onChange={event => update('force', event.target.value)}><option value="kN">kN</option><option value="N">N</option><option value="kgf">kgf</option><option value="tonf">tonf</option></select></label><label>Length <select value={project.units.length} onChange={event => update('length', event.target.value)}><option value="m">m</option><option value="cm">cm</option><option value="mm">mm</option></select></label></div>
 }
 
-function normalizeConnection(graph: SpanovaGraph, connection: Pick<Connection, 'source' | 'target'> & { sourceHandle?: string | null; targetHandle?: string | null }): Omit<import('../domain/types').SpanovaConnection, 'id'> | undefined {
+function normalizeConnection(graph: KopruqGraph, connection: Pick<Connection, 'source' | 'target'> & { sourceHandle?: string | null; targetHandle?: string | null }): Omit<import('../domain/types').KopruqConnection, 'id'> | undefined {
   if (!connection.source || !connection.sourceHandle || !connection.target || !connection.targetHandle) return undefined
   const sourceNode = graph.nodes.find(node => node.id === connection.source)
   const targetNode = graph.nodes.find(node => node.id === connection.target)
@@ -365,6 +365,6 @@ function normalizeConnection(graph: SpanovaGraph, connection: Pick<Connection, '
   return undefined
 }
 
-function graphExecutionSignature(graph: SpanovaGraph) {
+function graphExecutionSignature(graph: KopruqGraph) {
   return JSON.stringify({ id: graph.id, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })), connections: graph.connections })
 }

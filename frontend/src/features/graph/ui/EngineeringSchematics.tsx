@@ -1,23 +1,28 @@
-import { useState } from 'react'
+import { createContext, useContext, useState } from 'react'
 import type { GraphValue, KopruqConnection, KopruqNode } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getUnit } from '../domain/quantities'
 import type { EngineeringInspectorSchema } from '../registry/nodeRegistry'
 import { displayLength, displayRange, geometryValues } from './engineeringSchematicValues'
 import { bulbTeeGirderPath } from '../../../shared/ui/BulbTeeGirderShape'
+import { NodeIcon } from './NodeIcon'
+
+const SchematicLogoContext = createContext<string | undefined>(undefined)
 
 type Props = { schema: EngineeringInspectorSchema; node: KopruqNode; candidates: GraphValue[]; previewInputs: Record<string, { sourceName: string; value?: GraphValue; error?: string }>; connections: KopruqConnection[]; projectUnits?: ProjectUnitPreferences }
 
 export function EngineeringSchematic({ schema, node, candidates, previewInputs, connections, projectUnits }: Props) {
-  if (schema.schematic === 'superstructure') return <StaticSuperstructureCard node={node} candidates={candidates} previewInputs={previewInputs} connected={new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))} projectUnits={projectUnits} />
-  if (schema.schematic === 'abutment') return <AbutmentSchematic candidates={candidates} />
-  if (schema.schematic === 'span-arrangement') return <SpanArrangementSchematic candidates={candidates} />
   const connected = new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))
-  if (schema.schematic === 'pier') return <PierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
-  if (schema.schematic === 'pier-cap') return <PierCapSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
-  if (schema.schematic === 'foundation') return <FoundationSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
-  if (schema.schematic === 'girder') return <GirderSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
-  return <BearingSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+  const content = schema.schematic === 'superstructure'
+    ? <StaticSuperstructureCard node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+    : schema.schematic === 'abutment' ? <AbutmentSchematic candidates={candidates} />
+      : schema.schematic === 'span-arrangement' ? <SpanArrangementSchematic candidates={candidates} />
+        : schema.schematic === 'pier' ? <PierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+          : schema.schematic === 'pier-cap' ? <PierCapSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+            : schema.schematic === 'foundation' ? <FoundationSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+              : schema.schematic === 'girder' ? <GirderSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+                : <BearingSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
+  return <SchematicLogoContext.Provider value={node.type}>{content}</SchematicLogoContext.Provider>
 }
 function SpanArrangementSchematic({ candidates }: { candidates: GraphValue[] }) {
   const candidate = candidates[0] as import('../domain/spanArrangement').SpanArrangementCandidate | undefined
@@ -299,7 +304,15 @@ function planRect(ax:number,ay:number,x:number,y:number,maxW:number,maxH:number)
 function wallPixels(metres:number,scale:number,limit:number){return clamp(metres*scale,6,limit*.22)}
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
 
-function SchematicCard({ children, className }: { children: React.ReactNode; className?: string }) { return <div className={`spn-engineering-schematic ${className??''}`}>{children}</div> }
+function SchematicCard({ children, className }: { children: React.ReactNode; className?: string }) {
+  const logoType = useContext(SchematicLogoContext)
+  const hasDedicatedPreview = className?.includes('spn-pier-family-preview') || className?.includes('spn-rectangular-pier-preview')
+  return <div className={`spn-engineering-schematic ${className??''}`}>
+    {logoType && <div className="spn-engineering-schematic-logo"><NodeIcon type={logoType} size={128} /></div>}
+    {logoType && !hasDedicatedPreview && <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label="Preview schematic" title="Preview">↗</button></div>}
+    {children}
+  </div>
+}
 function DimensionHorizontal({x1,x2,y,toY,label,compact=false}:{x1:number;x2:number;y:number;toY:number;label:string;compact?:boolean}){const mid=(x1+x2)/2,top=y-(compact?7:6);return <g className="engineering-dimension-line"><path d={`M${x1} ${toY}v${y-toY} M${x2} ${toY}v${y-toY} M${x1} ${y}H${x2}`} /><path d={`M${x1-3} ${y+3}l6 -6 M${x2-3} ${y+3}l6 -6`} /><text className="engineering-dimension" x={mid} y={top} textAnchor="middle">{label}</text></g>}
 function DimensionVertical({y1,y2,x,toX,label,compact=false}:{y1:number;y2:number;x:number;toX:number;label:string;compact?:boolean}){const mid=(y1+y2)/2;return <g className="engineering-dimension-line"><path d={`M${toX} ${y1}H${x} M${toX} ${y2}H${x} M${x} ${y1}V${y2}`} /><path d={`M${x-3} ${y1+3}l6 -6 M${x-3} ${y2+3}l6 -6`} /><text className={`engineering-dimension${compact?' is-compact':''}`} x={x+5} y={mid} textAnchor="start" dominantBaseline="middle">{label}</text></g>}
 function BridgeAxis({y}:{y:number}){return <g className="engineering-axis"><path d={`M48 ${y}H252`} /><text x="150" y={y+12} textAnchor="middle">Bridge Axis</text></g>}

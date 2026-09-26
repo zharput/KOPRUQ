@@ -21,7 +21,7 @@
 .spn-main { min-height: 0; }
 .spn-content { min-height: 0; }
 
-.spn-workspace-layout { --workspace-left: 248px; --workspace-right: 370px; display: grid; grid-template-columns: var(--workspace-left) minmax(0,1fr) var(--workspace-right); grid-template-rows: minmax(0,1fr); flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; border-top: 1px solid var(--border); }
+.spn-workspace-layout { --workspace-left: 248px; --workspace-right: 250px; display: grid; grid-template-columns: var(--workspace-left) minmax(0,1fr) var(--workspace-right); grid-template-rows: minmax(0,1fr); flex: 1 1 auto; width: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; border-top: 1px solid var(--border); }
 .spn-workspace-layout.left-collapsed { --workspace-left: 42px; }
 .spn-workspace-layout.right-collapsed { --workspace-right: 42px; }
 .spn-workspace-side { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--surface-1); }
@@ -31,6 +31,11 @@
 .spn-workspace-side-heading button { display: grid; place-items: center; width: 26px; height: 26px; flex: none; padding: 0; border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; }
 .spn-workspace-side-heading button:hover { border-color: var(--border); color: var(--text-primary); }
 .spn-workspace-side-content { min-height: 0; padding: 10px; overflow: auto; }
+.spn-workspace-resize-handle { position: absolute; z-index: 5; top: 0; bottom: 0; width: 8px; cursor: col-resize; touch-action: none; }
+.spn-workspace-side-left, .spn-workspace-side-right { position: relative; }
+.workspace-resize-handle-left { right: -4px; }
+.workspace-resize-handle-right { left: -4px; }
+.spn-workspace-resize-handle:hover, .spn-workspace-resize-handle:active { background: color-mix(in srgb, var(--accent) 45%, transparent); }
 .spn-family-center { width: 100%; min-width: 0; }
 .spn-family-center-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 2px 2px 12px; border-bottom: 1px solid var(--border); margin-bottom: 12px; }
 .spn-family-center-heading h1 { margin: 0; font-size: 17px; font-weight: 600; }
@@ -1295,10 +1300,10 @@
 .spn-workspace-main-graph { display: flex; min-height: 0; overflow: hidden; padding: 0; }
 .spn-graph-workspace { position: relative; display: flex; flex: 1 1 auto; flex-direction: column; width: 100%; height: 100%; min-width: 0; min-height: 0; max-height: 100%; overflow: hidden; background: var(--surface-0); }
 .spn-graph-bridge-selector { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--surface-1); font-family: "Segoe UI", sans-serif; font-size: 11px; color: #4b5563; }
-.spn-graph-workspace > .spn-graph-bridge-selector { position: absolute; z-index: 2; top: 0; left: 0; right: auto; height: 48px; min-height: 48px; padding: 5px 10px; border-bottom: 0; background: var(--surface-1); }
+.spn-graph-workspace > .spn-graph-bridge-selector { position: absolute; z-index: 2; top: 0; left: 0; right: auto; box-sizing: border-box; height: 44px; min-height: 44px; padding: 5px 10px; border-bottom: 1px solid var(--border); background: var(--surface-1); }
 .spn-graph-workspace > .spn-graph-toolbar { padding-left: 10px; }
-.spn-graph-bridge-selector label { color: #4b5563; font: 11px "Segoe UI", sans-serif; }
-.spn-graph-bridge-selector select { min-width: 270px; border: 1px solid var(--border); background: var(--surface-0); color: #4b5563; font: 11px "Segoe UI", sans-serif; padding: 3px 5px; }
+.spn-graph-bridge-selector label { color: #AAB6C9; font: 12px "Segoe UI", sans-serif; line-height: normal; }
+.spn-graph-bridge-selector select { min-width: 270px; border: 1px solid var(--border); background: var(--surface-0); color: #AAB6C9; font: 12px "Segoe UI", sans-serif; line-height: normal; padding: 3px 5px; }
 .spn-schematic-card-toolbar { display: flex; align-items: center; justify-content: space-between; height: 22px; color: var(--text-muted); font-size: 10px; }
 .spn-schematic-card-toolbar button { border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; font: 12px "Segoe UI", sans-serif; line-height: 16px; padding: 0 4px; }
 .spn-schematic-preview-note { color: var(--text-muted); font-size: 9px; text-align: center; }
@@ -1342,14 +1347,14 @@
 .spn-graph-library-item small { color: var(--text-muted); font: var(--graph-library-description-size) var(--mono); }
 .spn-graph-library-group.disabled { opacity: .52; padding-top: 5px; border-top: 1px solid var(--border); }
 .spn-graph-library-group.disabled h3 { margin: 0; }
-.spn-graph-toolbar { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 5px 10px; border-bottom: 1px solid var(--border); background: var(--surface-1); }
+.spn-graph-toolbar { display: flex; align-items: center; gap: 12px; min-height: 44px; height: 44px; padding: 5px 10px; border-bottom: 1px solid var(--border); background: var(--surface-1); }
 .spn-graph-name { display: flex; align-items: center; gap: 8px; min-width: 180px; flex: 1; }
 .spn-graph-name > label { color: var(--text-muted); font-size: 9px; font-weight: 700; letter-spacing: .1em; }
 .spn-graph-name input, .spn-graph-name select { min-width: 0; border: 1px solid transparent; background: transparent; color: var(--text-primary); font: inherit; font-size: 11px; }
 .spn-graph-name input { flex: 1; max-width: 180px; padding: 5px 6px; }
 .spn-graph-name select { max-width: 120px; color: var(--text-secondary); }
 .spn-graph-name input:focus, .spn-graph-name select:focus { border-color: var(--border-strong); outline: 0; }
-.spn-graph-icon-button, .spn-graph-tools button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 28px; height: 28px; padding: 0 7px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 10px; }
+.spn-graph-icon-button, .spn-graph-tools button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 28px; height: 28px; padding: 0 7px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); cursor: pointer; font: inherit; font-size: 12px; }
 .spn-graph-icon-button:hover, .spn-graph-tools button:hover:not(:disabled) { border-color: var(--border); background: var(--surface-2); color: var(--text-primary); }
 .spn-graph-tools { display: flex; align-items: center; gap: 2px; }
 .spn-graph-tools button:disabled { opacity: .35; cursor: not-allowed; }
@@ -1564,12 +1569,13 @@
 .spn-engineering-inspector h3 { font-size: var(--graph-inspector-section-size); }
 .spn-engineering-general > label { display: grid; gap: 5px; color: var(--text-secondary); font-size: 12px; }
 .spn-engineering-general .spn-input { width: 100%; min-width: 0; padding: 6px 8px; font-size: 12px; }
-.spn-engineering-type, .spn-engineering-parameters, .spn-engineering-family { display: grid; gap: 9px; }
+.spn-engineering-type, .spn-engineering-family { display: grid; gap: 9px; }
+.spn-engineering-parameters { display: grid; gap: 0; }
 .spn-engineering-schematic { display: grid; justify-items: center; gap: 3px; padding: 8px; border: 1px solid var(--border-subtle, #334155); border-radius: 4px; }
 .spn-engineering-schematic svg { width: 100%; max-width: 250px; height: 132px; overflow: visible; fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2.2; }
 .spn-engineering-schematic text { fill: var(--text-secondary); stroke: none; font: 10px var(--mono); }
 .spn-engineering-schematic > span { color: var(--text-muted); font-size: 11px; }
-.spn-engineering-parameter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 1.15fr); align-items: center; gap: 12px; min-width: 0; padding-bottom: 8px; border-bottom: 1px solid var(--border-subtle, #334155); }
+.spn-engineering-parameter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 1.15fr); align-items: center; gap: 12px; min-width: 0; padding-bottom: 0; border-bottom: 1px solid var(--border-subtle, #334155); }
 .spn-engineering-parameter-label { min-width: 0; color: var(--spn-node-body-text); font-size: var(--graph-panel-body-font-size); line-height: 1.25; overflow-wrap: anywhere; }
 .spn-engineering-controls { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
 .spn-engineering-controls > * { min-width: 0; }
@@ -2145,7 +2151,7 @@
 .spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg polygon,
 .spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg circle,
 .spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg ellipse {
-  fill: #d9d9d9 !important;
+  fill: #77838F !important;
   stroke: #6f7b89 !important;
 }
 .spn-graph-inspector.spn-graph-inspector .spn-engineering-schematic svg line,
@@ -2694,7 +2700,42 @@
    visual language is shared through the central drawing tokens. */
 .spn-engineering-schematic { gap: 3px; padding: var(--sp-drawing-padding); border-color: var(--sp-border-subtle); border-radius: 4px; background: var(--sp-surface-02); }
 .spn-engineering-schematic svg { font-family: var(--spn-ui-font-family); }
-.spn-engineering-schematic .engineering-outline { fill: var(--sp-drawing-fill) !important; stroke: var(--sp-drawing-primary) !important; stroke-width: var(--sp-drawing-primary-width) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-outline { fill: #77838F !important; stroke: var(--sp-drawing-primary) !important; stroke-width: var(--sp-drawing-primary-width) !important; vector-effect: non-scaling-stroke; }
+.spn-schematic-detail-dialog .engineering-outline { fill: #77838F !important; stroke: var(--sp-drawing-primary) !important; stroke-width: var(--sp-drawing-primary-width) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-dimension,
+.spn-schematic-detail-dialog .engineering-dimension { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-dimension-size) var(--spn-ui-font-family) !important; }
+.spn-engineering-schematic .engineering-dimension-line,
+.spn-schematic-detail-dialog .engineering-dimension-line { fill: none !important; stroke: var(--sp-drawing-dimension) !important; stroke-width: var(--sp-drawing-dimension-width) !important; stroke-dasharray: none; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-axis,
+.spn-engineering-schematic .engineering-centerline,
+.spn-schematic-detail-dialog .engineering-axis,
+.spn-schematic-detail-dialog .engineering-centerline { fill: none !important; stroke: var(--sp-drawing-axis) !important; stroke-width: var(--sp-drawing-axis-width) !important; stroke-dasharray: var(--sp-drawing-dash) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-axis text,
+.spn-engineering-schematic .engineering-axis-label,
+.spn-schematic-detail-dialog .engineering-axis text,
+.spn-schematic-detail-dialog .engineering-axis-label { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-axis-size) var(--spn-ui-font-family) !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-outline { fill: #77838F !important; stroke: #C7CBD1 !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-dimension,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis text,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis-label { fill: #C7CBD1 !important; color: #C7CBD1 !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-dimension-line { stroke: #9299A3 !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis path,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-centerline { stroke: #626A75 !important; }
+.spn-engineering-schematic > .spn-schematic-card-toolbar { justify-content: center; gap: 4px; }
+.spn-engineering-schematic .engineering-axis,
+.spn-engineering-schematic .engineering-dimension,
+.spn-engineering-schematic .engineering-view-title,
+.spn-engineering-schematic .engineering-axis-label,
+.spn-engineering-schematic .spn-schematic-preview-note { display: none !important; }
+.spn-engineering-schematic { min-width: 144px; }
+.spn-engineering-schematic-logo { display: grid; width: 128px; height: 128px; place-items: center; }
+.spn-engineering-schematic-logo .spn-node-icon { width: 128px !important; height: 128px !important; margin: 0; }
+.spn-engineering-schematic-logo .spn-node-icon img { object-fit: contain; }
+.spn-assembly-schematic-stage { display: grid; justify-items: center; gap: 10px; }
+.spn-assembly-schematic-stage .spn-schematic-card-toolbar { width: 100%; justify-content: center; gap: 4px; }
+.spn-engineering-schematic > svg { display: none !important; }
+.spn-engineering-schematic > .spn-schematic-detail-backdrop { display: contents; }
 .spn-engineering-schematic .engineering-void { fill: var(--sp-surface-02) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
 .spn-engineering-schematic .engineering-pile, .spn-engineering-schematic .engineering-pile-section { fill: var(--sp-drawing-fill-secondary) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
 .spn-engineering-schematic .engineering-deck { fill: var(--sp-drawing-fill-secondary) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
@@ -2814,12 +2855,12 @@
 .spn-graph-library-category-heading { justify-content: flex-start; gap: 7px; min-height: 28px; padding: 5px 8px; background-color: var(--node-group-color); color: var(--node-group-text); border-bottom: 1px solid var(--sp-node-divider); font-size: 10px; letter-spacing: .08em; }
 .spn-graph-library-category-heading span { color: #3f4650 !important; }
 .spn-graph-library-category-heading::before { content: ''; width: 3px; height: 14px; background: var(--sp-node-accent, var(--sp-node-border)); border-radius: 2px; }
-.spn-graph-library-item { min-height: 56px; padding: 4px 8px; background: transparent !important; color: var(--sp-node-text-primary) !important; border-color: transparent !important; }
+.spn-graph-library-item { min-height: 40px; padding: 4px 8px; gap: 15px; background: transparent !important; color: var(--sp-node-text-primary) !important; border-color: transparent !important; }
 .spn-graph-library-item,
 .spn-graph-library-item > span { font-size: 14px !important; }
 .spn-graph-library-item:hover { background: #26323B !important; border-color: var(--sp-node-border) !important; }
 
-.spn-graph-library-item .spn-node-icon { width: 16px; height: 16px; color: var(--sp-node-accent, var(--sp-node-text-secondary)); background: transparent !important; box-shadow: none !important; }
+.spn-graph-library-item .spn-node-icon { width: 30px; height: 30px; color: var(--sp-node-accent, var(--sp-node-text-secondary)); background: transparent !important; box-shadow: none !important; }
 .spn-graph-node .spn-graph-node-state,
 .spn-graph-node .spn-graph-node-error-message,
 .spn-graph-node .spn-graph-watch-value,

@@ -41,25 +41,42 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
     onCommit(parsed)
   }
 
-  return <input
-    className={`spn-graph-editable-number nodrag nowheel nopan${invalid ? ' is-invalid' : ''}`}
-    ref={inputRef}
-    aria-label={ariaLabel}
-    aria-invalid={invalid}
-    disabled={disabled}
-    inputMode={integer ? 'numeric' : 'decimal'}
-    type="text"
-    value={draft}
-    onFocus={() => setFocused(true)}
-    onChange={event => { setDraft(event.target.value); setInvalid(false); lastCommit.current = undefined }}
-    onBlur={() => { commitDraft(); setFocused(false) }}
-    onKeyDown={event => {
-      // Preserve native editing/copy shortcuts while keeping React Flow's canvas shortcuts away.
-      event.stopPropagation()
-      if (event.key === 'Enter') { event.preventDefault(); commitDraft() }
-      if (event.key === 'Escape') { event.preventDefault(); setDraft(committedText); setInvalid(typeof value === 'string' && !isValidNumericText(value, integer)); lastCommit.current = committedText }
-    }}
-  />
+  const step = (direction: 1 | -1) => {
+    const parsed = Number(draft)
+    const base = Number.isFinite(parsed) ? parsed : Number(committedText)
+    const next = (Number.isFinite(base) ? base : 0) + direction
+    const normalized = integer ? Math.round(next) : Number(next.toString())
+    setDraft(String(normalized))
+    setInvalid(false)
+    lastCommit.current = String(normalized)
+    onCommit(normalized)
+  }
+
+  return <span className="spn-graph-number-control">
+    <input
+      className={`spn-graph-editable-number nodrag nowheel nopan${invalid ? ' is-invalid' : ''}`}
+      ref={inputRef}
+      aria-label={ariaLabel}
+      aria-invalid={invalid}
+      disabled={disabled}
+      inputMode={integer ? 'numeric' : 'decimal'}
+      type="text"
+      value={draft}
+      onFocus={() => setFocused(true)}
+      onChange={event => { setDraft(event.target.value); setInvalid(false); lastCommit.current = undefined }}
+      onBlur={() => { commitDraft(); setFocused(false) }}
+      onKeyDown={event => {
+        // Preserve native editing/copy shortcuts while keeping React Flow's canvas shortcuts away.
+        event.stopPropagation()
+        if (event.key === 'Enter') { event.preventDefault(); commitDraft() }
+        if (event.key === 'Escape') { event.preventDefault(); setDraft(committedText); setInvalid(typeof value === 'string' && !isValidNumericText(value, integer)); lastCommit.current = committedText }
+      }}
+    />
+    <span className="spn-graph-number-spinners" aria-hidden="true">
+      <button type="button" tabIndex={-1} disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => step(1)}>▲</button>
+      <button type="button" tabIndex={-1} disabled={disabled} onMouseDown={event => event.preventDefault()} onClick={() => step(-1)}>▼</button>
+    </span>
+  </span>
 }
 
 function isValidNumericText(value: string, integer: boolean) { const text = value.trim(); return (integer ? /^-?\d+$/.test(text) : /^-?(?:\d+\.?\d*|\.\d+)$/.test(text)) && Number.isFinite(Number(text)) }

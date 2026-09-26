@@ -16,7 +16,7 @@
   --sp-status-success: #34D399; --sp-status-warning: #F59E0B; --sp-status-error: #EF4444; --sp-status-info: #60A5FA; --sp-selection: #35404D; --sp-selection-hover: #46505D; --sp-selection-border: #5EA7FF; --sp-selection-fill: rgba(94,167,255,.10); --sp-selection-glow: rgba(94,167,255,.22);
   --sp-hover-border: #C7CBD1; --sp-hover-surface: var(--sp-surface-hover); --sp-socket-default: #A6A6A6; --sp-socket-hover: #F2F2F2; --sp-socket-compatible: #55B889; --sp-socket-incompatible: #E05A5A;
   --sp-edge-default: var(--sp-link-default); --sp-edge-hover: #C7CBD1; --sp-edge-selected: #5EA7FF; --sp-edge-preview: #C7CBD1; --sp-marquee-window-border: #5EA7FF; --sp-marquee-window-fill: rgba(94,167,255,.10); --sp-marquee-crossing-border: #55B889; --sp-marquee-crossing-fill: rgba(85,184,137,.10);
-  --sp-node-shadow: 0 5px 16px rgba(0,0,0,.24); --sp-node-shadow-selected: 0 0 0 1px var(--sp-selection-border), 0 5px 18px rgba(0,0,0,.30);
+  --sp-node-shadow: 0 5px 16px rgba(0,0,0,.24); --sp-node-shadow-selected: 0 0 0 2px var(--sp-selection-border), 0 5px 18px rgba(0,0,0,.30);
   --bg-page: var(--sp-bg-app); --surface-0: var(--sp-bg-workspace); --surface-1: var(--sp-surface-01); --surface-2: var(--sp-surface-02); --border: var(--sp-border-primary); --border-strong: var(--sp-border-strong); --text-primary: var(--sp-text-primary); --text-secondary: var(--sp-text-secondary); --text-muted: var(--sp-text-muted); --accent: var(--sp-status-info); --accent-strong: var(--sp-link-hover); --graph-canvas: var(--sp-graph-canvas); --graph-grid-color: var(--sp-graph-grid-minor); --graph-edge-color: var(--sp-link-default);
 
   /* Fixed dark constant, NOT overridden by [data-theme='light'] below -
@@ -52,11 +52,11 @@
   --sp-node-substructure: #56A86B; --sp-node-structural-family: #C7A83D; --sp-node-loads: #629BD1;
   --sp-node-analysis: #9276CC; --sp-node-design: #55B889; --sp-node-optimization: #D97A3A; --sp-node-output: #8D96A3;
   --sp-graph-canvas: #11161D; --sp-graph-grid-major: #26303A; --sp-graph-grid-minor: #1B232C;
-  --sp-node-body: #202A31; --sp-node-body-alt: #253139; --sp-node-border: #3A4852; --sp-node-border-hover: #566773; --sp-node-border-selected: #82919B;
+  --sp-node-body: #202A31; --sp-node-body-alt: #253139; --sp-node-border: #3A4852; --sp-node-border-hover: #566773; --sp-node-border-selected: var(--sp-selection-border);
   --sp-node-field-bg: #34434C; --sp-node-field-hover: #3B4C56; --sp-node-field-focus: #425660; --sp-node-field-border: #4A5B65;
   --sp-node-text-primary: #F2F4F5; --sp-node-text-secondary: #B8C1C7; --sp-node-text-muted: #87949D; --sp-node-value-text: #F5F7F8; --sp-node-divider: #3A464E;
   --sp-node-readonly-bg: var(--sp-node-body-alt); --sp-node-helper-bg: var(--sp-node-body-alt); --sp-node-status-bg: var(--sp-node-body-alt); --sp-node-empty-bg: var(--sp-node-body-alt); --sp-node-footer-bg: #1D282F;
-  --sp-node-shadow: 0 4px 12px rgba(0,0,0,.30); --sp-node-shadow-selected: 0 5px 16px rgba(0,0,0,.40); --sp-node-header-text-light: #F5F7F8; --sp-node-header-text-dark: #182026;
+  --sp-node-shadow: 0 4px 12px rgba(0,0,0,.30); --sp-node-shadow-selected: 0 0 0 2px var(--sp-selection-border), 0 5px 16px rgba(0,0,0,.40); --sp-node-header-text-light: #F5F7F8; --sp-node-header-text-dark: #182026;
   --sp-structural-node-header: #2D4059; --sp-structural-node-header-text: #F2F2F2; --sp-structural-node-category-text: #BFC8D4;
   --sp-input-node-header: #46515E; --sp-input-node-header-text: #F2F2F2; --sp-input-node-category-text: #D0D5DA;
   --sp-materials-node-header: #36594A; --sp-materials-node-header-text: #F2F2F2; --sp-materials-node-category-text: #D4DDD8;

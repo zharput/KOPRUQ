@@ -6,16 +6,19 @@
 /* Phase 1 workspace shell. Legacy feature routes stay mounted inside the
    same application/providers while the new /workspace routes use this frame. */
 .spn-app-root { display: flex; flex: 0 0 100svh; flex-direction: column; width: 100%; height: 100svh; min-height: 0; max-height: 100svh; overflow: hidden; background: var(--surface-0); }
-.spn-workspace-nav { --kp-top-nav-left-offset: 190px; position: relative; display: flex; align-items: stretch; flex: none; height: 62px; min-width: 0; padding: 0 16px; background: var(--surface-1); border-bottom: 1px solid var(--border); color: var(--text-primary); }
+.spn-workspace-nav { position: relative; display: flex; align-items: flex-end; justify-content: flex-start; flex: none; height: 80px; min-width: 0; padding: 0 8px 0 230px; background: linear-gradient(180deg, #10151a 0%, #111820 100%); border-top: 1px solid #050709; border-bottom: 2px solid #1e2d3d; color: var(--text-primary); }
+.spn-workspace-nav::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 230px; background: #10161d url('/kopruq-logo.png') center / 132px auto no-repeat; border-right: 1px solid #263341; }
 .spn-workspace-brand { display: flex; align-items: center; flex: none; width: var(--kp-top-nav-left-offset); padding: 6px 18px 6px 4px; text-decoration: none; }
 .spn-workspace-brand img { display: block; width: 168px; height: 50px; object-fit: contain; object-position: left center; }
-.spn-active-project { position:absolute; top:0; left:50%; display:flex; width:min(32vw,360px); height:100%; transform:translateX(-50%); flex-direction:column; justify-content:center; padding:0 12px; overflow:hidden; text-align:center; white-space:nowrap; pointer-events:none; }.spn-active-project strong { display:none; }.spn-active-project small { overflow:hidden; color:var(--text-muted,#9aa6b5); font-size:12px; text-overflow:ellipsis; }
+.spn-active-project { position:absolute; top:6px; left:50%; z-index:2; display:flex; width:192px; height:48px; transform:translateX(-50%); flex-direction:column; justify-content:center; padding:0 12px; overflow:hidden; border-radius:8px 8px 0 0; background:transparent; box-shadow:none; text-align:center; white-space:nowrap; pointer-events:none; }.spn-active-project strong { display:block; overflow:hidden; color:#a9caff; font-size:14px; font-weight:600; letter-spacing:.2px; text-overflow:ellipsis; }.spn-active-project small { display:none; }
 .spn-workspace-nav-items { display: flex; align-items: stretch; min-width: 0; overflow: visible; scrollbar-width: none; }
 .spn-workspace-nav-items::-webkit-scrollbar { display: none; }
-.spn-workspace-nav-item { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: max-content; padding: 0 15px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: #aab6c9; text-decoration: none; font: inherit; font-size: 14px; cursor: pointer; transition: color .12s ease, background .12s ease; }
+.spn-workspace-nav-item { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-width: max-content; padding: 0 16px; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #d1d8e2; text-decoration: none; font: inherit; font-size: 12px; cursor: pointer; transition: color .12s ease, background .12s ease; }
 .spn-workspace-nav-item:hover { color: #f1f5fb; background: rgba(255,255,255,.035); }
-.spn-workspace-nav-item.active { color: #f5f8ff; background: rgba(42,112,230,.16); border-bottom-color: #4387ff; }
-.spn-workspace-nav-item.active svg { color: #70a6ff; }
+.spn-workspace-nav-item.active { color: #b9d4ff; background: #182a43; border-bottom-color: #4387ff; }
+.spn-workspace-nav-item.active svg { color: #a9caff; }
+.spn-workspace-nav:has(.spn-file-menu .spn-workspace-nav-item.active) .spn-workspace-nav-items > .spn-workspace-nav-item.active { color: #d1d8e2; background: transparent; border-bottom-color: transparent; }
+.spn-workspace-nav:has(.spn-file-menu .spn-workspace-nav-item.active) .spn-workspace-nav-items > .spn-workspace-nav-item.active svg { color: inherit; }
 .spn-workspace-nav-actions { display: flex; align-items: center; margin-left: auto; padding-left: 10px; }
 .spn-shell { flex: 1; min-height: 0; }
 .spn-shell .spn-sidebar { min-height: 0; }

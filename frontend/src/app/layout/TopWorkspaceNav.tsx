@@ -1,15 +1,12 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { ChevronRight, Clock3, FilePlus2, FolderOpen, LogOut, Save, SaveAll } from 'lucide-react'
 import { PRIMARY_WORKSPACES, legacyWorkspaceFromPath, workspaceFromPath } from '../workspaces/registry'
-
-export default function TopWorkspaceNav() {
-  const { pathname } = useLocation()
-  const activeWorkspace = workspaceFromPath(pathname) ?? legacyWorkspaceFromPath(pathname)
-  return <header className="spn-workspace-nav" aria-label="Primary workspaces">
-    <Link to="/project" className="spn-workspace-brand" aria-label="KOPRUQ Project Overview"><img src="/kopruq-logo.png" alt="KOPRUQ" /></Link>
-    <nav className="spn-workspace-nav-items" aria-label="Workspaces">
-      {PRIMARY_WORKSPACES.map(({ id, label, Icon }) => <Link key={id} to={`/${id}`} className={`spn-workspace-nav-item${activeWorkspace?.id === id ? ' active' : ''}`} aria-current={activeWorkspace?.id === id ? 'page' : undefined} title={label} aria-label={label}>
-        <Icon size={17} strokeWidth={1.8} aria-hidden="true" /><span>{label}</span>
-      </Link>)}
-    </nav>
-  </header>
+import type { RecentProject } from '../../shared/project-file/recentProjects'
+type Props = { dirty?: boolean; projectName?: string; fileName?: string; recent?: RecentProject[]; onNew?: () => void; onOpen?: (file: File) => void; onRecentOpen?: (entry: RecentProject) => void; onSave?: () => void; onSaveAs?: () => void; onExit?: () => void }
+export default function TopWorkspaceNav({ dirty = false, projectName = 'Untitled', fileName, recent = [], onNew, onOpen, onRecentOpen, onSave, onSaveAs, onExit }: Props) {
+ const { pathname } = useLocation(), [open, setOpen] = useState(false), input = useRef<HTMLInputElement>(null); const active = workspaceFromPath(pathname) ?? legacyWorkspaceFromPath(pathname)
+ useEffect(() => { const close=()=>setOpen(false); const key=(e:KeyboardEvent)=>{if(e.key==='Escape')close();if(e.ctrlKey&&e.key.toLowerCase()==='s'){e.preventDefault();e.shiftKey?onSaveAs?.():onSave?.()}if(e.ctrlKey&&e.key.toLowerCase()==='o'){e.preventDefault();input.current?.click()}if(e.ctrlKey&&e.key.toLowerCase()==='n'){e.preventDefault();onNew?.()}}; addEventListener('keydown',key);addEventListener('click',close);return()=>{removeEventListener('keydown',key);removeEventListener('click',close)}},[onNew,onSave,onSaveAs])
+ const action=(fn?:()=>void)=>{setOpen(false);fn?.()}; const iconProps={size:22,strokeWidth:1.7,'aria-hidden':true as const}
+ return <header className="spn-workspace-nav" aria-label="Primary workspaces"><Link to="/project" className="spn-workspace-brand" aria-label="KOPRUQ Project Overview"><img src="/kopruq-logo.png" alt="KOPRUQ"/></Link><div className="spn-active-project" title={fileName ?? projectName}><strong>{projectName}{dirty?' *':''}</strong><small>{fileName ?? 'Unsaved'}</small></div><nav className="spn-workspace-nav-items" aria-label="Workspaces"><div className="spn-file-menu" onClick={e=>e.stopPropagation()}><button type="button" className={`spn-workspace-nav-item${open?' active':''}`} aria-expanded={open} onClick={()=>setOpen(!open)}><span>File{dirty?' *':''}</span></button>{open&&<div className="spn-file-dropdown"><button onClick={()=>action(onNew)}><FilePlus2 {...iconProps}/><span>New Project</span><kbd>Ctrl+N</kbd></button><button aria-label="Open..." onClick={()=>action(()=>input.current?.click())}><FolderOpen {...iconProps}/><span>Open...</span><kbd>Ctrl+O</kbd></button><hr/><button onClick={()=>action(onSave)}><Save {...iconProps}/><span>Save</span><kbd>Ctrl+S</kbd></button><button onClick={()=>action(onSaveAs)}><SaveAll {...iconProps}/><span>Save As...</span><kbd>Ctrl+Shift+S</kbd></button><hr/><div className="spn-recent-submenu"><span className="spn-file-submenu-label"><Clock3 {...iconProps}/><span>Recent Projects</span><ChevronRight size={18} aria-hidden="true"/></span>{recent.length?recent.map(entry=><button key={entry.id} aria-label="Recent project" title={entry.available?entry.fileName:'Choose the file again with Open'} onClick={()=>entry.available?action(()=>onRecentOpen?.(entry)):action(()=>input.current?.click())}><span>{entry.projectName}</span><small>{entry.fileName} · {new Date(entry.lastUsedAt).toLocaleString()}</small></button>):<small>No recent projects</small>}</div><hr/><button aria-label="× Exit" onClick={()=>action(onExit)}><LogOut {...iconProps}/><span>Exit</span></button></div>}<input ref={input} type="file" accept=".kopruq,application/json" hidden onChange={e=>{const file=e.target.files?.[0];if(file)onOpen?.(file);e.currentTarget.value='' }}/></div>{PRIMARY_WORKSPACES.map(({id,label,Icon})=><Link key={id} to={`/${id}`} className={`spn-workspace-nav-item${active?.id===id?' active':''}`} aria-current={active?.id===id?'page':undefined} title={label} aria-label={label}><Icon size={17} strokeWidth={1.8} aria-hidden="true"/><span>{label}</span></Link>)}</nav></header>
 }

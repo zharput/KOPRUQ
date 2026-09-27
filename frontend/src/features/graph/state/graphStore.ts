@@ -49,8 +49,20 @@ function persist() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(getDocuments())) } catch { /* keep active in-memory graph */ }
 }
 export function persistGraphStore() { persist() }
+export function exportGraphDocuments(): GraphDocuments { return structuredClone(getDocuments()) }
+export function validateGraphDocuments(next: unknown): GraphDocuments {
+  const value = next as Partial<GraphDocuments>
+  if (!value || !Array.isArray(value.graphs) || !value.graphs.length || !value.graphs.every((graph) => graph && graph.schemaVersion === 1 && typeof graph.id === 'string' && typeof graph.name === 'string' && Array.isArray(graph.nodes) && Array.isArray(graph.connections))) throw new Error('Invalid graph data.')
+  if (!value.graphs.some((graph) => graph.id === value.activeGraphId)) throw new Error('Active graph is missing.')
+  return value as GraphDocuments
+}
+export function importGraphDocuments(next: GraphDocuments) {
+  validateGraphDocuments(next)
+  documents = structuredClone(next); undo.clear(); redo.clear(); notify()
+}
 function notify() {
   refreshSnapshot(); persist()
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'graph' } }))
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENT))
   subscribers.forEach((listener) => listener())
 }

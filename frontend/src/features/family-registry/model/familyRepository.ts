@@ -43,7 +43,7 @@ export function getFamilyRecord<T extends FamilyRecord>(category: FamilyReposito
 export function saveFamilyRecords<T extends FamilyRecord>(category: FamilyRepositoryCategory, records: T[]): boolean {
   try {
     localStorage.setItem(CATALOGS[category].key, JSON.stringify(records))
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event(CATALOGS[category].event))
+    if (typeof window !== 'undefined') { window.dispatchEvent(new Event(CATALOGS[category].event)); window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'family' } })) }
     return true
   } catch { return false }
 }

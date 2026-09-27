@@ -67,5 +67,5 @@ export function readProjectState(fallbackBridges: BridgeRow[]): PersistedProject
 }
 
 export function persistProjectState(state: PersistedProjectState): boolean {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); return true } catch { return false }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'project' } })); return true } catch { return false }
 }

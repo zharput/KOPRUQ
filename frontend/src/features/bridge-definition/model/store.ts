@@ -52,7 +52,7 @@ export function ensureBridgeDefinitions(store: BridgeDefinitionStore, bridges: B
 }
 
 export function persistBridgeDefinitionStore(store: BridgeDefinitionStore): void {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)) } catch { /* storage unavailable; app state remains active */ }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(store)); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'bridge-definitions' } })) } catch { /* storage unavailable; app state remains active */ }
 }
 
 export function assignedAxis(assignment?: Partial<AxisFamilyAssignments>): AxisFamilyAssignments {

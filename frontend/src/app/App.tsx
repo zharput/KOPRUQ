@@ -10,7 +10,9 @@ import { INITIAL_BRIDGES, type BridgeRow } from '../features/project'
 import type { GenerationSummary } from '../features/bridge-alternatives'
 import type { LayoutSeed } from '../features/layout-generator'
 import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../features/superstructure-families'
-import { ensureBridgeIds, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
+import { ensureBridgeIds, INITIAL_PROJECT, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
+import { useProjectFile } from '../shared/project-file/useProjectFile'
+import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
   '/alignment': '/bridge-definition/alignment/horizontal',
@@ -55,6 +57,15 @@ function App() {
   const designCode = projectState.project.designStandardFamily
   const setDesignCode: Dispatch<SetStateAction<string>> = (update) => setProjectState((previous) => ({ ...previous, project: { ...previous.project, designStandardFamily: typeof update === 'function' ? update(previous.project.designStandardFamily) : update } }))
   const [crossSectionValues, setCrossSectionValues] = useState<CrossSectionValues>(INITIAL_CROSS_SECTION_VALUES)
+  const file = useProjectFile(projectState, setProjectState, bridgeDefinitions, setBridgeDefinitions)
+  const [pending, setPending] = useState<(() => void) | null>(null); const [modalBusy, setModalBusy] = useState(false)
+  const runAfterUnsavedDecision = (action: () => void) => { if (!file.dirty) { action(); return }; setPending(() => action) }
+  const discardAndContinue = () => { const action = pending; setPending(null); file.setDirty(false); action?.() }
+  const saveAndContinue = async () => { if (!pending) return; setModalBusy(true); try { await file.save(); const action = pending; setPending(null); action?.() } catch (error) { window.alert(error instanceof Error ? error.message : 'Save failed.'); } finally { setModalBusy(false) } }
+  const newProject = () => runAfterUnsavedDecision(() => { setProjectState({ project: structuredClone(INITIAL_PROJECT), bridges: [] }); setBridgeDefinitions(readBridgeDefinitionStore([])); file.setDirty(false) })
+  const openProject = (input: File) => runAfterUnsavedDecision(() => { void file.open(input).catch((error: unknown) => window.alert(error instanceof Error ? error.message : 'Unable to open project.')) })
+  const openRecentProject = async (entry: import('../shared/project-file/recentProjects').RecentProject) => { try { openProject(await import('../shared/project-file/recentProjects').then((module) => module.getRecentProjectFile(entry))) } catch (error) { window.alert(error instanceof Error ? error.message : 'Unable to open recent project.') } }
+  useEffect(() => { const beforeUnload = (event: BeforeUnloadEvent) => { if (file.dirty) { event.preventDefault(); event.returnValue = '' } }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload) }, [file.dirty])
   const terrainId = projectState.project.environment.terrainDatasetId
   const landXmlImportId = projectState.project.environment.landXmlImportId
   const setTerrainId: Dispatch<SetStateAction<string | null>> = (update) => setProjectState((previous) => ({ ...previous, project: { ...previous.project, environment: { ...previous.project.environment, terrainDatasetId: typeof update === 'function' ? update(previous.project.environment.terrainDatasetId) : update } } }))
@@ -63,14 +74,14 @@ function App() {
   return (
     <AppProviders>
       <BrowserRouter>
-        <RoutedApplication
+        <><RoutedApplication
           summary={summary} onGenerated={setSummary} layoutSeed={layoutSeed} setLayoutSeed={setLayoutSeed}
           bridges={bridges} setBridges={setBridges} designCode={designCode} setDesignCode={setDesignCode}
           project={projectState.project} setProject={(project: ProjectWorkspaceData) => setProjectState((previous) => ({ ...previous, project }))}
           bridgeDefinitions={bridgeDefinitions} setBridgeDefinitions={setBridgeDefinitions}
           crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues}
-          terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId}
-        />
+          terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId} file={file} onNewProject={newProject} onOpenProject={openProject} onRecentOpen={openRecentProject} onExit={() => runAfterUnsavedDecision(() => window.close())}
+        /><UnsavedChangesModal open={pending !== null} busy={modalBusy} onSave={() => void saveAndContinue()} onDiscard={discardAndContinue} onCancel={() => setPending(null)} /></>
       </BrowserRouter>
     </AppProviders>
   )
@@ -95,6 +106,11 @@ type RoutedApplicationProps = {
   setProject: (project: ProjectWorkspaceData) => void
   bridgeDefinitions: BridgeDefinitionStore
   setBridgeDefinitions: Dispatch<SetStateAction<BridgeDefinitionStore>>
+  file: ReturnType<typeof useProjectFile>
+  onNewProject: () => void
+  onOpenProject: (file: File) => void
+  onRecentOpen: (entry: import('../shared/project-file/recentProjects').RecentProject) => void
+  onExit: () => void
 }
 
 function RoutedApplication(props: RoutedApplicationProps) {
@@ -107,7 +123,7 @@ function RoutedApplication(props: RoutedApplicationProps) {
   const migratedRoute = LEGACY_MIGRATED_ROUTES[location.pathname]
   const activeWorkspace = workspace ?? legacyWorkspace ?? WORKSPACES[0]
   return <div className="spn-app-root">
-    <TopWorkspaceNav />
+    <TopWorkspaceNav dirty={props.file.dirty} projectName={props.file.projectName} fileName={props.file.fileName} recent={props.file.recent} onNew={props.onNewProject} onOpen={props.onOpenProject} onRecentOpen={props.onRecentOpen} onSave={() => void props.file.save()} onSaveAs={() => void props.file.save(true)} onExit={props.onExit} />
     {isHomeRoute || isUnknownWorkspaceRoute || location.pathname === '/project-dashboard'
       ? <Navigate to="/project" replace />
       : migratedRoute

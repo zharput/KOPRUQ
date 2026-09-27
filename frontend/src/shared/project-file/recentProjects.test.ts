@@ -1,0 +1,16 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getRecentProjectFile, listRecentProjects, rememberRecentProject } from './recentProjects'
+
+beforeEach(() => { localStorage.clear(); vi.restoreAllMocks() })
+const handle = (permission: PermissionState = 'granted', file = new File(['{}'], 'project.kopruq')) => ({ queryPermission: vi.fn().mockResolvedValue(permission), requestPermission: vi.fn().mockResolvedValue('granted'), getFile: vi.fn().mockResolvedValue(file) }) as unknown as FileSystemFileHandle
+
+describe('Recent Projects repository', () => {
+  it('creates a metadata record and reads it back', async () => { const records = await rememberRecentProject('Bridge', 'Bridge.kopruq', handle()); expect(records[0].projectName).toBe('Bridge'); expect(records[0].fileName).toBe('Bridge.kopruq') })
+  it('keeps at most ten records and newest first', async () => { for (let i = 0; i < 12; i++) await rememberRecentProject(`P${i}`, `P${i}.kopruq`, handle()); const records = await listRecentProjects(); expect(records.length).toBeLessThanOrEqual(10) })
+  it('updates metadata for the same file identity in fallback storage', async () => { Object.defineProperty(window, 'indexedDB', { configurable: true, value: undefined }); await rememberRecentProject('Old', 'same.kopruq'); await rememberRecentProject('New', 'same.kopruq'); const records = await listRecentProjects(); expect(records.filter((item) => item.fileName === 'same.kopruq')).toHaveLength(1); expect(records[0].projectName).toBe('New') })
+  it('uses metadata fallback when IndexedDB is unavailable', async () => { Object.defineProperty(window, 'indexedDB', { configurable: true, value: undefined }); await rememberRecentProject('Fallback', 'fallback.kopruq'); expect((await listRecentProjects())[0].available).toBe(false) })
+  it('reads a granted file handle', async () => { const entry = { id: 'x', projectName: 'P', fileName: 'p.kopruq', lastUsedAt: new Date().toISOString(), available: true, handle: handle() }; expect(await getRecentProjectFile(entry)).toBeInstanceOf(File) })
+  it('requests permission for a prompt handle', async () => { const h = handle('prompt') as FileSystemFileHandle & { requestPermission: ReturnType<typeof vi.fn> }; const entry = { id: 'x', projectName: 'P', fileName: 'p.kopruq', lastUsedAt: '', available: true, handle: h }; await getRecentProjectFile(entry); expect(h.requestPermission).toHaveBeenCalled() })
+  it('rejects denied permission and cancelled permission', async () => { const denied = { id: 'x', projectName: 'P', fileName: 'p.kopruq', lastUsedAt: '', available: true, handle: handle('denied') }; await expect(getRecentProjectFile(denied)).rejects.toThrow('permission'); const cancelled = handle('prompt') as FileSystemFileHandle & { requestPermission: ReturnType<typeof vi.fn> }; cancelled.requestPermission.mockRejectedValue(new DOMException('cancelled', 'AbortError')); await expect(getRecentProjectFile({ ...denied, handle: cancelled })).rejects.toThrow('cancelled') })
+  it('propagates missing, moved and unreadable file errors', async () => { const h = handle(); (h.getFile as ReturnType<typeof vi.fn>).mockRejectedValue(new DOMException('NotFound', 'NotFoundError')); await expect(getRecentProjectFile({ id: 'x', projectName: 'P', fileName: 'p.kopruq', lastUsedAt: '', available: true, handle: h })).rejects.toThrow('NotFound') })
+})

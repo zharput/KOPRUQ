@@ -19,7 +19,8 @@ describe('Node Inspector', () => {
   it.each(getNodeDefinitions().map(definition => [definition.type, definition.label]))('keeps implementation ports and IDs out of %s Inspector', (type, label) => {
     const value=node(type)
     const { container }=render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} {...handlers} />)
-    expect(screen.getByText(label)).toBeInTheDocument()
+    if (type === 'structural.assembly') expect(screen.getByRole('heading', { name: label })).toBeInTheDocument()
+    else expect(screen.getByText(label)).toBeInTheDocument()
     expect(container.textContent).not.toMatch(/\b(PORTS|INPUTS|OUTPUTS)\b|numeric\[\]|display:any|candidate\[\]|concreteMaterial|node-\w{8}-/i)
     expect(container.textContent).not.toContain(value.id)
     expect(container.textContent).not.toContain(value.type)

@@ -60,6 +60,7 @@ export function importGraphDocuments(next: GraphDocuments) {
   validateGraphDocuments(next)
   documents = structuredClone(next); undo.clear(); redo.clear(); notify()
 }
+export function resetGraphDocuments() { const graph = createEmptyGraph(); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] }) }
 function notify() {
   refreshSnapshot(); persist()
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'graph' } }))

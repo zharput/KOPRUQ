@@ -31,7 +31,7 @@ describe('App workspace shell', () => {
     render(<App />)
     const user = userEvent.setup()
     expect(screen.getByRole('heading', { name: 'Graph Workspace' })).toBeInTheDocument()
-    await user.click(screen.getByRole('link', { name: 'KOPRUQ Project Overview' }))
+    await user.click(screen.getByRole('link', { name: 'Project' }))
     expect(window.location.pathname).toBe('/project')
     expect(screen.getByRole('link', { name: 'Project' })).toHaveAttribute('aria-current', 'page')
     expect(screen.getByRole('heading', { name: 'Project Overview' })).toBeInTheDocument()
@@ -41,19 +41,19 @@ describe('App workspace shell', () => {
     window.history.pushState({}, '', '/materials')
     render(<App />)
     expect(screen.getByText('Concrete - by structural element')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Family Tables' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Family' })).toHaveAttribute('aria-current', 'page')
     expect(document.querySelector('.spn-sidebar')).not.toBeInTheDocument()
     expect(document.querySelector('.spn-topbar')).not.toBeInTheDocument()
   })
 
-  it('keeps Family Tables active when loaded directly or refreshed at its URL', () => {
+  it('keeps Family active when loaded directly or refreshed at its URL', () => {
     window.history.pushState({}, '', '/family-tables')
     const firstRender = render(<App />)
-    expect(screen.getByRole('link', { name: 'Family Tables' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Family' })).toHaveAttribute('aria-current', 'page')
     firstRender.unmount()
     render(<App />)
-    expect(screen.getByRole('link', { name: 'Family Tables' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('navigation', { name: 'Family categories' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Family' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('complementary', { name: 'Family Library' })).toBeInTheDocument()
   })
 
   it('shows the eight primary workspaces in order and opens the Graph editor', async () => {
@@ -61,7 +61,7 @@ describe('App workspace shell', () => {
     const user = userEvent.setup()
     const navElement = screen.getByRole('navigation', { name: 'Workspaces' })
     const nav = within(navElement)
-    const labels = ['Project', 'Graph', 'Family Tables', 'Loads', 'Analysis', 'Optimization', 'Results', 'BIM / Export']
+    const labels = ['Project', 'Graph', 'Family', 'Loads', 'Analysis', 'Optimization', 'Results', 'BIM / Export']
     labels.forEach((label) => expect(nav.getByRole('link', { name: label })).toBeInTheDocument())
     expect(nav.queryByRole('link', { name: 'Bridge Definition' })).not.toBeInTheDocument()
     expect(Array.from(navElement.querySelectorAll('a')).map((link) => link.getAttribute('aria-label'))).toEqual(labels)
@@ -75,54 +75,33 @@ describe('App workspace shell', () => {
     expect(document.querySelector('.spn-graph-flow')).toBeInTheDocument()
   })
 
-  it('consolidates supported family editors under one Family Tables workspace', async () => {
+  it('opens the read-only Graph-generated Family Workspace', async () => {
     render(<App />)
     const user = userEvent.setup()
-    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
-    expect(screen.getByRole('button', { name: 'Import' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Export' })).toBeDisabled()
-    const familyMenu = within(screen.getByRole('navigation', { name: 'Family categories' }))
-    const familyButton = (label: string) => familyMenu.getAllByRole('button').find((button) => button.querySelector('span')?.textContent === label)!
-    for (const label of ['Superstructure', 'Girder', 'Pier', 'Pier Cap', 'Foundation', 'Bearing', 'Material']) {
-      expect(familyButton(label)).toBeInTheDocument()
-    }
-    expect(familyMenu.getByRole('button', { name: /Abutment/ })).toBeDisabled()
-    await user.click(familyButton('Pier'))
-    expect(screen.getByRole('heading', { name: 'PIER FAMILY CATALOG' })).toBeInTheDocument()
-    await user.click(familyButton('Foundation'))
-    expect(screen.getByLabelText('Foundation Type')).toHaveValue('SHALLOW')
-    expect(screen.getByRole('heading', { name: 'FOUNDATION FAMILY CATALOG' })).toBeInTheDocument()
-    await user.selectOptions(screen.getByLabelText('Foundation Type'), 'PILED')
-    expect(screen.getByText(/Lx =/)).toBeInTheDocument()
-    expect(screen.getByRole('complementary', { name: 'Family Inspector' })).toHaveTextContent('no stable family catalog records yet')
+    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
+    expect(screen.getByRole('complementary', { name: 'Family Library' })).toBeInTheDocument()
+    expect(screen.getByText('Review structural family alternatives generated in Graph')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Family Type' })).toBeInTheDocument()
+    expect(screen.getByText('Select a source node to view Graph-generated alternatives.')).toBeInTheDocument()
   })
 
-  it('shows the selected family ID and blocks deletion while Bridge Definition uses it', async () => {
+  it('keeps Family Workspace read-only while Bridge Definition remains separate', async () => {
     localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
     render(<App />)
     const user = userEvent.setup()
-    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
-    const catalog = screen.getByRole('heading', { name: 'PIER FAMILY CATALOG' }).closest('.spn-card') as HTMLElement
-    await user.click(within(catalog).getByText('RECT-M'))
-    expect(screen.getByRole('complementary', { name: 'Family Inspector' })).toHaveTextContent('RECT-M')
-    expect(screen.getByRole('complementary', { name: 'Family Inspector' })).toHaveTextContent('VIA-01')
-    expect(screen.getByRole('complementary', { name: 'Family Inspector' })).toHaveTextContent('P1')
-    await user.click(within(catalog).getByRole('button', { name: 'Delete' }))
-    expect(screen.getByRole('alert')).toHaveTextContent('Cannot delete RECT-M')
-    expect(within(catalog).getByText('RECT-M')).toBeInTheDocument()
+    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Family Library' })).toBeInTheDocument()
   })
 
-  it('keeps existing Pier family edits when switching between Family Tables and Bridge Definition', async () => {
+  it('keeps navigation between Family Workspace and Bridge Definition independent', async () => {
     render(<App />)
     const user = userEvent.setup()
-    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
-    const name = screen.getByLabelText('Family Name')
-    await user.clear(name)
-    await user.type(name, 'PERSISTENT-PIER')
+    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
     act(() => { window.history.pushState({}, '', '/bridge-definition'); window.dispatchEvent(new PopStateEvent('popstate')) })
     expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toBeInTheDocument()
-    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
-    expect(screen.getByLabelText('Family Name')).toHaveValue('PERSISTENT-PIER')
+    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
+    expect(screen.getByRole('complementary', { name: 'Family Library' })).toBeInTheDocument()
   })
 
   it('opens the full Bridge Definition tree and its 3D, Plan, and Profile modes', async () => {
@@ -143,7 +122,7 @@ describe('App workspace shell', () => {
     render(<App />)
     const user = userEvent.setup()
     await user.selectOptions(screen.getByRole('combobox', { name: 'Bridge selector' }), 'VIA-02')
-    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
+    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
     act(() => { window.history.pushState({}, '', '/bridge-definition'); window.dispatchEvent(new PopStateEvent('popstate')) })
     expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveValue('VIA-02')
   })
@@ -258,8 +237,8 @@ describe('App workspace shell', () => {
     await user.click(properties.getByRole('button', { name: 'Edit Project' }))
     await user.type(properties.getByLabelText('Project Name'), 'Persistent Project')
     await user.click(properties.getByRole('button', { name: 'Save' }))
-    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family Tables' }))
-    await user.click(screen.getByRole('link', { name: 'KOPRUQ Project Overview' }))
+    await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
+    await user.click(screen.getByRole('link', { name: 'Project' }))
     expect(document.querySelector('.spn-project-name')).toHaveTextContent('Persistent Project')
     firstApp.unmount()
     const app = render(<App />)
@@ -285,8 +264,8 @@ describe('App workspace shell', () => {
 
   it('uses Exit modal decisions and does not show a modal for a clean project', async () => {
     const user = userEvent.setup(); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined); render(<App />)
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    const properties = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Exit Guard'); await user.click(properties.getByRole('button', { name: 'Save' }))
+    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); expect(close).not.toHaveBeenCalled(); expect(screen.getByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'New Project' })); const properties = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Exit Guard'); await user.click(properties.getByRole('button', { name: 'Save' }))
     await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); expect(screen.getByRole('dialog')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'CANCEL' })); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Exit Guard')
     close.mockRestore()
   })
@@ -318,11 +297,11 @@ describe('App workspace shell', () => {
 
   it('completes Exit + Save only after the controlled writer finishes', async () => {
     const user = userEvent.setup(); let release!: () => void; const write = vi.fn(() => new Promise<void>((resolve) => { release = resolve })); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined)
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue({ createWritable: vi.fn().mockResolvedValue({ write, close: vi.fn() }) }) }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Exit Save'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(close).not.toHaveBeenCalled(); release(); await waitFor(() => expect(close).toHaveBeenCalled()); close.mockRestore()
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue({ createWritable: vi.fn().mockResolvedValue({ write, close: vi.fn() }) }) }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Exit Save'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(close).not.toHaveBeenCalled(); release(); await waitFor(() => expect(screen.getByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument()); expect(close).not.toHaveBeenCalled(); close.mockRestore()
   })
 
   it('executes Exit + Dont Save without invoking Save', async () => {
-    const user = userEvent.setup(); const picker = vi.fn(); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined); Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Exit Discard'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ })); expect(picker).not.toHaveBeenCalled(); expect(close).toHaveBeenCalled(); close.mockRestore()
+    const user = userEvent.setup(); const picker = vi.fn(); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined); Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Exit Discard'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ })); expect(picker).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled(); expect(screen.getByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument(); close.mockRestore()
   })
 
   it('preserves the dirty project when the Open picker is cancelled', async () => {
@@ -364,7 +343,7 @@ describe('App workspace shell', () => {
     const user = userEvent.setup(); render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
     await user.click(nav.getByRole('button', { name: /^File/ }))
-    await waitFor(() => expect(screen.getByText('Project A')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('project-a.kopruq')).toBeInTheDocument())
     expect(document.querySelector('.spn-file-dropdown')).toBeVisible()
     await user.click(document.body)
     expect(document.querySelector('.spn-file-dropdown')).not.toBeInTheDocument()

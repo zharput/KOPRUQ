@@ -1,10 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { candidateColumns, familyGroups, paginateAlternatives } from './graphFamilyPresentation'
+import { candidateColumns, familyGroups, getPrecastGirderDisplayId, paginateAlternatives } from './graphFamilyPresentation'
 import type { FamilyCalculationSnapshot } from '../../graph/family/familyResults'
 
 const snapshot = (sourceNodeId: string, sourceNodeName: string, candidates: any[], category: FamilyCalculationSnapshot['familyCategory'] = 'PIER'): FamilyCalculationSnapshot => ({ snapshotId: `${sourceNodeId}-${category}`, bridgeId: 'VIA-01', graphDocumentId: 'graph-1', sourceNodeId, sourceNodeType: 'structural.pier_rectangular', sourceNodeName, familyCategory: category, graphFingerprint: 'fp', candidates: candidates.map((candidate) => ({ bridgeId: 'VIA-01', graphDocumentId: 'graph-1', sourceNodeId, sourceNodeType: 'structural.pier_rectangular', familyCategory: category, candidateId: candidate.id, candidateData: candidate })), generatedAt: new Date(0).toISOString(), freshness: 'VALID', executionStatus: 'SUCCESS', errors: [] })
 
 describe('graph family presentation', () => {
+  it('keeps Precast Girder display IDs stable across pagination and filtering', () => {
+    expect(getPrecastGirderDisplayId(0)).toBe('PG-001')
+    expect(getPrecastGirderDisplayId(24)).toBe('PG-025')
+    expect(getPrecastGirderDisplayId(25)).toBe('PG-026')
+    expect(getPrecastGirderDisplayId(49)).toBe('PG-050')
+    expect(getPrecastGirderDisplayId(53)).toBe('PG-054')
+  })
   it('keeps same-category source nodes and duplicate candidate ids separate', () => {
     const groups = familyGroups([snapshot('pier-1', 'Rectangular Pier-1', [{ id: 'ALT-001' }]), snapshot('pier-2', 'Rectangular Pier-2', [{ id: 'ALT-001' }])])
     const pier = groups.find(group => group.category === 'PIER')!

@@ -53,6 +53,13 @@ describe('KOPRUQ project file', () => {
     const result = await writeProjectFile(file)
     expect(result.handle).toBeUndefined(); expect(result.name).toContain('.kopruq'); expect(click).toHaveBeenCalled()
   })
+  it('uses the real FileSystemFileHandle.name after Save As', async () => {
+    const file = buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Project Name' }, bridges: [] }, { selectedBridgeId: null, definitions: {} })
+    const handle = { name: 'VIA20-Rev3.kopruq', createWritable: vi.fn().mockResolvedValue({ write: vi.fn(), close: vi.fn() }) } as unknown as FileSystemFileHandle
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue(handle) })
+    const result = await writeProjectFile(file)
+    expect(result.name).toBe('VIA20-Rev3.kopruq'); expect(result.handle).toBe(handle)
+  })
   it('restores Graph and Family stores when a later family import fails', () => {
     const graph = createEmptyGraph('Before'); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] }); saveFamilyRecords('PIER', [{ id: 'before', name: 'Before' }])
     const file = buildProjectFile({ project: INITIAL_PROJECT, bridges: [] }, { selectedBridgeId: null, definitions: {} }); const after = createEmptyGraph('After'); file.graph = { activeGraphId: after.id, graphs: [after] }; file.families.PIER = [{ id: 'after', name: 'After' }]

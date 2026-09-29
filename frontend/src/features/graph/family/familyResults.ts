@@ -11,7 +11,7 @@ export interface FamilyAlternative {
   readonly sourceNodeType: string
   readonly familyCategory: FamilyCategory
   readonly candidateId: string
-  readonly candidateData: GraphValue
+  readonly candidateData: unknown
   readonly validation?: Readonly<Record<string, unknown>>
 }
 

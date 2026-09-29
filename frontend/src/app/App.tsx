@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 import { BrowserRouter, Navigate, useLocation } from 'react-router-dom'
+import { FilePlus2, FolderOpen } from 'lucide-react'
 import './styles/App.css'
 import AppProviders from './providers/AppProviders'
 import TopWorkspaceNav from './layout/TopWorkspaceNav'
@@ -13,6 +14,9 @@ import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../featur
 import { ensureBridgeIds, INITIAL_PROJECT, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
 import { useProjectFile } from '../shared/project-file/useProjectFile'
 import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
+import RecentFileAccessModal from '../shared/ui/RecentFileAccessModal'
+import { getRecentProjectFile, repairRecentProject, type RecentProject } from '../shared/project-file/recentProjects'
+import { KOPRUQ_FILE_PICKER_OPTIONS, type FileRef } from '../shared/project-file/projectFileService'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
   '/alignment': '/bridge-definition/alignment/horizontal',
@@ -29,6 +33,12 @@ const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
 }
 import { ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore } from '../features/bridge-definition/model/store'
 import type { BridgeDefinitionStore } from '../features/bridge-definition/model/types'
+import { resetGraphDocuments } from '../features/graph/state/graphStore'
+import { saveFamilyRecords, savePrecastGirderDefinition, type FamilyRepositoryCategory } from '../features/family-registry/model/familyRepository'
+
+function WelcomeScreen({ onNew, onOpen }: { onNew: () => void; onOpen: () => void }) {
+  return <main className="spn-welcome-screen" aria-label="KOPRUQ Welcome"><section className="spn-welcome-card"><div className="spn-welcome-heading"><span /><h1>WELCOME</h1><span /></div><img className="spn-welcome-logo" src="/kopruq-logo.png" alt="KOPRUQ Computational & Generative Bridge Design" /><p>Start a bridge design project or open a recent project from the File menu.</p><div className="spn-welcome-actions"><button className="spn-button-primary" onClick={onNew}><FilePlus2 size={18} aria-hidden="true" />New Project</button><button className="spn-button-secondary" onClick={onOpen}><FolderOpen size={18} aria-hidden="true" />Open Project</button></div></section></main>
+}
 
 /**
  * Single KOPRUQ shell: app-wide project state/providers stay above the
@@ -58,13 +68,35 @@ function App() {
   const setDesignCode: Dispatch<SetStateAction<string>> = (update) => setProjectState((previous) => ({ ...previous, project: { ...previous.project, designStandardFamily: typeof update === 'function' ? update(previous.project.designStandardFamily) : update } }))
   const [crossSectionValues, setCrossSectionValues] = useState<CrossSectionValues>(INITIAL_CROSS_SECTION_VALUES)
   const file = useProjectFile(projectState, setProjectState, bridgeDefinitions, setBridgeDefinitions)
+  const [showWelcome, setShowWelcome] = useState(false)
   const [pending, setPending] = useState<(() => void) | null>(null); const [modalBusy, setModalBusy] = useState(false)
   const runAfterUnsavedDecision = (action: () => void) => { if (!file.dirty) { action(); return }; setPending(() => action) }
   const discardAndContinue = () => { const action = pending; setPending(null); file.setDirty(false); action?.() }
   const saveAndContinue = async () => { if (!pending) return; setModalBusy(true); try { await file.save(); const action = pending; setPending(null); action?.() } catch (error) { window.alert(error instanceof Error ? error.message : 'Save failed.'); } finally { setModalBusy(false) } }
-  const newProject = () => runAfterUnsavedDecision(() => { setProjectState({ project: structuredClone(INITIAL_PROJECT), bridges: [] }); setBridgeDefinitions(readBridgeDefinitionStore([])); file.setDirty(false) })
-  const openProject = (input: File) => runAfterUnsavedDecision(() => { void file.open(input).catch((error: unknown) => window.alert(error instanceof Error ? error.message : 'Unable to open project.')) })
-  const openRecentProject = async (entry: import('../shared/project-file/recentProjects').RecentProject) => { try { openProject(await import('../shared/project-file/recentProjects').then((module) => module.getRecentProjectFile(entry))) } catch (error) { window.alert(error instanceof Error ? error.message : 'Unable to open recent project.') } }
+  const newProject = () => runAfterUnsavedDecision(() => { setShowWelcome(false)
+    const nextProjectState = { project: structuredClone(INITIAL_PROJECT), bridges: [] }
+    const nextBridgeDefinitions = readBridgeDefinitionStore([])
+    try {
+      resetGraphDocuments()
+      ;(['PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'MATERIAL'] as FamilyRepositoryCategory[]).forEach((category) => { if (!saveFamilyRecords(category, [])) throw new Error(`Unable to reset family catalog: ${category}`) })
+      if (!savePrecastGirderDefinition([])) throw new Error('Unable to reset girder catalog.')
+      setProjectState(nextProjectState); setBridgeDefinitions(nextBridgeDefinitions); file.resetForNewProject(nextProjectState, nextBridgeDefinitions)
+    } catch (error) { window.alert(error instanceof Error ? error.message : 'Unable to create a new project.') }
+  })
+  const [recentAccessEntry, setRecentAccessEntry] = useState<RecentProject | null>(null)
+  const [recentAccessError, setRecentAccessError] = useState<string>()
+  const showRecentError = (error: unknown) => setRecentAccessError(error instanceof Error ? error.message : 'Unable to open recent project.')
+  const openProject = (input: File, fileRef?: FileRef) => runAfterUnsavedDecision(() => { setShowWelcome(false); void file.open(input, fileRef).catch(showRecentError) })
+  const openRecentProject = (entry: RecentProject) => runAfterUnsavedDecision(() => { setShowWelcome(false)
+    if (!entry.handle) { setRecentAccessEntry(entry); return }
+    void getRecentProjectFile(entry).then((recentFile) => file.open(recentFile, { name: entry.fileName, handle: entry.handle })).catch(showRecentError)
+  })
+  const reselectRecentProject = async () => {
+    if (!recentAccessEntry) return
+    const picker = (window as Window & { showOpenFilePicker?: (options?: unknown) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker
+    if (!picker) { setRecentAccessError('Dosya seçici bu tarayıcıda desteklenmiyor.'); return }
+    try { const [handle] = await picker(KOPRUQ_FILE_PICKER_OPTIONS); if (handle.name !== recentAccessEntry.fileName) { setRecentAccessError(`Seçilen dosya ${recentAccessEntry.fileName} ile eşleşmiyor.`); return }; const selected = await handle.getFile(); await repairRecentProject(recentAccessEntry, handle); await file.open(selected, { name: handle.name, handle }); setRecentAccessEntry(null); setRecentAccessError(undefined) } catch (error) { if ((error as DOMException)?.name !== 'AbortError') showRecentError(error) }
+  }
   useEffect(() => { const beforeUnload = (event: BeforeUnloadEvent) => { if (file.dirty) { event.preventDefault(); event.returnValue = '' } }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload) }, [file.dirty])
   const terrainId = projectState.project.environment.terrainDatasetId
   const landXmlImportId = projectState.project.environment.landXmlImportId
@@ -80,8 +112,8 @@ function App() {
           project={projectState.project} setProject={(project: ProjectWorkspaceData) => setProjectState((previous) => ({ ...previous, project }))}
           bridgeDefinitions={bridgeDefinitions} setBridgeDefinitions={setBridgeDefinitions}
           crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues}
-          terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId} file={file} onNewProject={newProject} onOpenProject={openProject} onRecentOpen={openRecentProject} onExit={() => runAfterUnsavedDecision(() => window.close())}
-        /><UnsavedChangesModal open={pending !== null} busy={modalBusy} onSave={() => void saveAndContinue()} onDiscard={discardAndContinue} onCancel={() => setPending(null)} /></>
+          terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId} file={file} onNewProject={newProject} onOpenProject={openProject} onRecentOpen={openRecentProject} onExit={() => runAfterUnsavedDecision(() => { file.closeSession(); setShowWelcome(true) })} showWelcome={showWelcome}
+        /><UnsavedChangesModal open={pending !== null} busy={modalBusy} onSave={() => void saveAndContinue()} onDiscard={discardAndContinue} onCancel={() => setPending(null)} /><RecentFileAccessModal open={recentAccessEntry !== null || recentAccessError !== undefined} fileName={recentAccessEntry?.fileName} error={recentAccessError} onReselect={() => void reselectRecentProject()} onCancel={() => { setRecentAccessEntry(null); setRecentAccessError(undefined) }} /></>
       </BrowserRouter>
     </AppProviders>
   )
@@ -108,9 +140,10 @@ type RoutedApplicationProps = {
   setBridgeDefinitions: Dispatch<SetStateAction<BridgeDefinitionStore>>
   file: ReturnType<typeof useProjectFile>
   onNewProject: () => void
-  onOpenProject: (file: File) => void
+  onOpenProject: (file: File, fileRef?: FileRef) => void
   onRecentOpen: (entry: import('../shared/project-file/recentProjects').RecentProject) => void
   onExit: () => void
+  showWelcome: boolean
 }
 
 function RoutedApplication(props: RoutedApplicationProps) {
@@ -124,7 +157,8 @@ function RoutedApplication(props: RoutedApplicationProps) {
   const activeWorkspace = workspace ?? legacyWorkspace ?? WORKSPACES[0]
   return <div className="spn-app-root">
     <TopWorkspaceNav dirty={props.file.dirty} projectName={props.file.projectName} fileName={props.file.fileName} recent={props.file.recent} onNew={props.onNewProject} onOpen={props.onOpenProject} onRecentOpen={props.onRecentOpen} onSave={() => void props.file.save()} onSaveAs={() => void props.file.save(true)} onExit={props.onExit} />
-    {isHomeRoute || isUnknownWorkspaceRoute || location.pathname === '/project-dashboard'
+    {props.showWelcome ? <WelcomeScreen onNew={props.onNewProject} onOpen={() => { (document.querySelector('input[type="file"]') as HTMLInputElement | null)?.click() }} />
+    : isHomeRoute || isUnknownWorkspaceRoute || location.pathname === '/project-dashboard'
       ? <Navigate to="/project" replace />
       : migratedRoute
       ? <Navigate to={migratedRoute} replace />

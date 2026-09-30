@@ -13,7 +13,8 @@
   --sp-drawing-primary-width: 1.5; --sp-drawing-secondary-width: 1; --sp-drawing-dimension-width: .9; --sp-drawing-axis-width: .8; --sp-drawing-hidden-width: .8;
   --sp-drawing-dimension-tick: 3; --sp-drawing-dimension-offset: 6; --sp-drawing-label-size: 10px; --sp-drawing-dimension-size: 11px; --sp-drawing-axis-size: 10px; --sp-drawing-padding: 8px; --sp-drawing-dash: 5 3;
   --sp-scrollbar-track: #161A20; --sp-scrollbar-thumb: #343C47; --sp-scrollbar-thumb-hover: #46505D; --sp-shadow-popup: 0 8px 24px rgba(0,0,0,.4);
-  --sp-status-success: #34D399; --sp-status-warning: #F59E0B; --sp-status-error: #EF4444; --sp-status-info: #60A5FA; --sp-selection: #35404D; --sp-selection-hover: #46505D; --sp-selection-border: #5EA7FF; --sp-selection-fill: rgba(94,167,255,.10); --sp-selection-glow: rgba(94,167,255,.22);
+  --graph-status-success: #6FAD8A; --graph-status-error: #D97878; --graph-status-warning: #D2A85C; --graph-status-running: #7899B8;
+  --sp-status-success: var(--graph-status-success); --sp-status-warning: var(--graph-status-warning); --sp-status-error: var(--graph-status-error); --sp-status-info: var(--graph-status-running); --sp-selection: #35404D; --sp-selection-hover: #46505D; --sp-selection-border: #5EA7FF; --sp-selection-fill: rgba(94,167,255,.10); --sp-selection-glow: rgba(94,167,255,.22);
   --sp-hover-border: #C7CBD1; --sp-hover-surface: var(--sp-surface-hover); --sp-socket-default: #A6A6A6; --sp-socket-hover: #F2F2F2; --sp-socket-compatible: #55B889; --sp-socket-incompatible: #E05A5A;
   --sp-edge-default: var(--sp-link-default); --sp-edge-hover: #C7CBD1; --sp-edge-selected: #5EA7FF; --sp-edge-preview: #C7CBD1; --sp-marquee-window-border: #5EA7FF; --sp-marquee-window-fill: rgba(94,167,255,.10); --sp-marquee-crossing-border: #55B889; --sp-marquee-crossing-fill: rgba(85,184,137,.10);
   --sp-node-shadow: 0 5px 16px rgba(0,0,0,.24); --sp-node-shadow-selected: 0 0 0 2px var(--sp-selection-border), 0 5px 18px rgba(0,0,0,.30);

@@ -20,7 +20,7 @@ export default function EngineeringNodeShell({ data, selected, definition }: { d
   const generated = data.outputs?.generatedCombinations ?? data.previewGeneratedCombinations
   const invalid = data.outputs?.invalidCombinations ?? data.previewInvalidCombinations
   return <div className={`spn-graph-node spn-engineering-node${data.node.type === 'structural.assembly' ? ' spn-assembly-node' : ''}${data.node.type.startsWith('substructure.foundation.') ? ' foundation-palette' : ''}${data.node.type.startsWith('structural.girder.') ? ' girder-error-palette' : ''}${data.node.type === 'structural.superstructure' ? ' superstructure-error-palette' : ''}${!['structural.assembly', 'structural.superstructure', 'structural.span_arrangement'].includes(data.node.type) ? ' category-structural-family' : ''} ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
-    <NodeHeader definition={definition} type={data.node.type} />
+    <NodeHeader definition={definition} type={data.node.type} executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} />
     <div className="spn-engineering-inputs">
       {definition.inputs.map((port, index) => <Fragment key={port.id}>{port.group && port.group !== definition.inputs[index - 1]?.group && <div className="spn-engineering-group-heading">{port.group}</div>}<EngineeringInputRow key={`${port.id}:${data.projectUnitsKey}`} port={port} definition={definition} data={data} /></Fragment>)}
       {data.node.type === 'structural.superstructure' && <SuperstructureEdgeRow data={data} />}
@@ -55,7 +55,7 @@ export function AssemblyNodeShell({ data, selected, definition }: { data: FlowGr
   const raw = data.outputs?.assembly ?? data.previewValue
   const count = Array.isArray(raw) ? raw.length : raw ? 1 : 0
   return <div className={`spn-graph-node spn-engineering-node spn-assembly-graph-node ${getNodeThemeForType(definition.category, data.node.type).className}${selected ? ' is-selected' : ''}${state}${data.isDirty ? ' is-dirty' : ''}`}>
-    <NodeHeader definition={definition} type={data.node.type} />
+    <NodeHeader definition={definition} type={data.node.type} executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} />
     <div className="spn-assembly-inputs spn-engineering-inputs">
       {definition.inputs.map(port => <EngineeringInputRow key={port.id} port={port} definition={definition} data={data} />)}
     </div>

@@ -4,7 +4,6 @@ import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import type { GraphValue, PierCandidate, PierCapCandidate, FoundationCandidate, BearingCandidate } from '../domain/types'
 import { formatDisplayValue, formatQuantity, unitsForKind, type QuantityKind } from '../domain/quantities'
 import { getNodeTheme } from '../domain/nodeVisualThemes'
-import NodeStatusIndicator from './NodeStatusIndicator'
 import NodeHeader from './NodeHeader'
 import { getNodeDefinition } from '../registry/nodeRegistry'
 
@@ -24,7 +23,7 @@ export default function ListOutputNode({ data, selected }: { data: FlowGraphNode
   const currentPage = Math.min(page, pageCount - 1)
   const toggle = (key: string) => setExpanded(current => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next })
   return <div className={`spn-graph-node spn-graph-list-node ${getNodeTheme('OUTPUT').className}${selected ? ' is-selected' : ''}${data.executionState === 'error' ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''}${data.isDirty ? ' is-dirty' : ''}`}>
-    {definition && <NodeHeader definition={definition} type={data.node.type} />}
+    {definition && <NodeHeader definition={definition} type={data.node.type} executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} runRequired={data.outputAvailability === 'run-required'} />}
     <div className="spn-graph-list-heading">{value === undefined ? emptyMessage : `${items.length} item${items.length === 1 ? '' : 's'}${data.isDirty ? ' / DIRTY' : ''}`}</div>
     <div className="spn-graph-list-items" role="list" aria-label="List items">
       {items.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((item, offset) => {
@@ -35,7 +34,6 @@ export default function ListOutputNode({ data, selected }: { data: FlowGraphNode
     {items.length > pageSize && <div className="spn-graph-list-footer"><button type="button" disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>Previous</button><span>{currentPage + 1} / {pageCount}</span><button type="button" disabled={currentPage + 1 === pageCount} onClick={() => setPage(currentPage + 1)}>Next</button></div>}
     {data.executionError && <div className="spn-graph-node-error-message" title={data.executionError}>{data.executionError}</div>}
     <Handle type="target" position={Position.Left} id="items" isConnectable title="Items - any supported graph value" />
-    <NodeStatusIndicator executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} runRequired={data.outputAvailability === 'run-required'} />
   </div>
 }
 

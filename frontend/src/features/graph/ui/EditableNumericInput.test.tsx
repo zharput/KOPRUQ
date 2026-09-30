@@ -7,7 +7,8 @@ describe('editable numeric input buffer', () => {
   it('supports select-all replacement and commits once on Enter', async () => {
     const user = userEvent.setup(), onCommit = vi.fn()
     render(<EditableNumericInput value={12} ariaLabel="Number value" onCommit={onCommit} />)
-    const input = screen.getByRole('textbox', { name: 'Number value' })
+    const input = screen.getByRole('spinbutton', { name: 'Number value' })
+    expect(input).toHaveAttribute('type', 'number')
     expect(input).toHaveClass('nowheel', 'nopan')
     await user.click(input)
     await user.keyboard('{Control>}a{/Control}{Backspace}15.5{Enter}')
@@ -19,7 +20,7 @@ describe('editable numeric input buffer', () => {
   it('retains an empty blurred editor as invalid without converting it to zero', async () => {
     const user = userEvent.setup(), onCommit = vi.fn()
     render(<><EditableNumericInput value={12} ariaLabel="Number value" onCommit={onCommit} /><button>Elsewhere</button></>)
-    const input = screen.getByRole('textbox', { name: 'Number value' })
+    const input = screen.getByRole('spinbutton', { name: 'Number value' })
     await user.click(input)
     await user.keyboard('{Control>}a{/Control}{Backspace}')
     expect(input).toHaveValue('')
@@ -32,7 +33,7 @@ describe('editable numeric input buffer', () => {
   it('rejects decimal text in Integer editors and contains canvas shortcut propagation', async () => {
     const user = userEvent.setup(), onCommit = vi.fn(), parentKey = vi.fn()
     render(<div onKeyDown={parentKey}><EditableNumericInput value={12} integer ariaLabel="Integer value" onCommit={onCommit} /></div>)
-    const input = screen.getByRole('textbox', { name: 'Integer value' })
+    const input = screen.getByRole('spinbutton', { name: 'Integer value' })
     await user.click(input)
     await user.keyboard('{Control>}a{/Control}2.5{Enter}')
     expect(input).toHaveValue('2.5')

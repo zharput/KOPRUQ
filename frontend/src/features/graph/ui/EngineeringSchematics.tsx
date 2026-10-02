@@ -6,6 +6,11 @@ import type { EngineeringInspectorSchema } from '../registry/nodeRegistry'
 import { displayLength, displayRange, geometryValues } from './engineeringSchematicValues'
 import { bulbTeeGirderPath } from '../../../shared/ui/BulbTeeGirderShape'
 import { NodeIcon } from './NodeIcon'
+import { HorizontalDimension } from '../../../shared/technical-drawing/components/HorizontalDimension'
+import { VerticalDimension } from '../../../shared/technical-drawing/components/VerticalDimension'
+import { resolveHorizontalDimension, resolveVerticalDimension } from '../../../shared/technical-drawing/DimensionGeometry'
+import type { DimensionDefinition, DrawingPoint } from '../../../shared/technical-drawing/DimensionTypes'
+import { TECHNICAL_DRAWING_TOKENS } from '../../../shared/technical-drawing/TechnicalDrawingTokens'
 
 const SchematicLogoContext = createContext<string | undefined>(undefined)
 
@@ -173,13 +178,24 @@ function RectangularPierSchematic({ node, candidates, previewInputs, connected, 
         <div className="spn-schematic-detail-header"><strong>Rectangular Pier Detail</strong><button type="button" aria-label="Close rectangular pier detail" onClick={() => setDetail(false)}>×</button></div>
         <svg viewBox="0 0 520 360" role="img" aria-label={`Rectangular pier detailed section. B ${b.toFixed(2)} m, D ${d.toFixed(2)} m.`}>
           <RectangularPierShape b={b} d={d} x={260} y={180} maxW={250} maxH={230} />
-          <DimensionHorizontal x1={260 - rectangularSize(d, b, 250, 230).w / 2} x2={260 + rectangularSize(d, b, 250, 230).w / 2} y={42} toY={180 - rectangularSize(d, b, 250, 230).h / 2} label={`D = ${displayLength(d, projectUnits)}`} />
-          <DimensionVertical y1={180 - rectangularSize(d, b, 250, 230).h / 2} y2={180 + rectangularSize(d, b, 250, 230).h / 2} x={445} toX={260 + rectangularSize(d, b, 250, 230).w / 2} label={`B = ${displayLength(b, projectUnits)}`} />
+          <PierDimensionPair b={b} d={d} projectUnits={projectUnits} />
           <BridgeAxisDirectional x={260} y={180} left={105} right={415} verticalTop={52} verticalBottom={308} />
         </svg>
       </div>
     </div>}
   </>
+}
+
+function PierDimensionPair({ b, d, projectUnits }: { b: number; d: number; projectUnits?: ProjectUnitPreferences }) {
+  const { w, h } = rectangularSize(d, b, 250, 230)
+  const left = 260 - w / 2, right = 260 + w / 2, top = 180 - h / 2, bottom = 180 + h / 2
+  const horizontal = pierDimension(resolveHorizontalDimension('D', 'D', { x: left, y: 42 }, { x: right, y: 42 }, displayLength(d, projectUnits)), [{ from: { x: left, y: top }, to: { x: left, y: 42 } }, { from: { x: right, y: top }, to: { x: right, y: 42 } }], [{ point: { x: left, y: 42 }, direction: 'right' }, { point: { x: right, y: 42 }, direction: 'left' }])
+  const vertical = pierDimension(resolveVerticalDimension('B', 'B', { x: 445, y: top }, { x: 445, y: bottom }, displayLength(b, projectUnits)), [{ from: { x: right, y: top }, to: { x: 445, y: top } }, { from: { x: right, y: bottom }, to: { x: 445, y: bottom } }], [{ point: { x: 445, y: top }, direction: 'down' }, { point: { x: 445, y: bottom }, direction: 'up' }])
+  return <><HorizontalDimension definition={horizontal} /><VerticalDimension definition={vertical} /></>
+}
+
+function pierDimension(definition: DimensionDefinition, extensionLines: { from: DrawingPoint; to: DrawingPoint }[], arrows: { point: DrawingPoint; direction: 'up' | 'down' | 'left' | 'right' }[]): DimensionDefinition {
+  return { ...definition, extensionLines, arrows: arrows.map(arrow => ({ ...arrow, size: TECHNICAL_DRAWING_TOKENS.arrowSize })) }
 }
 
 function rectangularSize(b: number, d: number, maxW: number, maxH: number) {

@@ -807,3 +807,35 @@ Before any implementation:
 
 When documentation and code disagree, stop and report the conflict before
 silently changing either source of truth.
+
+## Central Technical Dimension System V1
+
+The shared `frontend/src/shared/technical-drawing` subsystem is the source of
+truth for technical dimension geometry and rendering. Precast Girder is the
+first migrated consumer and its golden layout is covered by regression tests.
+New structural section previews must use the shared dimension definitions,
+resolvers, and components; local SVG arrows, extension lines, or dimension
+text renderers must not be introduced.
+
+Global drawing tokens remain separate from section-specific presets. The
+`DimensionGeometry` resolver owns reusable drawing geometry, while engineering
+section geometry and anchors remain outside generic dimension rendering.
+Precast golden rules are `rightDimensionFactor = 0.25` and
+`twTextGapFactor = 2 / 3`; `th1`, `bh1`, `bh2`, and `th2` share the common
+right dimension axis. Existing Precast golden geometry must remain unchanged.
+
+Regression coverage exists for bounds, tokens, lane placement, horizontal /
+vertical / inline dimensions, extension behavior, arrow orientation, Precast
+golden factors, right-axis alignment, parametric sections, duplicate labels,
+section geometry independence, and input immutability. Other structural
+previews are not yet migrated.
+
+Central Technical Dimension System consumers:
+- Precast Girder — migrated
+- Rectangular Pier — migrated
+
+Rectangular Pier B/D dimensions use shared DimensionGeometry and shared
+Horizontal/Vertical dimension components.
+
+Migration candidates: Cap, Foundation, Abutment, Bearing, and other section
+previews.

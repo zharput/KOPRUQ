@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import EngineeringNodeShell from './EngineeringNodeShell'
 import { ReactFlowProvider } from '@xyflow/react'
@@ -7,6 +7,30 @@ import { toReactFlowNodes } from '../adapters/reactFlowAdapter'
 import type { KopruqGraph } from '../domain/types'
 
 describe('reusable engineering node shell', () => {
+  it.each([
+    [3, 1.5],
+    [5, 1.5],
+    [3, 4],
+  ])('keeps rectangular pier B/D dimensions semantic for B=%s, D=%s', (b, d) => {
+    const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === 'substructure.pier.rectangular')!
+    const graph: KopruqGraph = { id: `pier-dim-${b}-${d}`, name: 'pier dimensions', schemaVersion: 1, nodes: [{ id: 'pier', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: { ...definition.createDefaultParameters({ length: 'm' }), BValue: b, DValue: d } }], connections: [] }
+    const parametersBefore = { ...graph.nodes[0].parameters }
+    const { container } = render(<ReactFlowProvider><EngineeringNodeShell data={toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() })[0].data} selected={false} definition={definition} /></ReactFlowProvider>)
+    fireEvent.click(screen.getByRole('button', { name: 'Expand rectangular pier detail' }))
+    const bDimension = container.querySelector('[data-dimension="B"]')
+    const dDimension = container.querySelector('[data-dimension="D"]')
+    expect(bDimension).toBeTruthy()
+    expect(dDimension).toBeTruthy()
+    expect(bDimension?.textContent).toContain(`B = ${b.toFixed(2)} m`)
+    expect(dDimension?.textContent).toContain(`D = ${d.toFixed(2)} m`)
+    expect(bDimension?.querySelector('[data-dimension-line]')?.getAttribute('x1')).toBe('445')
+    expect(dDimension?.querySelector('[data-dimension-line]')?.getAttribute('y1')).toBe('42')
+    expect(bDimension?.querySelectorAll('[data-dimension-arrow]')).toHaveLength(2)
+    expect(dDimension?.querySelectorAll('[data-dimension-arrow]')).toHaveLength(2)
+    expect(container.querySelectorAll('[data-dimension-text]')).toHaveLength(2)
+    expect(graph.nodes[0].parameters).toEqual(parametersBefore)
+  })
+
   it('renders the compact abutment node and keeps edits on the graph callback', () => {
     const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === 'structural.abutment')!
     const onParameterChange = vi.fn()

@@ -170,6 +170,8 @@
 .spn-girder-dimension { fill: #87929D !important; font: 11px 'Segoe UI', system-ui, sans-serif; }
 .spn-preview-section-fill { filter:none; fill:#aeb3b5; }
 .spn-technical-dimension line { stroke:#929DA8; stroke-width:0.8; fill:none; }
+.spn-technical-dimension polygon { fill:#929DA8; stroke:#929DA8; }
+.spn-technical-dimension text { fill:#d9dde0; font:11px 'Segoe UI', system-ui, sans-serif; }
 .spn-technical-dimension .spn-dimension-extension { stroke:#929DA8; stroke-width:0.6; }
 .spn-technical-dimension .spn-dimension-tick { stroke:#929DA8; stroke-width:0.8; }
 .spn-girder-preview-properties { padding: 10px; border: 1px solid var(--border); background: var(--surface-2); }

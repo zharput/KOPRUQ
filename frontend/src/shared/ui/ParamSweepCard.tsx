@@ -28,7 +28,14 @@ export function HDim({ x1, x2, y, label }: { x1: number; x2: number; y: number; 
       <line x1={x1} y1={y} x2={x2} y2={y} strokeWidth={1} />
       <path d={`M${x1},${y} l7,-3 l0,6 Z`} />
       <path d={`M${x2},${y} l-7,-3 l0,6 Z`} />
-      <text x={(x1 + x2) / 2} y={y - 5} textAnchor="middle" fontSize={10} stroke="none">
+      <text
+        x={(x1 + x2) / 2}
+        y={y - 5}
+        textAnchor="middle"
+        fontSize={12}
+        fontFamily="'Segoe UI', sans-serif"
+        stroke="none"
+      >
         {label}
       </text>
     </g>
@@ -43,7 +50,14 @@ export function VDim({ y1, y2, x, label, labelX }: { y1: number; y2: number; x: 
       <line x1={x} y1={y1} x2={x} y2={y2} strokeWidth={1} />
       <path d={`M${x},${y1} l-3,7 l6,0 Z`} />
       <path d={`M${x},${y2} l-3,-7 l6,0 Z`} />
-      <text x={lx} y={(y1 + y2) / 2 + 3} textAnchor="middle" fontSize={10} stroke="none">
+      <text
+        x={lx}
+        y={(y1 + y2) / 2 + 3}
+        textAnchor="middle"
+        fontSize={12}
+        fontFamily="'Segoe UI', sans-serif"
+        stroke="none"
+      >
         {label}
       </text>
     </g>

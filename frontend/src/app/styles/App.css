@@ -3176,7 +3176,8 @@
 .spn-family-precast-section-shape { fill:#aeb3b5; stroke:#d9dde0; stroke-width:1.5; opacity:1; visibility:visible; }
 .spn-family-section-dimension { fill:#87929D; font:11px 'Segoe UI',system-ui,sans-serif; visibility:visible; opacity:1; }
 .spn-family-technical-dimensions { stroke:var(--kopruq-family-dimension); stroke-width:1; fill:none; vector-effect:non-scaling-stroke; }
-.spn-family-technical-dimensions text { stroke:none; fill:var(--kopruq-family-dimension-text); font:400 11px 'Segoe UI',sans-serif; }
+.spn-family-technical-dimensions text { stroke:none; fill:var(--kopruq-family-dimension-text); font:400 10px 'Segoe UI',sans-serif !important; font-family:'Segoe UI',sans-serif !important; font-size:10px !important; }
+.spn-family-technical-dimensions text[data-dimension="tw"] { transform:translateX(-8px); }
 .spn-family-technical-dimensions marker path { fill:var(--kopruq-family-dimension); stroke:none; }
 .spn-family-technical-dimensions polygon[data-arrow] { fill:var(--kopruq-family-dimension); stroke:none; }
 .spn-family-technical-dimensions .spn-family-dimension-extension { stroke:var(--kopruq-family-dimension-extension); stroke-width:1; fill:none; vector-effect:non-scaling-stroke; }

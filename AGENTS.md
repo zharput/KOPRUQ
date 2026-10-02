@@ -619,3 +619,191 @@ ENGINEERING DOMAIN → ENGINEERING RULES → CALCULATION / SOLVER → RESULTS
 Never reverse this hierarchy.
 
 The UI and AI must not become the source of engineering truth.
+
+---
+
+# Persistent Continuation Memory
+
+This section records the repository state and decisions that a new Codex
+session should use when continuing work. It supplements the architectural
+rules above; it does not replace the specifications in `docs/`.
+
+## Current repository state
+
+- Repository: KOPRUQ, branch `codex/landxml-terrain-import`.
+- Stack: Java 21/Spring Boot modular Maven backend, React + TypeScript + Vite
+  frontend. The backend is intentionally a modular monolith; `api` is the
+  Spring boundary and domain modules must remain framework-independent.
+- Primary references, in reading order: `CLAUDE.md`,
+  `docs/KOPRUQ_MASTER_SPEC.md`, `docs/ARCHITECTURE_AMENDMENT_V2.md`,
+  `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md`, `docs/architecture.md`, and
+  `docs/roadmap.md`.
+- `archive/` contains superseded C#/.NET/Avalonia generations. It is reference
+  material only and is not an implementation dependency.
+- The working tree currently has user changes in:
+  `frontend/src/app/styles/App.css`,
+  `frontend/src/features/family-tables/components/PrecastGirderFamilyPreview.tsx`,
+  `frontend/src/features/girder-library/components/GirderLibraryPanel.tsx`,
+  and `frontend/src/shared/ui/ParamSweepCard.tsx`.
+  Do not discard, reset, or overwrite these changes without explicit approval.
+
+## Architectural decisions that are locked
+
+1. Engineering domain data is authoritative. The dependency direction is
+   domain -> rules -> calculation/solver -> results -> visualization -> AI
+   explanation. React state, SVGs, AI output, and vendor formats are never the
+   source of engineering truth.
+2. KOPRUQ owns a solver-independent bridge model. MIDAS, OpenSees, LandXML,
+   IFC, and ALLPLAN concepts enter through adapters/import/export boundaries.
+3. The product workflow is project/site -> bridge layout -> structural system
+   -> analysis -> design -> optimization -> verification -> delivery.
+4. The first structural family is precast girder viaduct. Broad support for
+   other bridge families is intentionally deferred.
+5. Bridge length, abutment positions, pier positions, span arrangement, and
+   related site variables are generated layout variables, not merely hand-typed
+   inputs. `BridgeLayoutEngine` produces traceable alternatives with feasibility
+   and rejection reasons.
+6. KOPRUQ's native fast solver is the screening engine. MIDAS Civil NX is a
+   post-selection/high-fidelity verification adapter, not the generator's
+   domain model or primary optimization engine.
+7. Terrain is engineering data. LandXML is an anti-corruption import format;
+   it must map through DTOs into `TerrainModel`, alignment, and profile models.
+   Valid Bentley/InRoads `Pnts` + `Faces` topology is authoritative and must not
+   be silently retriangulated.
+8. Backend coordinates remain authoritative. Rendering may subtract a local
+   origin and use Float32, but coordinate transforms are centralized and CRS is
+   never guessed.
+9. Project-level loads and load combinations are separate concepts. Traffic
+   load groups are not EN 1990 combinations. LM2 is visible but disabled and
+   must not receive fake calculations.
+10. Engineering parameters require provenance and the priority
+    `project override > national annex > EN base`. Validation, stale state,
+    dependencies, and recalculation requirements must be explicit.
+
+## Backend modules and implemented capabilities
+
+- `bridge-core`: immutable Java domain records for Project, Bridge, Span,
+  SpanLayout, Deck, Girder, Pier, Foundation, DesignSpace, and
+  BridgeAlternative; SI units; no vendor or Spring dependency.
+- `spatial-core` and `alignment`: coordinate primitives, horizontal elements,
+  chainage/XYZ conversion, curves, and vertical profiles.
+- `constraints` and `bridge-layout`: site/layout candidates, abutment/pier
+  candidates, no-pier constraints, feasibility results, and the layout
+  generation flow.
+- `terrain`: terrain model, XYZ import, TIN triangles, repositories, and
+  containing-triangle elevation queries.
+- `landxml-import`: StAX-based LandXML anti-corruption parser/mappers for
+  Bentley-style surfaces, boundaries/breaklines, explicit points/faces,
+  alignment, and vertical profile.
+- `rules-engine`: rule infrastructure only where rules are engineer-approved;
+  never add assumed code values.
+- `generative-engine`: deterministic structural alternative generation.
+- `analysis-api` and `analysis-engine`: solver port/domain types and native
+  linear-elastic 3D direct-stiffness fast solver with frame elements, elastic
+  links, reactions, displacements, member forces, and modal-related support.
+- `midas-adapter`: verified model/result exchange round trip; full analysis
+  integration and complete BridgeAlternative wiring remain future work.
+- `traffic-loads`: EN 1991-2 road-bridge traffic foundation including LM1,
+  notional lanes, factors/groups, temperature, wind, and seismic service
+  infrastructure; follow existing provenance patterns.
+- `api`: Spring Boot REST boundary for kernel state, alternatives, layout,
+  terrain/LandXML, traffic loads, fast solver, materials, and related APIs.
+- `services/optimization-service` and `services/ai-service`: placeholders;
+  optimization and AI are not implemented production services.
+
+## Frontend architecture and UI rules
+
+- `frontend/src/app` owns shell, routing, providers, navigation, workspace
+  composition, and global styling. `frontend/src/pages` composes multi-feature
+  screens. `frontend/src/features/<domain>` owns domain screens and feature
+  components. `frontend/src/shared` contains domain-neutral UI, persistence,
+  units, and reusable controls.
+- React Router, TanStack Query, React Hook Form + Zod, and Vitest are part of
+  the established direction. Do not reintroduce the old monolithic component
+  architecture or duplicate domain forms.
+- The UI is a compact, professional engineering cockpit: dark mode is the
+  primary visual language, light mode is supported, and data density is useful
+  rather than decorative. Use explicit units, provenance, validation states,
+  warnings, and live engineering previews.
+- Avoid duplicate input sources. Geometry and load calculations should consume
+  existing domain values; business logic belongs in backend/domain services or
+  typed feature models, not in presentation components.
+- Family screens use reusable shape/parameter patterns. Section diagrams are
+  SVG previews, with dimensions and labels driven from the same family values;
+  label placement and extension gaps are visual constants, not engineering
+  values. Preserve existing dimension naming (`H`, `Btf`, `Bbf`, `tw`, `th1`,
+  `bh1`, `bh2`, `th2`) and unit conversion behavior.
+- The graph/workspace UI is an authoring and inspection surface for engineering
+  families, not a second calculation engine. Nodes, connectors, inspectors,
+  schematics, material selectors, derived geometry, and candidate previews must
+  remain synchronized with the underlying typed data.
+- Do not hide unsupported engineering features. Show them with an explicit
+  disabled or `NOT_IMPLEMENTED` state rather than fabricated values.
+
+## Completed work / maturity map
+
+- Foundation through P05/P06-era functionality is implemented on the current
+  Java/React stack: domain model, REST kernel, alternative generation, rules
+  infrastructure, preview UI, and MIDAS-P01 round trip.
+- SITE-P01, LAYOUT-P01, native fast solver, TERRAIN-P01, LANDXML-P01, and
+  TRAFFIC-P01 are recorded as end-to-end complete in `docs/roadmap.md` and
+  `docs/architecture.md`.
+- The professional application shell, project/bridge workspaces, family-table
+  consolidation, visual engineering graph, inspector/schematic system,
+  material synchronization, pier/cap/foundation/bearing nodes, and precast/
+  steel girder family UI have been built incrementally. The detailed dated
+  implementation record is `docs/architecture.md`; consult it before changing
+  an established pattern.
+- Current UI work includes girder/family preview dimension layout and shared
+  parameter-sweep card presentation. Treat the four modified files listed in
+  “Current repository state” as in-progress user work.
+
+## Explicitly incomplete / do not imply completion
+
+- MIDAS NX analysis execution/result association (P07) is not complete.
+- Quantities, cost, carbon, generative multi-objective optimization/Pareto,
+  production AI orchestration, and additional solver adapters are not complete.
+- Terrain-driven bridge/pier/abutment 3D geometry, satellite/orthophoto,
+  road/rail/river/borehole layers, terrain tiling/LOD/streaming, and broader
+  geotechnical/hydraulic intelligence remain future work.
+- No unapproved engineering rules, code factors, design limits, safety factors,
+  or geotechnical requirements may be invented to make a screen appear complete.
+
+## Test and verification status
+
+- Backend modules contain unit and controller tests for bridge core, alignment,
+  layout generation, generative alternatives, rules, analysis API/solver,
+  MIDAS mapping/round trip, terrain/TIN queries, Bentley production terrain,
+  traffic loads, and API endpoints. The test inventory is visible under each
+  module's `src/test/java`.
+- Frontend Vitest coverage exists for app behavior, project-file persistence,
+  terrain binary/coordinate helpers, shared parameter controls, and section
+  geometry. `frontend/vitest-errors.txt` is a diagnostic artifact and must be
+  checked before trusting a frontend result.
+- The documented baseline is that Maven reactor tests/build and frontend
+  production build have passed at relevant milestones. Do not report a fresh
+  pass without running the command in the current environment. For a normal
+  change, run `cd backend; mvn test` and `cd frontend; npm.cmd test -- --run`
+  where practical, plus `npm.cmd run build` for frontend changes.
+- This AGENTS update did not run tests; it only inspected repository metadata
+  and documentation. No generated test/build files should be committed as part
+  of documentation-only work.
+
+## Safe continuation protocol
+
+Before any implementation:
+
+1. Read this file, `CLAUDE.md`, and the relevant sections of `docs/`.
+2. Run `git status --short` and preserve all unrelated/user changes.
+3. Inspect the existing module and tests; explain current state, gap, minimum
+   change, affected files, and validation plan before architectural changes.
+4. Keep changes scoped. Do not reset, delete untracked files, or perform broad
+   refactors without explicit approval.
+5. For engineering behavior, add deterministic tests with units, provenance,
+   boundary cases, and reproducible expected results. For UI work, preserve
+   domain ownership and add focused interaction/geometry tests.
+6. At handoff report modified/created files, tests actually run, known gaps,
+   and any documentation-versus-implementation conflict.
+
+When documentation and code disagree, stop and report the conflict before
+silently changing either source of truth.

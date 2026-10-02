@@ -140,16 +140,25 @@ export default function GirderLibraryPanel() {
    (bf wide, bh1 thick). Symmetric about the vertical centerline. */
 
 function PrecastGirderDiagram() {
+  const extensionOverhang = 4
   return (
     <svg viewBox="0 0 250 260" width="178" height="185">
       <BulbTeeGirderShape x={120} y={20} scale={1} />
       <HDim x1={40} x2={200} y={8} label="tf" />
       <VDim y1={20} y2={225} x={18} label="H" />
-      <VDim y1={20} y2={35} x={212} label="th1" labelX={228} />
-      <VDim y1={35} y2={70} x={212} label="th2" labelX={228} />
-      <HDim x1={105} x2={135} y={120} label="w" />
-      <VDim y1={170} y2={195} x={197} label="bh2" labelX={216} />
-      <VDim y1={195} y2={225} x={197} label="bh1" labelX={216} />
+      <line x1={200 + extensionOverhang} y1={20} x2={180} y2={20} stroke="var(--text-secondary)" strokeWidth={1} />
+      <line x1={135 + extensionOverhang} y1={35} x2={180} y2={35} stroke="var(--text-secondary)" strokeWidth={1} />
+      <line x1={135 + extensionOverhang} y1={70} x2={180} y2={70} stroke="var(--text-secondary)" strokeWidth={1} />
+      <VDim y1={20} y2={35} x={180} label="th1" labelX={196} />
+      <VDim y1={35} y2={70} x={180} label="th2" labelX={196} />
+      <line x1={105 - extensionOverhang} y1={120} x2={80} y2={120} stroke="var(--text-secondary)" strokeWidth={1} />
+      <line x1={135 + extensionOverhang} y1={120} x2={135} y2={120} stroke="var(--text-secondary)" strokeWidth={1} />
+      <HDim x1={80} x2={135} y={120} label="w" />
+      <line x1={135 + extensionOverhang} y1={170} x2={180} y2={170} stroke="var(--text-secondary)" strokeWidth={1} />
+      <line x1={180 + extensionOverhang} y1={195} x2={180} y2={195} stroke="var(--text-secondary)" strokeWidth={1} />
+      <VDim y1={170} y2={195} x={180} label="bh2" labelX={196} />
+      <line x1={180 + extensionOverhang} y1={225} x2={180} y2={225} stroke="var(--text-secondary)" strokeWidth={1} />
+      <VDim y1={195} y2={225} x={180} label="bh1" labelX={196} />
       <HDim x1={60} x2={180} y={240} label="bf" />
     </svg>
   )

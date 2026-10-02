@@ -1,0 +1,6 @@
+import type { ReactNode } from 'react'
+import { getNodeDefinitions, type NodeDefinition } from '../../graph/registry/nodeRegistry'
+import { getNodeLogo } from '../../graph/registry/nodeLogos'
+export function structuralFamilyItems() { return getNodeDefinitions().filter(item => item.category === 'STRUCTURAL_FAMILY' && item.type !== 'structural.span_arrangement' && item.type !== 'structural.assembly') }
+export function StructuralFamilyLibrary({ selectedType, onSelect }: { selectedType: string; onSelect: (item: NodeDefinition) => void }) { return <aside className="family-structural-library" data-family-region="library"><h2>STRUCTURAL FAMILY LIBRARY</h2><div className="family-structural-library-scroll">{structuralFamilyItems().map(item => <button type="button" key={item.type} className={item.type === selectedType ? 'active' : ''} onClick={() => onSelect(item)} title={item.description}><img src={getNodeLogo(item.type)} alt="" /><span>{item.label}</span></button>)}</div></aside> }
+export function FamilyPanel({ title, children, className = '', panel }: { title: string; children: ReactNode; className?: string; panel?: string }) { return <section className={`family-panel ${className}`} data-family-panel={panel}><h2>{title}</h2>{children}</section> }

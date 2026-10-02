@@ -1,5 +1,15 @@
 # KOPRUQ --- Codex Project Instructions
 
+## Family Workspace Layout Standard
+
+The central Family Workspace desktop shell uses three regions in a 1/8 +
+3/8 + 4/8 layout: Structural Family Library, Center Workspace, and Results
+Workspace. The center contains Parameters and one canonical 2D Section
+Preview; the results region contains Candidate Sections and Section
+Properties. Visual Candidates and 3D preview are not part of this shell.
+Structural family screens should reuse this shell; the former four-column
+Library/Data/Preview/Candidate layout is no longer authoritative.
+
 ## 1. Project Identity
 
 KOPRUQ is a professional Computational & Generative Bridge Design
@@ -839,3 +849,19 @@ Horizontal/Vertical dimension components.
 
 Migration candidates: Cap, Foundation, Abutment, Bearing, and other section
 previews.
+
+KOPRUQ Technical Dimension Golden Standard V1:
+- Technical dimension labels always use two decimals, independently from property/data precision.
+- Dimension arrows always point inward toward the measured interval.
+- Dimension graphics use the central soft light blue-gray technical color and Segoe UI 11px typography.
+- Annotation-safe DrawingBounds are mandatory.
+- Global visual rules remain separate from section semantic presets.
+
+## Family Workspace V1
+
+- Family sidebar reuses the Graph structural node registry and logo system; it is flat, structural-only, and has no drag/drop or category grouping.
+- Family workspace uses shared Parameters, Section Properties, Section Preview, and Candidate Table shell components.
+- Visual Candidates is removed from the Precast Girder workflow; Candidate Table is the sole candidate-selection UI.
+- Structural previews use the Central Technical Dimension System. Precast Girder is the first reference implementation; future family screens use the central shell rather than local layouts.
+
+Desktop Family layout keeps the Structural Library compact and places the generic Data, Preview, and Candidate columns as siblings; Parameters and vertical Section Properties rows remain together in the Data column.

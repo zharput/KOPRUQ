@@ -852,7 +852,11 @@ previews.
 
 KOPRUQ Technical Dimension Golden Standard V1:
 - Technical dimension labels always use two decimals, independently from property/data precision.
-- Dimension arrows always point inward toward the measured interval.
+- Dimension arrows use the outward contract: horizontal start/left points left,
+  horizontal end/right points right, vertical top points up, and vertical
+  bottom points down.
+- Extension lines preserve a 4 drawing-unit geometry-side gap and continue
+  3 drawing units beyond the dimension axis on the geometry-remote side.
 - Dimension graphics use the central soft light blue-gray technical color and Segoe UI 11px typography.
 - Annotation-safe DrawingBounds are mandatory.
 - Global visual rules remain separate from section semantic presets.
@@ -863,5 +867,19 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Family workspace uses shared Parameters, Section Properties, Section Preview, and Candidate Table shell components.
 - Visual Candidates is removed from the Precast Girder workflow; Candidate Table is the sole candidate-selection UI.
 - Structural previews use the Central Technical Dimension System. Precast Girder is the first reference implementation; future family screens use the central shell rather than local layouts.
-
-Desktop Family layout keeps the Structural Library compact and places the generic Data, Preview, and Candidate columns as siblings; Parameters and vertical Section Properties rows remain together in the Data column.
+- The desktop shell is fixed at 1:3:4: Structural Family Library, Center
+  Workspace, and Results Workspace. The center contains Parameters above one
+  canonical 2D Section Preview; results contain Candidate Sections above
+  Section Properties. Family types must not introduce independent workspace
+  layouts, duplicate previews, 3D previews, or Visual Candidates.
+- The Structural Family Library is a flat, read-only navigation list derived
+  from the Graph structural node registry and reuses each node's name, icon,
+  and structural identity. It does not create Graph nodes.
+- Precast Girder parameters are H, Btf, Bbf, tw, th1, bh1, th2, and bh2;
+  material is not a separate presentation row. Parameter and candidate table
+  bodies use the shared 12px family typography and remain scroll/pagination
+  safe.
+- Section Properties has five vertical rows (A, Ix, Iy, Wx, Wy), each split
+  into symbol, description, value, and unit. Units are separate from numeric
+  values; property precision is unit-specific (m: 4 decimals, cm: 2,
+  mm: 0) and is independent of the technical-dimension two-decimal rule.

@@ -6,5 +6,6 @@ export const PRECAST_GIRDER_DIMENSION_PRESET = {
   extensionGap: TECHNICAL_DRAWING_TOKENS.extensionGap,
   extensionOverrun: TECHNICAL_DRAWING_TOKENS.extensionOverrun,
   textGap: TECHNICAL_DRAWING_TOKENS.textGap,
+  bbfTextOffsetY: 2,
   rightLabels: ['th1', 'bh1', 'bh2', 'th2'] as const,
 } as const

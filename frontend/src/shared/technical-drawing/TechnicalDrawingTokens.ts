@@ -11,7 +11,7 @@ export const TECHNICAL_DRAWING_TOKENS = {
   arrowWidth: 2.2,
   arrowSize: 3,
   extensionGap: 4,
-  extensionOverrun: 4,
+  extensionOverrun: 3,
   dimensionTextGap: 8,
   textGap: 8,
   baseOffset: 0,

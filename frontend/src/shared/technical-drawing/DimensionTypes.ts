@@ -1,5 +1,11 @@
 export type DimensionSide = 'left' | 'right' | 'top' | 'bottom' | 'inline'
 export type DrawingPoint = { x: number; y: number }
+export type ExtensionLineGeometry = {
+  from: DrawingPoint
+  to: DrawingPoint
+  /** The exact point where the extension line meets the dimension axis. */
+  dimensionIntersection?: DrawingPoint
+}
 export type DimensionDefinition = {
   id: string
   label: string
@@ -13,7 +19,7 @@ export type DimensionDefinition = {
   dimensionOffset?: number
   extensionGap?: number
   extensionOverrun?: number
-  extensionLines?: { from: DrawingPoint; to: DrawingPoint }[]
+  extensionLines?: ExtensionLineGeometry[]
   arrows?: { point: DrawingPoint; direction: 'up' | 'down' | 'left' | 'right'; size?: number }[]
   text?: { point: DrawingPoint; anchor?: 'start' | 'middle' | 'end'; dominantBaseline?: 'middle' }
 }

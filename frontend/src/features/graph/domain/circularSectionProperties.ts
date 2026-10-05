@@ -1,0 +1,2 @@
+export type CircularSectionProperties = { area: number; ix: number; iy: number; wx: number; wy: number }
+export function computeCircularSectionProperties(diameter: number): CircularSectionProperties { if (!Number.isFinite(diameter) || diameter <= 0) throw new Error('Circular section diameter must be greater than zero.'); const area = Math.PI * diameter ** 2 / 4; const inertia = Math.PI * diameter ** 4 / 64; const modulus = Math.PI * diameter ** 3 / 32; return { area, ix: inertia, iy: inertia, wx: modulus, wy: modulus } }

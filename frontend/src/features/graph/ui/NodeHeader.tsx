@@ -15,12 +15,13 @@ type Props = {
   isDirty?: boolean
   runRequired?: boolean
   hasError?: boolean
+  resultValid?: boolean
 }
 
 /** Shared two-line header markup; the header remains the single visual source for graph nodes. */
-export default function NodeHeader({ definition, type, label, showIcon = true, className = 'spn-graph-node-title', style, executionState = 'idle', isDirty = false, runRequired = false, hasError = false }: Props) {
+export default function NodeHeader({ definition, type, label, showIcon = true, className = 'spn-graph-node-title', style, executionState = 'idle', isDirty = false, runRequired = false, hasError = false, resultValid = false }: Props) {
   const theme = getNodeGroupTheme(definition.category, type)
-  const status = isDirty ? 'DIRTY' : runRequired ? 'RUN REQUIRED' : hasError ? 'ERROR' : executionState === 'idle' ? '' : executionState.toUpperCase()
+  const status = hasError ? 'ERROR' : executionState === 'running' ? 'RUNNING' : resultValid ? 'SUCCESS' : isDirty ? 'DIRTY' : runRequired ? 'RUN REQUIRED' : executionState === 'idle' ? '' : executionState.toUpperCase()
   const statusColor = statusColorFor(status)
   return <header className={className} style={{ ...getNodeHeaderStyle(definition.category, type), '--node-group-color': theme.dark, '--node-group-text': theme.text, ...style } as CSSProperties}>
     <span className="spn-node-header-main" title={definition.label}>

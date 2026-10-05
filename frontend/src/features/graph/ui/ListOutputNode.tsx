@@ -23,7 +23,7 @@ export default function ListOutputNode({ data, selected }: { data: FlowGraphNode
   const currentPage = Math.min(page, pageCount - 1)
   const toggle = (key: string) => setExpanded(current => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next })
   return <div className={`spn-graph-node spn-graph-list-node ${getNodeTheme('OUTPUT').className}${selected ? ' is-selected' : ''}${data.executionState === 'error' ? ' has-error' : data.executionState === 'success' ? ' has-success' : data.executionState === 'running' ? ' is-running' : ''}${data.isDirty ? ' is-dirty' : ''}`}>
-    {definition && <NodeHeader definition={definition} type={data.node.type} executionState={data.executionState} isDirty={data.isDirty} hasError={Boolean(data.executionError)} runRequired={data.outputAvailability === 'run-required'} />}
+    {definition && <NodeHeader definition={definition} type={data.node.type} executionState={data.executionState} isDirty={Boolean(data.isDirty && !data.resultValid)} resultValid={data.resultValid} hasError={Boolean(data.executionError)} runRequired={data.outputAvailability === 'run-required'} />}
     <div className="spn-graph-list-heading">{value === undefined ? emptyMessage : `${items.length} item${items.length === 1 ? '' : 's'}${data.isDirty ? ' / DIRTY' : ''}`}</div>
     <div className="spn-graph-list-items" role="list" aria-label="List items">
       {items.slice(currentPage * pageSize, (currentPage + 1) * pageSize).map((item, offset) => {

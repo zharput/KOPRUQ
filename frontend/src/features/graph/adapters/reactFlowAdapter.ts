@@ -6,10 +6,12 @@ import type { ConnectionStyle } from '../state/graphViewPreferences'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { resolveEngineeringInput } from '../domain/engineeringInputs'
 import { makeQuantity, type QuantityKind, type UnitId } from '../domain/quantities'
+import { nodeRunValidity } from '../family/graphRunValidity'
 
 export type GraphNodeViewData = {
   node: KopruqNode
   executionState: GraphExecutionState
+  resultValid?: boolean
   executionError?: string
   output?: GraphValue
   previewValue?: GraphValue
@@ -109,7 +111,8 @@ export function toReactFlowNodes(graph: KopruqGraph, options: { selectedIds?: st
       try{const stats=previewBearingStatistics(node,inputs,Array.isArray(bearingPreview)?bearingPreview.length:0);previewGeneratedCombinations=stats?.generatedCombinations;previewInvalidCombinations=bearingPreview===undefined?undefined:stats?.invalidCombinations}catch{/* node error state remains owned by preview/execution */}
     }
     const previewError=previewErrors.get(node.id)
-    return { id: node.id, type: 'kopruq', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewAbutmentCandidates: abutmentPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, projectUnitsKey: options.projectUnitsKey ?? options.projectUnits?.length ?? 'm', isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
+    const resultValid = nodeRunValidity(graph, node.id)
+    return { id: node.id, type: 'kopruq', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), resultValid, executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewAbutmentCandidates:abutmentPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, projectUnitsKey: options.projectUnitsKey ?? options.projectUnits?.length ?? 'm', isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
   })
 }
 

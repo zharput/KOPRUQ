@@ -31,7 +31,7 @@ describe('DimensionArrow geometry', () => {
     const polygon = container.querySelector('[data-dimension-arrow]')
     expect(polygon?.getAttribute('transform')).toBe('translate(100 50)')
     expect(polygon?.getAttribute('points')?.split(' ')[0]).toBe('0,0')
-    expect(polygon?.getAttribute('fill')).toBe('#8FAEC6')
+    expect(polygon?.getAttribute('fill')).toBe('#9FAEC6')
     expect(polygon?.getAttribute('stroke')).toBe('none')
     expect(dimensionArrowLocalPoints(direction).split(' ')[0]).toBe('0,0')
   })

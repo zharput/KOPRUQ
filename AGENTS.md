@@ -890,3 +890,150 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Family tables use shared 12px typography; technical drawing annotations use the central 9px token and shared dimension components.
 - Candidate search is shared, searches displayed column values, filters before pagination, and must not create family-specific UI or engineering logic.
 - Candidate Tables use central deterministic display IDs (`<prefix>-<3 digit index>`); internal candidate IDs remain separate. Tables show Candidate ID, relevant parametric/design columns, then Validation, with redundant type/material/internal metadata omitted.
+
+## Pier Section Preview Scaling and Axis Standard
+
+- Pier previews use a stable reference scale derived from the maximum section geometry envelope and the available preview area.
+- The maximum section geometry is fitted inside geometry-fit bounds; smaller candidates use the same reference scale.
+- X/Y axes extend to the Structural Section Preview safe bounds. X is placed at the right endpoint and Y at the top endpoint.
+- Axis labels remain outside section geometry, and annotation lanes keep labels clear of dimensions.
+- Axis endpoints and label positions remain stable when only candidate selection changes.
+- Full-extent axes are overlay annotations and do not participate in section reference-scale calculation.
+- Maximum Pier geometry uses the largest practical uniform scale inside geometry-fit bounds; smaller candidates retain the family reference scale.
+- X is at the right horizontal-axis endpoint and offset above it; Y is at the top vertical-axis endpoint and offset to its right.
+- Pier dimension offsets derive from scaled section geometry with central minimum/maximum limits; extension gap and overrun remain the technical-drawing standards.
+- Precast Girder renders only its main section X/Y axes; the legacy lower-left corner indicator is not rendered.
+
+## Centroid-Locked Dynamic Section Preview
+
+- Structural section geometry is centered by its area centroid in the actual drawing area; annotation bounds never determine section centering.
+- Maximum-family scaling uses centroid-normalized candidate envelopes and asymmetric left/right/top/bottom extents where required.
+- Dimensions and extension lines derive from the selected scaled geometry. X/Y axes intersect at the section centroid and their extents follow the selected section.
+- X is attached to the right X-axis endpoint above the line; Y is attached to the top Y-axis endpoint to its right.
+
+## Precast-Style Structural Preview Standard
+
+- Precast Girder is the visual reference for shared structural technical drawings.
+- Horizontal dimension text is centered on its dimension line; right-side vertical dimension text is horizontal and placed to the right of the line.
+- Section geometry stays clear of active dimension bands. Only cross-section parameters participate in preview envelope scaling; longitudinal Pier Height does not.
+- The maximum cross-section candidate defines the stable reference scale; smaller candidates remain proportionally smaller.
+
+## Unified Structural Section Preview
+
+- Precast Girder and all Pier families use the central Section Preview layout and technical-drawing primitives.
+- The selected candidate is independently auto-fitted to the available Section Preview drawing area; family-wide stable preview scaling is not used.
+- Section centroid, dimensions and axes are recalculated when the selected candidate changes.
+- Technical drawing text remains fixed at 9px and is independent of geometry scaling and candidate selection.
+- The largest valid geometry scale is used while keeping section, dimensions, axes and labels within safe bounds.
+
+## Structural Section Preview — Final Display Contract
+
+- Precast Girder and all Pier section previews use one central auto-fit layout.
+- Selected candidates are independently fitted while section geometry and dimensions remain dynamic.
+- Technical drawing text is fixed at exactly 9px and is independent of geometry scale.
+- X/Y axes are one clean dashed horizontal/vertical pair without arrows or duplicate centerlines.
+- X is above the right X-axis endpoint and Y is to the right of the top Y-axis endpoint.
+- Fit bands reserve dimension and fixed-text space; Circular D dimensions remain visible for every candidate.
+## Dynamic Section Dimension Contract
+
+- Structural section dimensions are derived from engineering geometry anchors.
+- Dimension lines may never use fixed screen-space geometry.
+- Candidate parameter changes rebuild section geometry and corresponding anchors.
+- Dimension values and dimension geometry share the selected candidate source.
+- Dimension annotation text remains fixed at 9 px.
+- Oval Pier uses the same true obround engineering definition as the Graph Preview.
+- Oval Pier is a single closed convex contour; crescent and inner-arc geometry are prohibited.
+- Precast and Pier use the same central technical dimension renderer.
+
+## Structural Family Stable Reference Scale
+
+- Structural Family candidate previews use a stable reference scale derived from the full RUN candidate set.
+- Candidate selection rebuilds geometry but does not renormalize each candidate independently.
+- The maximum candidate engineering envelope defines the reference fit.
+- Search and pagination do not alter the reference scale.
+- Graph re-RUN or preview container resize may recompute the reference scale.
+- Engineering-to-screen transformation remains uniform.
+- Technical annotation text remains fixed at 9 px.
+
+## Structural Section Preview Base Scale
+
+- Structural Family previews use a stable candidate-set base scale.
+- The maximum vertical section dimension normally occupies 75% of the available Section Preview drawing height.
+- Base scale = 0.75 × available drawing height / maximum vertical engineering dimension.
+- The same uniform scale is used in both X and Y.
+- Smaller candidates remain proportionally smaller.
+- Candidate selection, search and pagination do not change the base scale.
+- Graph re-RUN or preview resize may recompute it.
+- All sections remain centered by their engineering centroid.
+- Horizontal envelope safety may reduce the scale only when required to prevent clipping.
+- Dimension and axis text remains fixed at 9 px.
+
+## Structural Section SVG Scale Contract
+
+- Engineering section dimensions are transformed directly into SVG user space.
+- Engineering scale calculations never use DOM/CSS pixel dimensions.
+- The SVG viewBox/drawing bounds are the source of truth for preview scaling.
+- The maximum vertical engineering section dimension normally occupies 68% of the available SVG drawing height.
+- Engineering-to-SVG scale is expressed in SVG user units per engineering unit.
+- The same uniform scale is used for X and Y.
+- Smaller candidates use the same family scale and remain proportionally smaller.
+- Candidate selection, search, and pagination never change this scale.
+- Section centroids remain aligned with the SVG drawing center.
+- Technical text remains fixed at 9 px and is not multiplied by engineering scale.
+
+## Structural Section Preview — Precast Golden Reference
+
+- Precast Girder is the golden reference for Structural Family section preview rendering.
+- Precast and Pier families share the central technical-drawing scale/layout pipeline.
+- Family-specific code provides engineering geometry and semantic dimension definitions only.
+- Engineering geometry is transformed into SVG space exactly once.
+- Double scaling and family-specific visual scale factors are prohibited.
+- Full RUN candidate-set bounds define a stable family reference scale.
+- Candidate selection changes geometry, dimensions, and properties but not reference scale.
+- Sections are centered by engineering centroid.
+- Technical annotation text remains fixed at 9 px.
+- Structural section palette and technical dimensions are centrally defined.
+
+## Structural Preview Scale Correction
+
+- Structural preview geometry uses a central uniform engineering-to-SVG scale.
+- Pier previews use the central scale factor `2.00`, applied exactly once.
+- X and Y use identical scale and candidate dimensional ratios are preserved.
+- Section centroids remain fixed at the preview center.
+- Dimension geometry follows transformed section geometry; technical text remains 9px.
+- Precast’s accepted visual scale remains unchanged.
+
+## Structural Pier Preview Scale
+
+- Pier Family Section Preview uses a central scale factor of `2.00`.
+- The factor is applied exactly once after the base engineering-to-SVG scale.
+- Circular, Rectangular, Oval, Box, and H Pier use the same central factor.
+- Uniform X/Y scaling and engineering proportions are mandatory.
+- Candidate selection, search, and pagination do not change the scale factor.
+- Section centroid remains aligned with the preview drawing center.
+- Dimension geometry follows transformed section geometry; technical text remains 9px.
+- Precast Girder keeps its accepted visual scale and is not multiplied by the Pier factor.
+- Family-specific CSS/JSX scale hacks are prohibited.
+
+## Global Structural Section Scale Contract
+
+- All Structural Family Section Preview geometry uses one global engineering-to-SVG scale.
+- One engineering metre always maps to the same SVG user-unit length.
+- Scale is independent of family type, selected candidate, geometry bounds, and panel size.
+- Circular, Rectangular, Oval, Box, H, and Precast use the same engineering scale.
+- Family-specific and candidate-specific scale factors are prohibited.
+- Geometry builders operate in engineering space; the renderer performs the central transform.
+- Section centering is translation only and does not modify scale.
+- Dimensions derive from transformed engineering geometry.
+- Annotation offsets remain drawing-space constants and technical text remains fixed at 9px.
+
+## Dynamic Structural Dimension Contract
+
+- Structural dimensions are derived from the selected candidate’s transformed SVG geometry.
+- Dimension coordinates follow actual transformed section bounds and vertices.
+- Annotation clearance, arrow sizing, and technical text do not scale with engineering geometry.
+- Technical text remains fixed at 9px.
+- Circular D follows transformed left/right/bottom bounds.
+- Rectangular, Oval, Box, and H overall dimensions follow transformed outer bounds.
+- Pier central scale factor remains 2.00.
+- Candidate-specific visual scale corrections are prohibited.

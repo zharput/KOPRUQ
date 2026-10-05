@@ -857,7 +857,7 @@ KOPRUQ Technical Dimension Golden Standard V1:
   bottom points down.
 - Extension lines preserve a 4 drawing-unit geometry-side gap and continue
   3 drawing units beyond the dimension axis on the geometry-remote side.
-- Dimension graphics use the central soft light blue-gray technical color and Segoe UI 11px typography.
+- Dimension graphics use the central soft light blue-gray technical color and Segoe UI 9px typography.
 - Annotation-safe DrawingBounds are mandatory.
 - Global visual rules remain separate from section semantic presets.
 
@@ -883,3 +883,10 @@ KOPRUQ Technical Dimension Golden Standard V1:
   into symbol, description, value, and unit. Units are separate from numeric
   values; property precision is unit-specific (m: 4 decimals, cm: 2,
   mm: 0) and is independent of the technical-dimension two-decimal rule.
+
+## Family Workspace Golden Standard
+
+- Precast Girder is the golden reference; all Structural Family nodes use the shared 1:3:4 Family Workspace and shared single-frame panels.
+- Family tables use shared 12px typography; technical drawing annotations use the central 9px token and shared dimension components.
+- Candidate search is shared, searches displayed column values, filters before pagination, and must not create family-specific UI or engineering logic.
+- Candidate Tables use central deterministic display IDs (`<prefix>-<3 digit index>`); internal candidate IDs remain separate. Tables show Candidate ID, relevant parametric/design columns, then Validation, with redundant type/material/internal metadata omitted.

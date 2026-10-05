@@ -2,7 +2,11 @@ import type { FamilyCalculationSnapshot, FamilyCategory, FamilyAlternative } fro
 import { toDisplayValue, type ProjectUnits } from '../../graph/domain/quantities'
 
 export const FAMILY_GROUPS: readonly FamilyCategory[] = ['SPAN_ARRANGEMENT', 'GIRDER', 'SUPERSTRUCTURE', 'PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'ABUTMENT']
-export function getPrecastGirderDisplayId(index: number): string { return `PG-${String(index + 1).padStart(3, '0')}` }
+export const FAMILY_CANDIDATE_PREFIXES = { GIRDER: 'PG', PIER: 'RP', PIER_CAP: 'RC', FOUNDATION: 'SF', BEARING: 'EB', SUPERSTRUCTURE: 'SS', ABUTMENT: 'AB', SPAN_ARRANGEMENT: 'SA' } as const
+export function formatFamilyCandidateId(prefix: string, index: number): string { return `${prefix}-${String(index + 1).padStart(3, '0')}` }
+export function getPrecastGirderDisplayId(index: number): string { return formatFamilyCandidateId('PG', index) }
+function candidatePrefix(category: FamilyCategory, data: Record<string, unknown>) { if (category === 'GIRDER') return data.girderType === 'STEEL' ? 'SG' : 'PG'; if (category === 'PIER') return ({ RECTANGULAR: 'RP', CIRCULAR: 'CP', OVAL: 'OP', BOX: 'BP', H: 'HP' } as Record<string, string>)[String(data.pierType ?? '')] ?? 'RP'; if (category === 'PIER_CAP') return ({ RECTANGULAR: 'RC', T: 'TC' } as Record<string, string>)[String(data.capType ?? '')] ?? 'RC'; if (category === 'FOUNDATION') return ({ SHALLOW: 'SF', PILED: 'PF' } as Record<string, string>)[String(data.foundationType ?? '')] ?? 'SF'; return FAMILY_CANDIDATE_PREFIXES[category] }
+export function familyCandidateDisplayIds(category: FamilyCategory, alternatives: readonly FamilyAlternative[]) { return new Map(alternatives.map((item, index) => [item.candidateId, formatFamilyCandidateId(candidatePrefix(category, item.candidateData as Record<string, unknown>), index)])) }
 let activeDisplayIds: ReadonlyMap<string, string> | undefined
 export function getCandidateDisplayId(candidateId: string): string { return activeDisplayIds?.get(candidateId) ?? candidateId }
 
@@ -39,20 +43,26 @@ export function paginateAlternatives<T>(items: readonly T[], page: number, pageS
   return { page: safePage, pageCount, items: items.slice((safePage - 1) * size, safePage * size), total: items.length, start: items.length ? (safePage - 1) * size + 1 : 0, end: Math.min(safePage * size, items.length) }
 }
 
+export function filterFamilyCandidates(alternatives: readonly FamilyAlternative[], columns: readonly { key: string }[], query: string, units: ProjectUnits = {}, displayIds?: ReadonlyMap<string, string>) {
+  const normalized = query.trim().toLocaleLowerCase()
+  if (!normalized) return [...alternatives]
+  return alternatives.filter(alternative => columns.some(column => cellValue(alternative, column.key, units, displayIds).toLocaleLowerCase().includes(normalized)))
+}
+
 export function candidateColumns(category: FamilyCategory, alternatives: readonly FamilyAlternative[], units: ProjectUnits = {}, displayIds?: ReadonlyMap<string, string>) {
   activeDisplayIds = displayIds
   const rows = alternatives.map(item => item.candidateData as unknown as Record<string, unknown>)
-  const columns: { key: string; label: string }[] = [{ key: 'candidateId', label: category === 'GIRDER' ? 'Candidate' : 'Candidate ID' }]
+  const columns: { key: string; label: string }[] = [{ key: 'candidateId', label: 'Candidate ID' }]
   if (category === 'SPAN_ARRANGEMENT') {
     columns.push({ key: 'spanCount', label: 'Span Count' }, { key: 'pierCount', label: 'Pier Count' }, { key: 'totalLengthM', label: `Total Length (${units.length ?? 'm'})` })
     const maxSpans = Math.max(0, ...rows.map(row => Array.isArray(row.spanLengthsM) ? row.spanLengthsM.length : 0))
     for (let index = 0; index < maxSpans; index += 1) columns.push({ key: `span:${index}`, label: `S${index + 1} (${units.length ?? 'm'})` })
-  } else if (category === 'PIER') columns.push({ key: 'pierType', label: 'Pier Type' }, ...geometryColumns(rows), { key: 'heightM', label: `Height (${units.length ?? 'm'})` }, { key: 'material', label: 'Material' }, { key: 'columnCount', label: 'Columns' })
-  else if (category === 'BEARING') columns.push({ key: 'bearingType', label: 'Bearing Type' }, ...['kx', 'ky', 'kz', 'krx', 'kry', 'krz'].map(key => ({ key: `stiffness.${key}`, label: key.toUpperCase() })))
-  else if (category === 'PIER_CAP') columns.push({ key: 'capType', label: 'Cap Type' }, ...geometryColumns(rows), { key: 'material', label: 'Material' })
-  else if (category === 'FOUNDATION') columns.push({ key: 'foundationType', label: 'Foundation Type' }, ...geometryColumns(rows), { key: 'material', label: 'Material' })
+  } else if (category === 'PIER') columns.push(...geometryColumns(rows), { key: 'heightM', label: `Height (${units.length ?? 'm'})` }, { key: 'columnCount', label: 'Columns' })
+  else if (category === 'BEARING') columns.push(...['kx', 'ky', 'kz', 'krx', 'kry', 'krz'].map(key => ({ key: `stiffness.${key}`, label: key.toUpperCase() })))
+  else if (category === 'PIER_CAP') columns.push(...geometryColumns(rows))
+  else if (category === 'FOUNDATION') columns.push(...geometryColumns(rows))
   else if (category === 'GIRDER') columns.push(...(['H', 'tf', 'bf', 'w', 'th1', 'bh1', 'th2', 'bh2'] as const).filter((key) => rows.some((row) => typeof (row.geometry as Record<string, unknown> | undefined)?.[key] === 'number')).map((key) => ({ key: `geometry.${key}`, label: ({ H: 'H', tf: 'Btf', bf: 'Bbf', w: 'tw', th1: 'th1', bh1: 'bh1', th2: 'th2', bh2: 'bh2' } as Record<string, string>)[key] + ` (${units.length ?? 'm'})` })), { key: 'preferredSpan', label: `Pref. Span (${units.length ?? 'm'})` })
-  else if (category === 'SUPERSTRUCTURE') columns.push({ key: 'girderType', label: 'Girder Type' }, ...['deckWidth', 'deckSlabThickness', 'girderCount', 'girderSpacing', 'clearEdgeCantileverLeft'].map(key => ({ key, label: key })), { key: 'deckConcrete', label: 'Deck Concrete' })
+  else if (category === 'SUPERSTRUCTURE') columns.push(...['deckWidth', 'deckSlabThickness', 'girderCount', 'girderSpacing', 'clearEdgeCantileverLeft'].map(key => ({ key, label: key })))
   else if (category === 'ABUTMENT') columns.push(...geometryColumns(rows), { key: 'seismic.seiW', label: 'Seismic Block Width' })
   columns.push({ key: 'validation', label: 'Validation' })
   return columns

@@ -1,6 +1,6 @@
 export const TECHNICAL_DRAWING_TOKENS = {
   fontFamily: 'Segoe UI, sans-serif',
-  fontSize: 11,
+  fontSize: 9,
   fontWeight: 400,
   technicalDimensionColor: '#8FAEC6',
   textColor: '#8FAEC6',

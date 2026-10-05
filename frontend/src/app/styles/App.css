@@ -239,7 +239,7 @@
 .spn-technical-dimension line { stroke:#8FAEC6; stroke-width:0.8; fill:none; stroke-linecap:butt; }
 .spn-technical-dimension line { vector-effect:non-scaling-stroke; }
 .spn-technical-dimension polygon { fill:#8FAEC6; stroke:none; }
-.spn-technical-dimension text { fill:#8FAEC6; font:11px 'Segoe UI', system-ui, sans-serif; font-weight:400; }
+.spn-technical-dimension text { fill:#8FAEC6; font:9px 'Segoe UI', system-ui, sans-serif; font-weight:400; }
 .spn-technical-dimension .spn-dimension-extension { stroke:#8FAEC6; stroke-width:0.6; }
 .spn-technical-dimension .spn-dimension-tick { stroke:#8FAEC6; stroke-width:0.8; }
 .spn-girder-preview-properties { padding: 10px; border: 1px solid var(--border); background: var(--surface-2); }

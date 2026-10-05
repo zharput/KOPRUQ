@@ -14,7 +14,7 @@ import type { BridgeRow } from '../../project/model/types'
 import { readProjectState } from '../../project/model/projectWorkspace'
 import { getFamilySnapshots } from '../../graph/family/familySnapshotStore'
 import type { FamilyCategory as GraphFamilyCategory, FamilyCalculationSnapshot } from '../../graph/family/familyResults'
-import { familyGroups, candidateColumns, cellValue, paginateAlternatives } from '../model/graphFamilyPresentation'
+import { familyCandidateDisplayIds, familyGroups, candidateColumns, cellValue, filterFamilyCandidates, paginateAlternatives } from '../model/graphFamilyPresentation'
 
 type Props = { crossSectionValues: CrossSectionValues; setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>; bridges: BridgeRow[] }
 const CATEGORIES: { category: FamilyCategory; label: string; Icon: typeof Boxes; types: string; supported: boolean }[] = [
@@ -89,10 +89,11 @@ function GraphAlternatives({ category, snapshots, projectUnits }: { category: Gr
   useEffect(() => setPage(1), [groupCategory, sourceId, snapshots, rowsPerPage])
   const source = selectedGroup.snapshots.find(item => item.sourceNodeId === sourceId) ?? selectedGroup.snapshots[0]
   const alternatives = source?.candidates ?? []
-  const columns = candidateColumns(selectedGroup.category, alternatives, projectUnits)
+  const displayIds = useMemo(() => familyCandidateDisplayIds(selectedGroup.category, alternatives), [selectedGroup.category, alternatives])
+  const columns = candidateColumns(selectedGroup.category, alternatives, projectUnits, displayIds)
   const filteredAlternatives = useMemo(() => {
     const query = search.trim().toLocaleLowerCase()
-    const filtered = query ? alternatives.filter(item => `${item.candidateId} ${JSON.stringify(item.candidateData)}`.toLocaleLowerCase().includes(query)) : [...alternatives]
+    const filtered = filterFamilyCandidates(alternatives, columns, query, projectUnits, displayIds)
     if (!sort) return filtered
     return filtered.sort((left, right) => {
       const a = cellValue(left, sort.key, projectUnits), b = cellValue(right, sort.key, projectUnits)
@@ -100,7 +101,7 @@ function GraphAlternatives({ category, snapshots, projectUnits }: { category: Gr
       const result = Number.isFinite(an) && Number.isFinite(bn) ? an - bn : a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
       return sort.direction === 'asc' ? result : -result
     })
-  }, [alternatives, projectUnits, search, sort])
+  }, [alternatives, columns, displayIds, projectUnits, search, sort])
   useEffect(() => setPage(1), [search, sort])
   const pagination = paginateAlternatives(filteredAlternatives, page, rowsPerPage)
   const { page: safePage, pageCount, items: pageRows } = pagination

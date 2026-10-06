@@ -37,9 +37,9 @@ export function evaluatePierFamily(family: PierFamily, actualHeight: number): 'P
 }
 
 export function defaultDimensions(type: PierFamily['pierType']): Dimension[] {
-  if (type === 'RECTANGULAR') return [{ key: 'B', label: 'B - Transverse (m)', min: 3, max: 6, delta: 1 }, { key: 'D', label: 'D - Longitudinal (m)', min: 1.5, max: 2.5, delta: 0.5 }]
+  if (type === 'RECTANGULAR') return [{ key: 'B', label: 'Transverse Length (m)', min: 3, max: 6, delta: 1 }, { key: 'D', label: 'Longitudinal Length (m)', min: 1.5, max: 2.5, delta: 0.5 }]
   if (type === 'CIRCULAR') return [{ key: 'D', label: 'Diameter (m)', min: 2, max: 3, delta: 0.5 }]
-  if (type === 'OVAL') return [{ key: 'B', label: 'B - Transverse (m)', min: 3, max: 6, delta: 1 }, { key: 'D', label: 'D - Longitudinal (m)', min: 1.5, max: 2.5, delta: 0.5 }]
-  if (type === 'BOX') return [{ key: 'B', label: 'B - Transverse (m)', min: 3, max: 6, delta: 1 }, { key: 'D', label: 'D - Longitudinal (m)', min: 1.5, max: 2.5, delta: 0.5 }, { key: 'tw', label: 'tw (m)', min: 0.3, max: 0.6, delta: 0.1 }]
+  if (type === 'OVAL') return [{ key: 'B', label: 'Transverse Length (m)', min: 3, max: 6, delta: 1 }, { key: 'D', label: 'Longitudinal Length (m)', min: 1.5, max: 2.5, delta: 0.5 }]
+  if (type === 'BOX') return [{ key: 'B', label: 'Transverse Length (m)', min: 3, max: 6, delta: 1 }, { key: 'D', label: 'Longitudinal Length (m)', min: 1.5, max: 2.5, delta: 0.5 }, { key: 'tw', label: 'tw (m)', min: 0.3, max: 0.6, delta: 0.1 }]
   return []
 }

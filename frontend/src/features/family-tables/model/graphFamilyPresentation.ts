@@ -3,6 +3,10 @@ import { toDisplayValue, type ProjectUnits } from '../../graph/domain/quantities
 
 export const FAMILY_GROUPS: readonly FamilyCategory[] = ['SPAN_ARRANGEMENT', 'GIRDER', 'SUPERSTRUCTURE', 'PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'ABUTMENT']
 export const FAMILY_CANDIDATE_PREFIXES = { GIRDER: 'PG', PIER: 'RP', PIER_CAP: 'RC', FOUNDATION: 'SF', BEARING: 'EB', SUPERSTRUCTURE: 'SS', ABUTMENT: 'AB', SPAN_ARRANGEMENT: 'SA' } as const
+export const FAMILY_PRIMARY_DIMENSIONS: Partial<Record<FamilyCategory, readonly { key: string; label: string }[]>> = {
+  GIRDER: [{ key: 'H', label: 'H' }, { key: 'Btf', label: 'Btf' }, { key: 'Bbf', label: 'Bbf' }],
+  PIER: [{ key: 'B', label: 'B' }, { key: 'D', label: 'D' }],
+}
 export function formatFamilyCandidateId(prefix: string, index: number): string { return `${prefix}-${String(index + 1).padStart(3, '0')}` }
 export function getPrecastGirderDisplayId(index: number): string { return formatFamilyCandidateId('PG', index) }
 function candidatePrefix(category: FamilyCategory, data: Record<string, unknown>) { if (category === 'GIRDER') return data.girderType === 'STEEL' ? 'SG' : 'PG'; if (category === 'PIER') return ({ RECTANGULAR: 'RP', CIRCULAR: 'CP', OVAL: 'OP', BOX: 'BP', H: 'HP' } as Record<string, string>)[String(data.pierType ?? '')] ?? 'RP'; if (category === 'PIER_CAP') return ({ RECTANGULAR: 'RC', T: 'TC' } as Record<string, string>)[String(data.capType ?? '')] ?? 'RC'; if (category === 'FOUNDATION') return ({ SHALLOW: 'SF', PILED: 'PF' } as Record<string, string>)[String(data.foundationType ?? '')] ?? 'SF'; return FAMILY_CANDIDATE_PREFIXES[category] }

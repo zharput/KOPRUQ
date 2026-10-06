@@ -1,11 +1,12 @@
 import type { DimensionDefinition, DrawingPoint } from './DimensionTypes'
+import { TECHNICAL_DRAWING_TOKENS } from './TechnicalDrawingTokens'
 
 export type DrawingBounds = { minX: number; maxX: number; minY: number; maxY: number; width: number; height: number; centerX: number; centerY: number }
 export type AnnotationText = { text: string; point: DrawingPoint; anchor?: 'start' | 'middle' | 'end' }
 
 const textWidthFactor = 0.58
 
-export function estimateTechnicalTextBounds({ text, x, y, fontSize = 11, textAnchor = 'start' }: { text: string; x: number; y: number; fontSize?: number; textAnchor?: 'start' | 'middle' | 'end' }): DrawingBounds {
+export function estimateTechnicalTextBounds({ text, x, y, fontSize = TECHNICAL_DRAWING_TOKENS.fontSize, textAnchor = 'start' }: { text: string; x: number; y: number; fontSize?: number; textAnchor?: 'start' | 'middle' | 'end' }): DrawingBounds {
   const width = text.length * fontSize * textWidthFactor
   const minX = textAnchor === 'end' ? x - width : textAnchor === 'middle' ? x - width / 2 : x
   const maxX = textAnchor === 'end' ? x : textAnchor === 'middle' ? x + width / 2 : x + width
@@ -23,7 +24,7 @@ export function expandDrawingBounds(bounds: DrawingBounds, points: readonly Draw
   return makeBounds(Math.min(bounds.minX, ...xs) - padding, Math.max(bounds.maxX, ...xs) + padding, Math.min(bounds.minY, ...ys) - padding, Math.max(bounds.maxY, ...ys) + padding)
 }
 
-export function drawingBounds(sectionPoints: readonly DrawingPoint[], dimensions: readonly DimensionDefinition[], padding = 0, fontSize = 11): DrawingBounds {
+export function drawingBounds(sectionPoints: readonly DrawingPoint[], dimensions: readonly DimensionDefinition[], padding = 0, fontSize = TECHNICAL_DRAWING_TOKENS.fontSize): DrawingBounds {
   if (!sectionPoints.length) throw new Error('A drawing requires section points')
   let bounds = makeBounds(Math.min(...sectionPoints.map((point) => point.x)), Math.max(...sectionPoints.map((point) => point.x)), Math.min(...sectionPoints.map((point) => point.y)), Math.max(...sectionPoints.map((point) => point.y)))
   for (const dimension of dimensions) {
@@ -37,4 +38,9 @@ export function drawingBounds(sectionPoints: readonly DrawingPoint[], dimensions
     }
   }
   return makeBounds(bounds.minX - padding, bounds.maxX + padding, bounds.minY - padding, bounds.maxY + padding)
+}
+
+/** Complete technical envelope derived from the same dimension definitions used by the renderer. */
+export function computeTechnicalDrawingEnvelope(sectionPoints: readonly DrawingPoint[], dimensions: readonly DimensionDefinition[], padding = 0, fontSize = TECHNICAL_DRAWING_TOKENS.fontSize): DrawingBounds {
+  return drawingBounds(sectionPoints, dimensions, padding, fontSize)
 }

@@ -34,6 +34,83 @@
   .family-results-workspace .spn-girder-preview-properties { overflow:hidden; }
 }
 
+/* F7.2K Parameters table: one panel title, one full-width six-column table,
+   and one separator source per data row. */
+.family-workspace-shell .family-parameters-panel {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  grid-template-columns:none !important;
+}
+.family-workspace-shell .family-parameters-panel > .family-panel-title {
+  display:block;
+  width:100%;
+  margin:0 0 10px;
+  align-self:stretch;
+  text-align:left;
+  white-space:nowrap;
+  font-family:var(--family-font-family);
+  font-size:16px !important;
+  font-weight:var(--family-panel-title-font-weight);
+  letter-spacing:.06em;
+}
+.family-workspace-shell .family-parameters-table-wrap {
+  display:block;
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  min-width:0;
+}
+.family-workspace-shell .family-parameters-panel > h2 {
+  white-space:nowrap;
+  overflow:visible;
+  font-size:16px !important;
+}
+.family-workspace-shell .family-parameters-panel > .spn-family-parameters {
+  display:table;
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:none !important;
+  left:auto !important;
+  table-layout:fixed !important;
+  border-collapse:collapse;
+}
+.family-workspace-shell .spn-family-parameters th,
+.family-workspace-shell .spn-family-parameters td {
+  height:36px;
+  padding:7px 6px !important;
+  vertical-align:middle;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  border-bottom:0 !important;
+}
+.family-workspace-shell .spn-family-parameters thead tr {
+  border-bottom:1px solid var(--border) !important;
+}
+.family-workspace-shell .spn-family-parameters tbody tr {
+  height:36px;
+  border-bottom:1px solid var(--border) !important;
+}
+.family-workspace-shell .spn-family-parameters th { font-size:14px !important; font-weight:600; text-align:left; }
+.family-workspace-shell .spn-family-parameters th:nth-child(n+3),
+.family-workspace-shell .spn-family-parameters td:nth-child(n+3) { text-align:center !important; }
+.family-workspace-shell .spn-family-parameters th:first-child,
+.family-workspace-shell .spn-family-parameters td:first-child { width:8% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(2),
+.family-workspace-shell .spn-family-parameters td:nth-child(2) { width:42% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(3),
+.family-workspace-shell .spn-family-parameters td:nth-child(3) { width:12% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(4),
+.family-workspace-shell .spn-family-parameters td:nth-child(4) { width:12% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(5),
+.family-workspace-shell .spn-family-parameters td:nth-child(5) { width:14% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(6),
+.family-workspace-shell .spn-family-parameters td:nth-child(6) { width:12% !important; }
+.family-workspace-shell .spn-family-parameters .family-param-symbol { display:table-cell !important; border:0 !important; color:var(--text-primary); }
+.family-workspace-shell .spn-family-parameters .family-param-description { display:table-cell !important; border:0 !important; color:var(--text-secondary); }
+
 /* F2B final authority: this must remain the last Family desktop layout. */
 @media (min-width:1101px) {
   .family-workspace-shell { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,4fr); grid-template-rows:minmax(0,1fr); width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; }
@@ -232,14 +309,14 @@
 .spn-girder-drawing-viewport { min-height: 380px; display: grid; place-items: center; border: 1px solid var(--border); background: transparent; }
 .spn-girder-drawing-viewport svg { width: 100%; height: min(52vh, 450px); display: block; margin: auto; background: transparent; }
 .spn-girder-axis { stroke: var(--sp-drawing-axis); stroke-width: 1; stroke-dasharray: 5 4; }
-.spn-girder-axis-label { fill: var(--sp-drawing-axis); font: 9px var(--sans); }
+.spn-girder-axis-label { fill: var(--sp-drawing-axis); font: 12px var(--sans); }
 .spn-girder-dimension { fill: #87929D !important; font: 11px 'Segoe UI', system-ui, sans-serif; }
 .spn-technical-dimension line { stroke:var(--sp-drawing-dimension); stroke-width:0.8; fill:none; stroke-linecap:butt; }
 .spn-technical-dimension line { vector-effect:non-scaling-stroke; }
 .spn-technical-dimension polygon { fill:var(--sp-drawing-dimension); stroke:none; }
-.spn-technical-dimension text { fill:var(--sp-drawing-dimension); font:9px 'Segoe UI', system-ui, sans-serif; font-weight:400; }
-.spn-technical-dimension text { font-size:9px !important; }
-.spn-family-technical-axis-label { font-size:9px !important; }
+.spn-technical-dimension text { fill:var(--sp-drawing-dimension); font:12px 'Segoe UI', system-ui, sans-serif; font-weight:400; }
+.spn-technical-dimension text { font-size:12px !important; }
+.spn-family-technical-axis-label { font-size:12px !important; }
 .spn-technical-dimension .spn-dimension-extension { stroke:#8FAEC6; stroke-width:0.6; }
 .spn-technical-dimension .spn-dimension-tick { stroke:#8FAEC6; stroke-width:0.8; }
 .spn-girder-preview-properties { padding: 10px; border: 1px solid var(--border); background: var(--surface-2); }
@@ -3366,12 +3443,64 @@
   --family-panel-border-color: var(--border);
   --family-panel-background: var(--surface-1);
 }
-.family-workspace-shell { display:grid; grid-template-columns:minmax(190px,24%) minmax(0,31%) minmax(0,45%); width:100%; height:100%; min-height:0; overflow:hidden; background:var(--surface-0); color:var(--text-primary); }
+.family-workspace-shell { display:grid; grid-template-columns:minmax(190px,1fr) minmax(240px,.9fr) minmax(300px,1.05fr) minmax(380px,1.35fr); grid-template-rows:auto minmax(360px,clamp(360px,44vh,520px)) auto; grid-template-areas:'library header header header' 'library parameters preview candidates' 'library properties properties information'; width:100%; height:100%; min-height:0; overflow:hidden; background:var(--surface-0); color:var(--text-primary); }
+.family-workspace-shell > .family-structural-library { grid-area:library; }
+.family-workspace-shell > .family-workspace-main { display:contents; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-header { grid-area:header; padding:14px 14px 0; margin:0; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-columns { display:contents; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-parameters-panel { grid-area:parameters; min-height:0; overflow:auto; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-section-preview { grid-area:preview; min-height:0; overflow:hidden; }
+.family-workspace-shell > .family-results-workspace { display:contents; }
+.family-workspace-shell > .family-results-workspace > .family-candidate-table { grid-area:candidates; min-height:0; overflow:hidden; }
+.family-workspace-shell > .family-results-workspace > .family-properties-panel { grid-area:properties; min-height:0; overflow:auto; }
+.family-workspace-shell > .family-results-workspace > .family-information-panel { grid-area:information; min-height:0; overflow:auto; }
+.family-information-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; align-content:start; }
+.family-information-field { display:grid; gap:3px; min-width:0; }
+.family-information-field span { color:var(--text-muted); font-size:12px; }
+.family-information-field strong { color:var(--text-primary); font-size:12px; font-weight:400; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* F7.2F authoritative Family dashboard recovery. Keep this after legacy
+   workspace rules so the three-column dashboard remains the final layout. */
+.family-workspace-shell {
+  grid-template-columns: minmax(190px, 220px) minmax(220px, .85fr) minmax(300px, 1.1fr) minmax(420px, 1.65fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) minmax(120px, 180px) !important;
+  grid-template-areas: 'library header header header' 'library parameters preview candidates' 'library properties properties information' !important;
+  align-content: start;
+}
+.family-workspace-shell > .family-structural-library { display:block !important; grid-area:library !important; min-height:0; height:100%; }
+.family-workspace-shell > .family-workspace-main { display:contents !important; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-header { display:flex !important; grid-area:header !important; min-height:48px; height:auto; align-self:start; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-columns { display:contents !important; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-parameters-panel { display:flex !important; grid-area:parameters !important; min-height:0; height:100%; overflow:auto; }
+.family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-section-preview { display:flex !important; grid-area:preview !important; min-height:0; height:100%; overflow:hidden; }
+.family-workspace-shell > .family-results-workspace { display:contents !important; }
+.family-workspace-shell > .family-results-workspace > .family-candidate-table { display:flex !important; grid-area:candidates !important; min-width:0; min-height:0; height:100%; overflow:hidden; }
+.family-workspace-shell > .family-results-workspace > .family-properties-panel { display:block !important; grid-area:properties !important; min-width:0; min-height:0; height:100%; overflow:auto; }
+.family-workspace-shell > .family-results-workspace > .family-information-panel { display:block !important; grid-area:information !important; min-width:0; min-height:0; height:100%; overflow:auto; }
+.family-workspace-shell .family-section-preview .spn-girder-drawing-viewport { height:100%; min-height:0; }
+.family-workspace-shell .family-section-preview .spn-girder-preview,
+.family-workspace-shell .family-section-preview .spn-circular-pier-preview,
+.family-workspace-shell .family-section-preview .spn-pier-family-preview { min-height:0; height:100%; }
+@media (max-width:1099px) and (min-width:760px) {
+  .family-workspace-shell { grid-template-columns: minmax(190px,220px) minmax(220px,1fr) minmax(300px,1.2fr) !important; grid-template-rows:auto minmax(0,1fr) minmax(360px,auto) minmax(120px,180px) !important; grid-template-areas:'library header header' 'library parameters preview' 'library candidates candidates' 'library properties information' !important; }
+  .family-workspace-shell > .family-results-workspace > .family-candidate-table { height:100%; }
+}
+@media (max-width:759px) {
+  .family-workspace-shell { display:block !important; height:auto; overflow:auto; }
+  .family-workspace-shell > .family-structural-library,
+  .family-workspace-shell > .family-workspace-main > .family-workspace-header,
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-parameters-panel,
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-section-preview,
+  .family-workspace-shell > .family-results-workspace > .family-candidate-table,
+  .family-workspace-shell > .family-results-workspace > .family-properties-panel,
+  .family-workspace-shell > .family-results-workspace > .family-information-panel { display:block !important; width:auto; min-height:220px; height:auto; margin-bottom:12px; }
+}
 .family-structural-library,.family-workspace-main,.family-candidate-table { min-width:0; min-height:0; overflow:auto; }
 .family-structural-library { padding:14px; border-right:1px solid var(--border); background:var(--surface-1); }
 .family-structural-library h2,.family-panel h2,.family-candidate-table h2 { margin:0 0 10px; font-family:var(--family-font-family); font-size:var(--family-panel-title-font-size); font-weight:var(--family-panel-title-font-weight); letter-spacing:.06em; }
+.family-structural-library h2 { font-size:13px; }
 .family-structural-library-scroll { display:grid; gap:2px; }
-.family-structural-library button { display:flex; align-items:center; gap:8px; width:100%; min-height:38px; padding:7px 8px; border:1px solid transparent; background:transparent; color:var(--text-secondary); text-align:left; font:inherit; font-size:11px; cursor:pointer; }
+.family-structural-library button { display:flex; align-items:center; gap:8px; width:100%; min-height:40px; padding:7px 8px; border:1px solid transparent; background:transparent; color:var(--text-secondary); text-align:left; font:inherit; font-size:12px; cursor:pointer; }
 .family-structural-library button:hover,.family-structural-library button.active { border-color:var(--border-strong); background:var(--surface-2); color:var(--text-primary); }
 .family-structural-library img { width:30px; height:30px; object-fit:contain; }
 .family-workspace-main { padding:14px; }
@@ -3383,7 +3512,7 @@
 .family-workspace-data { display:grid; gap:12px; align-content:start; }
 .family-panel { min-width:0; padding:var(--family-panel-padding); border:var(--family-panel-border-width) solid var(--family-panel-border-color); border-radius:var(--family-panel-radius); background:var(--family-panel-background); }
 .family-panel > h2 { color:var(--text-primary); }
-.family-section-preview { min-height:420px; display:flex; flex-direction:column; }
+.family-section-preview { min-height:0; height:100%; display:flex; flex-direction:column; }
 .family-section-preview .spn-girder-preview { flex:1; }
 .family-section-preview .spn-girder-drawing-viewport { height:clamp(360px,52vh,620px); min-height:360px; }
 .family-candidate-table { display:flex; flex-direction:column; min-height:0; padding:var(--family-panel-padding); border:var(--family-panel-border-width) solid var(--family-panel-border-color); border-radius:var(--family-panel-radius); background:var(--family-panel-background); }
@@ -3528,18 +3657,245 @@
 .family-results-workspace .family-candidate-table > header { display:flex; flex-direction:column; align-items:stretch; gap:var(--family-heading-content-gap); padding-bottom:var(--family-search-table-gap); }
 .family-results-workspace .family-candidate-table > header h2 { margin-bottom:0; }
 .family-results-workspace .family-candidate-table > header input { align-self:flex-end; width:min(var(--family-search-width),100%); max-width:100%; }
-.family-graph-validity { padding: 0 12px 8px; font: 600 11px 'Segoe UI', sans-serif; letter-spacing: .04em; }
+.family-graph-validity { padding: 0 12px 8px; font: 600 12px 'Segoe UI', sans-serif; letter-spacing: .04em; }
 .family-graph-validity--valid { color: var(--sp-status-success); }
 .family-graph-validity--invalid { color: var(--sp-status-error); }
 .spn-circular-pier-preview { display:flex; align-items:center; justify-content:center; flex:1; min-height:0; }
 .spn-circular-pier-preview svg { width:100%; height:100%; max-height:420px; }
 .spn-circular-pier-preview .spn-preview-section-fill { fill: var(--sp-drawing-surface, #77838F); stroke: var(--sp-drawing-primary, #C7CBD1); stroke-width:1; vector-effect:non-scaling-stroke; }
 .spn-family-technical-axis { stroke: var(--sp-drawing-axis); stroke-width:1; stroke-dasharray:5 3; vector-effect:non-scaling-stroke; }
-.spn-family-technical-axis-label { fill: var(--sp-drawing-text); font: 9px 'Segoe UI', sans-serif; }
+.spn-family-technical-axis-label { fill: var(--sp-drawing-text); font: 12px 'Segoe UI', sans-serif; }
 .spn-preview-section-fill { fill: var(--sp-drawing-surface, #77838F) !important; stroke: var(--sp-drawing-primary, #C7CBD1) !important; stroke-width: 1; filter: none !important; }
 .spn-family-technical-axis { fill: none; stroke: var(--sp-drawing-axis); stroke-width: 1; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
-.spn-family-technical-axis-label { fill: var(--sp-drawing-axis); stroke: none; font: 9px 'Segoe UI', sans-serif; }
+.spn-family-technical-axis-label { fill: var(--sp-drawing-axis); stroke: none; font: 12px 'Segoe UI', sans-serif; }
 .spn-pier-family-preview { width:100%; height:100%; min-height:270px; display:flex; align-items:center; justify-content:center; }
 .spn-pier-family-preview svg { width:100%; height:100%; max-height:320px; overflow:visible; }
 .spn-pier-section-shape { stroke:var(--sp-drawing-primary, #C7CBD1) !important; stroke-width:1; vector-effect:non-scaling-stroke; }
 :root { --sp-drawing-surface: #77838F; --sp-drawing-primary: #C7CBD1; --sp-drawing-dimension: #9FAEC6; }
+
+/* F7.2H Family Dashboard polish: presentation-only contract. */
+.family-workspace-shell {
+  --family-panel-title-font-size: 16px;
+  --family-table-font-size: 14px;
+  column-gap: 12px;
+  row-gap: 12px;
+  grid-template-columns: minmax(190px,220px) minmax(300px,1.15fr) minmax(280px,1fr) minmax(380px,1.65fr) !important;
+  grid-template-rows: auto minmax(0,1fr) minmax(210px,230px) !important;
+}
+.family-workspace-shell .family-panel > h2,
+.family-workspace-shell .family-candidate-table > header h2 { font-size:16px !important; }
+.family-workspace-shell .family-parameters-panel { overflow:hidden !important; }
+.family-workspace-shell .spn-family-parameters { table-layout:fixed !important; width:100%; }
+.family-workspace-shell .spn-family-parameters th,
+.family-workspace-shell .spn-family-parameters td { font-size:14px !important; line-height:1.2; padding-top:8px; padding-bottom:8px; }
+.family-workspace-shell .spn-family-parameters th:first-child,
+.family-workspace-shell .spn-family-parameters td:first-child { width:44% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(n+2),
+.family-workspace-shell .spn-family-parameters td:nth-child(n+2) { width:14% !important; }
+.family-workspace-shell .spn-family-parameters .family-param-description { white-space:nowrap !important; overflow:visible !important; }
+.family-workspace-shell .family-properties-panel { overflow:hidden !important; }
+.family-workspace-shell .spn-girder-preview-properties[data-testid="section-properties"] { overflow:visible !important; }
+.family-workspace-shell .spn-girder-preview-properties[data-testid="section-properties"] p,
+.family-workspace-shell .spn-girder-preview-properties[data-testid="section-properties"] p span,
+.family-workspace-shell .spn-girder-preview-properties[data-testid="section-properties"] p strong { font-size:14px !important; }
+.family-workspace-shell .spn-girder-preview-properties .property-symbol { color:var(--text-primary); }
+.family-workspace-shell .spn-girder-preview-properties .property-description { color:var(--text-secondary); }
+.family-workspace-shell .spn-girder-preview-properties .property-value { color:var(--kopruq-family-dimension-text); }
+.family-workspace-shell .spn-girder-preview-properties .property-unit { color:var(--text-muted); }
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table th,
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table td,
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table th button { font-size:14px !important; text-align:center !important; }
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table th button { width:100%; }
+.family-workspace-shell .family-candidate-table > header input,
+.family-workspace-shell .spn-family-pagination,
+.family-workspace-shell .spn-family-pagination * { font-size:14px !important; }
+.family-workspace-shell .spn-technical-dimension text,
+.family-workspace-shell .spn-girder-dimension { font-size:13px !important; }
+
+@media (max-width:1279px) and (min-width:761px) {
+  .family-workspace-shell { grid-template-columns:minmax(190px,220px) minmax(260px,1fr) minmax(260px,1fr) !important; grid-template-rows:auto minmax(0,1fr) auto auto !important; }
+}
+
+/* F7.2J desktop contract: three independent vertical columns. Parameters are
+   intrinsic; preview/properties/information define the stable left/middle
+   slots, while candidates span the complete right-hand stack. */
+@media (min-width:1280px) {
+  .family-workspace-shell {
+    --family-dashboard-gap:12px;
+    box-sizing:border-box;
+    padding-bottom:var(--family-dashboard-gap) !important;
+    gap:var(--family-dashboard-gap) !important;
+    row-gap:var(--family-dashboard-gap) !important;
+    column-gap:var(--family-dashboard-gap) !important;
+    grid-template-columns:minmax(190px,220px) minmax(300px,1.15fr) minmax(280px,1fr) minmax(380px,1.65fr) !important;
+    grid-template-rows:auto minmax(0,1fr) auto auto !important;
+    grid-template-areas:'library header header header' 'library parameters preview candidates' 'library properties properties candidates' 'library information information candidates' !important;
+    align-content:start;
+  }
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-parameters-panel {
+    align-self:start;
+    height:fit-content !important;
+    max-height:none;
+    overflow:hidden !important;
+  }
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-section-preview {
+    grid-area:preview !important;
+    height:auto !important;
+    min-height:0 !important;
+    align-self:stretch;
+    margin:0 !important;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-candidate-table {
+    grid-area:candidates !important;
+    height:100% !important;
+    min-height:0;
+    align-self:stretch;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-properties-panel {
+    grid-area:properties !important;
+    height:fit-content !important;
+    min-height:0;
+    overflow:hidden !important;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-information-panel {
+    grid-area:information !important;
+    height:fit-content !important;
+    min-height:0;
+    overflow:hidden !important;
+  }
+  .family-workspace-shell .family-candidate-table .spn-family-table-scroll {
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+  }
+}
+
+/* F7.2M final structural authority for the Parameters panel. */
+.family-workspace-shell .family-parameters-panel {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  grid-template-columns:none !important;
+}
+.family-workspace-shell .family-parameters-panel > .family-panel-title,
+.family-workspace-shell .family-parameters-panel > .family-parameters-table-wrap {
+  width:100% !important;
+  margin-left:0 !important;
+  padding-left:0 !important;
+}
+.family-workspace-shell .family-parameters-panel > .family-panel-title {
+  display:block;
+  margin:0 0 10px !important;
+  text-align:left;
+  white-space:nowrap;
+  font-size:16px !important;
+}
+.family-workspace-shell .family-parameters-panel > .family-parameters-table-wrap {
+  display:block;
+  min-width:0;
+}
+.family-workspace-shell .family-parameters-table-wrap > .spn-family-parameters {
+  display:table !important;
+  width:100% !important;
+  margin:0 !important;
+  table-layout:fixed !important;
+  border-collapse:collapse;
+}
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th,
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td {
+  height:36px;
+  padding:7px 6px !important;
+  vertical-align:middle;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  border-bottom:0 !important;
+}
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters thead tr,
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters tbody tr {
+  border-bottom:1px solid var(--border) !important;
+}
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th { font-size:14px !important; text-align:left; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(n+3),
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(n+3) { text-align:center !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:first-child,
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:first-child { width:8% !important; text-align:left !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(2),
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(2) { width:42% !important; text-align:left !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(3),
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(3) { width:12% !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(4),
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(4) { width:12% !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(5),
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(5) { width:14% !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(6),
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(6) { width:12% !important; }
+.family-workspace-shell .family-parameters-table-wrap .family-param-symbol,
+.family-workspace-shell .family-parameters-table-wrap .family-param-description { display:table-cell !important; border:0 !important; }
+
+/* F7.3 desktop four-column contract: Library / Parameters+Properties /
+   Preview / Candidates = 1 : 2 : 2 : 3. Information remains data-bound but
+   is intentionally omitted from this presentation shell. */
+@media (min-width:1280px) {
+  .family-workspace-shell {
+    grid-template-columns:minmax(0,1fr) minmax(0,2fr) minmax(0,2fr) minmax(0,3fr) !important;
+    grid-template-rows:auto auto minmax(0,1fr) !important;
+    grid-template-areas:'library header header header' 'library parameters preview candidates' 'library properties preview candidates' !important;
+    padding-bottom:12px !important;
+    align-content:stretch;
+  }
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-parameters-panel {
+    grid-area:parameters !important;
+    align-self:start;
+    height:fit-content !important;
+    max-height:none;
+  }
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-section-preview {
+    grid-area:preview !important;
+    grid-row:2 / 4 !important;
+    height:100% !important;
+    min-height:0 !important;
+    align-self:stretch;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-properties-panel {
+    grid-area:properties !important;
+    align-self:stretch;
+    height:100% !important;
+    min-height:0;
+    overflow:hidden !important;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-candidate-table {
+    grid-area:candidates !important;
+    grid-row:2 / 4 !important;
+    height:100% !important;
+    min-height:0;
+    align-self:stretch;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-information-panel { display:none !important; }
+}
+
+/* Family Library typography contract. Keep app navigation and other menus
+   outside this panel unchanged. */
+.family-workspace-shell .family-structural-library > h2 {
+  font-size:16px !important;
+}
+.family-workspace-shell .family-structural-library button,
+.family-workspace-shell .family-structural-library button span {
+  font-size:14px !important;
+}
+.family-workspace-shell .family-structural-library .family-graph-validity {
+  font-size:16px !important;
+}
+
+/* Family dashboard color contract. */
+.family-workspace-shell .family-parameters-panel > .family-panel-title,
+.family-workspace-shell .family-section-preview > h2,
+.family-workspace-shell .family-properties-panel > h2,
+.family-workspace-shell .family-candidate-table > header h2 {
+  color:#9CB8CC !important;
+}
+.family-workspace-shell .spn-girder-preview-properties .property-value {
+  color:#C7CBD1 !important;
+}
+.family-workspace-shell .spn-girder-preview-properties .property-unit {
+  color:#C7CBD1 !important;
+}

@@ -857,7 +857,7 @@ KOPRUQ Technical Dimension Golden Standard V1:
   bottom points down.
 - Extension lines preserve a 4 drawing-unit geometry-side gap and continue
   3 drawing units beyond the dimension axis on the geometry-remote side.
-- Dimension graphics use the central soft light blue-gray technical color and Segoe UI 9px typography.
+- Dimension graphics use the central soft light blue-gray technical color and Segoe UI 12px typography.
 - Annotation-safe DrawingBounds are mandatory.
 - Global visual rules remain separate from section semantic presets.
 
@@ -887,7 +887,7 @@ KOPRUQ Technical Dimension Golden Standard V1:
 ## Family Workspace Golden Standard
 
 - Precast Girder is the golden reference; all Structural Family nodes use the shared 1:3:4 Family Workspace and shared single-frame panels.
-- Family tables use shared 12px typography; technical drawing annotations use the central 9px token and shared dimension components.
+- Family tables use shared 12px typography; technical drawing annotations use the central 12px token and shared dimension components.
 - Candidate search is shared, searches displayed column values, filters before pagination, and must not create family-specific UI or engineering logic.
 - Candidate Tables use central deterministic display IDs (`<prefix>-<3 digit index>`); internal candidate IDs remain separate. Tables show Candidate ID, relevant parametric/design columns, then Validation, with redundant type/material/internal metadata omitted.
 
@@ -923,14 +923,14 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Precast Girder and all Pier families use the central Section Preview layout and technical-drawing primitives.
 - The selected candidate is independently auto-fitted to the available Section Preview drawing area; family-wide stable preview scaling is not used.
 - Section centroid, dimensions and axes are recalculated when the selected candidate changes.
-- Technical drawing text remains fixed at 9px and is independent of geometry scaling and candidate selection.
+- Technical drawing text remains fixed at 12px and is independent of geometry scaling and candidate selection.
 - The largest valid geometry scale is used while keeping section, dimensions, axes and labels within safe bounds.
 
 ## Structural Section Preview — Final Display Contract
 
 - Precast Girder and all Pier section previews use one central auto-fit layout.
 - Selected candidates are independently fitted while section geometry and dimensions remain dynamic.
-- Technical drawing text is fixed at exactly 9px and is independent of geometry scale.
+- Technical drawing text is fixed at exactly 12px and is independent of geometry scale.
 - X/Y axes are one clean dashed horizontal/vertical pair without arrows or duplicate centerlines.
 - X is above the right X-axis endpoint and Y is to the right of the top Y-axis endpoint.
 - Fit bands reserve dimension and fixed-text space; Circular D dimensions remain visible for every candidate.
@@ -1000,7 +1000,7 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Pier previews use the central scale factor `2.00`, applied exactly once.
 - X and Y use identical scale and candidate dimensional ratios are preserved.
 - Section centroids remain fixed at the preview center.
-- Dimension geometry follows transformed section geometry; technical text remains 9px.
+- Dimension geometry follows transformed section geometry; technical text remains 12px.
 - Precast’s accepted visual scale remains unchanged.
 
 ## Structural Pier Preview Scale
@@ -1011,7 +1011,7 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Uniform X/Y scaling and engineering proportions are mandatory.
 - Candidate selection, search, and pagination do not change the scale factor.
 - Section centroid remains aligned with the preview drawing center.
-- Dimension geometry follows transformed section geometry; technical text remains 9px.
+- Dimension geometry follows transformed section geometry; technical text remains 12px.
 - Precast Girder keeps its accepted visual scale and is not multiplied by the Pier factor.
 - Family-specific CSS/JSX scale hacks are prohibited.
 
@@ -1025,15 +1025,57 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Geometry builders operate in engineering space; the renderer performs the central transform.
 - Section centering is translation only and does not modify scale.
 - Dimensions derive from transformed engineering geometry.
-- Annotation offsets remain drawing-space constants and technical text remains fixed at 9px.
+- Annotation offsets remain drawing-space constants and technical text remains fixed at 12px.
 
 ## Dynamic Structural Dimension Contract
 
 - Structural dimensions are derived from the selected candidate’s transformed SVG geometry.
 - Dimension coordinates follow actual transformed section bounds and vertices.
 - Annotation clearance, arrow sizing, and technical text do not scale with engineering geometry.
-- Technical text remains fixed at 9px.
+- Technical text remains fixed at 12px.
+
+## Family Workspace UI Standard F7.0
+
+- The Family Workspace uses the Structural Family Library on the left and the active family workspace on the right.
+- The active workspace uses a compact engineering dashboard layout with Parameters, Preview, Candidates, Properties, and Information panels.
+- Family screens contain no RUN or Save actions.
+- Candidate ID is the first candidate-table column and Validation is the last; Area is a Section Property, not a candidate parameter.
+- Section Preview uses dynamic uniform fit within a safe drawing area and fits the complete technical drawing envelope.
+- Section engineering proportions are preserved and dimensions follow transformed geometry.
+- Technical dimension text is fixed at 12px and independent of engineering/SVG scale.
+- Structural Section Preview displays center axis lines only; X/Y text labels are not rendered.
+- Central palette, panel, table, selection, and technical drawing systems are shared by all Structural Families.
+- Candidate selection is the single source for Preview, Properties, and Information.
+
+## Family Dashboard Layout F7.1
+
+- The Family Workspace right side is a central dashboard grid.
+- Desktop top row is Section Parameters, Section Preview, and Candidate Sections.
+- The lower dashboard region is reserved for Section Properties and Section Information.
+- Family layout uses internal panel scrolling and a controlled top-row height.
+- FamilyResultsViewer owns data wiring and panel composition; SVG and engineering formulas remain in dedicated components.
+- No family-specific layout CSS or visual scale multiplier is permitted.
 - Circular D follows transformed left/right/bottom bounds.
 - Rectangular, Oval, Box, and H overall dimensions follow transformed outer bounds.
 - Pier central scale factor remains 2.00.
 - Candidate-specific visual scale corrections are prohibited.
+
+## Family Panel Componentization F7.1A
+
+- FamilyResultsViewer remains an orchestration/data-wiring component.
+- Section Information is a reusable selected-candidate summary panel.
+- Preview, Properties, and Information consume the same selected candidate.
+- Section Information performs no independent engineering calculations.
+- Area comes from existing Section Properties results; material and unit weight are shown only when present in model data.
+- Missing engineering metadata uses the common empty-value convention.
+- Family-specific Section Information components are prohibited.
+- Dynamic drawing-envelope fitting remains a separate F7.2 task.
+
+## Central Structural Section Preview Fit Contract F7.2
+
+- Structural preview fit is presentation-only and never changes engineering values.
+- Geometry remains in engineering space; the renderer fits a complete technical drawing envelope.
+- Envelope fitting uses one uniform scale, safe viewport bounds, and finite positive guards.
+- Geometry aspect ratios are preserved; family-specific visual multipliers are prohibited.
+- Dimension text remains fixed at 12px and axis labels remain absent.
+- Fit and viewport values are derived UI data and are not persisted.

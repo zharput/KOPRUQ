@@ -5,7 +5,7 @@ export const SECTION_PREVIEW_TOKENS = {
   axisExtension: 24,
   axisLabelGap: 10,
   axisToDimensionTextGap: 12,
-  axisLabelFontSize: 9,
+  axisLabelFontSize: 12,
   minimumReadableGeometry: 12,
 } as const
 /** Canonical engineering-to-SVG user-unit conversion for every structural section. */

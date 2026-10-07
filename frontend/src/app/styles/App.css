@@ -3669,6 +3669,17 @@
 .family-graph-validity--invalid { color: var(--sp-status-error); }
 .spn-circular-pier-preview { display:flex; align-items:center; justify-content:center; flex:1; min-height:0; }
 .spn-circular-pier-preview svg { width:100%; height:100%; max-height:none; }
+.spn-graph-group { position:relative; box-sizing:border-box; border:1px solid color-mix(in srgb, var(--group-color) 55%, transparent); border-radius:8px; pointer-events:auto; color:var(--group-color); font:500 16px var(--family-font-family, 'Segoe UI', sans-serif); }
+.spn-graph-group.is-selected { border-width:2px; border-color:var(--group-color); }
+.spn-graph-group > span { position:absolute; top:8px; left:10px; right:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:auto; }
+.spn-graph-context-menu { position:absolute; z-index:30; min-width:150px; padding:5px; border:1px solid var(--panel-border-color); border-radius:6px; background:var(--panel-bg); box-shadow:0 8px 24px rgb(0 0 0 / 28%); display:grid; gap:3px; }
+.spn-graph-context-menu button { border:0; border-radius:4px; padding:6px 8px; color:var(--text-primary); background:transparent; text-align:left; cursor:pointer; font:inherit; }
+.spn-graph-context-menu button:hover:not(:disabled) { background:var(--panel-hover-bg); }
+.spn-graph-context-menu button:disabled { opacity:.45; cursor:not-allowed; }
+.spn-graph-context-menu .spn-graph-context-create-group { background:#E5E7EB; color:#1F3A5F; border:1px solid rgb(31 58 95 / 18%); font-weight:600; }
+.spn-graph-context-menu .spn-graph-context-create-group:hover:not(:disabled) { background:#DCE2EA; }
+.spn-graph-context-colors { display:flex; gap:4px; padding:4px; }
+.spn-graph-context-colors button { width:16px; height:16px; padding:0; border:1px solid rgb(255 255 255 / 35%); border-radius:50%; }
 .spn-circular-pier-preview .spn-preview-section-fill { fill: var(--sp-drawing-surface, #77838F); stroke: var(--sp-drawing-primary, #C7CBD1); stroke-width:1; vector-effect:non-scaling-stroke; }
 .spn-family-technical-axis { stroke: var(--sp-drawing-axis); stroke-width:1; stroke-dasharray:5 3; vector-effect:non-scaling-stroke; }
 .spn-family-technical-axis-label { fill: var(--sp-drawing-text); font: 12px 'Segoe UI', sans-serif; }

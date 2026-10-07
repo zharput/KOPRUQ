@@ -1,4 +1,4 @@
-import type { GraphParameterValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
+import type { GraphGroup, GraphParameterValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 import { validateConnection } from '../engine/graphEngine'
 import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
 import { readProjectState } from '../../project/model/projectWorkspace'
@@ -14,7 +14,7 @@ let dragStart: KopruqGraph | undefined
 let snapshot: GraphStoreSnapshot | undefined
 
 export function createEmptyGraph(name = 'Untitled Graph', ownership?: Pick<KopruqGraph, 'projectId' | 'bridgeId'>): KopruqGraph {
-  return { id: globalThis.crypto?.randomUUID?.() ?? `graph-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, schemaVersion: 1, ...ownership, nodes: [], connections: [] }
+  return { id: globalThis.crypto?.randomUUID?.() ?? `graph-${Date.now()}-${Math.random().toString(36).slice(2)}`, name, schemaVersion: 1, ...ownership, nodes: [], connections: [], groups: [] }
 }
 export function serializeGraph(graph: KopruqGraph): string { return JSON.stringify(graph, null, 2) }
 export function deserializeGraph(raw: string): KopruqGraph {
@@ -94,7 +94,16 @@ export function addNode(type: string, position: { x: number; y: number }) {
 }
 export function updateNode(id: string, change: (node: KopruqNode) => KopruqNode) { const graph = getActiveGraph(); replaceActiveGraph({ ...graph, nodes: graph.nodes.map((node) => node.id === id ? change(node) : node) }) }
 export function setNodeParameter(id: string, key: string, value: GraphParameterValue) { updateNode(id, (node) => ({ ...node, parameters: { ...node.parameters, [key]: value } })) }
-export function deleteNodes(ids: string[]) { const graph = getActiveGraph(), selected = new Set(ids); replaceActiveGraph({ ...graph, nodes: graph.nodes.filter((node) => !selected.has(node.id)), connections: graph.connections.filter((edge) => !selected.has(edge.sourceNodeId) && !selected.has(edge.targetNodeId)) }) }
+export function deleteNodes(ids: string[]) { const graph = getActiveGraph(), selected = new Set(ids); const groups = (graph.groups ?? []).map(group => ({ ...group, nodeIds: group.nodeIds.filter(id => !selected.has(id)) })).filter(group => group.nodeIds.length >= 2); replaceActiveGraph({ ...graph, nodes: graph.nodes.filter((node) => !selected.has(node.id)), connections: graph.connections.filter((edge) => !selected.has(edge.sourceNodeId) && !selected.has(edge.targetNodeId)), groups }) }
+export function createGraphGroup(nodeIds: string[], name?: string) {
+  const graph = getActiveGraph(), ids = [...new Set(nodeIds)], existing = new Set((graph.groups ?? []).flatMap(group => group.nodeIds))
+  if (ids.length < 2 || ids.some(id => existing.has(id)) || ids.some(id => !graph.nodes.some(node => node.id === id))) return undefined
+  const index = (graph.groups ?? []).length
+  const group: GraphGroup = { id: `group-${String(index + 1).padStart(3, '0')}`, name: name?.trim() || `Group ${index + 1}`, nodeIds: ids, color: ['#5C7C99', '#6F8F72', '#8A6F91', '#9A7658', '#7A8796', '#8C6D6D', '#6F8790', '#857A5C'][index % 8] }
+  replaceActiveGraph({ ...graph, groups: [...(graph.groups ?? []), group] }); return group.id
+}
+export function updateGraphGroup(id: string, change: (group: GraphGroup) => GraphGroup) { const graph = getActiveGraph(); replaceActiveGraph({ ...graph, groups: (graph.groups ?? []).map(group => group.id === id ? change(group) : group) }) }
+export function ungroupGraph(id: string) { const graph = getActiveGraph(); replaceActiveGraph({ ...graph, groups: (graph.groups ?? []).filter(group => group.id !== id) }) }
 export function addConnection(connection: KopruqConnection) {
   const graph = getActiveGraph()
   if (graph.connections.some(item => item.id === connection.id || (item.sourceNodeId === connection.sourceNodeId && item.sourcePortId === connection.sourcePortId && item.targetNodeId === connection.targetNodeId && item.targetPortId === connection.targetPortId))) return false
@@ -133,6 +142,11 @@ export function deleteConnections(ids: string[]) { const graph = getActiveGraph(
 export function updatePositions(positions: Record<string, { x: number; y: number }>) {
   const graph = getActiveGraph()
   replaceActiveGraph({ ...graph, nodes: graph.nodes.map((node) => positions[node.id] ? { ...node, position: positions[node.id] } : node) }, false)
+}
+export function moveGraphGroup(id: string, delta: { x: number; y: number }) {
+  const graph = getActiveGraph(), group = (graph.groups ?? []).find(item => item.id === id)
+  if (!group) return
+  updatePositions(Object.fromEntries(group.nodeIds.flatMap(nodeId => { const node = graph.nodes.find(item => item.id === nodeId); return node ? [[nodeId, { x: node.position.x + delta.x, y: node.position.y + delta.y }]] : [] })))
 }
 export function beginMoveHistory() { dragStart = structuredClone(getActiveGraph()) }
 export function endMoveHistory() {

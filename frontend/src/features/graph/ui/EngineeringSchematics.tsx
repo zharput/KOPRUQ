@@ -123,7 +123,6 @@ function PierFamilySchematic({ kind, node, candidates, previewInputs, connected,
   const size = rectangularSize(d, b, 170, 105)
   return <>
     <SchematicCard className="engineering-schematic-single spn-pier-family-preview">
-      <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label={`Expand ${kind} pier detail`} title="Detail view" onClick={() => setDetail(true)}>↗</button></div>
       <svg viewBox="0 0 300 180" role="img" aria-label={`${kind.replace('_', ' ')} pier schematic`}>
         <desc>{kind === 'oval' ? `Oval pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · Bridge Axis` : kind === 'h_section' ? `H section pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · w = ${displayLength(web, projectUnits)} · ft = ${displayLength(flange, projectUnits)}` : ''}</desc>
         <PierFamilyShape kind={kind} cx={150} cy={82} w={size.w} h={size.h} tw={tw} web={web} flange={flange} scale={size.scale} />
@@ -169,7 +168,6 @@ function RectangularPierSchematic({ node, candidates, previewInputs, connected, 
   const label = `${b.toFixed(2)} × ${d.toFixed(2)} m`
   return <>
     <SchematicCard className="engineering-schematic-single spn-rectangular-pier-preview">
-      <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label="Expand rectangular pier detail" title="Detail view" onClick={() => setDetail(true)}>↗</button></div>
       <svg viewBox="0 0 300 180" role="img" aria-label={`Rectangular pier schematic. B/D ${label}.`}>
         <desc>Rectangular pier schematic. B = {displayLength(b, projectUnits)} · D = {displayLength(d, projectUnits)}</desc>
         <RectangularPierShape b={b} d={d} x={150} y={82} maxW={170} maxH={105} />
@@ -326,10 +324,8 @@ function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(
 
 function SchematicCard({ children, className }: { children: React.ReactNode; className?: string }) {
   const logoType = useContext(SchematicLogoContext)
-  const hasDedicatedPreview = className?.includes('spn-pier-family-preview') || className?.includes('spn-rectangular-pier-preview')
   return <div className={`spn-engineering-schematic ${className??''}`}>
     {logoType && <div className="spn-engineering-schematic-logo"><NodeIcon type={logoType} size={128} /></div>}
-    {logoType && !hasDedicatedPreview && <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label="Preview schematic" title="Preview">↗</button></div>}
     {children}
   </div>
 }

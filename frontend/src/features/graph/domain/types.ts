@@ -25,6 +25,12 @@ export interface KopruqConnection {
   targetNodeId: string
   targetPortId: string
 }
+export interface GraphGroup {
+  id: string
+  name: string
+  nodeIds: string[]
+  color: string
+}
 
 export interface KopruqGraph {
   id: string
@@ -35,6 +41,7 @@ export interface KopruqGraph {
   bridgeId?: string
   nodes: KopruqNode[]
   connections: KopruqConnection[]
+  groups?: GraphGroup[]
 }
 
 export interface GraphExecutionResult {

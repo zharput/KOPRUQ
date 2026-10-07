@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
-import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange } from '@xyflow/react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react'
+import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange, type NodeProps } from '@xyflow/react'
 import { Activity, Maximize2, Minus, Plus, Redo2, Undo2 } from 'lucide-react'
 import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
 import type { GraphExecutionState, GraphValue, MaterialValue, KopruqGraph } from '../domain/types'
 import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'
 import { getNodeDefinition } from '../registry/nodeRegistry'
-import { addConnection, addNode, beginMoveHistory, createGraphDocument, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, updateNode, updatePositions } from '../state/graphStore'
+import { addConnection, addNode, beginMoveHistory, createGraphDocument, createGraphGroup, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, moveGraphGroup, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, ungroupGraph, updateGraphGroup, updateNode, updatePositions } from '../state/graphStore'
 import { useGraphStore } from '../state/useGraphStore'
 import { cloneGraphSelection, copyGraphSelection, sameGraphSelection, type GraphClipboard } from '../state/graphClipboard'
 import BaseNode from './BaseNode'
@@ -19,10 +19,12 @@ import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from '../family/familyResults'
 import { markFamilySnapshotsStale, publishFamilySnapshots } from '../family/familySnapshotStore'
 import { currentEngineeringFingerprint, recordSuccessfulGraphRun } from '../family/graphRunValidity'
+import { computeGraphGroupBounds, GRAPH_GROUP_TOKENS, type GraphGroupBounds } from '../model/graphGroups'
 
 import { readProjectState, type ProjectWorkspaceData } from '../../project/model/projectWorkspace'
 
-const NODE_TYPES = { kopruq: BaseNode }
+function GraphGroupNode({ data, selected }: NodeProps) { const group = data as unknown as { name: string; color: string; bounds: GraphGroupBounds }; return <div className={`spn-graph-group${selected ? ' is-selected' : ''}`} title={group.name} style={{ width: group.bounds.width, height: group.bounds.height, background: `${group.color}18`, '--group-color': group.color } as CSSProperties}><span>{group.name}</span></div> }
+const NODE_TYPES = { kopruq: BaseNode, graphGroup: GraphGroupNode }
 type AddNodeRef = MutableRefObject<((type: string) => string | undefined) | undefined>
 
 export default function GraphWorkspace({ project, setProject }: { project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void }) {
@@ -152,6 +154,10 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
   const boxStart = useRef<{ clientX: number; clientY: number; shift: boolean; previous: string[] } | undefined>(undefined)
   const suppressPaneClick = useRef(false)
   const [selectionBox, setSelectionBox] = useState<{ rect: BoxRect; mode: BoxSelectionMode }>()
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; groupId?: string }>()
+  const [nodeMeasurements, setNodeMeasurements] = useState<Record<string, { width: number; height: number; visualExtent: number }>>({})
+  const groupDragStart = useRef<{ id: string; x: number; y: number } | undefined>(undefined)
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -166,6 +172,23 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
   const projectUnitsKey = projectUnits.length
   const flowNodeData = useMemo(() => ({ states, errors, outputs: nodeOutputs, resolvedInputs, projectUnits, projectUnitsKey, isDirty, onParameterChange }), [states, errors, nodeOutputs, resolvedInputs, projectUnits, projectUnitsKey, isDirty, onParameterChange])
   const projectedNodes = useMemo(() => { if (diagnostics) console.count('[graph diagnostics] node projection'); return toReactFlowNodes(graph, flowNodeData) }, [graph, flowNodeData, diagnostics])
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const updateMeasurements = () => {
+      const zoom = getViewport().zoom || 1
+      const next = Object.fromEntries(Array.from(canvas.querySelectorAll<HTMLElement>('.react-flow__node[data-id]')).flatMap(element => {
+        const id = element.dataset.id
+        const rect = element.getBoundingClientRect()
+        return id && rect.width > 0 && rect.height > 0 ? [[id, { width: rect.width / zoom, height: rect.height / zoom, visualExtent: GRAPH_GROUP_TOKENS.portVisualExtent }]] : []
+      }))
+      setNodeMeasurements(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next)
+    }
+    const observer = new ResizeObserver(updateMeasurements)
+    canvas.querySelectorAll<HTMLElement>('.react-flow__node[data-id]').forEach(element => observer.observe(element))
+    updateMeasurements()
+    return () => observer.disconnect()
+  }, [getViewport, graph.nodes.length, projectedNodes])
   const selectedNodeSet = useMemo(() => new Set(selectedNodeIds), [selectedNodeIds])
   const flowNodes = useMemo(() => projectedNodes.map(node => {
     const position = dragPositions[node.id]
@@ -173,10 +196,23 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
     if (!position && Boolean(node.selected) === selected) return node
     return { ...node, ...(position ? { position } : {}), selected }
   }), [projectedNodes, dragPositions, selectedNodeSet])
+  const groupNodes = useMemo(() => (graph.groups ?? []).flatMap(group => { const bounds = computeGraphGroupBounds(group.nodeIds, graph.nodes.map(node => { const position = dragPositions[node.id]; return position ? { ...node, position } : node }), nodeMeasurements); return bounds ? [{ id: group.id, type: 'graphGroup', position: { x: bounds.x, y: bounds.y }, zIndex: -1, selectable: false, draggable: true, selected: selectedGroupId === group.id, data: { name: group.name, color: group.color, bounds } }] : [] }) as any[], [graph, selectedGroupId, dragPositions, nodeMeasurements])
   const projectedEdges = useMemo(() => { if (diagnostics) console.count('[graph diagnostics] edge projection'); return toReactFlowEdges(graph, 'smooth') }, [graph, diagnostics])
   const selectedEdgeSet = useMemo(() => new Set(selectedEdgeIds), [selectedEdgeIds])
   const flowEdges = useMemo(() => projectedEdges.map(edge => Boolean(edge.selected) === selectedEdgeSet.has(edge.id) ? edge : { ...edge, selected: selectedEdgeSet.has(edge.id) }), [projectedEdges, selectedEdgeSet])
   useEffect(() => { if (diagnostics) console.count('[graph diagnostics] selection state effect') }, [selectedNodeIds, selectedEdgeIds, diagnostics])
+  useEffect(() => { if (selectedGroupId && !(graph.groups ?? []).some(group => group.id === selectedGroupId)) setSelectedGroupId(null) }, [graph.groups, selectedGroupId])
+  const groupById = (id?: string) => id ? (graph.groups ?? []).find(group => group.id === id) : undefined
+  const closeContextMenu = () => setContextMenu(undefined)
+  const renameGroup = (id: string) => {
+    const group = groupById(id)
+    if (!group) return
+    closeContextMenu()
+    const next = window.prompt('Rename Group', group.name)?.trim()
+    if (next && next !== group.name) updateGraphGroup(id, current => ({ ...current, name: next.slice(0, 80) }))
+  }
+  const changeGroupColor = (id: string, color: string) => { updateGraphGroup(id, current => ({ ...current, color })); closeContextMenu() }
+  const createSelectionGroup = () => { if (selectedNodeIdsRef.current.length >= 2) createGraphGroup(selectedNodeIdsRef.current); closeContextMenu() }
   const addAtCenter = useCallback((type: string) => {
     const rect = canvasRef.current?.getBoundingClientRect()
     const position = rect ? screenToFlowPosition({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }) : { x: 120, y: 100 }
@@ -327,6 +363,8 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
     if (!target.closest('.react-flow__pane, .react-flow__background')) return
     event.preventDefault()
     event.stopPropagation()
+    setSelectedGroupId(null)
+    closeContextMenu()
     suppressPaneClick.current = true
     boxStart.current = { clientX: event.clientX, clientY: event.clientY, shift: event.shiftKey, previous: selectedNodeIdsRef.current }
     const point = { x: event.clientX, y: event.clientY }
@@ -337,14 +375,21 @@ function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphSh
     <div className="spn-graph-bridge-selector"><label htmlFor="bridge-selector">Bridge</label><select id="bridge-selector" aria-label="Bridge" value={graph.bridgeId ?? ''} onChange={(event) => selectBridge(event.target.value)}><option value="" disabled>{activeBridge ? activeBridge.no : 'Select bridge'}</option>{bridges.map((bridge) => <option key={bridge.id} value={bridge.id}>{bridge.no} | KM {bridge.km} | L = {bridge.estimatedLengthM.toFixed(2)} m</option>)}</select></div>
     <header className="spn-graph-toolbar"><div className="spn-graph-name"><label htmlFor="graph-name">GRAPH</label><input id="graph-name" aria-label="Graph name" value={graph.name} onChange={(event) => renameActiveGraph(event.target.value)} /><select aria-label="Graph document" value={graph.id} onChange={(event) => selectGraphDocument(event.target.value)}>{useGraphStore().graphs.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><button type="button" className="spn-graph-icon-button" aria-label="New graph" title="New graph" onClick={onNewGraph}><Plus size={15} /></button></div><div className="spn-graph-tools"><button type="button" onClick={run} disabled={isRunning} title="Run graph"><Activity size={14} /> Run</button><i /><button type="button" aria-label="Undo" title="Undo" disabled={!canUndo} onClick={undoGraph}><Undo2 size={15} /></button><button type="button" aria-label="Redo" title="Redo" disabled={!canRedo} onClick={redoGraph}><Redo2 size={15} /></button><i /><button type="button" aria-label="Fit View" title="Fit View" onClick={() => { if (diagnostics) console.count('[graph diagnostics] fitView'); fitView({ padding: 0.2, duration: 140 }) }}><Maximize2 size={15} /></button><button type="button" aria-label="Zoom In" title="Zoom In" onClick={() => zoomIn({ duration: 100 })}><Plus size={15} /></button><button type="button" aria-label="Zoom Out" title="Zoom Out" onClick={() => zoomOut({ duration: 100 })}><Minus size={15} /></button></div></header>
     {feedback && <button className="spn-graph-feedback" type="button" onClick={() => setFeedback('')} aria-label="Dismiss connection feedback">{feedback} x</button>}
-    <div className="spn-graph-flow" ref={canvasRef} tabIndex={0} onMouseDownCapture={event => { startCtrlMiddleZoom(event); startBoxSelection(event) }} onKeyDown={event => { if (event.key === 'Escape') cancelReconnect(); onGraphShortcut(event) }} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>
-      <ReactFlow nodes={flowNodes} edges={flowEdges} nodeTypes={NODE_TYPES} connectionMode={ConnectionMode.Loose} selectionKeyCode={null} multiSelectionKeyCode={null} elevateEdgesOnSelect={false} isValidConnection={isValidConnection} onConnectStart={startInputReconnect} onConnectEnd={finishInputReconnect} onReconnectStart={(_event, edge) => { reconnecting.current = { edgeId: edge.id, mode: 'edge' } }} onReconnect={reconnect} onReconnectEnd={finishReconnect} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={connect} onNodeClick={(event, node) => { setSelectedNodeId(node.id); const ids = event.shiftKey ? [...new Set([...selectedNodeIdsRef.current, node.id])] : [node.id]; selectedNodeIdsRef.current = ids; setSelectedNodeIds(ids) }} onPaneClick={() => { if (suppressPaneClick.current) { suppressPaneClick.current = false; return } setSelectedNodeId(null); selectedNodeIdsRef.current = []; selectedEdgeIdsRef.current = []; setSelectedNodeIds([]); setSelectedEdgeIds([]) }} onSelectionChange={({ edges }) => {
+    <div className="spn-graph-flow" ref={canvasRef} tabIndex={0} onMouseDownCapture={event => { startCtrlMiddleZoom(event); startBoxSelection(event) }} onKeyDown={event => { if (event.key === 'Escape') { cancelReconnect(); closeContextMenu() } if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'g' && selectedNodeIdsRef.current.length >= 2) { event.preventDefault(); createGraphGroup(selectedNodeIdsRef.current) } else onGraphShortcut(event) }} onContextMenu={event => { event.preventDefault(); const rect = canvasRef.current?.getBoundingClientRect(); setContextMenu({ x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0) }) }} onDrop={dropNode} onDragOver={(event) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy' }}>
+      <ReactFlow nodes={[...groupNodes, ...flowNodes] as any} edges={flowEdges} nodeTypes={NODE_TYPES} connectionMode={ConnectionMode.Loose} selectionKeyCode={null} multiSelectionKeyCode={null} elevateEdgesOnSelect={false} isValidConnection={isValidConnection} onConnectStart={startInputReconnect} onConnectEnd={finishInputReconnect} onReconnectStart={(_event, edge) => { reconnecting.current = { edgeId: edge.id, mode: 'edge' } }} onReconnect={reconnect} onReconnectEnd={finishReconnect} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={connect} onNodeClick={(event, node) => { if ((node as any).type === 'graphGroup') { setSelectedGroupId(node.id); closeContextMenu(); return } setSelectedGroupId(null); setSelectedNodeId(node.id); const ids = event.shiftKey ? [...new Set([...selectedNodeIdsRef.current, node.id])] : [node.id]; selectedNodeIdsRef.current = ids; setSelectedNodeIds(ids) }} onNodeContextMenu={(event, node) => { if ((node as any).type !== 'graphGroup') return; event.preventDefault(); event.stopPropagation(); const rect = canvasRef.current?.getBoundingClientRect(); setSelectedGroupId(node.id); setContextMenu({ x: event.clientX - (rect?.left ?? 0), y: event.clientY - (rect?.top ?? 0), groupId: node.id }) }} onPaneClick={() => { if (suppressPaneClick.current) { suppressPaneClick.current = false; return } setSelectedGroupId(null); setSelectedNodeId(null); selectedNodeIdsRef.current = []; selectedEdgeIdsRef.current = []; setSelectedNodeIds([]); setSelectedEdgeIds([]); closeContextMenu() }} onSelectionChange={({ edges }) => {
         if (diagnostics) console.count('[graph diagnostics] onSelectionChange')
         const edgeIds = edges.map((edge) => edge.id)
         if (!sameGraphSelection(selectedEdgeIdsRef.current, edgeIds)) { selectedEdgeIdsRef.current = edgeIds; setSelectedEdgeIds(edgeIds) }
-      }} onMove={diagnostics ? () => console.count('[graph diagnostics] viewport onMove') : undefined} onNodeDragStart={() => beginMoveHistory()} onNodeDragStop={(_, node, movedNodes) => { const moved = movedNodes.length ? movedNodes : [node]; updatePositions(moveNodePositions(moved)); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; for (const item of moved) delete next[item.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} zoomOnScroll zoomOnPinch minZoom={.2} maxZoom={2.5} panOnDrag={[1]} panOnScroll={false} snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable noWheelClassName="nowheel" noPanClassName="nopan" proOptions={{ hideAttribution: true }}>
+      }} onMove={diagnostics ? () => console.count('[graph diagnostics] viewport onMove') : undefined} onNodeDragStart={(_, node) => { closeContextMenu(); beginMoveHistory(); if ((node as any).type === 'graphGroup') { setSelectedGroupId(node.id); groupDragStart.current = { id: node.id, x: node.position.x, y: node.position.y } } }} onNodeDrag={(_, node) => { const start = groupDragStart.current; if (start && start.id === node.id) { const dx = node.position.x - start.x, dy = node.position.y - start.y; moveGraphGroup(node.id, { x: dx, y: dy }); start.x = node.position.x; start.y = node.position.y } }} onNodeDragStop={(_, node, movedNodes) => { const start = groupDragStart.current; if (start && start.id === node.id) { groupDragStart.current = undefined; endMoveHistory(); return }; const moved = movedNodes.length ? movedNodes : [node]; updatePositions(moveNodePositions(moved)); endMoveHistory(); setDragPositions((positions) => { const next = { ...positions }; for (const item of moved) delete next[item.id]; return next }) }} deleteKeyCode={['Backspace', 'Delete']} zoomOnScroll zoomOnPinch minZoom={.2} maxZoom={2.5} panOnDrag={[1]} panOnScroll={false} snapToGrid snapGrid={[20, 20]} fitView nodesConnectable nodesDraggable edgesReconnectable noWheelClassName="nowheel" noPanClassName="nopan" proOptions={{ hideAttribution: true }}>
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="var(--graph-grid-color)" />
       </ReactFlow>
+      {contextMenu && <div className="spn-graph-context-menu" style={{ left: contextMenu.x, top: contextMenu.y }} onMouseDown={event => event.stopPropagation()}>
+        {contextMenu.groupId ? <>
+          <button type="button" onClick={() => renameGroup(contextMenu.groupId!)}>Rename Group</button>
+          <div className="spn-graph-context-colors" aria-label="Group color">{GRAPH_GROUP_TOKENS.colors.map(color => <button key={color} type="button" aria-label={`Change color to ${color}`} style={{ background: color }} onClick={() => changeGroupColor(contextMenu.groupId!, color)} />)}</div>
+          <button type="button" onClick={() => { ungroupGraph(contextMenu.groupId!); setSelectedGroupId(null); closeContextMenu() }}>Ungroup</button>
+        </> : <button className="spn-graph-context-create-group" type="button" disabled={selectedNodeIdsRef.current.length < 2} onClick={createSelectionGroup}>Group selected nodes</button>}
+      </div>}
       {selectionBox && <div aria-hidden="true" className={`spn-graph-selection-box is-${selectionBox.mode}`} style={{ left: selectionBox.rect.left - (canvasRef.current?.getBoundingClientRect().left ?? 0), top: selectionBox.rect.top - (canvasRef.current?.getBoundingClientRect().top ?? 0), width: selectionBox.rect.right - selectionBox.rect.left, height: selectionBox.rect.bottom - selectionBox.rect.top }} />}
       {graph.nodes.length === 0 && <div className="spn-graph-empty"><strong>Graph Canvas</strong><span>Add a node from the library or drag it here.</span></div>}
       <QuickUnits project={project} setProject={setProject} />

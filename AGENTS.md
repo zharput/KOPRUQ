@@ -1202,6 +1202,81 @@ SVG DOM order is the source of truth: section geometry → centroid axes → dim
 - Circular preview must not independently fall back to `candidates[0]` after user selection.
 - Precast preview remains frozen.
 
+# CURRENT SOURCE OF TRUTH — FAMILY & STRUCTURAL SECTION PREVIEW
+
+This section supersedes conflicting earlier F7.x/G8.x preview rules. Production code is not changed by this documentation consolidation.
+
+## Family Workspace Layout
+
+The desktop Family Workspace uses four columns in a `1:2:2:3` ratio with 12px gaps:
+
+1. Structural Family Library (1/8)
+2. Parameters + Properties (2/8)
+3. Section Preview (2/8)
+4. Candidate Sections (3/8)
+
+The Parameters + Properties column contains SECTION PARAMETERS and SECTION PROPERTIES. SECTION INFORMATION remains data-model-backed but is not shown in the main desktop layout. The workspace is a graph-generated read-only results viewer and has no Run or Save button.
+
+## Family Typography and Technical Presentation
+
+- Family panel titles: 16px.
+- Family table/content text: 14px.
+- Technical dimension text: 12px, `#F2F2F2`.
+- Structural Family centroid axes: `#D2A85C`.
+- Candidate table text and headers are centered.
+- Technical dimension graphics use shared drawing-space arrows, extension gaps, overruns, and non-scaling strokes.
+- Dimension text does not scale with engineering geometry.
+
+Structural preview SVG DOM order is: Section Geometry → Centroid Axes → Dimension Graphics → Dimension Text. X/Y axis labels are not displayed.
+
+## Precast Girder Frozen Golden Reference
+
+Precast Girder Section Preview is approved and frozen. Do not change its geometry, viewport, fit/scale, centering, dimension positions/lanes, parameter semantics, arrows, extension positions, candidate synchronization, or rendered appearance during Pier or Family work.
+
+## Pier Orientation and Fit
+
+For Family Section Preview, `B` is horizontal/X-X and `D` is vertical/Y-Y. No presentation rotation or B/D swap is allowed; fit may apply only uniform scale and translation. Pier previews use the actual responsive viewport, cross-section bounds only, centered geometry, and no family-specific visual scale multiplier. `height` never participates in cross-section fit.
+
+## Pier Engineering Parameter Standard
+
+Graph Pier semantics are `B = Longitudinal Length` and `D = Transverse Length`, in that order. Rectangular properties use `A = B×D`, `Ix = B×D^3/12`, `Iy = D×B^3/12`, `Wx = Ix/(D/2)`, and `Wy = Iy/(B/2)`. These formulas are the source of truth; Family presentation must not redefine them.
+
+## Circular Pier
+
+Circular Pier uses the shared Pier technical-drawing presentation. `D` is the diameter of a true 1:1 circle, centered in the viewport. The D dimension is horizontal below the circle, with 12px/`#F2F2F2` text and `#D2A85C` centroid axes. Selecting CP-xxx updates the same selected candidate in the preview title, geometry, D dimension, and Section Properties; Circular preview must not override selection with `candidates[0]`.
+
+## Rectangular and Oval Pier
+
+Rectangular uses width `B` and height `D`. Oval is an obround/capsule, not an ellipse, with overall width `B` and height `D`; B remains horizontal and D vertical.
+
+## Box Pier Final Contract
+
+Canonical parameters are `B`, `D`, `wx`, `wy`, `height`, `material`, and `columns`. Legacy `tw` is migrated on old `.kopruq` load as `wx = tw`, `wy = tw`.
+
+- `wx` is top/bottom horizontal-wall thickness, measured and displayed as a vertical internal dimension from outer top to inner top, offset from the centroid Y axis.
+- `wy` is left/right vertical-wall thickness, measured and displayed as a horizontal internal dimension from inner right to outer right, offset from the centroid X axis.
+- `innerWidth = B - 2×wy`.
+- `innerHeight = D - 2×wx`.
+- B is the overall horizontal dimension above the section; D is the overall vertical dimension beside it.
+
+Internal dimensions use drawing-space annotation lanes and must not collide with centroid axes.
+
+## H Pier Final Contract
+
+The H section has two continuous vertical side legs, a centered horizontal web, and upper/lower central openings. `B` is overall width, `D` overall height, `ft` is left/right leg horizontal thickness, and `w` is center web vertical thickness. No rotation or B/D swap is allowed. The w dimension is vertical and is placed in a drawing-space lane to the right of the centroid Y axis.
+
+## Candidate Table and Properties
+
+Candidate selection has one selected-candidate source for preview, geometry, dimension values, Section Properties, and dependent information. Candidate tables show Candidate ID, parametric values, and Validation; Area is a derived Section Property, not a candidate-table column. Headers use project display units, e.g. B (m), D (m), wx (m), wy (m), Height (m). Search, sorting, pagination, and selection are preserved.
+
+## Protected Contracts
+
+Do not regress the frozen Precast preview, 1:2:2:3 Family layout, 12px technical typography, `#F2F2F2` dimension text, `#D2A85C` axes, geometry→axes→dimensions→text order, Box wx/wy mapping, H geometry, Circular selection synchronization, unit-aware headers, Section Properties A/Ix/Iy/Wx/Wy, Graph validity, Node SUCCESS, candidate generation, or persistence backward compatibility.
+
+## Superseded Rules
+
+The following earlier rules are not authoritative and must not be reintroduced: `visualScaleFactor = 2.0`; fixed/global px-per-meter requirements; family-specific scale factors; old Pier B/D mappings; reversed Box wx/wy mapping; active Box `tw`; I-shaped H preview; H `w` as clear-opening distance; H auto-rotation; X/Y axis labels; 11px/13px technical dimension text; Circular miniature dimension format; or any instruction to refactor the approved Precast preview during Pier work.
+
 ## F7.4A.7 Circular Pier Final Presentation
 
 - Circular Pier uses the shared Pier technical-drawing contract, including fixed 12px / `#F2F2F2` dimension text and `#D2A85C` centroid axes.
@@ -1209,3 +1284,42 @@ SVG DOM order is the source of truth: section geometry → centroid axes → dim
 - Circular D dimensions use the shared horizontal dimension below the circle.
 - Candidate selection synchronization remains intact for preview geometry, D value, title, and Section Properties.
 - Precast and all non-circular Pier previews remain frozen.
+
+## G8.3 Graph Structural Inspector
+
+- Structural node `TYPE / SCHEMATIC` cards display the schematic/logo only.
+- The legacy Graph Inspector `Preview` action/button is not displayed.
+- Family Workspace remains the authoritative detailed preview surface.
+- Graph Inspector parameters, outputs, candidate data, node execution behavior, and schematic rendering remain unchanged.
+
+## G8.4 Graph Node Groups
+
+- Graph groups are presentation metadata only: `id`, `name`, `nodeIds`, and `color`; they do not alter graph execution, engineering parameters, edges, or node positions.
+- Group bounds are derived dynamically from member node positions and dimensions with shared drawing-space padding. Group backgrounds render behind edges and nodes; group titles remain visible and selectable independently from node selection.
+- A group requires at least two nodes, a node may belong to only one group, and deletion/ungrouping must preserve the remaining graph exactly. Empty and single-node groups are removed during normalization.
+- Groups can be created from multi-selection with Ctrl/Cmd+G or the canvas context menu. Group context actions are Rename Group, Change Color, and Ungroup.
+- Groups persist with graph documents and older documents without `groups` remain valid through the empty-group default.
+
+## G8.4A Graph Group Corrections
+
+- `computeGraphGroupBounds` is the single bounds source-of-truth and must contain every member node rectangle, including measured width/height and visible card/header area, with 20px horizontal/bottom and 34px title/top drawing-space padding.
+- Groups are draggable from their background/title area. A group move translates all member nodes by the same delta as one history transaction; node dragging and graph connections remain unchanged.
+- The canvas context-menu `Group selected nodes` action uses the light-gray `#E5E7EB` background and dark-blue `#1F3A5F` text contract.
+- Group right-click actions include Rename Group, Change Color, and Ungroup. Names are trimmed, non-empty, immediately persisted, and displayed with overflow control.
+- Bounds refresh dynamically after node or group movement and after membership changes. Persistence and documents without group metadata remain backward compatible.
+
+## G8.4B Graph Group Interaction
+
+- Right-clicking a group opens only the Group Context Menu: Rename Group, Change Color, and Ungroup. The event does not bubble to the canvas selection menu.
+- Only one graph context menu is active at a time; any new context-menu event or canvas/node/group interaction closes stale menu state.
+- `Group selected nodes` is never rendered for an existing group context and retains its light-gray/dark-blue visual contract only for selected-node grouping.
+- Group title typography is 16px using the central Graph font family. Left-click selects the group; its own color becomes a stronger 2px border without a heavy glow. Empty canvas click clears group selection and closes menus.
+- Ungroup removes only group metadata. Member node positions, connections, parameters, execution state, and engineering validity remain unchanged.
+
+## G8.4C Graph Group Final Bounds and Deselect
+
+- Group titles render at 16px using the central Graph font family.
+- Selecting a node, starting window/crossing selection, or clicking empty canvas clears `selectedGroupId`; selecting another group transfers the highlighted state.
+- Group bounds are derived data from live rendered node measurements, world-space positions, and the shared port visual extent. Bounds include visible socket/port protrusions before applying 20px left/right, 34px top, and 20px bottom padding.
+- Live measurement updates from node resize/content changes recompute group bounds. Group bounds are never authoritative persisted geometry.
+- G8.4B context-menu, group drag, persistence, node/edge, and graph-validity behavior remains unchanged.

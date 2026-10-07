@@ -40,6 +40,11 @@ describe('Pier candidate domain', () => {
     expect(result.candidates).toHaveLength(4)
   })
 
+  it('generates box candidates with independent wx and wy walls', () => {
+    const result = generatePierCandidates({ ...base, pierType: 'BOX', geometry: { B: 10, D: 6, wx: [1, 2], wy: [.5, 4] } })
+    expect(result.map(item => item.geometry)).toEqual([{ B: 10, D: 6, wx: 1, wy: .5 }, { B: 10, D: 6, wx: 2, wy: .5 }])
+  })
+
   it('generates H-section candidates and filters invalid web/flange combinations', () => {
     const result = generatePierCandidatesWithStats({ ...base, pierType: 'H_SECTION', geometry: { B: [3, 3.5], D: [5, 6], tw: [.5], tf: [.6, 3.1] } })
     expect(result.generatedCombinations).toBe(8)

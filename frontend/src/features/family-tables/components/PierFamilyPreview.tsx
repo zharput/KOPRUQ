@@ -8,8 +8,7 @@ import { VerticalDimension } from '../../../shared/technical-drawing/components/
 import { resolveHorizontalDimension, resolveVerticalDimension, dimensionExtensionLine } from '../../../shared/technical-drawing/DimensionGeometry'
 import { formatTechnicalDimension } from '../../../shared/technical-drawing/DimensionFormatter'
 import { makeBounds } from '../../../shared/technical-drawing/DrawingBounds'
-import { computeTechnicalDrawingVisualFit } from '../../../shared/technical-drawing/TechnicalDrawingFit'
-import { TECHNICAL_DRAWING_TOKENS } from '../../../shared/technical-drawing/TechnicalDrawingTokens'
+import { computeTechnicalDrawingFit } from '../../../shared/technical-drawing/TechnicalDrawingFit'
 import { useTechnicalDrawingViewport } from '../../../shared/technical-drawing/useTechnicalDrawingViewport'
 import { useRef } from 'react'
 import { buildPierSectionGeometry } from '../model/pierSectionGeometry'
@@ -27,14 +26,15 @@ export default function PierFamilyPreview({ kind, candidate, familyCandidates: _
   const viewportRef = useRef<HTMLDivElement>(null), viewport = useTechnicalDrawingViewport(viewportRef)
   const B = numberOf(candidate, 'B'), D = numberOf(candidate, 'D')
   if (B === undefined || D === undefined) return <p>Section preview is not available for this family.</p>
-  const geometry = buildPierSectionGeometry(kind, { B, D, tw: numberOf(candidate, 'tw') ?? 0, tf: numberOf(candidate, 'tf') ?? 0 })
-  if (!geometry) return <p>Section preview is not available for this family.</p>
+  const engineeringGeometry = buildPierSectionGeometry(kind, { B, D, tw: numberOf(candidate, 'tw') ?? 0, tf: numberOf(candidate, 'tf') ?? 0 })
+  if (!engineeringGeometry) return <p>Section preview is not available for this family.</p>
+  const geometry = engineeringGeometry
   if (!viewport) return <section ref={viewportRef} className="spn-pier-family-preview" aria-label={`${kind} Pier Preview`} />
-  const geometryBounds = makeBounds(geometry.bounds.minX, geometry.bounds.maxX, geometry.bounds.minY, geometry.bounds.maxY), drawingEnvelope = makeBounds(geometry.bounds.minX - 1, geometry.bounds.maxX + 1, geometry.bounds.minY - 1, geometry.bounds.maxY + 1), fit = computeTechnicalDrawingVisualFit({ geometryBounds, drawingEnvelope, viewport, visualScaleFactor: TECHNICAL_DRAWING_TOKENS.visualScaleFactor }); if (!fit) return <p>Section preview is not available for this family.</p>
+  const geometryBounds = makeBounds(geometry.bounds.minX, geometry.bounds.maxX, geometry.bounds.minY, geometry.bounds.maxY), drawingEnvelope = geometryBounds, fit = computeTechnicalDrawingFit({ geometryBounds, drawingEnvelope, viewport, fixedAnnotationPadding: { x: 56, y: 32 } }); if (!fit) return <p>Section preview is not available for this family.</p>
   const scale = fit.scale, cx = fit.translateX, cy = fit.translateY, offset = Math.max(8, Math.min(18, Math.max(geometry.bounds.width, geometry.bounds.height) * scale * 0.08))
   const left = cx + geometry.bounds.minX * scale, right = cx + geometry.bounds.maxX * scale, top = cy - geometry.bounds.maxY * scale, bottom = cy - geometry.bounds.minY * scale, dimY = top - offset, dimX = right + offset
-  const horizontal = resolveHorizontalDimension('D', 'D', { x: left, y: dimY }, { x: right, y: dimY }, dimension(D, projectUnits)); horizontal.extensionLines = [dimensionExtensionLine({ x: left, y: top }, { x: left, y: dimY }), dimensionExtensionLine({ x: right, y: top }, { x: right, y: dimY })]; horizontal.text = { point: { x: cx, y: dimY - 6 }, anchor: 'middle' }
-  const vertical = resolveVerticalDimension('B', 'B', { x: dimX, y: top }, { x: dimX, y: bottom }, dimension(B, projectUnits)); vertical.extensionLines = [dimensionExtensionLine({ x: right, y: top }, { x: dimX, y: top }), dimensionExtensionLine({ x: right, y: bottom }, { x: dimX, y: bottom })]; vertical.text = { point: { x: dimX + 8, y: cy }, anchor: 'start', dominantBaseline: 'middle' }
+  const horizontal = resolveHorizontalDimension('B', 'B', { x: left, y: dimY }, { x: right, y: dimY }, dimension(B, projectUnits)); horizontal.extensionLines = [dimensionExtensionLine({ x: left, y: top }, { x: left, y: dimY }), dimensionExtensionLine({ x: right, y: top }, { x: right, y: dimY })]; horizontal.text = { point: { x: cx, y: dimY - 6 }, anchor: 'middle' }
+  const vertical = resolveVerticalDimension('D', 'D', { x: dimX, y: top }, { x: dimX, y: bottom }, dimension(D, projectUnits)); vertical.extensionLines = [dimensionExtensionLine({ x: right, y: top }, { x: dimX, y: top }), dimensionExtensionLine({ x: right, y: bottom }, { x: dimX, y: bottom })]; vertical.text = { point: { x: dimX + 8, y: cy }, anchor: 'start', dominantBaseline: 'middle' }
   return <section ref={viewportRef} className="spn-pier-family-preview" aria-label={`${kind} Pier Preview`}><svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`${kind} pier section B = ${dimension(B, projectUnits)}, D = ${dimension(D, projectUnits)}`}><line className="spn-family-technical-axis" x1={left - 20} y1={cy} x2={right + 20} y2={cy} /><line className="spn-family-technical-axis" x1={cx} y1={top - 20} x2={cx} y2={bottom + 20} />{shape(geometry, cx, cy, scale)}<g className="spn-technical-dimension"><HorizontalDimension definition={horizontal} /><VerticalDimension definition={vertical} /></g></svg></section>
 }
 

@@ -1,5 +1,30 @@
 # KOPRUQ --- Codex Project Instructions
 
+## F7.3C.8 Viewport Utilization Technical Dimension Standard
+
+Structural previews use the actual drawing viewport and uniform viewport-
+utilization fit targets; fixed visual scale multipliers are prohibited.
+Geometry preserves engineering aspect ratio and remains centered in the actual
+viewport. Technical dimension graphics are fixed drawing/screen-space: text is
+12px, strokes and arrowheads remain visually invariant, and extension gap /
+overrun remain fixed drawing-space values. Dimension anchors follow transformed
+geometry, annotation containment may reduce scale but never reposition geometry,
+and family-specific visual scale multipliers are prohibited.
+
+F7.3C.9 additionally requires pier cross-section fitting to use only the
+cross-section bounds (never longitudinal pier height), measured viewport
+utilization to be regression-tested, and the shared technical arrow token to be
+used by Precast and Pier previews. Technical dimension text remains 12px.
+Precast Bbf text uses a +4 drawing-space offset without moving its dimension
+line, arrows, or extension lines.
+
+F7.3C.11 Pier Section Orientation Standard: B is the horizontal transverse
+section dimension and D is the vertical longitudinal section dimension.
+Rectangular, Oval, Box, and H Pier previews use this convention without
+automatic rotation or axis swapping; fit applies only uniform scale and
+translation. Candidate engineering values, Graph, and Inspector data remain
+unchanged.
+
 ## Family Workspace Layout Standard
 
 The central Family Workspace desktop shell uses three regions in a 1/8 +
@@ -819,6 +844,18 @@ When documentation and code disagree, stop and report the conflict before
 silently changing either source of truth.
 
 ## Central Technical Dimension System V1
+
+### G8.1 Graph Pier Parameter Standard
+
+The Graph/Inspector engineering convention is authoritative for graph pier
+nodes: `B` is Longitudinal Length and `D` is Transverse Length, presented in
+that order. Rectangular section properties use `Ix = B*D^3/12` and
+`Iy = D*B^3/12`; circular pier diameter remains `D`. Box piers use
+independent `wx` (Horizontal Wall Thickness) and `wy` (Vertical Wall
+Thickness), with legacy single `tw` inputs mapped to both directions. H
+sections present `B`, `D`, `w`, `ft`, then Height using the exact Graph labels
+defined by G8.1. This convention applies only to Graph/Inspector; Family
+Workspace geometry and previews remain out of scope.
 
 The shared `frontend/src/shared/technical-drawing` subsystem is the source of
 truth for technical dimension geometry and rendering. Precast Girder is the

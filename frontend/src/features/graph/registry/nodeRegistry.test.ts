@@ -82,7 +82,7 @@ describe('Engineering Inspector metadata',()=>{
     ['substructure.pier.circular','pier',['diameter','height','material','columns']],
     ['substructure.pier.rectangular','pier',['width','depth','height','material','columns']],
     ['substructure.pier.oval','pier',['width','depth','height','material','columns']],
-    ['substructure.pier.box','pier',['outerWidth','outerDepth','wallThickness','height','material','columns']],
+    ['substructure.pier.box','pier',['outerWidth','outerDepth','wallThicknessX','wallThicknessY','height','material','columns']],
     ['substructure.pier.h_section','pier',['width','depth','webThickness','flangeThickness','height','material','columns']],
     ['substructure.pier-cap.t','pier-cap',['length','topWidth','stemWidth','totalHeight','flangeThickness','material']],
     ['substructure.pier-cap.rectangular','pier-cap',['length','width','height','material']],

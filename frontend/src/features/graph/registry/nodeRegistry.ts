@@ -39,10 +39,10 @@ const spanArrangementDefinition: NodeDefinition = {
 }
 const pierDefinitions = [
   pierNode('CIRCULAR', 'Circular Pier', [{ key: 'D', label: 'Diameter', port: 'diameter', defaultValue: 2 }]),
-  pierNode('RECTANGULAR', 'Rectangular Pier', [{ key: 'B', label: 'Transverse Length', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Longitudinal Length', port: 'depth', defaultValue: 1.5 }]),
-  pierNode('OVAL', 'Oval Pier', [{ key: 'B', label: 'Transverse Length', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Longitudinal Length', port: 'depth', defaultValue: 1.5 }]),
-  pierNode('BOX', 'Box Pier', [{ key: 'B', label: 'Transverse Length', port: 'outerWidth', defaultValue: 3 }, { key: 'D', label: 'Longitudinal Length', port: 'outerDepth', defaultValue: 1.5 }, { key: 'tw', label: 'Wall thickness', port: 'wallThickness', defaultValue: .3 }]),
-  pierNode('H_SECTION', 'H Pier', [{ key: 'B', label: 'Transverse Length', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Longitudinal Length', port: 'depth', defaultValue: 6 }, { key: 'tw', label: 'Web Thickness', port: 'webThickness', defaultValue: 3 }, { key: 'tf', label: 'Flange Thickness', port: 'flangeThickness', defaultValue: .75 }]),
+  pierNode('RECTANGULAR', 'Rectangular Pier', [{ key: 'B', label: 'Longitudinal Length (B)', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Transverse Length (D)', port: 'depth', defaultValue: 1.5 }]),
+  pierNode('OVAL', 'Oval Pier', [{ key: 'B', label: 'Longitudinal Length (B)', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Transverse Length (D)', port: 'depth', defaultValue: 1.5 }]),
+  pierNode('BOX', 'Box Pier', [{ key: 'B', label: 'Longitudinal Length (B)', port: 'outerWidth', defaultValue: 3 }, { key: 'D', label: 'Transverse Length (D)', port: 'outerDepth', defaultValue: 1.5 }, { key: 'wx', label: 'Horizontal Wall Thickness (wx)', port: 'wallThicknessX', defaultValue: .3 }, { key: 'wy', label: 'Vertical Wall Thickness (wy)', port: 'wallThicknessY', defaultValue: .3 }]),
+  pierNode('H_SECTION', 'H Pier', [{ key: 'B', label: 'Longitudinal Length (B)', port: 'width', defaultValue: 3 }, { key: 'D', label: 'Transverse Length (D)', port: 'depth', defaultValue: 6 }, { key: 'tw', label: 'Wall Thickness (w)', port: 'webThickness', defaultValue: 3 }, { key: 'tf', label: 'Flange Thickness (ft)', port: 'flangeThickness', defaultValue: .75 }]),
 ]
 const pierCapDefinitions = [
   pierCapNode('RECTANGULAR', 'Rectangular Cap', [
@@ -108,7 +108,15 @@ function pierNode(pierType: import('../domain/types').PierCandidate['pierType'],
     validateParameters: p => [...dimensions.flatMap(item => [...numberParameter(p, `${item.key}Value`), ...(typeof p[`${item.key}Unit`] === 'string' && lengthOptions.some(unit => unit.value === p[`${item.key}Unit`]) ? [] : [`${item.label} requires a valid Length unit.`])]), ...numberParameter(p, 'heightValue'), ...(typeof p.heightValue === 'number' && p.heightValue <= 0 ? ['Height local default must be greater than zero.'] : []), ...(typeof p.heightUnit === 'string' && lengthOptions.some(unit => unit.value === p.heightUnit) ? [] : ['Height requires a valid Length unit.']), ...(typeof p.columns === 'number' && Number.isInteger(p.columns) && p.columns >= 1 && p.columns <= 2 ? [] : ['Column Count must be 1 or 2.']), ...(typeof p.materialId === 'string' && classOptions.some(item => item.value === p.materialId) ? [] : ['Select a supported ConcreteMaterial.'])],
     executor: async ({ node, inputs, services }) => {
       const geometry: Record<string, import('../domain/pierCandidates').LengthInput> = {}
-      for (const item of dimensions) geometry[item.key] = (inputs[item.port] ?? localLength(node.parameters[`${item.key}Value`] as number, node.parameters[`${item.key}Unit`] as string)) as import('../domain/pierCandidates').LengthInput
+      for (const item of dimensions) {
+        const legacyBoxWall = pierType === 'BOX' && (item.key === 'wx' || item.key === 'wy') && node.parameters.twValue !== undefined
+        geometry[item.key] = (inputs[item.port] ?? (legacyBoxWall ? (inputs.wallThickness ?? localLength(node.parameters.twValue as number, node.parameters.twUnit as string)) : localLength(node.parameters[`${item.key}Value`] as number, node.parameters[`${item.key}Unit`] as string))) as import('../domain/pierCandidates').LengthInput
+      }
+      // Read nodes persisted before G8.1: a single tw/wallThickness maps to both box wall directions.
+      if (pierType === 'BOX' && 'twValue' in node.parameters) {
+        const legacy = inputs.wallThickness ?? node.parameters.twValue
+        if (legacy !== undefined && inputs.wallThicknessX === undefined && inputs.wallThicknessY === undefined) geometry.wx = legacy as import('../domain/pierCandidates').LengthInput, geometry.wy = legacy as import('../domain/pierCandidates').LengthInput
+      }
       const height = (inputs.height ?? localLength(node.parameters.heightValue as number, node.parameters.heightUnit as string)) as import('../domain/pierCandidates').LengthInput
       const materialId = (inputs.material ?? node.parameters.materialId) as string | MaterialValue
       const material = typeof materialId === 'string' ? services?.resolveConcreteMaterial ? await services.resolveConcreteMaterial(materialId) : { domainType: 'ConcreteMaterial' as const, id: materialId, name: materialId, properties: {} } : materialId

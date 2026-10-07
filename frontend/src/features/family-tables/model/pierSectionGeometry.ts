@@ -27,16 +27,20 @@ export function buildPierSectionGeometry(kind: PierGeometryKind, values: Readonl
     return { kind, polygons: [], holes: [], bounds: bounds(all), centroid: center, circle: { center, radius }, dimensionAnchors: { horizontal: [{ x: -radius, y: 0 }, { x: radius, y: 0 }], vertical: [{ x: radius, y: -radius }, { x: radius, y: radius }] } }
   }
   if (!(B > 0 && D > 0)) return undefined
-  const left = -D / 2, right = D / 2, top = B / 2, bottom = -B / 2
+  const left = -B / 2, right = B / 2, top = D / 2, bottom = -D / 2
   const outer = [{ x: left, y: top }, { x: right, y: top }, { x: right, y: bottom }, { x: left, y: bottom }]
   let polygons: readonly (readonly Point[])[] = [outer], holes: readonly (readonly Point[])[] = []
   if (kind === 'oval') {
-    // Graph's rounded-rectangle convention: D is horizontal and B is the overall height.
-    const radius = D / 2, middle = Math.max(0, B - D), points: Point[] = []
-    for (let i = 0; i <= 16; i++) { const a = Math.PI - Math.PI * i / 16; points.push({ x: radius * Math.cos(a), y: middle / 2 + radius * Math.sin(a) }) }
-    for (let i = 0; i <= 16; i++) { const a = -Math.PI * i / 16; points.push({ x: radius * Math.cos(a), y: -middle / 2 + radius * Math.sin(a) }) }
+    const radius = Math.min(B, D) / 2, horizontalStraight = Math.max(0, B - D), verticalStraight = Math.max(0, D - B), points: Point[] = []
+    if (verticalStraight > 0) {
+      for (let i = 0; i <= 16; i++) { const a = Math.PI - Math.PI * i / 16; points.push({ x: radius * Math.cos(a), y: verticalStraight / 2 + radius * Math.sin(a) }) }
+      for (let i = 0; i <= 16; i++) { const a = -Math.PI * i / 16; points.push({ x: radius * Math.cos(a), y: -verticalStraight / 2 + radius * Math.sin(a) }) }
+    } else {
+      for (let i = 0; i <= 16; i++) { const a = Math.PI / 2 - Math.PI * i / 16; points.push({ x: horizontalStraight / 2 + radius * Math.cos(a), y: radius * Math.sin(a) }) }
+      for (let i = 0; i <= 16; i++) { const a = -Math.PI / 2 - Math.PI * i / 16; points.push({ x: -horizontalStraight / 2 + radius * Math.cos(a), y: radius * Math.sin(a) }) }
+    }
     polygons = [points]
-    return { kind, polygons, holes, bounds: bounds(outer), centroid: { x: 0, y: 0 }, oval: { radius, straightLength: middle, topLeft: { x: -radius, y: middle / 2 }, topRight: { x: radius, y: middle / 2 }, bottomRight: { x: radius, y: -middle / 2 }, bottomLeft: { x: -radius, y: -middle / 2 } }, dimensionAnchors: { horizontal: [{ x: left, y: top }, { x: right, y: top }], vertical: [{ x: right, y: top }, { x: right, y: bottom }] } }
+    return { kind, polygons, holes, bounds: bounds(outer), centroid: { x: 0, y: 0 }, oval: { radius, straightLength: Math.max(horizontalStraight, verticalStraight), topLeft: { x: left, y: top }, topRight: { x: right, y: top }, bottomRight: { x: right, y: bottom }, bottomLeft: { x: left, y: bottom } }, dimensionAnchors: { horizontal: [{ x: left, y: top }, { x: right, y: top }], vertical: [{ x: right, y: top }, { x: right, y: bottom }] } }
   } else if (kind === 'box') {
     const wall = Math.min(values.tw ?? 0, B / 2, D / 2)
     if (!(wall > 0) || 2 * wall >= B || 2 * wall >= D) return undefined

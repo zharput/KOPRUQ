@@ -6,6 +6,7 @@ const modulus = (inertia: number, depth: number) => depth > 0 ? inertia / (depth
 
 export function computePierSectionProperties(kind: PierSectionKind, geometry: Record<string, unknown>): PierSectionProperties | undefined {
   const B = Number(geometry.B), D = Number(geometry.D), tw = Number(geometry.tw), tf = Number(geometry.tf)
+  const wx = Number(geometry.wx ?? geometry.tw), wy = Number(geometry.wy ?? geometry.tw)
   if (kind === 'rectangular' && valid(B, D)) {
     const ix = B * D ** 3 / 12, iy = D * B ** 3 / 12
     return { area: B * D, ix, iy, wx: modulus(ix, D), wy: modulus(iy, B) }
@@ -17,8 +18,8 @@ export function computePierSectionProperties(kind: PierSectionKind, geometry: Re
     const iy = straight * D ** 3 / 12 + Math.PI * radius ** 4 / 4
     return { area, ix, iy, wx: modulus(ix, B), wy: modulus(iy, D) }
   }
-  if (kind === 'box' && valid(B, D, tw) && 2 * tw < Math.min(B, D)) {
-    const innerB = B - 2 * tw, innerD = D - 2 * tw
+  if (kind === 'box' && valid(B, D, wx, wy) && 2 * wx < B && 2 * wy < D) {
+    const innerB = B - 2 * wx, innerD = D - 2 * wy
     const ix = (B * D ** 3 - innerB * innerD ** 3) / 12, iy = (D * B ** 3 - innerD * innerB ** 3) / 12
     return { area: B * D - innerB * innerD, ix, iy, wx: modulus(ix, D), wy: modulus(iy, B) }
   }

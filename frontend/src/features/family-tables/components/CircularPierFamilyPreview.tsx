@@ -7,8 +7,7 @@ import { HorizontalDimension } from '../../../shared/technical-drawing/component
 import { resolveHorizontalDimension, dimensionExtensionLine } from '../../../shared/technical-drawing/DimensionGeometry'
 import { formatTechnicalDimension } from '../../../shared/technical-drawing/DimensionFormatter'
 import { makeBounds } from '../../../shared/technical-drawing/DrawingBounds'
-import { computeTechnicalDrawingVisualFit } from '../../../shared/technical-drawing/TechnicalDrawingFit'
-import { TECHNICAL_DRAWING_TOKENS } from '../../../shared/technical-drawing/TechnicalDrawingTokens'
+import { computeTechnicalDrawingFit } from '../../../shared/technical-drawing/TechnicalDrawingFit'
 import { useTechnicalDrawingViewport } from '../../../shared/technical-drawing/useTechnicalDrawingViewport'
 import { useRef } from 'react'
 
@@ -24,7 +23,7 @@ export default function CircularPierFamilyPreview({ candidate, projectUnits = re
   const diameter = diameterOf(candidate)
   if (diameter === undefined) return <p>Section preview is not available for this family.</p>
   if (!viewport) return <section ref={viewportRef} className="spn-circular-pier-preview" aria-label="Circular Pier Preview" />
-  const engineeringBounds = makeBounds(-diameter / 2, diameter / 2, -diameter / 2, diameter / 2), drawingEnvelope = makeBounds(-diameter / 2 - 1, diameter / 2 + 1, -diameter / 2 - 1, diameter / 2 + 1), fit = computeTechnicalDrawingVisualFit({ geometryBounds: engineeringBounds, drawingEnvelope, viewport, visualScaleFactor: TECHNICAL_DRAWING_TOKENS.visualScaleFactor }); if (!fit) return <p>Section preview is not available for this family.</p>
+  const engineeringBounds = makeBounds(-diameter / 2, diameter / 2, -diameter / 2, diameter / 2), drawingEnvelope = engineeringBounds, fit = computeTechnicalDrawingFit({ geometryBounds: engineeringBounds, drawingEnvelope, viewport, fixedAnnotationPadding: { x: 56, y: 32 } }); if (!fit) return <p>Section preview is not available for this family.</p>
   const radius = diameter * fit.scale / 2, cx = fit.translateX, cy = fit.translateY, spacing = circularDimensionGeometry(cx, cy, radius, Math.max(8, Math.min(18, radius * 0.08))), dimensionY = spacing.dimensionY
   const dimension = resolveHorizontalDimension('D', 'D', { x: spacing.left, y: dimensionY }, { x: spacing.right, y: dimensionY }, displayDimension(diameter, projectUnits))
   dimension.extensionLines = [dimensionExtensionLine({ x: spacing.left, y: spacing.bottom }, { x: spacing.left, y: dimensionY }), dimensionExtensionLine({ x: spacing.right, y: spacing.bottom }, { x: spacing.right, y: dimensionY })]

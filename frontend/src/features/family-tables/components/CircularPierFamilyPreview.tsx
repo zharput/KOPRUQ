@@ -3,13 +3,13 @@ import type { FamilyAlternative } from '../../graph/family/familyResults'
 import type { ProjectUnits } from '../../graph/domain/quantities'
 import { formatDisplayValue, toDisplayValue } from '../../graph/domain/quantities'
 import { computeCircularSectionProperties } from '../../graph/domain/circularSectionProperties'
-import { HorizontalDimension } from '../../../shared/technical-drawing/components/HorizontalDimension'
 import { resolveHorizontalDimension, dimensionExtensionLine } from '../../../shared/technical-drawing/DimensionGeometry'
 import { formatTechnicalDimension } from '../../../shared/technical-drawing/DimensionFormatter'
 import { makeBounds } from '../../../shared/technical-drawing/DrawingBounds'
 import { computeTechnicalDrawingFit } from '../../../shared/technical-drawing/TechnicalDrawingFit'
 import { useTechnicalDrawingViewport } from '../../../shared/technical-drawing/useTechnicalDrawingViewport'
 import { useRef } from 'react'
+import { DimensionGraphics, DimensionLabel } from '../../../shared/technical-drawing/components/DimensionLayers'
 
 function diameterOf(candidate: FamilyAlternative) { const geometry = (candidate.candidateData as Record<string, unknown>).geometry as Record<string, unknown> | undefined; return typeof geometry?.D === 'number' ? geometry.D : undefined }
 function displayDimension(value: number, units: ProjectUnits) { return formatTechnicalDimension(value, item => toDisplayValue(item, 'Length', units)) }
@@ -23,12 +23,12 @@ export default function CircularPierFamilyPreview({ candidate, projectUnits = re
   const diameter = diameterOf(candidate)
   if (diameter === undefined) return <p>Section preview is not available for this family.</p>
   if (!viewport) return <section ref={viewportRef} className="spn-circular-pier-preview" aria-label="Circular Pier Preview" />
-  const engineeringBounds = makeBounds(-diameter / 2, diameter / 2, -diameter / 2, diameter / 2), drawingEnvelope = engineeringBounds, fit = computeTechnicalDrawingFit({ geometryBounds: engineeringBounds, drawingEnvelope, viewport, fixedAnnotationPadding: { x: 56, y: 32 } }); if (!fit) return <p>Section preview is not available for this family.</p>
-  const radius = diameter * fit.scale / 2, cx = fit.translateX, cy = fit.translateY, spacing = circularDimensionGeometry(cx, cy, radius, Math.max(8, Math.min(18, radius * 0.08))), dimensionY = spacing.dimensionY
+  const engineeringBounds = makeBounds(-diameter / 2, diameter / 2, -diameter / 2, diameter / 2), drawingEnvelope = engineeringBounds, fit = computeTechnicalDrawingFit({ geometryBounds: engineeringBounds, drawingEnvelope, viewport, targetGeometryWidthRatio: .78, targetGeometryHeightRatio: .76, fixedAnnotationPadding: { x: 24, y: 24 } }); if (!fit) return <p>Section preview is not available for this family.</p>
+  const radius = diameter * fit.scale / 2, cx = fit.translateX, cy = fit.translateY, offset = Math.max(8, Math.min(18, diameter * fit.scale * 0.08)), spacing = circularDimensionGeometry(cx, cy, radius, offset), dimensionY = spacing.dimensionY
   const dimension = resolveHorizontalDimension('D', 'D', { x: spacing.left, y: dimensionY }, { x: spacing.right, y: dimensionY }, displayDimension(diameter, projectUnits))
   dimension.extensionLines = [dimensionExtensionLine({ x: spacing.left, y: spacing.bottom }, { x: spacing.left, y: dimensionY }), dimensionExtensionLine({ x: spacing.right, y: spacing.bottom }, { x: spacing.right, y: dimensionY })]
   dimension.text = { point: { x: cx, y: dimensionY + 15 }, anchor: 'middle' }
-  return <section ref={viewportRef} className="spn-circular-pier-preview" aria-label="Circular Pier Preview"><svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Circular pier section D = ${displayDimension(diameter, projectUnits)}`}><line className="spn-family-technical-axis" x1={cx - radius - 20} y1={cy} x2={cx + radius + 20} y2={cy} /><line className="spn-family-technical-axis" x1={cx} y1={cy - radius - 20} x2={cx} y2={cy + radius + 20} /><circle className="spn-preview-section-fill" cx={cx} cy={cy} r={radius} /><g className="spn-technical-dimension"><HorizontalDimension definition={dimension} /></g></svg></section>
+  return <section className="spn-circular-pier-preview" data-candidate-id={candidate.candidateId} data-diameter={diameter} aria-label="Circular Pier Preview"><div ref={viewportRef} className="spn-girder-drawing-viewport"><svg viewBox={`0 0 ${viewport.width} ${viewport.height}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label={`Circular pier section D = ${displayDimension(diameter, projectUnits)}`}><g className="section-geometry-layer"><circle className="spn-preview-section-fill" cx={cx} cy={cy} r={radius} /></g><g className="section-axis-layer"><line className="spn-family-technical-axis" x1={cx - radius - 20} y1={cy} x2={cx + radius + 20} y2={cy} /><line className="spn-family-technical-axis" x1={cx} y1={cy - radius - 20} x2={cx} y2={cy + radius + 20} /></g><g className="section-dimension-graphics-layer"><DimensionGraphics definition={dimension} /></g><g className="section-dimension-text-layer"><DimensionLabel definition={dimension} /></g></svg></div></section>
 }
 
 export function CircularPierSectionProperties({ candidate, projectUnits = readProjectState([]).project.units }: { candidate: FamilyAlternative; projectUnits?: ProjectUnits }) {

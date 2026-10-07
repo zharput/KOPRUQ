@@ -1116,3 +1116,96 @@ KOPRUQ Technical Dimension Golden Standard V1:
 - Geometry aspect ratios are preserved; family-specific visual multipliers are prohibited.
 - Dimension text remains fixed at 12px and axis labels remain absent.
 - Fit and viewport values are derived UI data and are not persisted.
+
+## G8.1A Box Pier Wall Thickness Standard
+
+- Box Pier active parameters are `B`, `D`, `wx`, `wy`, `height`, `material`, and `columns`.
+- `wx` is Horizontal Wall Thickness and controls TOP/BOTTOM walls.
+- `wy` is Vertical Wall Thickness and controls LEFT/RIGHT walls.
+- New Box Pier nodes serialize `wx`/`wy`; active runtime does not use `tw`, `twValue`, or `twUnit`.
+- Legacy Box Pier `tw` is migrated at project-file load to `wx = tw` and `wy = tw`.
+- Candidate generation treats `wx` and `wy` independently, and geometry/property calculations share the same hollow-section contract.
+- Precast Girder `tw` is unrelated and remains unchanged. Family Workspace is outside G8.1A scope.
+
+## G8.1B H-Pier Graph Contract
+
+- Graph H Pier uses canonical parameters `B`, `D`, `w`, `ft`, `height`, `material`, and `columns`.
+- `B` is the horizontal longitudinal section width; `D` is the vertical transverse section height.
+- `w` is the central horizontal wall thickness; `ft` is the left/right vertical flange thickness.
+- H-section candidates and properties use the actual symmetric H geometry; legacy `tw`/`tf` aliases are migration-boundary only.
+- H-section validation requires `2*ft < B` and `w < D`; height does not alter cross-section geometry.
+- Family Workspace, other Pier families, and Precast Girder are outside G8.1B scope.
+
+## G8.2 Oval + H Pier Graph-to-Family Synchronization
+
+- Family Oval and H Pier views consume the successful Graph candidate snapshot as their engineering source of truth.
+- Oval Pier is a vertical obround/capsule: `B` horizontal, `D` vertical, radius `B/2`, valid only when `D >= B`.
+- H Pier Family consumes canonical `B`, `D`, `w`, and `ft`; legacy aliases are migration-boundary only.
+- Family geometry and section properties use the central pier engineering calculations and selected candidate synchronously.
+- Family preview must not introduce ellipse geometry, fallback dimensions, or family-specific scale multipliers.
+
+## G8.2A.2 Final H-Pier Family Preview Geometry
+
+- H Pier Family preview uses two continuous vertical side legs joined by a centered horizontal web.
+- `B` is the overall horizontal width and `D` is the overall vertical height.
+- `ft` is the horizontal thickness of each left/right leg; `w` is the vertical thickness of the center web.
+- Top and bottom central rectangular openings are part of the H silhouette.
+- Preview geometry is generated directly in engineering coordinates; rotation and B/D swapping are prohibited.
+
+## F7.4 Central Structural Section Preview
+
+- Precast Girder is the golden presentation reference for all Family structural section previews.
+- Precast and Pier previews use the shared technical-drawing fit, viewport, dimension, arrow, extension, axis, and style contract.
+- Fit uses the actual responsive viewport, uniform scale, preserved aspect ratio, and geometry-center translation.
+- Annotation containment may reduce scale but must never translate the engineering section away from the drawing viewport center.
+- Dimension text is fixed at 12px; dimension/extension strokes are non-scaling and arrow/gap/overrun values are drawing-space tokens.
+- Family-specific presentation scale multipliers are prohibited. Graph previews and engineering calculations are unaffected.
+- Structural section previews use one deterministic initial viewport fallback; ResizeObserver measurements replace it and trigger refit.
+- Viewport utilization is part of preview regression testing, and family-specific fit implementations are prohibited.
+## F7.4A.2 Structural Family Technical Drawing Presentation
+
+- Technical dimension text is centrally standardized at 12px and `#F2F2F2`.
+- Centroid axis lines use the central `#D2A85C` drawing token.
+- Dimension typography is fixed in screen/drawing space and must not scale with engineering geometry.
+- Dimension arrows and extension lines use the shared technical-drawing primitives.
+- Circular Pier uses the same technical-dimension typography as all other Structural Family previews.
+- Box Pier displays `B`, `D`, `wx`, and `wy`; `wx` is the top/bottom wall thickness and `wy` is the left/right wall thickness.
+- X/Y axis text labels are not displayed.
+- Precast geometry, fit, scale, and dimension positions remain frozen.
+
+## F7.4A.3 Structural Section SVG Layer Order
+
+SVG DOM order is the source of truth: section geometry → centroid axes → dimension graphics → dimension text. Section fill must not hide axes or dimension graphics, and dimension text is always the topmost technical annotation layer. CSS z-index hacks are prohibited; fit, scale, geometry, and engineering semantics remain independent from layer order.
+
+## F7.4A.4 Pier Family Preview Dimension Placement
+
+- Box `wx` is displayed horizontally across the right wall; `wy` is displayed vertically across the top wall.
+- H Pier `w` is a vertical dimension offset to the right of the centroid Y axis.
+- Circular Pier uses the shared Pier presentation and fit pipeline with D × D cross-section bounds only; no circular-specific visual scale multiplier is permitted.
+- All Pier dimensions remain 12px / `#F2F2F2`, axes remain `#D2A85C`, and SVG order remains geometry → axes → dimension graphics → dimension text.
+- Precast Girder preview remains frozen and is not modified by Pier presentation work.
+
+## F7.4A.5 REV-1 Box Pier Mapping
+
+- Box `wx` is the top/bottom horizontal-wall thickness, displayed as a vertical dimension from outer top to inner top.
+- Box `wy` is the left/right vertical-wall thickness, displayed as a horizontal dimension from inner right to outer right.
+- Internal `wx` and `wy` dimensions use drawing-space lanes and must not overlap the centroid axes.
+- Engineering geometry remains `innerWidth = B - 2*wy` and `innerHeight = D - 2*wx`; only preview presentation mapping may change.
+- Precast, Circular, Rectangular, Oval, and H Pier previews remain unchanged by this Box-only revision.
+
+## F7.4A.6 Circular Pier Preview and Candidate Selection
+
+- Circular Pier uses the shared Pier technical-drawing presentation and fit contract.
+- Diameter `D` uses the shared horizontal dimension below the circle with 12px / `#F2F2F2` text and `#D2A85C` centroid axes.
+- Family Workspace candidate selection has one `selectedCandidate` source for preview, properties, and dependent information.
+- Changing a circular candidate rebuilds its engineering circle, dimension value, preview candidate ID, and Section Properties.
+- Circular preview must not independently fall back to `candidates[0]` after user selection.
+- Precast preview remains frozen.
+
+## F7.4A.7 Circular Pier Final Presentation
+
+- Circular Pier uses the shared Pier technical-drawing contract, including fixed 12px / `#F2F2F2` dimension text and `#D2A85C` centroid axes.
+- Circular geometry remains centered, circular, and readable within the actual responsive viewport; independent SVG height clamps are prohibited.
+- Circular D dimensions use the shared horizontal dimension below the circle.
+- Candidate selection synchronization remains intact for preview geometry, D value, title, and Section Properties.
+- Precast and all non-circular Pier previews remain frozen.

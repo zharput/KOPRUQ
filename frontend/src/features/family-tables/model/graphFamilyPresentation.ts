@@ -61,7 +61,7 @@ export function candidateColumns(category: FamilyCategory, alternatives: readonl
     columns.push({ key: 'spanCount', label: 'Span Count' }, { key: 'pierCount', label: 'Pier Count' }, { key: 'totalLengthM', label: `Total Length (${units.length ?? 'm'})` })
     const maxSpans = Math.max(0, ...rows.map(row => Array.isArray(row.spanLengthsM) ? row.spanLengthsM.length : 0))
     for (let index = 0; index < maxSpans; index += 1) columns.push({ key: `span:${index}`, label: `S${index + 1} (${units.length ?? 'm'})` })
-  } else if (category === 'PIER') columns.push(...geometryColumns(rows), { key: 'heightM', label: `Height (${units.length ?? 'm'})` }, { key: 'columnCount', label: 'Columns' })
+  } else if (category === 'PIER') columns.push(...geometryColumns(rows, units), { key: 'heightM', label: `Height (${units.length ?? 'm'})` }, { key: 'columnCount', label: 'Columns' })
   else if (category === 'BEARING') columns.push(...['kx', 'ky', 'kz', 'krx', 'kry', 'krz'].map(key => ({ key: `stiffness.${key}`, label: key.toUpperCase() })))
   else if (category === 'PIER_CAP') columns.push(...geometryColumns(rows))
   else if (category === 'FOUNDATION') columns.push(...geometryColumns(rows))
@@ -72,9 +72,9 @@ export function candidateColumns(category: FamilyCategory, alternatives: readonl
   return columns
 }
 
-function geometryColumns(rows: Record<string, unknown>[]) {
+function geometryColumns(rows: Record<string, unknown>[], units?: ProjectUnits) {
   const keys = [...new Set(rows.flatMap(row => Object.keys((row.geometry as Record<string, unknown> | undefined) ?? {})))].filter(key => key !== 'derived')
-  return keys.map(key => ({ key: `geometry.${key}`, label: key }))
+  return keys.map(key => ({ key: `geometry.${key}`, label: units ? `${key} (${units.length ?? 'm'})` : key }))
 }
 
 export function cellValue(alternative: FamilyAlternative, key: string, units: ProjectUnits = {}, displayIds?: ReadonlyMap<string, string>): string {

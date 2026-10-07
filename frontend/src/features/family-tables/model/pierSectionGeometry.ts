@@ -31,24 +31,23 @@ export function buildPierSectionGeometry(kind: PierGeometryKind, values: Readonl
   const outer = [{ x: left, y: top }, { x: right, y: top }, { x: right, y: bottom }, { x: left, y: bottom }]
   let polygons: readonly (readonly Point[])[] = [outer], holes: readonly (readonly Point[])[] = []
   if (kind === 'oval') {
-    const radius = Math.min(B, D) / 2, horizontalStraight = Math.max(0, B - D), verticalStraight = Math.max(0, D - B), points: Point[] = []
+    if (D < B) return undefined
+    const radius = B / 2, horizontalStraight = 0, verticalStraight = D - B, points: Point[] = []
     if (verticalStraight > 0) {
       for (let i = 0; i <= 16; i++) { const a = Math.PI - Math.PI * i / 16; points.push({ x: radius * Math.cos(a), y: verticalStraight / 2 + radius * Math.sin(a) }) }
       for (let i = 0; i <= 16; i++) { const a = -Math.PI * i / 16; points.push({ x: radius * Math.cos(a), y: -verticalStraight / 2 + radius * Math.sin(a) }) }
-    } else {
-      for (let i = 0; i <= 16; i++) { const a = Math.PI / 2 - Math.PI * i / 16; points.push({ x: horizontalStraight / 2 + radius * Math.cos(a), y: radius * Math.sin(a) }) }
-      for (let i = 0; i <= 16; i++) { const a = -Math.PI / 2 - Math.PI * i / 16; points.push({ x: -horizontalStraight / 2 + radius * Math.cos(a), y: radius * Math.sin(a) }) }
     }
     polygons = [points]
     return { kind, polygons, holes, bounds: bounds(outer), centroid: { x: 0, y: 0 }, oval: { radius, straightLength: Math.max(horizontalStraight, verticalStraight), topLeft: { x: left, y: top }, topRight: { x: right, y: top }, bottomRight: { x: right, y: bottom }, bottomLeft: { x: left, y: bottom } }, dimensionAnchors: { horizontal: [{ x: left, y: top }, { x: right, y: top }], vertical: [{ x: right, y: top }, { x: right, y: bottom }] } }
   } else if (kind === 'box') {
-    const wall = Math.min(values.tw ?? 0, B / 2, D / 2)
-    if (!(wall > 0) || 2 * wall >= B || 2 * wall >= D) return undefined
-    holes = [[{ x: left + wall, y: top - wall }, { x: right - wall, y: top - wall }, { x: right - wall, y: bottom + wall }, { x: left + wall, y: bottom + wall }]]
+    const wx = values.wx ?? 0, wy = values.wy ?? 0
+    if (!(wx > 0 && wy > 0) || 2 * wx >= D || 2 * wy >= B) return undefined
+    holes = [[{ x: left + wy, y: top - wx }, { x: right - wy, y: top - wx }, { x: right - wy, y: bottom + wx }, { x: left + wy, y: bottom + wx }]]
   } else if (kind === 'h_section') {
-    const web = values.tw, flange = values.tf
-    if (!(web > 0 && flange > 0 && web <= D && 2 * flange < B)) return undefined
-    polygons = [[{ x: left, y: top }, { x: right, y: top }, { x: right, y: top - flange }, { x: web / 2, y: top - flange }, { x: web / 2, y: bottom + flange }, { x: right, y: bottom + flange }, { x: right, y: bottom }, { x: left, y: bottom }, { x: left, y: bottom + flange }, { x: -web / 2, y: bottom + flange }, { x: -web / 2, y: top - flange }, { x: left, y: top - flange }]]
+    const gap = values.w, flange = values.ft
+    if (!(gap > 0 && flange > 0 && gap < D && 2 * flange < B)) return undefined
+    const innerLeft = left + flange, innerRight = right - flange, webTop = gap / 2, webBottom = -gap / 2
+    polygons = [[{ x: left, y: top }, { x: innerLeft, y: top }, { x: innerLeft, y: webTop }, { x: innerRight, y: webTop }, { x: innerRight, y: top }, { x: right, y: top }, { x: right, y: bottom }, { x: innerRight, y: bottom }, { x: innerRight, y: webBottom }, { x: innerLeft, y: webBottom }, { x: innerLeft, y: bottom }, { x: left, y: bottom }]]
   }
   const envelope = bounds(outer)
   return { kind, polygons, holes, bounds: envelope, centroid: { x: envelope.centerX, y: envelope.centerY }, dimensionAnchors: { horizontal: [{ x: left, y: top }, { x: right, y: top }], vertical: [{ x: right, y: top }, { x: right, y: bottom }] } }

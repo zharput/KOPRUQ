@@ -80,8 +80,12 @@ function PierSchematic({ node, candidates, previewInputs, connected, projectUnit
   }
   const b = dimensionValue(node, candidates, previewInputs, connected, dimensions[kind]?.port ?? 'width', dimensions[kind]?.key ?? 'B', projectUnits)
   const d = kind === 'circular' ? b : dimensionValue(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D', projectUnits)
-  const tw = dimensionValue(node, candidates, previewInputs, connected, 'wallThickness', 'tw', projectUnits)
-  const tf = dimensionValue(node, candidates, previewInputs, connected, 'flangeThickness', 'tf', projectUnits)
+  const wx = dimensionValue(node, candidates, previewInputs, connected, 'wallThicknessX', 'wx', projectUnits)
+  const wy = dimensionValue(node, candidates, previewInputs, connected, 'wallThicknessY', 'wy', projectUnits)
+  const wxMetres = representativeMetres(node, candidates, previewInputs, connected, 'wallThicknessX', 'wx')
+  const wyMetres = representativeMetres(node, candidates, previewInputs, connected, 'wallThicknessY', 'wy')
+  const tw = dimensionValue(node, candidates, previewInputs, connected, 'w', 'w', projectUnits)
+  const tf = dimensionValue(node, candidates, previewInputs, connected, 'ft', 'ft', projectUnits)
   const height = dimensionValue(node, candidates, previewInputs, connected, 'height', 'height', projectUnits)
   const B = representativeMetres(node, candidates, previewInputs, connected, dimensions[kind]?.port ?? 'width', dimensions[kind]?.key ?? 'B')
   const D = kind === 'circular' ? B : representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D')
@@ -93,16 +97,16 @@ function PierSchematic({ node, candidates, previewInputs, connected, projectUnit
     : kind === 'oval'
       ? <rect className="engineering-outline" x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx={Math.min(w, h) / 2} />
       : kind === 'box'
-        ? <g className="engineering-outline"><rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} /><rect className="engineering-void" x={cx - Math.max(4, w / 2 - wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, w))} y={cy - Math.max(4, h / 2 - wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, h))} width={Math.max(8, w - 2 * wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, w))} height={Math.max(8, h - 2 * wallPixels(representativeMetres(node,candidates,previewInputs,connected,'wallThickness','tw')??.3, scale, h))} /></g>
+        ? <g className="engineering-outline"><rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} /><rect className="engineering-void" x={cx - Math.max(4, w / 2 - wallPixels(wyMetres ?? .3, scale, w))} y={cy - Math.max(4, h / 2 - wallPixels(wxMetres ?? .3, scale, h))} width={Math.max(8, w - 2 * wallPixels(wyMetres ?? .3, scale, w))} height={Math.max(8, h - 2 * wallPixels(wxMetres ?? .3, scale, h))} /></g>
         : kind === 'h_section'
-          ? <HSection cx={cx} cy={cy} width={w} height={h} web={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'webThickness','tw')??0) * scale)} flange={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'flangeThickness','tf')??0) * scale)} />
+          ? <HSection cx={cx} cy={cy} width={w} height={h} web={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'w','w')??0) * scale)} flange={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'ft','ft')??0) * scale)} />
           : <rect className="engineering-outline" x={cx - w / 2} y={cy - h / 2} width={w} height={h} />
   const label = kind === 'circular' ? `Ø = ${b}` : `B = ${b}`
   const aria = `${kind.replace('_', ' ')} pier schematic. ${label}; ${kind !== 'circular' ? `D = ${d}; ` : ''}Bridge Axis.`
   return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 250" role="img" aria-label={aria}>
     {shape}
     {kind === 'circular' && <><CenterLine x1={cx - 44} y1={cy} x2={cx + 44} y2={cy} /><DimensionHorizontal x1={cx - circleRadius} x2={cx + circleRadius} y={cy + circleRadius + 12} toY={cy + circleRadius} label={`Ø = ${b}`} /></>}
-    {kind !== 'circular' && <><DimensionHorizontal x1={cx - w / 2} x2={cx + w / 2} y={20} toY={cy - h / 2} label={`B = ${b}`} /><DimensionVertical y1={cy - h / 2} y2={cy + h / 2} x={232} toX={cx + w / 2} label={`D = ${d}`} />{(kind === 'box' || kind === 'h_section') && <text className="engineering-dimension" x="150" y="177" textAnchor="middle">{kind === 'box' ? `tw = ${tw}` : `tw = ${tw}   tf = ${tf}`}</text>}</>}
+    {kind !== 'circular' && <><DimensionHorizontal x1={cx - w / 2} x2={cx + w / 2} y={20} toY={cy - h / 2} label={`B = ${b}`} /><DimensionVertical y1={cy - h / 2} y2={cy + h / 2} x={232} toX={cx + w / 2} label={`D = ${d}`} />{(kind === 'box' || kind === 'h_section') && <text className="engineering-dimension" x="150" y="177" textAnchor="middle">{kind === 'box' ? `wx = ${wx} · wy = ${wy}` : `w = ${tw}   ft = ${tf}`}</text>}</>}
     <BridgeAxis y={201} /><text className="engineering-dimension" x="150" y="239" textAnchor="middle">Pier Height = {height}</text>
   </svg></SchematicCard>
 }
@@ -111,21 +115,21 @@ function PierFamilySchematic({ kind, node, candidates, previewInputs, connected,
   const [detail, setDetail] = useState(false)
   const b = representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerWidth' : 'width', 'B') ?? 1
   const d = kind === 'circular' ? b : representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D') ?? 1
-  const tw = representativeMetres(node, candidates, previewInputs, connected, 'wallThickness', 'tw') ?? .3
-  const tf = representativeMetres(node, candidates, previewInputs, connected, 'flangeThickness', 'tf') ?? .6
-  const web = representativeMetres(node, candidates, previewInputs, connected, 'webThickness', 'tw') ?? tw
-  const flange = representativeMetres(node, candidates, previewInputs, connected, 'flangeThickness', 'tf') ?? tf
+  const tw = representativeMetres(node, candidates, previewInputs, connected, 'w', 'w') ?? .3
+  const tf = representativeMetres(node, candidates, previewInputs, connected, 'ft', 'ft') ?? .6
+  const web = representativeMetres(node, candidates, previewInputs, connected, 'w', 'w') ?? tw
+  const flange = representativeMetres(node, candidates, previewInputs, connected, 'ft', 'ft') ?? tf
   const height = dimensionValue(node, candidates, previewInputs, connected, 'height', 'height', projectUnits)
   const size = rectangularSize(d, b, 170, 105)
   return <>
     <SchematicCard className="engineering-schematic-single spn-pier-family-preview">
       <div className="spn-schematic-card-toolbar"><span>Preview</span><button type="button" aria-label={`Expand ${kind} pier detail`} title="Detail view" onClick={() => setDetail(true)}>↗</button></div>
       <svg viewBox="0 0 300 180" role="img" aria-label={`${kind.replace('_', ' ')} pier schematic`}>
-        <desc>{kind === 'oval' ? `Oval pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · Bridge Axis` : kind === 'h_section' ? `H section pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · tw = ${displayLength(web, projectUnits)} · tf = ${displayLength(flange, projectUnits)}` : ''}</desc>
+        <desc>{kind === 'oval' ? `Oval pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · Bridge Axis` : kind === 'h_section' ? `H section pier schematic. B = ${displayLength(b, projectUnits)} · D = ${displayLength(d, projectUnits)} · w = ${displayLength(web, projectUnits)} · ft = ${displayLength(flange, projectUnits)}` : ''}</desc>
         <PierFamilyShape kind={kind} cx={150} cy={82} w={size.w} h={size.h} tw={tw} web={web} flange={flange} scale={size.scale} />
         <BridgeAxisDirectional x={150} y={82} left={48} right={252} verticalTop={28} verticalBottom={136} />
       </svg>
-      <div className="spn-schematic-preview-note">{kind.replace('_', ' ')} section preview{kind === 'box' ? ` · t = ${displayLength(tw, projectUnits)}` : kind === 'h_section' ? ` · W = ${displayLength(web, projectUnits)} · t = ${displayLength(flange, projectUnits)}` : ''}</div>
+      <div className="spn-schematic-preview-note">{kind.replace('_', ' ')} section preview{kind === 'box' ? ` · t = ${displayLength(tw, projectUnits)}` : kind === 'h_section' ? ` · w = ${displayLength(web, projectUnits)} · ft = ${displayLength(flange, projectUnits)}` : ''}</div>
     </SchematicCard>
     {detail && <div className="spn-schematic-detail-backdrop" role="presentation" onMouseDown={() => setDetail(false)}>
       <div className="spn-schematic-detail-dialog" role="dialog" aria-modal="true" aria-label={`${kind} pier detail view`} onMouseDown={event => event.stopPropagation()}>
@@ -136,7 +140,7 @@ function PierFamilySchematic({ kind, node, candidates, previewInputs, connected,
           {kind !== 'circular' && <DimensionVertical y1={180 - rectangularSize(d, b, 250, 230).h / 2} y2={180 + rectangularSize(d, b, 250, 230).h / 2} x={445} toX={260 + rectangularSize(d, b, 250, 230).w / 2} label={`B = ${displayLength(b, projectUnits)}`} />}
           <BridgeAxisDirectional x={260} y={180} left={105} right={415} verticalTop={52} verticalBottom={308} />
           {kind === 'box' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">t = {displayLength(tw, projectUnits)}</text>}
-          {kind === 'h_section' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">W = {displayLength(web, projectUnits)} · t = {displayLength(flange, projectUnits)}</text>}
+          {kind === 'h_section' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">w = {displayLength(web, projectUnits)} · ft = {displayLength(flange, projectUnits)}</text>}
           <text className="engineering-axis-label" x="260" y="350" textAnchor="middle">H = {height}</text>
         </svg>
       </div>

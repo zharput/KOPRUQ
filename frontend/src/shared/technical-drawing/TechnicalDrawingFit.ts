@@ -14,6 +14,8 @@ export function computeTechnicalDrawingFit({ geometryBounds, drawingEnvelope = g
   const targetGeometryWidth = availableBounds.width * targetGeometryWidthRatio, targetGeometryHeight = availableBounds.height * targetGeometryHeightRatio
   const baseScale = Math.min(targetGeometryWidth / geometryBounds.width, targetGeometryHeight / geometryBounds.height)
   const centerX = viewport.width / 2, centerY = viewport.height / 2
+  // Keep the golden geometry-first fit: annotation clearance is drawing-space
+  // padding, not engineering geometry that gets scaled into the fit bounds.
   const halfWidth = Math.max(Math.abs(geometryBounds.minX - geometryBounds.centerX), Math.abs(geometryBounds.maxX - geometryBounds.centerX))
   const halfHeight = Math.max(Math.abs(geometryBounds.minY - geometryBounds.centerY), Math.abs(geometryBounds.maxY - geometryBounds.centerY))
   const maximumContainedScale = Math.min((centerX - safePadding.left - fixedAnnotationPadding.x) / halfWidth, (centerY - safePadding.top - fixedAnnotationPadding.y) / halfHeight)

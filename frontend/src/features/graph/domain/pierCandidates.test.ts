@@ -31,26 +31,32 @@ describe('Pier candidate domain', () => {
     expect(result.map(item=>item.id)).toEqual(generatePierCandidates({ ...base,pierType:'RECTANGULAR',geometry:{B:[2,2.5,3],D:[3,4]},height:[10,12] }).map(item=>item.id))
   })
 
-  it('generates oval candidates and filters invalid uniform-wall box combinations', () => {
+  it('generates oval candidates and rejects legacy Box tw geometry', () => {
     expect(generatePierCandidates({ ...base, pierType: 'OVAL', geometry: { B: 3, D: 1.5 } })[0].geometry).toEqual({ B: 3, D: 1.5 })
-    expect(generatePierCandidates({ ...base, pierType: 'BOX', geometry: { B: 3, D: 1.5, tw: .3 } })).toHaveLength(1)
-    const result = generatePierCandidatesWithStats({ ...base, pierType: 'BOX', geometry: { B: [3, 3.5], D: [5, 6], tw: [.4, 2] } })
+    expect(() => generatePierCandidates({ ...base, pierType: 'BOX', geometry: { B: 3, D: 1.5, tw: .3 } })).toThrow()
+    const result = generatePierCandidatesWithStats({ ...base, pierType: 'BOX', geometry: { B: [3, 3.5], D: [5, 6], wx: [.4, 2], wy: [.5] } })
     expect(result.generatedCombinations).toBe(8)
-    expect(result.invalidCombinations).toBe(4)
-    expect(result.candidates).toHaveLength(4)
+    expect(result.invalidCombinations).toBe(0)
+    expect(result.candidates).toHaveLength(8)
   })
 
   it('generates box candidates with independent wx and wy walls', () => {
     const result = generatePierCandidates({ ...base, pierType: 'BOX', geometry: { B: 10, D: 6, wx: [1, 2], wy: [.5, 4] } })
-    expect(result.map(item => item.geometry)).toEqual([{ B: 10, D: 6, wx: 1, wy: .5 }, { B: 10, D: 6, wx: 2, wy: .5 }])
+    expect(result.map(item => item.geometry)).toEqual([{ B: 10, D: 6, wx: 1, wy: .5 }, { B: 10, D: 6, wx: 1, wy: 4 }, { B: 10, D: 6, wx: 2, wy: .5 }, { B: 10, D: 6, wx: 2, wy: 4 }])
+  })
+
+  it('validates wx against D and wy against B', () => {
+    expect(generatePierCandidatesWithStats({ ...base, pierType: 'BOX', geometry: { B: 6, D: 4, wx: .3, wy: .5 } }).candidates).toHaveLength(1)
+    expect(generatePierCandidatesWithStats({ ...base, pierType: 'BOX', geometry: { B: 6, D: .5, wx: .3, wy: .1 } }).candidates).toHaveLength(0)
+    expect(generatePierCandidatesWithStats({ ...base, pierType: 'BOX', geometry: { B: .8, D: 4, wx: .1, wy: .5 } }).candidates).toHaveLength(0)
   })
 
   it('generates H-section candidates and filters invalid web/flange combinations', () => {
-    const result = generatePierCandidatesWithStats({ ...base, pierType: 'H_SECTION', geometry: { B: [3, 3.5], D: [5, 6], tw: [.5], tf: [.6, 3.1] } })
+    const result = generatePierCandidatesWithStats({ ...base, pierType: 'H_SECTION', geometry: { B: [3, 3.5], D: [5, 6], w: [.5], ft: [.6, 3.1] } })
     expect(result.generatedCombinations).toBe(8)
     expect(result.invalidCombinations).toBe(4)
     expect(result.candidates).toHaveLength(4)
-    expect(result.candidates[0].geometry).toEqual({ B: 3, D: 5, tw: .5, tf: .6 })
+    expect(result.candidates[0].geometry).toEqual({ B: 3, D: 5, w: .5, ft: .6 })
   })
 
   it('rejects invalid columns and candidate explosion', () => {
@@ -59,7 +65,7 @@ describe('Pier candidate domain', () => {
   })
 
   it('generates 100 candidates within the limit and reports invalid combinations', () => {
-    const result = generatePierCandidatesWithStats({ ...base, pierType: 'H_SECTION', geometry: { B: Array.from({ length: 10 }, (_, i) => i + 2), D: [5], tw: [.5], tf: [.5] }, height: Array.from({ length: 10 }, (_, i) => i + 1) })
+    const result = generatePierCandidatesWithStats({ ...base, pierType: 'H_SECTION', geometry: { B: Array.from({ length: 10 }, (_, i) => i + 2), D: [5], w: [.5], ft: [.5] }, height: Array.from({ length: 10 }, (_, i) => i + 1) })
     expect(result.generatedCombinations).toBe(100)
     expect(result.candidates).toHaveLength(100)
     expect(result.invalidCombinations).toBe(0)

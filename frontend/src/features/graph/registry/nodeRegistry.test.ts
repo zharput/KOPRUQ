@@ -83,7 +83,7 @@ describe('Engineering Inspector metadata',()=>{
     ['substructure.pier.rectangular','pier',['width','depth','height','material','columns']],
     ['substructure.pier.oval','pier',['width','depth','height','material','columns']],
     ['substructure.pier.box','pier',['outerWidth','outerDepth','wallThicknessX','wallThicknessY','height','material','columns']],
-    ['substructure.pier.h_section','pier',['width','depth','webThickness','flangeThickness','height','material','columns']],
+    ['substructure.pier.h_section','pier',['width','depth','w','ft','height','material','columns']],
     ['substructure.pier-cap.t','pier-cap',['length','topWidth','stemWidth','totalHeight','flangeThickness','material']],
     ['substructure.pier-cap.rectangular','pier-cap',['length','width','height','material']],
     ['substructure.foundation.shallow','foundation',['Lx','Ly','height','material']],
@@ -93,6 +93,17 @@ describe('Engineering Inspector metadata',()=>{
     const definition=getNodeDefinition(type)!
     expect(definition.engineeringInspector).toEqual({schematic,parameterOrder:order})
     expect(order.every(id=>definition.inputs.some(input=>input.id===id))).toBe(true)
+  })
+})
+
+describe('Box Pier G8.1A contract', () => {
+  it('creates only independent wx/wy Length parameters', () => {
+    const definition = getNodeDefinition('substructure.pier.box')!
+    const parameters = definition.createDefaultParameters({ length: 'm' })
+    expect(parameters).toMatchObject({ wxValue: .3, wxUnit: 'm', wyValue: .3, wyUnit: 'm' })
+    expect(parameters).not.toHaveProperty('twValue')
+    expect(parameters).not.toHaveProperty('twUnit')
+    expect(definition.validateParameters(parameters)).toEqual([])
   })
 })
 

@@ -3,9 +3,10 @@ export const TECHNICAL_DRAWING_TOKENS = {
   fontSize: 12,
   fontWeight: 400,
   technicalDimensionColor: '#9FAEC6',
-  textColor: '#9FAEC6',
-  dimensionColor: '#9FAEC6',
+  textColor: '#F2F2F2',
+  dimensionColor: '#F2F2F2',
   extensionColor: '#9FAEC6',
+  axisColor: '#D2A85C',
   strokeWidth: 1,
   arrowLength: 8.8,
   arrowWidth: 4.4,
@@ -16,4 +17,5 @@ export const TECHNICAL_DRAWING_TOKENS = {
   textGap: 8,
   baseOffset: 0,
   laneGap: 16,
+  pierLocalDimensionOffset: 28,
 } as const

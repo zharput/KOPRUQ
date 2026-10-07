@@ -26,7 +26,7 @@ describe('Precast girder family runtime properties', () => {
       candidateData: { geometry: { H: 2, Btf: 1, Bbf: .5, tw: .25, th1: .15, bh1: .1, th2: .3, bh2: .2 } },
     }} projectUnits={{ length: 'm', force: 'kN', moment: 'kNm', stress: 'MPa', mass: 't', temperature: 'C' }} />)
     const svg = screen.getByRole('img', { name: /precast girder technical section/i })
-    expect(svg.getAttribute('viewBox')).toBe('-45 0 430 350')
+    expect(svg.getAttribute('viewBox')).toBe('0 0 430 350')
     expect(svg.getAttribute('data-drawing-bounds')).toBeTruthy()
     expect(svg.querySelector('[data-dimension="Bbf"]')).toBeInTheDocument()
     expect(svg.querySelectorAll('[data-extension-line]')).toHaveLength(14)

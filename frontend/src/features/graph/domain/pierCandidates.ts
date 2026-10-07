@@ -33,9 +33,7 @@ export function generatePierCandidatesWithStats(input: PierCandidateInput, maxCa
   if (!Number.isInteger(input.columnCount) || input.columnCount < 1 || input.columnCount > 2) throw new Error('Column Count must be 1 or 2.')
   if (input.material.domainType !== 'ConcreteMaterial' || !input.material.id) throw new Error('A valid ConcreteMaterial is required.')
   const keys = Object.keys(input.geometry)
-  const legacyBox = input.pierType === 'BOX' && Object.keys(input.geometry).includes('tw') && !Object.keys(input.geometry).includes('wx')
-  if (legacyBox) input = { ...input, geometry: { B: input.geometry.B, D: input.geometry.D, tw: input.geometry.tw } }
-  const requiredKeys: Record<PierType, string[]> = { CIRCULAR: ['D'], RECTANGULAR: ['B', 'D'], OVAL: ['B', 'D'], BOX: legacyBox ? ['B', 'D', 'tw'] : ['B', 'D', 'wx', 'wy'], H_SECTION: ['B', 'D', 'tw', 'tf'] }
+  const requiredKeys: Record<PierType, string[]> = { CIRCULAR: ['D'], RECTANGULAR: ['B', 'D'], OVAL: ['B', 'D'], BOX: ['B', 'D', 'wx', 'wy'], H_SECTION: ['B', 'D', 'w', 'ft'] }
   if (keys.length !== requiredKeys[input.pierType].length || requiredKeys[input.pierType].some(key => !keys.includes(key))) throw new Error(`${input.pierType} geometry requires parameters ${requiredKeys[input.pierType].join(', ')}.`)
   // Fixed key order is part of the candidate ordering and identity contract.
   keys.splice(0, keys.length, ...requiredKeys[input.pierType])
@@ -65,8 +63,8 @@ export function generatePierCandidatesWithStats(input: PierCandidateInput, maxCa
 }
 
 function isValidGeometry(type: PierType, g: Readonly<Record<string, number>>) {
-  if (type === 'BOX') return g.tw !== undefined ? 2 * g.tw < g.B && 2 * g.tw < g.D : 2 * g.wx < g.B && 2 * g.wy < g.D
-  if (type === 'H_SECTION') return g.tw < g.B && 2 * g.tf < g.D
+  if (type === 'BOX') return 2 * g.wx < g.D && 2 * g.wy < g.B
+  if (type === 'H_SECTION') return 2 * g.ft < g.B && g.w < g.D
   return true
 }
 

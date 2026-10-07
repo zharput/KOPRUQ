@@ -18,6 +18,24 @@ export function validateProjectFile(value: unknown): ProjectFile {
   for (const category of CATEGORIES) if (!Array.isArray(file.families[category])) throw new Error(`Missing family data: ${category}`)
   return file as ProjectFile
 }
+export function migrateLegacyBoxPierParameters(file: ProjectFile): ProjectFile {
+  const migrated = structuredClone(file)
+  for (const graph of migrated.graph.graphs) for (const node of graph.nodes) {
+    if (node.type !== 'substructure.pier.box') continue
+    const p = node.parameters as Record<string, unknown>
+    if (p.wxValue === undefined && typeof p.twValue === 'number') { p.wxValue = p.twValue; p.wxUnit = p.twUnit }
+    if (p.wyValue === undefined && typeof p.twValue === 'number') { p.wyValue = p.twValue; p.wyUnit = p.twUnit }
+    delete p.twValue; delete p.twUnit
+  }
+  for (const graph of migrated.graph.graphs) for (const node of graph.nodes) {
+    if (node.type !== 'substructure.pier.h_section') continue
+    const p = node.parameters as Record<string, unknown>
+    if (p.wValue === undefined && typeof p.twValue === 'number') { p.wValue = p.twValue; p.wUnit = p.twUnit }
+    if (p.ftValue === undefined && typeof p.tfValue === 'number') { p.ftValue = p.tfValue; p.ftUnit = p.tfUnit }
+    delete p.twValue; delete p.twUnit; delete p.tfValue; delete p.tfUnit
+  }
+  return migrated
+}
 export function applyProjectFile(file: ProjectFile) {
   validateProjectFile(file)
   const previousGraph = exportGraphDocuments(); const previousFamilies = Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)]))
@@ -32,7 +50,7 @@ export function applyProjectFile(file: ProjectFile) {
     throw error
   }
 }
-export async function readProjectFile(file: File): Promise<ProjectFile> { return validateProjectFile(JSON.parse(await file.text())) }
+export async function readProjectFile(file: File): Promise<ProjectFile> { return migrateLegacyBoxPierParameters(validateProjectFile(JSON.parse(await file.text()))) }
 export function projectFileText(file: ProjectFile) { return JSON.stringify(file, null, 2) }
 export async function writeProjectFile(file: ProjectFile, ref?: FileRef): Promise<FileRef> {
   const text = projectFileText(file)

@@ -133,7 +133,7 @@ export default function SelfWeightPermanent({ crossSectionValues }: { crossSecti
         />
 
         <FormulaRow
-          label="Kaldırım (Sidewalk)"
+          label="Sidewalk"
           terms={[
             { value: inputs.sidewalkThicknessM, kind: 'decimal', onChange: (v) => update('sidewalkThicknessM', v), unit: 'm' },
             {

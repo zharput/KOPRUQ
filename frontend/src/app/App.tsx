@@ -17,6 +17,7 @@ import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
 import RecentFileAccessModal from '../shared/ui/RecentFileAccessModal'
 import { getRecentProjectFile, repairRecentProject, type RecentProject } from '../shared/project-file/recentProjects'
 import { KOPRUQ_FILE_PICKER_OPTIONS, type FileRef } from '../shared/project-file/projectFileService'
+import type { WindCalculationSnapshot } from '../shared/project-file/projectFileTypes'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
   '/alignment': '/bridge-definition/alignment/horizontal',
@@ -67,7 +68,8 @@ function App() {
   const designCode = projectState.project.designStandardFamily
   const setDesignCode: Dispatch<SetStateAction<string>> = (update) => setProjectState((previous) => ({ ...previous, project: { ...previous.project, designStandardFamily: typeof update === 'function' ? update(previous.project.designStandardFamily) : update } }))
   const [crossSectionValues, setCrossSectionValues] = useState<CrossSectionValues>(INITIAL_CROSS_SECTION_VALUES)
-  const file = useProjectFile(projectState, setProjectState, bridgeDefinitions, setBridgeDefinitions)
+  const [windLoads, setWindLoads] = useState<WindCalculationSnapshot | null>(null)
+  const file = useProjectFile(projectState, setProjectState, bridgeDefinitions, setBridgeDefinitions, windLoads, setWindLoads)
   const [showWelcome, setShowWelcome] = useState(false)
   const [pending, setPending] = useState<(() => void) | null>(null); const [modalBusy, setModalBusy] = useState(false)
   const runAfterUnsavedDecision = (action: () => void) => { if (!file.dirty) { action(); return }; setPending(() => action) }
@@ -112,6 +114,7 @@ function App() {
           project={projectState.project} setProject={(project: ProjectWorkspaceData) => setProjectState((previous) => ({ ...previous, project }))}
           bridgeDefinitions={bridgeDefinitions} setBridgeDefinitions={setBridgeDefinitions}
           crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues}
+          windLoads={windLoads} setWindLoads={setWindLoads}
           terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId} file={file} onNewProject={newProject} onOpenProject={openProject} onRecentOpen={openRecentProject} onExit={() => runAfterUnsavedDecision(() => { file.closeSession(); setShowWelcome(true) })} showWelcome={showWelcome}
         /><UnsavedChangesModal open={pending !== null} busy={modalBusy} onSave={() => void saveAndContinue()} onDiscard={discardAndContinue} onCancel={() => setPending(null)} /><RecentFileAccessModal open={recentAccessEntry !== null || recentAccessError !== undefined} fileName={recentAccessEntry?.fileName} error={recentAccessError} onReselect={() => void reselectRecentProject()} onCancel={() => { setRecentAccessEntry(null); setRecentAccessError(undefined) }} /></>
       </BrowserRouter>
@@ -129,6 +132,8 @@ type RoutedApplicationProps = {
   designCode: string
   setDesignCode: Dispatch<SetStateAction<string>>
   crossSectionValues: CrossSectionValues
+  windLoads: WindCalculationSnapshot | null
+  setWindLoads: (snapshot: WindCalculationSnapshot | null) => void
   setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>
   terrainId: string | null
   setTerrainId: Dispatch<SetStateAction<string | null>>
@@ -174,7 +179,7 @@ function RoutedApplication(props: RoutedApplicationProps) {
           project={props.project} setProject={props.setProject} bridges={props.bridges} setBridges={props.setBridges} designCode={props.designCode} setDesignCode={props.setDesignCode}
           bridgeDefinitions={props.bridgeDefinitions} setBridgeDefinitions={props.setBridgeDefinitions}
           terrainId={props.terrainId} landXmlImportId={props.landXmlImportId} setTerrainId={props.setTerrainId} setLandXmlImportId={props.setLandXmlImportId}
-          crossSectionValues={props.crossSectionValues}
+          crossSectionValues={props.crossSectionValues} windLoads={props.windLoads} setWindLoads={props.setWindLoads}
           setCrossSectionValues={props.setCrossSectionValues}
         />}
   </div>

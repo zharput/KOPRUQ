@@ -2,14 +2,14 @@ import type { BridgeDefinitionStore } from '../../features/bridge-definition/mod
 import type { PersistedProjectState } from '../../features/project/model/projectWorkspace'
 import { exportGraphDocuments, importGraphDocuments, validateGraphDocuments } from '../../features/graph/state/graphStore'
 import { getFamilyRecords, saveFamilyRecords, type FamilyRepositoryCategory } from '../../features/family-registry/model/familyRepository'
-import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile } from './projectFileTypes'
+import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile, type WindCalculationSnapshot } from './projectFileTypes'
 
 const CATEGORIES: FamilyRepositoryCategory[] = ['PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'MATERIAL']
 export type FileRef = { name: string; handle?: FileSystemFileHandle }
 export const KOPRUQ_FILE_PICKER_OPTIONS = { multiple: false, excludeAcceptAllOption: true, types: [{ description: 'KOPRUQ Project', accept: { 'application/json': ['.kopruq'] } }] } as const
-export function buildProjectFile(projectState: PersistedProjectState, bridgeDefinitions: BridgeDefinitionStore): ProjectFile {
+export function buildProjectFile(projectState: PersistedProjectState, bridgeDefinitions: BridgeDefinitionStore, windLoads?: WindCalculationSnapshot | null): ProjectFile {
   const families = Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)]))
-  return { format: PROJECT_FILE_FORMAT, schemaVersion: PROJECT_FILE_SCHEMA_VERSION, applicationVersion: '1.0.0', projectState: structuredClone(projectState), bridgeDefinitions: structuredClone(bridgeDefinitions), graph: exportGraphDocuments(), families, modules: {} }
+  return { format: PROJECT_FILE_FORMAT, schemaVersion: PROJECT_FILE_SCHEMA_VERSION, applicationVersion: '1.0.0', projectState: structuredClone(projectState), bridgeDefinitions: structuredClone(bridgeDefinitions), graph: exportGraphDocuments(), families, modules: windLoads ? { windLoads: structuredClone(windLoads) } : {} }
 }
 export function validateProjectFile(value: unknown): ProjectFile {
   const file = value as Partial<ProjectFile>

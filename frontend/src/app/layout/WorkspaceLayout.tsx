@@ -22,7 +22,7 @@ export default function WorkspaceLayout({ leftTitle, leftPanel, mainContent, rig
   }
   return <div className={`spn-workspace-layout${leftCollapsed ? ' left-collapsed' : ''}${rightCollapsed ? ' right-collapsed' : ''}`} style={{ '--workspace-left': leftCollapsed ? '42px' : `${leftWidth}px`, '--workspace-right': rightCollapsed ? '42px' : `${rightWidth}px` } as CSSProperties}>
     <aside className="spn-workspace-side spn-workspace-side-left" aria-label={leftTitle}>
-      <div className="spn-workspace-side-heading" style={leftTitle === 'Node Library' ? { fontSize: '16px' } : undefined}><span>{!leftCollapsed && leftTitle}</span><button type="button" aria-label={leftCollapsed ? 'Expand left panel' : 'Collapse left panel'} onClick={() => setLeftCollapsed((value) => !value)}>{leftCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}</button></div>
+      <div className="spn-workspace-side-heading"><span>{!leftCollapsed && leftTitle}</span><button type="button" aria-label={leftCollapsed ? 'Expand left panel' : 'Collapse left panel'} onClick={() => setLeftCollapsed((value) => !value)}>{leftCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}</button></div>
       {!leftCollapsed && <div className="spn-workspace-side-content">{leftPanel}</div>}
       {!leftCollapsed && <div className="spn-workspace-resize-handle workspace-resize-handle-left" role="separator" aria-label="Resize left panel" onPointerDown={(event) => startResize('left', event)} />}
     </aside>

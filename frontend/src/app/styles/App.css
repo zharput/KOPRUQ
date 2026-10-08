@@ -176,7 +176,8 @@
 .spn-workspace-side-left { border-right: 1px solid var(--border); }
 .spn-workspace-side-right { border-left: 1px solid var(--border); }
 .spn-workspace-side-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex: none; min-height: 44px; padding: 0 12px; border-bottom: 1px solid var(--border); color: var(--text-secondary); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
-.spn-workspace-side-left .spn-workspace-side-heading { font-size: var(--kp-sidebar-heading-font-size); font-weight: 600; }
+.spn-workspace-side-left .spn-workspace-side-heading,
+.spn-workspace-side-left .spn-workspace-side-heading span { font-size: var(--kq-sidebar-heading-font-size); color: var(--kq-sidebar-heading-color); font-weight: 600; }
 .spn-workspace-side-heading button { display: grid; place-items: center; width: 26px; height: 26px; flex: none; padding: 0; border: 1px solid transparent; background: transparent; color: var(--text-muted); cursor: pointer; }
 .spn-workspace-side-heading button:hover { border-color: var(--border); color: var(--text-primary); }
 .spn-workspace-side-content { min-height: 0; padding: 10px; overflow: auto; }
@@ -194,7 +195,7 @@
 .spn-family-file-actions button { padding: 6px 10px; border: 1px solid var(--border); background: var(--surface-1); color: var(--text-muted); font: inherit; font-size: 10px; }
 .spn-family-file-actions button:disabled { opacity: .65; cursor: not-allowed; }
 .spn-family-nav { display: grid; gap: 5px; }
-.spn-family-nav button { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 3px 8px; padding: 9px 8px; color: var(--text-secondary); border: 1px solid transparent; background: transparent; text-align: left; cursor: pointer; font: inherit; font-size: var(--kp-sidebar-item-font-size); font-weight: 400; }
+.spn-family-nav button { display: grid; grid-template-columns: 18px 1fr; align-items: center; gap: 3px 8px; padding: 9px 8px; color: var(--kq-sidebar-item-color); border: 1px solid transparent; background: transparent; text-align: left; cursor: pointer; font: inherit; font-size: var(--kq-sidebar-item-font-size); font-weight: 400; }
 .spn-family-nav button.active, .spn-family-nav button:hover:not(:disabled) { color: var(--text-primary); border-color: var(--border-strong); background: var(--surface-2); }
 .spn-family-nav button small { grid-column: 2; color: var(--text-muted); font-size: 9px; line-height: 1.35; }
 .spn-family-nav button:disabled { opacity: .45; cursor: not-allowed; }
@@ -331,7 +332,7 @@
 .spn-family-usage { padding: 5px 0; border-top: 1px solid var(--border); color: var(--text-primary); }
 .spn-workspace-main { min-width: 0; min-height: 0; max-height: 100%; overflow: auto; padding: 16px; background: var(--surface-0); }
 .spn-workspace-tree { display: grid; gap: 2px; }
-.spn-workspace-tree button { padding: 9px 10px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); text-align: left; font: inherit; font-size: var(--kp-sidebar-item-font-size); font-weight: 400; cursor: pointer; }
+.spn-workspace-tree button { padding: 9px 10px; border: 1px solid transparent; background: transparent; color: var(--kq-sidebar-item-color); text-align: left; font: inherit; font-size: var(--kq-sidebar-item-font-size); font-weight: 400; cursor: pointer; }
 .spn-workspace-tree button:hover { color: var(--text-primary); background: var(--surface-2); }
 .spn-workspace-tree button.active { border-color: rgba(47,123,246,.28); background: rgba(47,123,246,.12); color: var(--text-primary); }
 .spn-workspace-muted { padding: 4px 8px; color: var(--text-muted); font-size: 11px; }
@@ -349,15 +350,15 @@
 .spn-project-navigation,.spn-project-properties { min-width: 0; min-height: 0; overflow: auto; background: var(--surface-1); }
 .spn-project-navigation { padding: 12px 10px; border-right: 1px solid var(--border); }
 .spn-project-nav-group { display: grid; gap: 2px; margin-bottom: 12px; }
-.spn-project-nav-group > div { padding: 8px 9px 5px; color: var(--text-muted); font-size: var(--kp-sidebar-heading-font-size); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
-.spn-project-nav-group button { min-width: 0; padding: 7px 9px 7px 14px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); text-align: left; font: inherit; font-size: var(--kp-sidebar-item-font-size); font-weight: 400; cursor: pointer; }
+.spn-project-nav-group > div { padding: 8px 9px 5px; color: var(--kq-sidebar-heading-color); font-size: var(--kq-sidebar-heading-font-size); font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
+.spn-project-nav-group button { min-width: 0; padding: 7px 9px 7px 14px; border: 1px solid transparent; background: transparent; color: var(--kq-sidebar-item-color); text-align: left; font: inherit; font-size: var(--kq-sidebar-item-font-size); font-weight: 400; cursor: pointer; }
 .spn-project-nav-group button:hover { color: var(--text-primary); background: var(--surface-2); }
 .spn-project-nav-group button.active { border-color: rgba(47,123,246,.28); background: rgba(47,123,246,.12); color: var(--text-primary); }
 .spn-project-center { min-width: 0; min-height: 0; overflow: auto; padding: 20px; }
 .spn-project-properties { border-left: 1px solid var(--border); }
-.spn-project-properties > header { padding: 16px 14px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 12px; }
+.spn-project-properties > header { padding: 16px 14px 12px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 16px; }
 .spn-project-tabs { display: flex; gap: 4px; padding: 9px 10px; border-bottom: 1px solid var(--border); }
-.spn-project-tabs button { padding: 6px 8px; border: 1px solid transparent; background: transparent; color: var(--text-muted); font: inherit; font-size: 10px; cursor: pointer; }
+.spn-project-tabs button { padding: 6px 8px; border: 1px solid transparent; background: transparent; color: var(--text-muted); font: inherit; font-size: 12px; cursor: pointer; }
 .spn-project-tabs button.active { border-color: var(--border); background: var(--surface-2); color: var(--text-primary); }
 .spn-project-property-fields { display: grid; align-content: start; gap: 10px; padding: 12px; }
 .spn-project-property { display: grid; gap: 5px; padding: 5px 2px 9px; border-bottom: 1px solid var(--border); }
@@ -394,8 +395,8 @@
 .spn-bridge-tree { padding: 10px; border-right: 1px solid var(--border); }
 .spn-bridge-tree > .spn-field { margin-bottom: 10px; }
 .spn-bd-nav-group { display: grid; gap: 1px; margin-bottom: 7px; }
-.spn-bd-nav-group > div { padding: 6px 8px 3px; color: var(--text-muted); font-size: var(--kp-sidebar-heading-font-size); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
-.spn-bd-nav-group button { padding: 5px 8px 5px 13px; border: 1px solid transparent; background: transparent; color: var(--text-secondary); text-align: left; font: inherit; font-size: var(--kp-sidebar-item-font-size); font-weight: 400; cursor: pointer; }
+.spn-bd-nav-group > div { padding: 6px 8px 3px; color: var(--kq-sidebar-heading-color); font-size: var(--kq-sidebar-heading-font-size); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.spn-bd-nav-group button { padding: 5px 8px 5px 13px; border: 1px solid transparent; background: transparent; color: var(--kq-sidebar-item-color); text-align: left; font: inherit; font-size: var(--kq-sidebar-item-font-size); font-weight: 400; cursor: pointer; }
 .spn-bd-nav-group button:hover { color: var(--text-primary); background: var(--surface-2); }
 .spn-bd-nav-group button.active { border-color: rgba(47,123,246,.28); background: rgba(47,123,246,.12); color: var(--text-primary); }
 .spn-bridge-center { min-width: 0; min-height: 0; overflow: auto; padding: 15px; }
@@ -2111,6 +2112,17 @@
 .spn-card .spn-pre,
 .spn-card .spn-formula-row,
 .spn-card .spn-formula-row * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; color: var(--text-secondary); }
+.spn-card:has(.spn-formula-rows) { width: min(1150px, 100%); max-width: min(1150px, 100%); }
+.spn-card:has(.spn-formula-rows) .spn-formula-rows { display: grid; gap: 10px; padding: 15px; border: 1px solid #303B48; border-radius: 6px; background: #1C242E; }
+.spn-card:has(.spn-formula-rows) .spn-formula-row { display: flex; flex-direction: row; align-items: center; flex-wrap: nowrap; gap: 8px; width: 100%; height: 48px; min-height: 48px; padding: 6px 15px; border-bottom: 1px solid #34404E; white-space: nowrap; }
+.spn-card:has(.spn-formula-rows) .spn-formula-input { height: 34px; min-height: 34px; padding-top: 3px; padding-bottom: 3px; }
+.spn-card:has(.spn-formula-rows) .spn-formula-label { flex: 0 0 150px; color: #C7CBD1 !important; font-weight: 500; }
+.spn-card:has(.spn-formula-rows) .spn-formula-eq { display: inline-flex; flex: 0 0 auto; }
+.spn-card:has(.spn-formula-rows) .spn-formula-term { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 4px; }
+.spn-card:has(.spn-formula-rows) .spn-formula-result { margin-left: auto; flex: 0 0 auto; text-align: right; color: #E0E7EF !important; font-variant-numeric: tabular-nums; }
+.spn-card:has(.spn-formula-rows) .spn-formula-total { height: 44px; min-height: 44px; border: 1px solid #638FB3; border-radius: 6px; }
+.spn-card:has(.spn-formula-rows) .spn-formula-total .spn-formula-label, .spn-card:has(.spn-formula-rows) .spn-formula-total .spn-formula-result { color: #85B9E8 !important; font-weight: 600; }
+@media (max-width: 800px) { .spn-card:has(.spn-formula-rows) .spn-formula-row { min-width: 1000px; } .spn-card:has(.spn-formula-rows) .spn-formula-rows { overflow-x: auto; } }
 .spn-card input,
 .spn-card select,
 .spn-card option { color: var(--text-primary); }
@@ -2125,12 +2137,8 @@
 .spn-workspace-side-left,
 .spn-workspace-side-left *,
 .spn-workspace-side-right,
-.spn-workspace-side-right * { font-family: var(--spn-ui-font-family) !important; color: var(--text-secondary); }
-.spn-workspace-nav-item { font-size: 14px !important; color: #aab6c9; }
-.spn-workspace-side-left,
-.spn-workspace-side-right,
-.spn-workspace-side-left *:not(svg),
-.spn-workspace-side-right *:not(svg) { font-size: 12px; }
+.spn-workspace-side-right * { font-family: var(--spn-ui-font-family) !important; }
+.spn-workspace-nav-item { font-size: var(--kq-sidebar-heading-font-size) !important; color: #aab6c9; }
 .spn-workspace-side-left:has(.spn-graph-library) .spn-workspace-side-heading,
 .spn-workspace-side-left:has(.spn-graph-library) .spn-workspace-side-heading span { font-size: 16px; }
 .spn-workspace-side-right .spn-graph-inspector,
@@ -3916,4 +3924,255 @@
 }
 .family-workspace-shell .spn-girder-preview-properties .property-unit {
   color:#C7CBD1 !important;
+}
+
+/* Global sidebar typography tokens for the legacy grouped sidebar and node
+   library. These rules change text only; existing backgrounds and states stay
+   owned by their original selectors. */
+.spn-nav-group-header {
+  font-size: var(--kq-sidebar-heading-font-size);
+  color: var(--kq-sidebar-heading-color);
+}
+.spn-nav-item {
+  font-size: var(--kq-sidebar-item-font-size);
+  color: var(--kq-sidebar-item-color);
+}
+.spn-nav-item-active {
+  color: var(--kq-sidebar-item-color);
+}
+.spn-graph-library-category-heading,
+.spn-graph-library-category-heading span,
+.spn-graph-library-group h3 {
+  font-size: var(--kq-sidebar-item-font-size);
+  color: var(--kq-sidebar-item-color) !important;
+}
+.spn-graph-library-item,
+.spn-graph-library-item span {
+  font-size: var(--kq-sidebar-item-font-size);
+  color: var(--kq-sidebar-item-color) !important;
+}
+.family-workspace-shell .family-structural-library > h2 {
+  font-size: var(--kq-sidebar-heading-font-size) !important;
+  color: var(--kq-sidebar-heading-color) !important;
+}
+.family-workspace-shell .family-structural-library button,
+.family-workspace-shell .family-structural-library button span {
+  font-size: var(--kq-sidebar-item-font-size) !important;
+  color: var(--kq-sidebar-item-color) !important;
+}
+
+/* Family Workspace section-parameter presentation contract. */
+.family-workspace-shell .family-workspace-header h1 {
+  font-size: 16px;
+  color: #C7CBD1;
+  text-transform: uppercase;
+}
+.family-workspace-shell .family-workspace-header p {
+  font-size: 12px;
+  color: #9299A3;
+}
+.family-workspace-shell .family-parameters-panel > .family-panel-title {
+  font-size: 16px;
+  color: #9CB8CC;
+}
+.family-workspace-shell .family-parameters-panel .spn-family-parameters th,
+.family-workspace-shell .family-parameters-panel .spn-family-parameters td,
+.family-workspace-shell .family-parameters-panel .spn-family-parameters th button,
+.family-workspace-shell .family-parameters-panel .spn-family-parameters .family-param-symbol,
+.family-workspace-shell .family-parameters-panel .spn-family-parameters .family-param-description {
+  font-size: 14px !important;
+  color: #C7CBD1;
+}
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table th,
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table th button,
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table td,
+.family-workspace-shell .family-candidate-table .spn-family-candidate-table tbody tr.spn-row-selected > td {
+  color: #C7CBD1;
+}
+
+/* Project Workspace typography. The explicit importance on card content is
+   required only because the legacy .spn-card * rule above also uses it. */
+.spn-project-shell .spn-project-overview-heading h1,
+.spn-project-shell .spn-project-settings-heading h1 {
+  font-size: var(--kq-project-title-size) !important;
+  color: var(--kq-project-title-color) !important;
+}
+.spn-project-shell .spn-project-name,
+.spn-project-shell .spn-project-overview-columns .spn-card-title {
+  font-size: var(--kq-project-section-size) !important;
+  color: var(--kq-project-section-color) !important;
+}
+.spn-project-shell .spn-project-center > .spn-card > .spn-card-title {
+  font-size: var(--kq-project-section-size) !important;
+  color: var(--kq-project-section-color) !important;
+}
+.spn-project-shell .spn-project-center > .spn-card > h1.spn-card-title {
+  font-size: var(--kq-project-title-size) !important;
+  color: var(--kq-project-title-color) !important;
+}
+
+/* Loads Workspace typography. The scoped content rules intentionally
+   override the legacy .spn-card * typography rule, without changing layout
+   or engineering controls. */
+.spn-loads-workspace > .spn-steps-row .spn-step-sub {
+  font-size: var(--kq-loads-tab-font-size);
+  color: var(--kq-loads-tab-color);
+}
+.spn-loads-workspace > .spn-steps-row .spn-step-sub:hover,
+.spn-loads-workspace > .spn-steps-row .spn-step-sub.spn-step-active {
+  color: var(--kq-loads-tab-color);
+}
+.spn-loads-workspace > [data-state] h1,
+.spn-loads-workspace > [data-state] h2,
+.spn-loads-workspace > [data-state] h3,
+.spn-loads-workspace > [data-state] label,
+.spn-loads-workspace > [data-state] span,
+.spn-loads-workspace > [data-state] strong,
+.spn-loads-workspace > [data-state] p,
+.spn-loads-workspace > [data-state] th,
+.spn-loads-workspace > [data-state] td,
+.spn-loads-workspace > [data-state] small,
+.spn-loads-workspace > [data-state] input,
+.spn-loads-workspace > [data-state] select,
+.spn-loads-workspace > [data-state] textarea,
+.spn-loads-workspace > [data-state] button {
+  font-size: var(--kq-loads-content-font-size) !important;
+  color: var(--kq-loads-content-color) !important;
+}
+.spn-loads-workspace > [data-state] .spn-card-subtitle {
+  font-size: var(--kq-loads-note-font-size) !important;
+  color: var(--kq-loads-note-color) !important;
+}
+.spn-loads-workspace > [data-state] .spn-card-title {
+  font-size: 16px !important;
+  color: #9CB8CC !important;
+}
+.spn-loads-workspace > [data-state] .spn-card-subtitle {
+  font-size: 11px !important;
+  color: #9299A3 !important;
+}
+.spn-loads-workspace > [data-state] .spn-card > p:last-child {
+  font-size: 11px !important;
+  color: #9299A3 !important;
+}
+.spn-loads-workspace > [data-state] .spn-card > .spn-field-grid + p {
+  margin-block: 28px;
+}
+.spn-loads-workspace > [data-state] .spn-pre strong {
+  color: #9CB8CC !important;
+}
+
+.spn-spectrum-tooltip { width: 220px; padding: 12px; border: 1px solid var(--kq-chart-tooltip-border); border-radius: 6px; background: var(--kq-chart-tooltip-bg); box-shadow: 0 4px 12px rgb(0 0 0 / 25%); color: var(--kq-chart-tooltip-value); font-family: 'Segoe UI', var(--spn-ui-font-family); pointer-events: none; }
+.spn-spectrum-tooltip-title { margin-bottom: 10px; color: #99A7B7; font-size: 10px; font-weight: 600; letter-spacing: .04em; }
+.spn-spectrum-tooltip-grid { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px 14px; color: #B8C2CF; font-size: 12px; }
+.spn-spectrum-tooltip-grid strong { color: #F0F3F7; font-size: 13px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.spn-spectrum-tooltip-grid .spn-spectrum-tooltip-accent { color: #75B8FF; font-weight: 600; }
+.spn-spectrum-tooltip-series { display: inline-flex; align-items: center; gap: 6px; }
+.spn-spectrum-tooltip-series i { width: 7px; height: 7px; border-radius: 50%; background: #75B8FF; display: inline-block; }
+.spn-spectrum-chart { background: var(--kq-chart-bg); }
+.spn-spectrum-chart .recharts-wrapper { overflow: visible; }
+.spn-spectrum-period-label { fill: #C7CBD1; font-family: 'Segoe UI', var(--spn-ui-font-family); font-size: 11px; }
+.spn-spectrum-chart .recharts-cartesian-axis-tick-value { fill: var(--kq-chart-axis); font-size: 11px; }
+.spn-spectrum-chart .recharts-legend-item-text { color: var(--kq-chart-tooltip-label) !important; }
+
+.spn-loads-workspace .recharts-tooltip-wrapper .recharts-default-tooltip { min-width: 170px; padding: 12px 14px !important; border: 1px solid var(--kq-chart-tooltip-border) !important; border-radius: 6px; background: var(--kq-chart-tooltip-bg) !important; box-shadow: 0 4px 12px rgb(0 0 0 / 25%); }
+.spn-loads-workspace .recharts-tooltip-wrapper .recharts-tooltip-label, .spn-loads-workspace .recharts-tooltip-wrapper .recharts-tooltip-item-name { color: var(--kq-chart-tooltip-label) !important; font-size: 11px; }
+.spn-loads-workspace .recharts-tooltip-wrapper .recharts-tooltip-item { color: var(--kq-chart-tooltip-accent) !important; font-size: 13px; font-variant-numeric: tabular-nums; }
+.spn-seismic-report { display: grid; gap: 12px; margin-top: 12px; font-family: 'Segoe UI', var(--spn-ui-font-family); }
+.spn-seismic-report-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.spn-seismic-report-card { padding: 16px; border: 1px solid #303B48; border-radius: 6px; background: #1C242E; }
+.spn-seismic-report-card h3 { margin: 0 0 12px; color: #85B9E8; font-size: 12px; font-weight: 600; letter-spacing: .03em; }
+.spn-seismic-report-card h3.kopruq-seismic-calculation-heading { color: #85B9E8; font-size: 12px; font-weight: 600; font-family: 'Segoe UI', var(--spn-ui-font-family); }
+.spn-loads-workspace .spn-seismic-report-card h3,
+.spn-loads-workspace .spn-seismic-report-card h3 span { color: #85B9E8 !important; font-family: 'Segoe UI', var(--spn-ui-font-family) !important; }
+.spn-seismic-katex { overflow-x: auto; color: #DCE5EF; font-size: 15px; text-align: left; }
+.spn-seismic-katex .katex-display { margin: .35em 0; text-align: left; }
+.spn-seismic-report-card h3 span { margin-right: 8px; color: #85B9E8; font-variant-numeric: tabular-nums; }
+.spn-card:has(table.spn-table small) { width: min(820px, 100%); max-width: min(820px, 100%) !important; }
+.spn-loads-workspace .spn-card:has(.recharts-responsive-container) > .spn-button-secondary { font-size: 0 !important; }
+.spn-loads-workspace .spn-card:has(.recharts-responsive-container) > .spn-button-secondary { min-width: 89px; justify-content: center; }
+.spn-loads-workspace .spn-card:has(.recharts-responsive-container) > .spn-button-secondary { height: 34px; padding: 0 14px; border: 1px solid #638FB3; border-radius: 6px; background: #365875; color: #E8F1FA; font-family: 'Segoe UI', var(--spn-ui-font-family); font-weight: 500; transition: background-color 150ms ease; }
+.spn-loads-workspace .spn-card:has(.recharts-responsive-container) > .spn-button-secondary:hover { background: #426B8D; border-color: #78A4C6; color: #E8F1FA; }
+.spn-loads-workspace .spn-card:has(.recharts-responsive-container) > .spn-button-secondary:active { background: #2D4B65; }
+.spn-loads-workspace .spn-card:has(.recharts-responsive-container) > .spn-button-secondary::after { content: 'Details ▾'; display: inline-block; font: 500 12.5px/14px 'Segoe UI', var(--spn-ui-font-family) !important; }
+.kopruq-calculate-wind-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 34px; padding: 0 16px; border: 1px solid #638FB3; border-radius: 6px; background: #365875; color: #E8F1FA; font: 600 12px 'Segoe UI', var(--spn-ui-font-family); transition: background-color 150ms ease; cursor: pointer; }
+.kopruq-calculate-wind-button:hover { background: #426B8D; border-color: #78A4C6; }
+.kopruq-calculate-wind-button:active { background: #2D4B65; }
+.kopruq-calculate-wind-button:disabled { background: #344252; border-color: #465564; color: #8797A8; cursor: not-allowed; }
+.spn-card:has(.kopruq-calculate-wind-button) > .spn-button-secondary { height: 34px; padding: 0 14px; border: 1px solid #638FB3; border-radius: 6px; background: #365875; color: #E8F1FA; font-family: 'Segoe UI', var(--spn-ui-font-family); font-size: 12px; font-weight: 500; transition: background-color 150ms ease; }
+.spn-card:has(.kopruq-calculate-wind-button) > .spn-button-secondary:hover { background: #426B8D; border-color: #78A4C6; color: #E8F1FA; }
+.spn-card:has(.kopruq-calculate-wind-button) > .spn-button-secondary:active { background: #2D4B65; }
+.spn-card:has(table.spn-table small) > .spn-button-secondary { height: 34px; padding: 0 14px; border: 1px solid #638FB3; border-radius: 6px; background: #365875; color: #E8F1FA; font-family: 'Segoe UI', var(--spn-ui-font-family); font-size: 12px; font-weight: 500; transition: background-color 150ms ease; }
+.spn-card:has(table.spn-table small) > .spn-button-secondary:hover { background: #426B8D; border-color: #78A4C6; color: #E8F1FA; }
+.spn-card:has(table.spn-table small) > .spn-button-secondary:active { background: #2D4B65; }
+.kopruq-calculate-wind-spinner { animation: kopruq-wind-spin .8s linear infinite; }
+@keyframes kopruq-wind-spin { to { transform: rotate(360deg); } }
+.spn-seismic-report-rows { display: grid; gap: 8px; }
+.spn-seismic-report-rows > div { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid #34404E; padding-bottom: 6px; font-size: 12px; }
+.spn-seismic-report-rows span { color: #A9B5C2; }
+.spn-seismic-report-rows strong { color: #E0E7EF; font-weight: 500; font-variant-numeric: tabular-nums; }
+.spn-seismic-report-subtitle, .spn-seismic-report-card small { color: #9299A3; font-size: 11px; }
+.spn-seismic-formula-steps, .spn-seismic-equations { display: grid; gap: 10px; }
+.spn-seismic-formula-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.spn-seismic-formula-steps > div { display: grid; gap: 5px; padding: 4px 16px; border: 0; border-right: 1px solid #34404E; }
+.spn-seismic-formula-steps > div:first-child { padding-left: 0; }
+.spn-seismic-formula-steps > div:last-child { border-right: 0; }
+.spn-seismic-equations { gap: 12px; overflow-x: auto; }
+.spn-seismic-equations > div { display: grid; grid-template-columns: 160px minmax(max-content, 1fr); align-items: baseline; gap: 14px; padding: 0; border: 0; border-radius: 0; }
+.spn-seismic-formula-steps code, .spn-seismic-equations code { color: #DCE5EF; font: 12px 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.spn-seismic-formula-steps .result code { color: #85B9E8; font-size: 15px; font-weight: 600; }
+.spn-seismic-equations b { color: #C7CBD1; font-size: 12px; font-weight: 400; white-space: nowrap; }
+.spn-spectrum-math { display: flex; gap: 18px; align-items: flex-start; overflow-x: auto; color: #DCE5EF; font: 15px 'Segoe UI', sans-serif; line-height: 1.65; }
+.spn-spectrum-math-main { white-space: nowrap; }
+.spn-spectrum-cases { display: grid; gap: 7px; min-width: max-content; }
+.spn-spectrum-cases > div { display: grid; grid-template-columns: max-content max-content; gap: 22px; align-items: center; }
+.spn-spectrum-cases small { color: #A9B5C2; font-size: 12px; }
+.spn-math-fraction { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.05; margin: 0 2px; }
+.spn-math-fraction > span:first-child { border-bottom: 1px solid currentColor; padding: 0 3px 2px; }
+.spn-math-fraction > span:last-child { padding: 2px 3px 0; }
+.spn-seismic-results-table { width: 100%; border-collapse: collapse; color: #E0E7EF; font-size: 12px; }
+.spn-seismic-results-table th, .spn-seismic-results-table td { padding: 7px 8px; border-bottom: 1px solid #34404E; text-align: left; font-variant-numeric: tabular-nums; }
+.spn-seismic-results-table th:not(:first-child), .spn-seismic-results-table td:not(:first-child) { text-align: right; }
+.spn-seismic-results-table th { color: #A9B5C2; font-weight: 600; }
+@media (max-width: 700px) { .spn-seismic-report-grid, .spn-seismic-formula-steps { grid-template-columns: 1fr; } .spn-seismic-formula-steps > div { border-right: 0; border-bottom: 1px solid #34404E; padding: 8px 0; } .spn-seismic-formula-steps > div:last-child { border-bottom: 0; } .spn-seismic-equations > div { grid-template-columns: 120px max-content; } }
+.spn-project-shell .spn-project-identity-grid strong,
+.spn-project-shell .spn-project-read-grid strong,
+.spn-project-shell .spn-project-metrics strong,
+.spn-project-shell .spn-project-facts-list dd,
+.spn-project-shell .spn-project-description,
+.spn-project-shell .spn-project-property strong {
+  font-size: var(--kq-project-value-size) !important;
+  color: var(--kq-project-value-color) !important;
+}
+.spn-project-shell .spn-project-identity-grid span,
+.spn-project-shell .spn-project-read-grid span,
+.spn-project-shell .spn-project-metrics span,
+.spn-project-shell .spn-project-facts-list dt,
+.spn-project-shell .spn-project-overview-heading p,
+.spn-project-shell .spn-project-settings-heading p,
+.spn-project-shell .spn-project-property span {
+  font-size: var(--kq-project-label-size) !important;
+  color: var(--kq-project-label-color) !important;
+}
+
+/* Family bottom alignment: use the shared grid as the only vertical sizing
+   authority. Parameters remain intrinsic; library and properties stretch to
+   the frozen preview's content-area bottom. */
+@media (min-width:1280px) {
+  .family-workspace-shell { align-content:stretch; }
+  .family-workspace-shell > .family-structural-library {
+    align-self:stretch;
+    height:auto !important;
+    min-height:0;
+  }
+  .family-workspace-shell > .family-workspace-main > .family-workspace-columns > .family-parameters-panel {
+    align-self:start;
+    height:auto !important;
+    min-height:0;
+  }
+  .family-workspace-shell > .family-results-workspace > .family-properties-panel {
+    align-self:stretch;
+    height:auto !important;
+    min-height:0;
+  }
 }

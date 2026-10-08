@@ -12,6 +12,7 @@ import type { CrossSectionValues } from '../../superstructure-families'
 import UniformTemperaturePanel from './temperature/UniformTemperaturePanel'
 import WindLoadsPanel from './wind/WindLoadsPanel'
 import SeismicPanel from './seismic/SeismicPanel'
+import type { WindCalculationSnapshot } from '../../../shared/project-file/projectFileTypes'
 
 /**
  * PROJECT > Loads (revised 2026-09-11): a top row of tabs, one per load
@@ -47,12 +48,12 @@ import SeismicPanel from './seismic/SeismicPanel'
  * different, future module), per the engineer's explicit scope.
  */
 
-export default function LoadsPanel({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
+export default function LoadsPanel({ crossSectionValues, windLoads, setWindLoads }: { crossSectionValues: CrossSectionValues; windLoads?: WindCalculationSnapshot | null; setWindLoads?: (snapshot: WindCalculationSnapshot | null) => void }) {
   const categories: DetailCategory[] = [
     { label: 'Self Weight & Permanent', icon: Anchor, content: <SelfWeightPermanent crossSectionValues={crossSectionValues} /> },
     { label: 'Traffic', icon: Car, content: <TrafficLoadsPanel crossSectionValues={crossSectionValues} /> },
     { label: 'Temperature', icon: Thermometer, content: <UniformTemperaturePanel /> },
-    { label: 'Wind', icon: Wind, content: <WindLoadsPanel deckWidthM={crossSectionValues.platformWidthM} /> },
+    { label: 'Wind', icon: Wind, content: <WindLoadsPanel deckWidthM={crossSectionValues.platformWidthM} result={windLoads?.result ?? null} onResult={(result) => setWindLoads?.({ schemaVersion: 1, status: result?.status, inputs: { vb: '', terrain: '', ze: '', deckWidthM: crossSectionValues.platformWidthM, drefM: 3 }, result })} /> },
     {
       label: 'Seismic',
       icon: Waves,
@@ -69,5 +70,5 @@ export default function LoadsPanel({ crossSectionValues }: { crossSectionValues:
     },
   ]
 
-  return <TabDetailPanel categories={categories} />
+  return <TabDetailPanel className="spn-loads-workspace" categories={categories} />
 }

@@ -102,5 +102,5 @@ export default function TrafficLoadsPanel({ crossSectionValues }: { crossSection
     },
   ]
 
-  return <TabDetailPanel categories={categories} />
+  return <TabDetailPanel className="spn-traffic-workspace" categories={categories} />
 }

@@ -1,0 +1,7 @@
+frontend/src/shared/ui/UnsavedChangesModal.tsx
+frontend/src/shared/ui/generation.ts
+frontend/src/test/setup.ts
+frontend/tsconfig.app.json
+frontend/tsconfig.json
+frontend/tsconfig.node.json
+frontend/vite.config.ts

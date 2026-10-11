@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "exclude_directories": [
+    ".git",
+    ".claude",
+    "node_modules",
+    "vendor",
+    ".venv",
+    "venv",
+    "dist",
+    "build",
+    "coverage",
+    ".next",
+    "__pycache__"
+  ],
+  "exclude_paths": [
+    "docs/features",
+    "docs/reviews"
+  ],
+  "max_text_file_bytes": 524288,
+  "batch_size": 20,
+  "analyzer_policy": "existing-only-no-install-no-autofix",
+  "report_root": "docs/reviews"
+}

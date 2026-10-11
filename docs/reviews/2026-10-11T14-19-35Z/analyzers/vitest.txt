@@ -1,0 +1,2176 @@
+vitest/5.0.0 win32-x64 node-v24.15.0
+
+ RUN  v5.0.0 C:/Users/cemha/repos/KOPRUQ/frontend
+
+ ❯ src/features/graph/ui/EngineeringNodeShell.test.tsx (20 tests | 7 failed) 454ms
+   ❯ reusable engineering node shell (20)
+     × keeps rectangular pier B/D dimensions semantic for B=3, D=1.5 207ms
+     × keeps rectangular pier B/D dimensions semantic for B=5, D=1.5 60ms
+     × keeps rectangular pier B/D dimensions semantic for B=3, D=4 40ms
+     × projects substructure.pier.circular local lengths through the active project unit 5ms
+     × projects substructure.pier.rectangular local lengths through the active project unit 5ms
+     × projects substructure.pier.box local lengths through the active project unit 7ms
+     × projects substructure.pier.h_section local lengths through the active project unit 5ms
+ ❯ src/features/graph/ui/NodeInspector.test.tsx (44 tests | 8 failed) 543ms
+   ❯ Node Inspector (44)
+     × converts a local numeric value when its unit selector changes 77ms
+     × uses a rounded obround for Oval Pier with resolved B and D and reference axes 15ms
+     × shows H-section dimensions with B transverse and D longitudinal 23ms
+     × draws T-Cap flange at the bottom with its stem extending upward 14ms
+     × shows shallow foundation PLAN and SECTION with Lx, Ly, H and axis 12ms
+     × shows piled foundation pile grid in PLAN and cap/piles in SECTION using derived geometry 15ms
+     × converts schematic values to Project display units and indicates connected ranges 9ms
+     × updates the schematic from changed local parameters without waiting for Run 15ms
+ ❯ src/features/graph/ui/ListOutputNode.test.tsx (8 tests | 4 failed) 249ms
+   ❯ List output node (8)
+     × renders the full Elastomeric Bearing candidate geometry and distinct stiffness units 137ms
+     × renders shallow and piled foundation candidates with source candidate-derived Lx/Ly 15ms
+     × expands a PierCandidate into generic labeled engineering fields 13ms
+     × renders compact Rectangular and T-Cap candidate rows and details 8ms
+ ❯ src/features/graph/ui/BaseNode.test.tsx (24 tests | 3 failed) 560ms
+   ❯ Watch node rendering (8)
+     × renders editable Range Start/End/Step, an immediate value count, and disables a connected editor 95ms
+   ❯ canvas port labels and structural family theme (16)
+     × input.number keeps the editor and removes the redundant Value label 25ms
+     × input.integer keeps the editor and removes the redundant Value label 21ms
+ ❯ src/features/graph/ui/EditableNumericInput.test.tsx (3 tests | 3 failed) 635ms
+   ❯ editable numeric input buffer (3)
+     × supports select-all replacement and commits once on Enter 324ms
+     × retains an empty blurred editor as invalid without converting it to zero 137ms
+     × rejects decimal text in Integer editors and contains canvas shortcut propagation 173ms
+(node:34496) [THREE_CJS_DEPRECATED] DeprecationWarning: `require("three")` is deprecated and will be removed.
+Replace `const THREE = require("three")` with `import * as THREE from "three"`.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ ❯ src/app/App.test.tsx (33 tests | 1 failed) 10919ms
+   ❯ App workspace shell (33)
+     × opens the read-only Graph-generated Family Workspace 87ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 26 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/app/App.test.tsx > App workspace shell > opens the read-only Graph-generated Family Workspace
+TestingLibraryElementError: Unable to find an element with the text: Review structural family alternatives generated in Graph. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-app-root"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33maria-label[39m=[32m"Primary workspaces"[39m
+        [33mclass[39m=[32m"spn-workspace-nav"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-active-project"[39m
+          [33mtitle[39m=[32m"Untitled"[39m
+        [36m>[39m
+          [36m<strong>[39m
+            [0mUntitled[0m
+          [36m</strong>[39m
+          [36m<small>[39m
+            [0mUntitled[0m
+          [36m</small>[39m
+        [36m</div>[39m
+        [36m<nav[39m
+          [33maria-label[39m=[32m"Workspaces"[39m
+          [33mclass[39m=[32m"spn-workspace-nav-items"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"spn-file-menu"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-expanded[39m=[32m"false"[39m
+              [33mclass[39m=[32m"spn-workspace-nav-item"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mclass[39m=[32m"lucide lucide-file-text"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"1.45"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M14 2v5a1 1 0 0 0 1 1h5"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M10 9H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 13H8"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M16 17H8"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mFile[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<input[39m
+              [33maccept[39m=[32m".kopruq,application/json"[39m
+              [33mhidden[39m=[32m""[39m
+              [33mtype[39m=[32m"file"[39m
+            [36m/>[39m
+          [36m</div>[39m
+          [36m<a[39m
+            [33maria-label[39m=[32m"Project"[39m
+            [33mclass[39m=[32m"spn-workspace-nav-item"[39m
+            [33mdata-discover[39m=[32m"true"[39m
+            [33mhref[39m=[32m"/project"[39m
+            [33mtitle[39m=[32m"Project"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-folder-kanban"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"1.6"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M8 10v4"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 10v2"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M16 10v6"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<span>[39m
+              [0mProject[0m
+            [36m</span>[39m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-label[39m=[32m"Graph"[39m
+            [33mclass[39m=[32m"spn-workspace-nav-item"[39m
+            [33mdata-discover[39m=[32m"true"[39m
+            [33mhref[39m=[32m"/graph"[39m
+            [33mtitle[39m=[32m"Graph"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33maria-hidden[39m=[32m"true"[39m
+              [33mclass[39m=[32m"lucide lucide-network"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"20"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"1.6"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"20"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"6"[39m
+                [33mrx[39m=[32m"1"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"16"[39m
+                [33my[39m=[32m"16"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"6"[39m
+                [33mrx[39m=[32m"1"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"2"[39m
+                [33my[39m=[32m"16"[39m
+              [36m/>[39m
+              [36m<rect[39m
+                [33mheight[39m=[32m"6"[39m
+                [33mrx[39m=[32m"1"[39m
+                [33mwidth[39m=[32m"6"[39m
+                [33mx[39m=[32m"9"[39m
+                [33my[39m=[32m"2"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 12V8"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [36m<span>[39m
+              [0mGraph[0m
+            [36m</span>[39m
+          [36m</a>[39m
+          [36m<a[39m
+            [33maria-current[39m=[32m"page"[39m
+            [33maria-label[39m=[32m"Family"[39m
+            [33mclass[39m=[32m"spn-workspace-nav-item active"[39m
+            [33mdata-discover[39m=[32m"true"[39m
+            [33mhref[39m=[32m"/family-tables"[39m
+            [33mti...
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/app/App.test.tsx:83:19
+     81|     await user.click(within(screen.getByRole('navigation', { name: 'Wo…
+     82|     expect(screen.getByRole('complementary', { name: 'Family Library' …
+     83|     expect(screen.getByText('Review structural family alternatives gen…
+       |                   ^
+     84|     expect(screen.getByRole('combobox', { name: 'Family Type' })).toBe…
+     85|     expect(screen.getByText('Select a source node to view Graph-genera…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/26]⎯
+
+ FAIL  src/features/graph/ui/BaseNode.test.tsx > Watch node rendering > renders editable Range Start/End/Step, an immediate value count, and disables a connected editor
+TestingLibraryElementError: Unable to find an accessible element with the role "textbox" and name "Range Start"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"spn-graph-node-title"[39m
+    [33mstyle[39m=[32m"background-color: rgb(70, 81, 94); color: rgb(242, 242, 242); --node-group-color: #46515E; --node-group-text: #F2F2F2;"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"spn-node-header-label"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Range Start":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Range Start"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"2"[39m
+  [36m/>[39m
+
+  Name "Range End":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Range End"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33mdisabled[39m=[32m""[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"8"[39m
+  [36m/>[39m
+
+  Name "Range Step":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Range Step"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"0.5"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node category-input spn-graph-range-node"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(70, 81, 94); color: rgb(242, 242, 242); --node-group-color: #46515E; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"Range"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/range.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mRange[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"INPUT"[39m
+            [36m>[39m
+              [0mINPUT[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-graph-node-content"[39m
+        [33mstyle[39m=[32m"min-height: 139px;"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-port-row input spn-graph-range-port"[39m
+          [33mstyle[39m=[32m"top: 25px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"start"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-start-target"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mStart[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-graph-number-control"[39m
+          [36m>[39m
+            [36m<input[39m
+              [33maria-invalid[39m=[32m"false"[39m
+              [33maria-label[39m=[32m"Range Start"[39m
+              [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+              [33minputmode[39m=[32m"decimal"[39m
+              [33mtype[39m=[32m"number"[39m
+              [33mvalue[39m=[32m"2"[39m
+            [36m/>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-port-row input spn-graph-range-port"[39m
+          [33mstyle[39m=[32m"top: 65px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"end"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-end-target"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mEnd[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-graph-number-control"[39m
+          [36m>[39m
+            [36m<input[39m
+              [33maria-invalid[39m=[32m"false"[39m
+              [33maria-label[39m=[32m"Range End"[39m
+              [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33minputmode[39m=[32m"decimal"[39m
+              [33mtype[39m=[32m"number"[39m
+              [33mvalue[39m=[32m"8"[39m
+            [36m/>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-port-row input spn-graph-range-port"[39m
+          [33mstyle[39m=[32m"top: 105px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"increment"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-increment-target"[39m
+          [36m/>[39m
+          [36m<span>[39m
+            [0mStep[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-graph-number-control"[39m
+          [36m>[39m
+            [36m<input[39m
+              [33maria-invalid[39m=[32m"false"[39m
+              [33maria-label[39m=[32m"Range Step"[39m
+              [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+              [33minputmode[39m=[32m"decimal"[39m
+              [33mtype[39m=[32m"number"[39m
+              [33mvalue[39m=[32m"0.5"[39m
+            [36m/>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-port-row output"[39m
+          [33mstyle[39m=[32m"top: 45px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-right nodrag nopan source connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"values"[39m
+            [33mdata-handlepos[39m=[32m"right"[39m
+            [33mdata-id[39m=[32m"1-null-values-source"[39m
+          [36m/>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-range-summary"[39m
+        [36m>[39m
+          [0m13 values[0m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/BaseNode.test.tsx:96:24
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/26]⎯
+
+ FAIL  src/features/graph/ui/BaseNode.test.tsx > canvas port labels and structural family theme > input.number keeps the editor and removes the redundant Value label
+TestingLibraryElementError: Unable to find an accessible element with the role "textbox" and name "Number value"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"spn-graph-node-title"[39m
+    [33mstyle[39m=[32m"background-color: rgb(70, 81, 94); color: rgb(242, 242, 242); --node-group-color: #46515E; --node-group-text: #F2F2F2;"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"spn-node-header-label"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Number value":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Number value"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"10"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node category-input"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(70, 81, 94); color: rgb(242, 242, 242); --node-group-color: #46515E; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"Number"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/number.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mNumber[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"INPUT"[39m
+            [36m>[39m
+              [0mINPUT[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-graph-node-content"[39m
+        [33mstyle[39m=[32m"min-height: 55px;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-graph-number-control"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"Number value"[39m
+            [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+            [33minputmode[39m=[32m"decimal"[39m
+            [33mtype[39m=[32m"number"[39m
+            [33mvalue[39m=[32m"10"[39m
+          [36m/>[39m
+        [36m</span>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-port-row output"[39m
+          [33mstyle[39m=[32m"top: 40px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-right nodrag nopan source connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"value"[39m
+            [33mdata-handlepos[39m=[32m"right"[39m
+            [33mdata-id[39m=[32m"1-null-value-source"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/BaseNode.test.tsx:107:19
+    105|     const { container } = renderCanvasNode(type)
+    106|     expect(screen.queryByText('Value')).not.toBeInTheDocument()
+    107|     expect(screen.getByRole('textbox', { name: type === 'input.integer…
+       |                   ^
+    108|     expect(container.querySelector('.spn-graph-port-row small')).toBeN…
+    109|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/26]⎯
+
+ FAIL  src/features/graph/ui/BaseNode.test.tsx > canvas port labels and structural family theme > input.integer keeps the editor and removes the redundant Value label
+TestingLibraryElementError: Unable to find an accessible element with the role "textbox" and name "Integer value"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"spn-graph-node-title"[39m
+    [33mstyle[39m=[32m"background-color: rgb(70, 81, 94); color: rgb(242, 242, 242); --node-group-color: #46515E; --node-group-text: #F2F2F2;"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"spn-node-header-label"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Integer value":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Integer value"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"5"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node category-input"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(70, 81, 94); color: rgb(242, 242, 242); --node-group-color: #46515E; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"Integer"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/integer.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mInteger[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"INPUT"[39m
+            [36m>[39m
+              [0mINPUT[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-graph-node-content"[39m
+        [33mstyle[39m=[32m"min-height: 55px;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-graph-number-control"[39m
+        [36m>[39m
+          [36m<input[39m
+            [33maria-invalid[39m=[32m"false"[39m
+            [33maria-label[39m=[32m"Integer value"[39m
+            [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+            [33minputmode[39m=[32m"numeric"[39m
+            [33mtype[39m=[32m"number"[39m
+            [33mvalue[39m=[32m"5"[39m
+          [36m/>[39m
+        [36m</span>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-port-row output"[39m
+          [33mstyle[39m=[32m"top: 40px;"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-right nodrag nopan source connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"value"[39m
+            [33mdata-handlepos[39m=[32m"right"[39m
+            [33mdata-id[39m=[32m"1-null-value-source"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/BaseNode.test.tsx:107:19
+    105|     const { container } = renderCanvasNode(type)
+    106|     expect(screen.queryByText('Value')).not.toBeInTheDocument()
+    107|     expect(screen.getByRole('textbox', { name: type === 'input.integer…
+       |                   ^
+    108|     expect(container.querySelector('.spn-graph-port-row small')).toBeN…
+    109|   })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/26]⎯
+
+ FAIL  src/features/graph/ui/EditableNumericInput.test.tsx > editable numeric input buffer > supports select-all replacement and commits once on Enter
+Error: [2mexpect([22m[31melement[39m[2m).toHaveValue([22m[32m15.5[39m[2m)[22m
+
+Expected the element to have value:
+[32m  15.5 (string)[39m
+Received:
+[31m  15.5 (number)[39m
+ ❯ src/features/graph/ui/EditableNumericInput.test.tsx:15:19
+     13|     await user.click(input)
+     14|     await user.keyboard('{Control>}a{/Control}{Backspace}15.5{Enter}')
+     15|     expect(input).toHaveValue('15.5')
+       |                   ^
+     16|     expect(onCommit).toHaveBeenCalledTimes(1)
+     17|     expect(onCommit).toHaveBeenCalledWith(15.5)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/26]⎯
+
+ FAIL  src/features/graph/ui/EditableNumericInput.test.tsx > editable numeric input buffer > retains an empty blurred editor as invalid without converting it to zero
+Error: [2mexpect([22m[31melement[39m[2m).toHaveValue()[22m
+
+Expected the element to have value:
+[32m[39m
+Received:
+[31m  null[39m
+ ❯ src/features/graph/ui/EditableNumericInput.test.tsx:26:19
+     24|     await user.click(input)
+     25|     await user.keyboard('{Control>}a{/Control}{Backspace}')
+     26|     expect(input).toHaveValue('')
+       |                   ^
+     27|     await user.click(screen.getByRole('button', { name: 'Elsewhere' }))
+     28|     expect(input).toHaveValue('')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/26]⎯
+
+ FAIL  src/features/graph/ui/EditableNumericInput.test.tsx > editable numeric input buffer > rejects decimal text in Integer editors and contains canvas shortcut propagation
+Error: [2mexpect([22m[31melement[39m[2m).toHaveValue([22m[32m2.5[39m[2m)[22m
+
+Expected the element to have value:
+[32m  2.5 (string)[39m
+Received:
+[31m  2.5 (number)[39m
+ ❯ src/features/graph/ui/EditableNumericInput.test.tsx:39:19
+     37|     await user.click(input)
+     38|     await user.keyboard('{Control>}a{/Control}2.5{Enter}')
+     39|     expect(input).toHaveValue('2.5')
+       |                   ^
+     40|     expect(input).toHaveAttribute('aria-invalid', 'true')
+     41|     expect(onCommit).toHaveBeenCalledWith('2.5')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/26]⎯
+
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > keeps rectangular pier B/D dimensions semantic for B=3, D=1.5
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Expand rectangular pier detail"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"spn-graph-node-title"[39m
+    [33mstyle[39m=[32m"background-color: rgb(45, 64, 89); color: rgb(242, 242, 242); --node-group-color: #2D4059; --node-group-text: #F2F2F2;"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"spn-node-header-label"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Longitudinal Length (B) local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Longitudinal Length (B) local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"3"[39m
+  [36m/>[39m
+
+  Name "Transverse Length (D) local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Transverse Length (D) local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1.5"[39m
+  [36m/>[39m
+
+  Name "Height local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Height local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"10"[39m
+  [36m/>[39m
+
+  Name "Columns local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Columns local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node spn-engineering-node category-structural-family category-pier"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(45, 64, 89); color: rgb(242, 242, 242); --node-group-color: #2D4059; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"Rectangular Pier"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/rentangular pier.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mRectangular Pier[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"STRUCTURAL / FAMILY"[39m
+            [36m>[39m
+              [0mSTRUCTURAL / FAMILY[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-engineering-inputs"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Longitudinal Length (B)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"width"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-width-target"[39m
+            [33mtitle[39m=[32m"Longitudinal Length (B)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Longitudinal Length (B)"[39m
+          [36m>[39m
+            [0mLongitudinal Length (B)[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Longitudinal Length (B) local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"3"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Transverse Length (D)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"depth"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-depth-target"[39m
+            [33mtitle[39m=[32m"Transverse Length (D)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Transverse Length (D)"[39m
+          [36m>[39m
+            [0mTransverse Length (D)[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Transverse Length (D) local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"1.5"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Height
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"height"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-height-target"[39m
+            [33mtitle[39m=[32m"Height
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Height"[39m
+          [36m>[39m
+            [0mHeight[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Height local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"10"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Material
+Type: ConcreteMaterial
+Accepted: ConcreteMaterial"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"material"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-material-target"[39m
+            [33mtitle[39m=[32m"Material
+Type: ConcreteMaterial
+Accepted: ConcreteMaterial"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Material"[39m
+          [36m>[39m
+            [0mMaterial[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-value"[39m
+            [33mtitle[39m=[32m"C40/50"[39m
+          [36m>[39m
+            [0mC40/50[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Columns
+Type: Integer
+Accepted: Integer
+Number of physical columns forming the pier at this support axis. Supported values: 1 or 2."[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"columns"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-columns-target"[39m
+            [33mtitle[39m=[32m"Columns
+Type: Integer
+Accepted: Integer
+Number of physical columns forming the pier at this support axis. Supported values: 1 or 2."[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Columns"[39m
+          [36m>[39m
+            [0mColumns[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Columns local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"numeric"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"1"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-engineering-outputs"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-output-row"[39m
+          [33mtitle[39m=[32m"Candidates
+Type: pierCandidate[]"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-output-label"[39m
+          [36m>[39m
+            [0mCandidates[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-output-value"[39m
+          [36m>[39m
+            [0m1 candidate[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-right nodrag nopan source connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"candidates"[39m
+            [33mdata-handlepos[39m=[32m"right"[39m
+            [33mdata-id[39m=[32m"1-null-candidates-source"[39m
+            [33mtitle[39m=[32m"Candidates
+Type: pierCandidate[]"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/EngineeringNodeShell.test.tsx:19:28
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/26]⎯
+
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > keeps rectangular pier B/D dimensions semantic for B=5, D=1.5
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Expand rectangular pier detail"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"spn-graph-node-title"[39m
+    [33mstyle[39m=[32m"background-color: rgb(45, 64, 89); color: rgb(242, 242, 242); --node-group-color: #2D4059; --node-group-text: #F2F2F2;"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"spn-node-header-label"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Longitudinal Length (B) local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Longitudinal Length (B) local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"5"[39m
+  [36m/>[39m
+
+  Name "Transverse Length (D) local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Transverse Length (D) local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1.5"[39m
+  [36m/>[39m
+
+  Name "Height local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Height local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"10"[39m
+  [36m/>[39m
+
+  Name "Columns local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Columns local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node spn-engineering-node category-structural-family category-pier"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(45, 64, 89); color: rgb(242, 242, 242); --node-group-color: #2D4059; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"Rectangular Pier"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/rentangular pier.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mRectangular Pier[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"STRUCTURAL / FAMILY"[39m
+            [36m>[39m
+              [0mSTRUCTURAL / FAMILY[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-engineering-inputs"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Longitudinal Length (B)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"width"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-width-target"[39m
+            [33mtitle[39m=[32m"Longitudinal Length (B)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Longitudinal Length (B)"[39m
+          [36m>[39m
+            [0mLongitudinal Length (B)[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Longitudinal Length (B) local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"5"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Transverse Length (D)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"depth"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-depth-target"[39m
+            [33mtitle[39m=[32m"Transverse Length (D)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Transverse Length (D)"[39m
+          [36m>[39m
+            [0mTransverse Length (D)[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Transverse Length (D) local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"1.5"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Height
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"height"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-height-target"[39m
+            [33mtitle[39m=[32m"Height
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Height"[39m
+          [36m>[39m
+            [0mHeight[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Height local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"10"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Material
+Type: ConcreteMaterial
+Accepted: ConcreteMaterial"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"material"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-material-target"[39m
+            [33mtitle[39m=[32m"Material
+Type: ConcreteMaterial
+Accepted: ConcreteMaterial"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Material"[39m
+          [36m>[39m
+            [0mMaterial[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-value"[39m
+            [33mtitle[39m=[32m"C40/50"[39m
+          [36m>[39m
+            [0mC40/50[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Columns
+Type: Integer
+Accepted: Integer
+Number of physical columns forming the pier at this support axis. Supported values: 1 or 2."[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"columns"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-columns-target"[39m
+            [33mtitle[39m=[32m"Columns
+Type: Integer
+Accepted: Integer
+Number of physical columns forming the pier at this support axis. Supported values: 1 or 2."[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Columns"[39m
+          [36m>[39m
+            [0mColumns[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Columns local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"numeric"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"1"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-engineering-outputs"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-output-row"[39m
+          [33mtitle[39m=[32m"Candidates
+Type: pierCandidate[]"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-output-label"[39m
+          [36m>[39m
+            [0mCandidates[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-output-value"[39m
+          [36m>[39m
+            [0m1 candidate[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-right nodrag nopan source connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"candidates"[39m
+            [33mdata-handlepos[39m=[32m"right"[39m
+            [33mdata-id[39m=[32m"1-null-candidates-source"[39m
+            [33mtitle[39m=[32m"Candidates
+Type: pierCandidate[]"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/EngineeringNodeShell.test.tsx:19:28
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/26]⎯
+
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > keeps rectangular pier B/D dimensions semantic for B=3, D=4
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name "Expand rectangular pier detail"
+
+Here are the accessible roles:
+
+  banner:
+
+  Name "":
+  [36m<header[39m
+    [33mclass[39m=[32m"spn-graph-node-title"[39m
+    [33mstyle[39m=[32m"background-color: rgb(45, 64, 89); color: rgb(242, 242, 242); --node-group-color: #2D4059; --node-group-text: #F2F2F2;"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  strong:
+
+  Name "":
+  [36m<strong[39m
+    [33mclass[39m=[32m"spn-node-header-label"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+  spinbutton:
+
+  Name "Longitudinal Length (B) local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Longitudinal Length (B) local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"3"[39m
+  [36m/>[39m
+
+  Name "Transverse Length (D) local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Transverse Length (D) local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"4"[39m
+  [36m/>[39m
+
+  Name "Height local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Height local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"decimal"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"10"[39m
+  [36m/>[39m
+
+  Name "Columns local default":
+  [36m<input[39m
+    [33maria-invalid[39m=[32m"false"[39m
+    [33maria-label[39m=[32m"Columns local default"[39m
+    [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+    [33minputmode[39m=[32m"numeric"[39m
+    [33mtype[39m=[32m"number"[39m
+    [33mvalue[39m=[32m"1"[39m
+  [36m/>[39m
+
+  --------------------------------------------------
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node spn-engineering-node category-structural-family category-pier"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(45, 64, 89); color: rgb(242, 242, 242); --node-group-color: #2D4059; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"Rectangular Pier"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/rentangular pier.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mRectangular Pier[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"STRUCTURAL / FAMILY"[39m
+            [36m>[39m
+              [0mSTRUCTURAL / FAMILY[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-engineering-inputs"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Longitudinal Length (B)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"width"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-width-target"[39m
+            [33mtitle[39m=[32m"Longitudinal Length (B)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Longitudinal Length (B)"[39m
+          [36m>[39m
+            [0mLongitudinal Length (B)[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Longitudinal Length (B) local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"3"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Transverse Length (D)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"depth"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-depth-target"[39m
+            [33mtitle[39m=[32m"Transverse Length (D)
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Transverse Length (D)"[39m
+          [36m>[39m
+            [0mTransverse Length (D)[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Transverse Length (D) local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"4"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Height
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"height"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-height-target"[39m
+            [33mtitle[39m=[32m"Height
+Type: Length or Length[]
+Accepted: Quantity<Length>, Quantity<Length>[], Number, number[]
+Default Unit: m"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Height"[39m
+          [36m>[39m
+            [0mHeight[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Height local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"decimal"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"10"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Material
+Type: ConcreteMaterial
+Accepted: ConcreteMaterial"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"material"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-material-target"[39m
+            [33mtitle[39m=[32m"Material
+Type: ConcreteMaterial
+Accepted: ConcreteMaterial"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Material"[39m
+          [36m>[39m
+            [0mMaterial[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-value"[39m
+            [33mtitle[39m=[32m"C40/50"[39m
+          [36m>[39m
+            [0mC40/50[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-input-row"[39m
+          [33mtitle[39m=[32m"Columns
+Type: Integer
+Accepted: Integer
+Number of physical columns forming the pier at this support axis. Supported values: 1 or 2."[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"columns"[39m
+            [33mdata-handlepos[39m=[32m"left"[39m
+            [33mdata-id[39m=[32m"1-null-columns-target"[39m
+            [33mtitle[39m=[32m"Columns
+Type: Integer
+Accepted: Integer
+Number of physical columns forming the pier at this support axis. Supported values: 1 or 2."[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-input-label"[39m
+            [33mtitle[39m=[32m"Columns"[39m
+          [36m>[39m
+            [0mColumns[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-local-value"[39m
+          [36m>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-number-control"[39m
+            [36m>[39m
+              [36m<input[39m
+                [33maria-invalid[39m=[32m"false"[39m
+                [33maria-label[39m=[32m"Columns local default"[39m
+                [33mclass[39m=[32m"spn-graph-editable-number nodrag nowheel nopan"[39m
+                [33minputmode[39m=[32m"numeric"[39m
+                [33mtype[39m=[32m"number"[39m
+                [33mvalue[39m=[32m"1"[39m
+              [36m/>[39m
+            [36m</span>[39m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-engineering-outputs"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-engineering-output-row"[39m
+          [33mtitle[39m=[32m"Candidates
+Type: pierCandidate[]"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-output-label"[39m
+          [36m>[39m
+            [0mCandidates[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-engineering-output-value"[39m
+          [36m>[39m
+            [0m1 candidate[0m
+          [36m</span>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"react-flow__handle react-flow__handle-right nodrag nopan source connectable connectablestart connectableend connectionindicator"[39m
+            [33mdata-handleid[39m=[32m"candidates"[39m
+            [33mdata-handlepos[39m=[32m"right"[39m
+            [33mdata-id[39m=[32m"1-null-candidates-source"[39m
+            [33mtitle[39m=[32m"Candidates
+Type: pierCandidate[]"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/EngineeringNodeShell.test.tsx:19:28
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/26]⎯
+
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > projects substructure.pier.circular local lengths through the active project unit
+Error: [2mexpect([22m[31melement[39m[2m).toHaveValue([22m[32m200[39m[2m)[22m
+
+Expected the element to have value:
+[32m  200 (string)[39m
+Received:
+[31m  200 (number)[39m
+ ❯ src/features/graph/ui/EngineeringNodeShell.test.tsx:134:83
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/26]⎯
+
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > projects substructure.pier.rectangular local lengths through the active project unit
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > projects substructure.pier.box local lengths through the active project unit
+ FAIL  src/features/graph/ui/EngineeringNodeShell.test.tsx > reusable engineering node shell > projects substructure.pier.h_section local lengths through the active project unit
+Error: [2mexpect([22m[31mreceived[39m[2m).toHaveValue()[22m
+
+[31mreceived[39m value must be an HTMLElement or an SVGElement.
+Received has type:  Null
+Received has value: [31mnull[39m
+ ❯ src/features/graph/ui/EngineeringNodeShell.test.tsx:134:83
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/26]⎯
+
+ FAIL  src/features/graph/ui/ListOutputNode.test.tsx > List output node > renders the full Elastomeric Bearing candidate geometry and distinct stiffness units
+AssertionError: expected 'Details0Elastomeric Bearing  Lx=600 m…' to contain 'Lx=600.00 mm'
+
+- Expected
++ Received
+
+- Lx=600.00 mm
++ Details0Elastomeric Bearing  Lx=600 mm  Ly=700 mm  H=150 mm
++ Kx=3000 kN/m  Ky=30000 kN/m  Kz=100000 kN/m  Krx=100000 kN·m/rad  Kry=100000 kN·m/rad  Krz=100000 kN·m/rad
+
+ ❯ src/features/graph/ui/ListOutputNode.test.tsx:18:54
+     16|     const bearing:BearingCandidate={id:'bearing-1',bearingType:'ELASTO…
+     17|     render(<ReactFlowProvider><ListOutputNode data={data([bearing],{le…
+     18|     expect(screen.getByRole('listitem').textContent).toContain('Lx=600…
+       |                                                      ^
+     19|     expect(screen.getByRole('listitem').textContent).toContain('Kx=300…
+     20|     await userEvent.click(screen.getByRole('button',{name:'Expand item…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/26]⎯
+
+ FAIL  src/features/graph/ui/ListOutputNode.test.tsx > List output node > renders shallow and piled foundation candidates with source candidate-derived Lx/Ly
+TestingLibraryElementError: Unable to find an element with the text: /Shallow Foundation.*Lx=8.00 m.*Ly=6.00 m.*H=2.00 m.*C35\/45/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-node spn-graph-list-node category-output has-success"[39m
+    [36m>[39m
+      [36m<header[39m
+        [33mclass[39m=[32m"spn-graph-node-title"[39m
+        [33mstyle[39m=[32m"background-color: rgb(107, 92, 80); color: rgb(242, 242, 242); --node-group-color: #6B5C50; --node-group-text: #F2F2F2;"[39m
+      [36m>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-header-main"[39m
+          [33mtitle[39m=[32m"List"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"spn-node-icon"[39m
+            [33mstyle[39m=[32m"width: 48px; height: 48px;"[39m
+          [36m>[39m
+            [36m<img[39m
+              [33malt[39m=[32m""[39m
+              [33mdraggable[39m=[32m"false"[39m
+              [33msrc[39m=[32m"/kopruq_nodes_logo/list.png"[39m
+            [36m/>[39m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"spn-node-header-copy"[39m
+          [36m>[39m
+            [36m<strong[39m
+              [33mclass[39m=[32m"spn-node-header-label"[39m
+            [36m>[39m
+              [0mList[0m
+            [36m</strong>[39m
+            [36m<small[39m
+              [33mclass[39m=[32m"spn-node-header-category"[39m
+              [33mtitle[39m=[32m"OUTPUT"[39m
+            [36m>[39m
+              [0mOUTPUT[0m
+            [36m</small>[39m
+          [36m</span>[39m
+        [36m</span>[39m
+        [36m<span[39m
+          [33mclass[39m=[32m"spn-node-runtime-status"[39m
+          [33mstyle[39m=[32m"color: rgb(111, 173, 138); -webkit-text-fill-color: rgb(111, 173, 138); opacity: 1; background: transparent;"[39m
+        [36m>[39m
+          [0mSUCCESS[0m
+        [36m</span>[39m
+      [36m</header>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"spn-graph-list-heading"[39m
+      [36m>[39m
+        [0m1 item[0m
+      [36m</div>[39m
+      [36m<div[39m
+        [33maria-label[39m=[32m"List items"[39m
+        [33mclass[39m=[32m"spn-graph-list-items"[39m
+        [33mrole[39m=[32m"list"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"spn-graph-list-item"[39m
+          [33mrole[39m=[32m"listitem"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"spn-graph-list-item-row"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Expand item 0"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mDetails[0m
+            [36m</button>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-list-index"[39m
+            [36m>[39m
+              [0m0[0m
+            [36m</span>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"spn-graph-list-summary"[39m
+              [33mtitle[39m=[32m"Shallow Foundation  Lx=8.0000 m  Ly=6.0000 m  H=2.0000 m  Material C35/45"[39m
+            [36m>[39m
+              [0mShallow Foundation  Lx=8.0000 m  Ly=6.0000 m  H=2.0000 m  Material C35/45[0m
+            [36m</span>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"react-flow__handle react-flow__handle-left nodrag nopan target connectable connectablestart connectableend connectionindicator"[39m
+        [33mdata-handleid[39m=[32m"items"[39m
+        [33mdata-handlepos[39m=[32m"left"[39m
+        [33mdata-id[39m=[32m"1-null-items-target"[39m
+        [33mtitle[39m=[32m"Items - any supported graph value"[39m
+      [36m/>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/ListOutputNode.test.tsx:27:141
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/26]⎯
+
+ FAIL  src/features/graph/ui/ListOutputNode.test.tsx > List output node > expands a PierCandidate into generic labeled engineering fields
+TestingLibraryElementError: Unable to find an element with the text: /Rectangular Pier.*B=3.00 m.*D=4.00 m.*H=10.00 m/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-label[39m=[32m"List items"[39m
+  [33mclass[39m=[32m"spn-graph-list-items"[39m
+  [33mrole[39m=[32m"list"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"spn-graph-list-item"[39m
+    [33mrole[39m=[32m"listitem"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-list-item-row"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Expand item 0"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mDetails[0m
+      [36m</button>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"spn-graph-list-index"[39m
+      [36m>[39m
+        [0m0[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"spn-graph-list-summary"[39m
+        [33mtitle[39m=[32m"Rectangular Pier  B=3.0000 m D=4.0000 m  H=10.0000 m
+Material C40/50  Columns 1"[39m
+      [36m>[39m
+        [0mRectangular Pier  B=3.0000 m D=4.0000 m  H=10.0000 m
+Material C40/50  Columns 1[0m
+      [36m</span>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</div>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/ListOutputNode.test.tsx:45:25
+     43|     render(<ReactFlowProvider><ListOutputNode data={data([candidate], …
+     44|     const rows = screen.getByRole('list')
+     45|     expect(within(rows).getByText(/Rectangular Pier.*B=3.00 m.*D=4.00 …
+       |                         ^
+     46|     expect(within(rows).getByText(/Material C40\/50.*Columns 1/)).toBe…
+     47|     expect(screen.getByRole('button', { name: 'Expand item 0' })).toHa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/26]⎯
+
+ FAIL  src/features/graph/ui/ListOutputNode.test.tsx > List output node > renders compact Rectangular and T-Cap candidate rows and details
+TestingLibraryElementError: Unable to find an element with the text: /Rectangular Cap.*L=12.00 m.*W=3.00 m.*H=2.00 m.*Material C40\/50/. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33maria-label[39m=[32m"List items"[39m
+  [33mclass[39m=[32m"spn-graph-list-items"[39m
+  [33mrole[39m=[32m"list"[39m
+[36m>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"spn-graph-list-item"[39m
+    [33mrole[39m=[32m"listitem"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-list-item-row"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Expand item 0"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mDetails[0m
+      [36m</button>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"spn-graph-list-index"[39m
+      [36m>[39m
+        [0m0[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"spn-graph-list-summary"[39m
+        [33mtitle[39m=[32m"Rectangular Cap  L=12.0000 m  W=3.0000 m  H=2.0000 m  Material C40/50"[39m
+      [36m>[39m
+        [0mRectangular Cap  L=12.0000 m  W=3.0000 m  H=2.0000 m  Material C40/50[0m
+      [36m</span>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+  [36m<div[39m
+    [33mclass[39m=[32m"spn-graph-list-item"[39m
+    [33mrole[39m=[32m"listitem"[39m
+  [36m>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"spn-graph-list-item-row"[39m
+    [36m>[39m
+      [36m<button[39m
+        [33maria-label[39m=[32m"Expand item 1"[39m
+        [33mtype[39m=[32m"button"[39m
+      [36m>[39m
+        [0mDetails[0m
+      [36m</button>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"spn-graph-list-index"[39m
+      [36m>[39m
+        [0m1[0m
+      [36m</span>[39m
+      [36m<span[39m
+        [33mclass[39m=[32m"spn-graph-list-summary"[39m
+        [33mtitle[39m=[32m"T-Cap  L=12.0000 m  Top W=3.0000 m  Stem W=1.5000 m  H=2.5000 m  tf=0.8000 m  Material C40/50"[39m
+      [36m>[39m
+        [0mT-Cap  L=12.0000 m  Top W=3.0000 m  Stem W=1.5000 m  H=2.5000 m  tf=0.8000 m  Material C40/50[0m
+      [36m</span>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</div>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/features/graph/ui/ListOutputNode.test.tsx:65:25
+     63|     render(<ReactFlowProvider><ListOutputNode data={data(candidates,{l…
+     64|     const rows=screen.getByRole('list')
+     65|     expect(within(rows).getByText(/Rectangular Cap.*L=12.00 m.*W=3.00 …
+       |                         ^
+     66|     expect(within(rows).getByText(/T-Cap.*Top W=3.00 m.*Stem W=1.50 m.…
+     67|     await user.click(screen.getByRole('button',{name:'Expand item 1'}))
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > converts a local numeric value when its unit selector changes
+Error: [2mexpect([22m[31melement[39m[2m).toHaveValue([22m[32m0.6[39m[2m)[22m
+
+Expected the element to have value:
+[32m  0.6 (string)[39m
+Received:
+[31m  0.6 (number)[39m
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:17:47
+     15|     render(<NodeInspector node={value} states={{}} errors={{}} outputs…
+     16|     expect(screen.queryByLabelText('Length X unit')).not.toBeInTheDocu…
+     17|     expect(screen.getByLabelText('Length X')).toHaveValue('0.6')
+       |                                               ^
+     18|   })
+     19|   it.each(getNodeDefinitions().map(definition => [definition.type, def…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > uses a rounded obround for Oval Pier with resolved B and D and reference axes
+AssertionError: expected 'GENERALNameTypeOval PierTYPE / SCHEMA…' to contain 'B = 3.00 m'
+
+Expected: "B = 3.00 m"
+Received: "GENERALNameTypeOval PierTYPE / SCHEMATICOval pier schematic. B = 3.0000 m · D = 1.5000 m · Bridge AxisY-YX-Xoval section previewPARAMETERSLongitudinal Length (B)Transverse Length (D)HeightMaterialSelectC12/15C16/20C20/25C25/30C30/37C35/45C40/50C45/55C50/60C55/67C60/75C70/85C80/95C90/105ColumnsFAMILYCandidate Count1Valid1Invalid0ValidationVALID"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:36:35
+     34|     expect(svg.querySelector('rect[rx]')).toBeInTheDocument()
+     35|     expect(svg.getAttribute('aria-label')).not.toContain('Bridge Axis')
+     36|     expect(container.textContent).toContain('B = 3.00 m')
+       |                                   ^
+     37|     expect(container.textContent).toContain('D = 1.50 m')
+     38|     expect(container.textContent).toContain('X-X')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > shows H-section dimensions with B transverse and D longitudinal
+AssertionError: expected 'H section pier schematic. B = 3.0000 …' to contain 'B = 3.00 m'
+
+Expected: "B = 3.00 m"
+Received: "H section pier schematic. B = 3.0000 m · D = 6.0000 m · w = 3.0000 m · ft = 0.7500 mY-YX-X"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:47:29
+     45|     const svg=screen.getByRole('img',{name:/h section pier schematic/i…
+     46|     expect(svg.querySelector('[data-orientation="rotated-90"]')).toBeI…
+     47|     expect(svg.textContent).toContain('B = 3.00 m')
+       |                             ^
+     48|     expect(svg.textContent).toContain('D = 6.00 m')
+     49|     expect(svg.textContent).toContain('tw = 3.00 m')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > draws T-Cap flange at the bottom with its stem extending upward
+AssertionError: expected 'Top / Flange Width = 3.0000 mH = 2.50…' to contain 'Length = 12.00 m'
+
+Expected: "Length = 12.00 m"
+Received: "Top / Flange Width = 3.0000 mH = 2.5000 mStem = 1.5000 mtf = 0.8000 mLength = 12.0000 mBridge Axis"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:59:156
+     57|     expect(path.getAttribute('data-flange-position')).toBe('bottom')
+     58|     expect(path.getAttribute('d')).toMatch(/^M[^ ]+ [^ ]+ H[^ ]+ V[^ ]…
+     59|     for(const text of ['Length = 12.00 m','Top / Flange Width = 3.00 m…
+       |                                                                                                                                                            ^
+     60|   })
+     61|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > shows shallow foundation PLAN and SECTION with Lx, Ly, H and axis
+AssertionError: expected 'PLANLx = 8.0000 mLy=6.0000mBridge Axi…' to contain 'Lx = 8.00 m'
+
+Expected: "Lx = 8.00 m"
+Received: "PLANLx = 8.0000 mLy=6.0000mBridge AxisSECTIONLx = 8.0000 mH=2.0000m"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:69:29
+     67|     expect(within(svg).getByText('SECTION')).toBeInTheDocument()
+     68|     expect(svg.querySelectorAll('.engineering-outline')).toHaveLength(…
+     69|     expect(svg.textContent).toContain('Lx = 8.00 m')
+       |                             ^
+     70|     expect(svg.textContent).toContain('Ly=6.00m')
+     71|     expect(svg.textContent).toContain('H=2.00m')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > shows piled foundation pile grid in PLAN and cap/piles in SECTION using derived geometry
+AssertionError: expected 'PLANLx = 13.2000 mLy=9.6000mNx = 4   …' to contain 'Lx = 13.20 m'
+
+Expected: "Lx = 13.20 m"
+Received: "PLANLx = 13.2000 mLy=9.6000mNx = 4   Ny = 3ax = 3.6000 m   ay = 3.6000 m   D = 1.2000 mBridge AxisSECTIONLx = 13.2000 mH = 2.5000 mD = 1.2000 m"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:83:162
+     81|     expect(within(svg).getByText('SECTION')).toBeInTheDocument()
+     82|     expect(svg.querySelectorAll('.engineering-pile').length).toBe(12)
+     83|     for(const text of ['Lx = 13.20 m','Ly=9.60m','Nx = 4','Ny = 3','ax…
+       |                                                                                                                                                                  ^
+     84|   })
+     85|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > converts schematic values to Project display units and indicates connected ranges
+AssertionError: expected 'Rectangular pier schematic. B = 3000 …' to contain 'B = 3000.00 mm'
+
+Expected: "B = 3000.00 mm"
+Received: "Rectangular pier schematic. B = 3000 mm · D = 1500 mmY-YX-X"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:89:86
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/26]⎯
+
+ FAIL  src/features/graph/ui/NodeInspector.test.tsx > Node Inspector > updates the schematic from changed local parameters without waiting for Run
+AssertionError: expected 'Rectangular pier schematic. B = 3.000…' to contain 'B = 3.00 m'
+
+Expected: "B = 3.00 m"
+Received: "Rectangular pier schematic. B = 3.0000 m · D = 1.5000 mY-YX-X"
+
+ ❯ src/features/graph/ui/NodeInspector.test.tsx:102:86
+    100|     const pier=node('substructure.pier.rectangular')
+    101|     const { rerender }=render(<NodeInspector node={pier} states={{}} e…
+    102|     expect(screen.getByRole('img',{name:/rectangular pier schematic/i}…
+       |                                                                                      ^
+    103|     const updated={...pier,parameters:{...pier.parameters,BValue:4}}
+    104|     rerender(<NodeInspector node={updated} states={{}} errors={{}} out…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/26]⎯
+
+
+ Test Files  6 failed | 56 passed (62)
+      Tests  26 failed | 430 passed (456)
+   Start at  17:28:55
+   Duration  35.22s (environment 71%, setup 14%, tests 7%, import 5%, transform 2%)
+
+Environment  jsdom was created 62 times · 202.97s total, 71% of tracked time
+             create it once per worker with pool: 'vmThreads' (keeps per-file isolation) or isolate: false (shares it across files)
+             learn more: https://vitest.dev/guide/improving-performance#test-environments
+

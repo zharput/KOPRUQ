@@ -1,0 +1,2089 @@
+{
+  "scope": "frontend",
+  "head": "3704d251e76ddddd4a3cd24ea8f28bd64496c4ea",
+  "config_sha256": "78cd8ca8be7ed8a7a61fcb473d8809dc6290545d38aad8e15ad3b1b393b6706b",
+  "files": [
+    {
+      "path": "frontend/.gitignore",
+      "kind": "text",
+      "bytes": 277,
+      "sha256": "d50ab07e11fa4bf3b1c7c3312e1d7baeab56cca756832ccf40476823ad2a38b7"
+    },
+    {
+      "path": "frontend/.oxlintrc.json",
+      "kind": "text",
+      "bytes": 253,
+      "sha256": "3f46d4038fd69c0011da897b887d747e3d66f0bbda8b523a54891fbd473d67ef"
+    },
+    {
+      "path": "frontend/README.md",
+      "kind": "text",
+      "bytes": 3484,
+      "sha256": "5a60195cc7c3905d68c9eb0ed38b98f9c642391cd044f9c1241d6f30017a8f65"
+    },
+    {
+      "path": "frontend/index.html",
+      "kind": "text",
+      "bytes": 371,
+      "sha256": "ad68031a800a48a1b2a7da1a28780284c67bdbafeaf5efcca068b9475299270b"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "kind": "text",
+      "bytes": 163967,
+      "sha256": "227354243988c5884e3e96b7714f06d702e5a4799a5ff6088af3e7931f24349f"
+    },
+    {
+      "path": "frontend/package.json",
+      "kind": "text",
+      "bytes": 1489,
+      "sha256": "f298360c8f8905297025f83a18bf5eeae6d4599bb511772bdc57181dc1129882"
+    },
+    {
+      "path": "frontend/public/favicon.svg",
+      "kind": "text",
+      "bytes": 9522,
+      "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66"
+    },
+    {
+      "path": "frontend/public/icons.svg",
+      "kind": "text",
+      "bytes": 5055,
+      "sha256": "7ca2d67c9c3aebf50cdc8709ee8aacf8cdb8cc7ea6325ea94939caef5da1c53d"
+    },
+    {
+      "path": "frontend/public/kopruq-logo.png",
+      "kind": "oversized",
+      "bytes": 967022,
+      "sha256": "ff62561942e58f88408f4ceffecad41a5f0159715808b64e6554a1d03fd48721"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/abutment.png",
+      "kind": "oversized",
+      "bytes": 1920574,
+      "sha256": "eeaca9dce57fc28c9b3c370ae8e450bb02e7b9aaf01ea9c5efa9b0945cebd765"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/add.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 123323,
+      "sha256": "617accbbdbfb50216470da600fd51dacccdd7bf1452feae240ad2b60d9cd51de"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/assembly.png",
+      "kind": "oversized",
+      "bytes": 1800813,
+      "sha256": "e509e99b4c6d761257b5bcb90dcd982807eb9aa870a9386adb2a75332b2d9d55"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/boolean.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 285648,
+      "sha256": "44b7ed6383a86d6ac977149987dad4f09b2dc0815a22827d413dfc97ad2532e2"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/box pier.png",
+      "kind": "oversized",
+      "bytes": 1613080,
+      "sha256": "e2007e83a6002c5b7ca4100062f2c0243b84542f7da235d875305b7b821f230e"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/circular pier.png",
+      "kind": "oversized",
+      "bytes": 1078741,
+      "sha256": "0fda3d78654b248f2ef7e99d953e9bc2d8f7f065b36f6f584315c0c695ddaef9"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/concrete.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 368413,
+      "sha256": "ad1c6c3003116cb3ce83f27b40653601dc7c352e846a8ae2f180833f300293f3"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/divide.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 103795,
+      "sha256": "2534284d951df2a4645bda643357700984c51bcb14f63e3bb900c3f99d3425dd"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/elastomeric bearing.png",
+      "kind": "oversized",
+      "bytes": 1735728,
+      "sha256": "7f805c4975fccaf3575f7c8595a02a151c5f23171a7376a27238c01058e464a8"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/h pier.png",
+      "kind": "oversized",
+      "bytes": 1782657,
+      "sha256": "43b4f6e59ac0a58e59492b787f33f1769653866dcbc729e18fd99b08dc341afa"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/integer list.png",
+      "kind": "oversized",
+      "bytes": 784924,
+      "sha256": "1e2b19d4485d870e780ede17d0bb77652951387ed2a489510f23f6f8ad06aa67"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/integer.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 319852,
+      "sha256": "8c1436b93d3aeb3ab3a54c85a2f9b73d1e962c84ff42035ed4634db76e68167e"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/integer_List.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 341341,
+      "sha256": "bac2bfe4286e73baa9dd747402cc2d7be5dff2b858f72f5d741cf5728790ea1a"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/length.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 318414,
+      "sha256": "dc87143d1ff08309793da25f8c05152132b0edc47c0f4fc9dee8a9631873f764"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/list.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 171346,
+      "sha256": "bc4863a7ab81e1313bc526721c3855557b9de7931ac8a8aad58d4b542e6c7c89"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/multiply.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 139155,
+      "sha256": "f8f19d319d0dfc615692a4b5e7c7b6c5157c778f68bfab7537f33fa04b00416b"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/notes.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 183982,
+      "sha256": "f18bdac24cd1fa13802fef88a330af444165fe06ae7a53a6823667523b801bcb"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/number.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 298415,
+      "sha256": "90acaecc3f63b18996f063346eff096abcb9580785287cbabfdf05bfee00c0bc"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/oval pier.png",
+      "kind": "oversized",
+      "bytes": 1512423,
+      "sha256": "ab31208a4c65dc3aaa822d05de755fdb762ab10e83433ec3a63b8598aece4ba4"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/piled foundation.png",
+      "kind": "oversized",
+      "bytes": 1591204,
+      "sha256": "c5b49978379e3006365aa05eb39121bb8df2586da19ca67c21a810c29870ae21"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/precast girder.png",
+      "kind": "oversized",
+      "bytes": 1579241,
+      "sha256": "ad884fbbc68e803f078100ab76f91c4d85cee914b8fce9da7bdf8336aa2c9b5f"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/prestressing steel.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 253139,
+      "sha256": "60b6a4d4fa15f413a61587029d3ae5f899dd669811218a3c095a5c3bb276ca65"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/quantity.png",
+      "kind": "oversized",
+      "bytes": 1251920,
+      "sha256": "f1082854309c73cdca53c16869d582690f384b4900e889ceb449825ae7733159"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/range.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 289295,
+      "sha256": "aeca77374755259b667311b274e96eae00fc474fd807dba989cabaa95e291bbc"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/reinforcement steel.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 287817,
+      "sha256": "ee4b6d31f6fdbfa1100d8201e41e4eadd921043419d7db77e472141cc641b329"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/rentangular cap.png",
+      "kind": "oversized",
+      "bytes": 1504346,
+      "sha256": "9a031d8d2b8dfd199863a5c0afcda94aa2d5972678324981889bd56722c6714e"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/rentangular pier.png",
+      "kind": "oversized",
+      "bytes": 920465,
+      "sha256": "4cd59e7436003d78df2d428db74ddb4bf1eee5b5188d4a58c6c79b98fc0c5e86"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/shallow foundation.png",
+      "kind": "oversized",
+      "bytes": 1427631,
+      "sha256": "e747af90ab61a4bca564ebe7d90f1c30b14cd1ae012dbdeccfb2fa1c5b998a64"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/span arrangement.png",
+      "kind": "oversized",
+      "bytes": 1477992,
+      "sha256": "00b341e6e07dfcbfd45907efae0498a9ab071d540c4524caba029206c4432b37"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/steel girder.png",
+      "kind": "oversized",
+      "bytes": 1310696,
+      "sha256": "4d09eb2a7d99a72504145bffda0ec54b3ffbcdd637e7eb3f524586f9f459528c"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/structural steel.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 255331,
+      "sha256": "a45043b05df6518deaa451fc0898bfcafb4083386dfa45c5748f39b85c568415"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/subtract.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 76819,
+      "sha256": "0104e16a45c898fc4260bdf6294afc19b2a0ad3618bbd86cfc25f056dc77ce7b"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/superstructure.png",
+      "kind": "oversized",
+      "bytes": 843398,
+      "sha256": "0e4c3e54bf53ec4f2c3ce943650bedfec93a3085538863cc138e8892d1d996c4"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/t-cap.png",
+      "kind": "oversized",
+      "bytes": 1681235,
+      "sha256": "b3e37e7608825e848314a6fac8ad64feb355a19a7502a5ec6ff6dbb223bc46ea"
+    },
+    {
+      "path": "frontend/public/kopruq_nodes_logo/watch.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 199294,
+      "sha256": "62f4076c7087de741dc18f0fbb2f81309590133457e3a36b10293e01f6eb6f72"
+    },
+    {
+      "path": "frontend/scripts/loads-typography-diagnostic.mjs",
+      "kind": "text",
+      "bytes": 1433,
+      "sha256": "3953ee4079d73c7df6a044dd8a90d64563c67b44097f7cf08c3894f00a3e6721"
+    },
+    {
+      "path": "frontend/src/app/App.test.tsx",
+      "kind": "text",
+      "bytes": 34067,
+      "sha256": "c6962217cae4e72b68cdf9d2b061c51270c22b107fa4a982c621c51f5b3a457b"
+    },
+    {
+      "path": "frontend/src/app/App.tsx",
+      "kind": "text",
+      "bytes": 15690,
+      "sha256": "e9a43200550bcc1d486623f6d5796363de34beae799e69c0339389dfdca492c0"
+    },
+    {
+      "path": "frontend/src/app/components/BigMenuPanel.tsx",
+      "kind": "text",
+      "bytes": 1299,
+      "sha256": "63fb9fd2dca45657b67fe9aa45430832cf2b9f815f2b8d6551fbb0293517211b"
+    },
+    {
+      "path": "frontend/src/app/components/PlaceholderPanel.tsx",
+      "kind": "text",
+      "bytes": 4264,
+      "sha256": "3f519b061df341a71004e1d52749923d7ed4948dca264336c1e03ef27b663c11"
+    },
+    {
+      "path": "frontend/src/app/layout/Sidebar.tsx",
+      "kind": "text",
+      "bytes": 6521,
+      "sha256": "5b9572b781e396c223058a8c27523460b6bda9ed64c1bed15c341a2385a3ca8d"
+    },
+    {
+      "path": "frontend/src/app/layout/TopBar.tsx",
+      "kind": "text",
+      "bytes": 3075,
+      "sha256": "5d2de378bafad885e1f85c0124dda52467204e933214c0ea0b604c38b141b888"
+    },
+    {
+      "path": "frontend/src/app/layout/TopWorkspaceNav.test.tsx",
+      "kind": "text",
+      "bytes": 2158,
+      "sha256": "9f4d9a3975cef3af8c5cd2ab9088985bb412683071de40cfb9f38c9ed64e27c3"
+    },
+    {
+      "path": "frontend/src/app/layout/TopWorkspaceNav.tsx",
+      "kind": "text",
+      "bytes": 4164,
+      "sha256": "0537cc15310fc37bc9c961b8ad1c14cb0d9c95d2178bd9b19b935e8798767880"
+    },
+    {
+      "path": "frontend/src/app/layout/WorkspaceLayout.tsx",
+      "kind": "text",
+      "bytes": 3347,
+      "sha256": "257e9f184fb11e9403514e4ebd739883a20860be7c22cd8a4391a4e0c172962f"
+    },
+    {
+      "path": "frontend/src/app/navigation/sections.ts",
+      "kind": "text",
+      "bytes": 9976,
+      "sha256": "0de8c47e23efa53c2c7a0967e71969d471272e5fbc05ccb0c836a416fd8cd1d5"
+    },
+    {
+      "path": "frontend/src/app/providers/AppProviders.tsx",
+      "kind": "text",
+      "bytes": 755,
+      "sha256": "618ad3effa6620657635424e15435c4f915d1bdb02511fc97af14eebde2dccdb"
+    },
+    {
+      "path": "frontend/src/app/router.tsx",
+      "kind": "text",
+      "bytes": 6935,
+      "sha256": "5f26b297c48c46970d7ccdadb2515eac4b35ff9dbcec3eb36f1be95b4e27fd2e"
+    },
+    {
+      "path": "frontend/src/app/styles/App.css",
+      "kind": "text",
+      "bytes": 325160,
+      "sha256": "8f5f91071a52a0eab3e1c5b847bebbdd4bacd12f774748e08266f5ca82c53349"
+    },
+    {
+      "path": "frontend/src/app/workspaces/WorkspacePage.tsx",
+      "kind": "text",
+      "bytes": 4498,
+      "sha256": "83794948b36a7f17afcdc2f2772101a4a2492eeb05210559193322e89f4ac135"
+    },
+    {
+      "path": "frontend/src/app/workspaces/registry.ts",
+      "kind": "text",
+      "bytes": 6584,
+      "sha256": "cd25a5ea240e831c40edd4582ee666857ddabd5daa22e0668d1d1e039aa4691b"
+    },
+    {
+      "path": "frontend/src/assets/hero.png",
+      "kind": "binary-or-non-utf8",
+      "bytes": 13057,
+      "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c"
+    },
+    {
+      "path": "frontend/src/assets/react.svg",
+      "kind": "text",
+      "bytes": 4126,
+      "sha256": "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5"
+    },
+    {
+      "path": "frontend/src/assets/vite.svg",
+      "kind": "text",
+      "bytes": 8710,
+      "sha256": "2f1f6c6f90a0ef7422cbb4cfafcd8ad329c507a18afdc34cc21fa72179b9c54a"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/components/BearingFamiliesPanel.test.tsx",
+      "kind": "text",
+      "bytes": 4176,
+      "sha256": "000103039d7a0d11e9b3bbb52e22bc751c8120118ddf2dda1a976473e6e4ea08"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/components/BearingFamiliesPanel.tsx",
+      "kind": "text",
+      "bytes": 6563,
+      "sha256": "c5937ee78fd52dc7176d8c27d841985e91cab104fed38fd71e0b23b04cde5249"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/components/BearingSchematic.tsx",
+      "kind": "text",
+      "bytes": 1372,
+      "sha256": "7f6031b4a351f2fb88d394525d975c9844511798a1e74676a77f22dcf77b3ad5"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/index.ts",
+      "kind": "text",
+      "bytes": 85,
+      "sha256": "a334090760ee75f35597d119d18f628c66929a3f8618258d6be831eab5ee70e5"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/model/service.test.ts",
+      "kind": "text",
+      "bytes": 1883,
+      "sha256": "24b53ea1176e6466154110d1c741b1743c81135c8224563ceb624a7fc79da926"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/model/service.ts",
+      "kind": "text",
+      "bytes": 1311,
+      "sha256": "bf7434ecb46bec73bdff11164c1878a4abd4586ce235159c5d59195194ec41d8"
+    },
+    {
+      "path": "frontend/src/features/bearing-families/model/types.ts",
+      "kind": "text",
+      "bytes": 520,
+      "sha256": "f09057aac5e22873c38bd6e022fe98febc3b3d3b010037daa2ac9975927cfde9"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/api/alternativesService.ts",
+      "kind": "text",
+      "bytes": 1550,
+      "sha256": "ff38d941e833e8c22f18b32233c91d86fe3a8e62ed8c6b95e4ae7f7b88740eba"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/components/GenerateWorkflow.tsx",
+      "kind": "text",
+      "bytes": 13097,
+      "sha256": "2a573ec8351f2abd0f19e7fd23b15f306882fcb6cb98231dde27dde32b15fa73"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/hooks/useGenerateAlternatives.ts",
+      "kind": "text",
+      "bytes": 640,
+      "sha256": "7d9f6b7ca305eadb28d644afd21b888ec91303d4f7ffa013e62c13608d4209d4"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/index.ts",
+      "kind": "text",
+      "bytes": 133,
+      "sha256": "d9d1b4180123799ff737f17095f3b9f6a22ab17ec92d0c21d14d68f6567bcd1b"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/model/kernelStateSchema.test.ts",
+      "kind": "text",
+      "bytes": 933,
+      "sha256": "c28d00de0271dc0e638bed57955412b0d89c8c8d6deccdaad17adfd00c737a86"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/model/kernelStateSchema.ts",
+      "kind": "text",
+      "bytes": 1486,
+      "sha256": "98083264c12ef01cef0f29236c8aac5e4f013a5888408be9b92c671edf79d3e8"
+    },
+    {
+      "path": "frontend/src/features/bridge-alternatives/model/types.ts",
+      "kind": "text",
+      "bytes": 612,
+      "sha256": "149263263c2bffa27cfefa62d9b08086d85bacb46a885c675b42697de15a6cb1"
+    },
+    {
+      "path": "frontend/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx",
+      "kind": "text",
+      "bytes": 37780,
+      "sha256": "53352d5319f4baef07043ae38c74e8e3886c72e6feb8e78fd7f03e8e09362970"
+    },
+    {
+      "path": "frontend/src/features/bridge-definition/model/store.ts",
+      "kind": "text",
+      "bytes": 4155,
+      "sha256": "63c966026916afe82fcfc706f52f9db2a87a5218f3a48fda34a16263cdba34a3"
+    },
+    {
+      "path": "frontend/src/features/bridge-definition/model/types.ts",
+      "kind": "text",
+      "bytes": 1730,
+      "sha256": "0909e6ac46c3c9bbaf3ed7ba651708ceae687dc0a7cb237822e679ffe272ca16"
+    },
+    {
+      "path": "frontend/src/features/cost-database/components/CostDatabasePanel.tsx",
+      "kind": "text",
+      "bytes": 3915,
+      "sha256": "03690fbda81b31be0f1ffaa36cd61295526fded07da6f5f8cb68157eb663ed4b"
+    },
+    {
+      "path": "frontend/src/features/cost-database/index.ts",
+      "kind": "text",
+      "bytes": 79,
+      "sha256": "b65d0f15b521772c24794a06a57638c05900798a37f524783244e6bf6684f0b8"
+    },
+    {
+      "path": "frontend/src/features/family-registry/hooks/useFamilyCatalog.ts",
+      "kind": "text",
+      "bytes": 3513,
+      "sha256": "9e59d7a83967a7819ffcd3c9467968f17829682dadfa280891808035b7c0462b"
+    },
+    {
+      "path": "frontend/src/features/family-registry/model/familyRepository.test.ts",
+      "kind": "text",
+      "bytes": 1530,
+      "sha256": "4204d5f67477ad5c860d487cc9dc9b6ba031dc6686ca40bdfbd9e2c15e715c5f"
+    },
+    {
+      "path": "frontend/src/features/family-registry/model/familyRepository.ts",
+      "kind": "text",
+      "bytes": 7921,
+      "sha256": "d592a720062ee14ffa524de1aa09bd7be0bf2972a6f29cc34cfb33065bff8a00"
+    },
+    {
+      "path": "frontend/src/features/family-registry/model/registry.test.ts",
+      "kind": "text",
+      "bytes": 1245,
+      "sha256": "d063ed6bd687b77acfda36aac11340208e3c4a3384a40aa488901d82dba574e3"
+    },
+    {
+      "path": "frontend/src/features/family-registry/model/registry.ts",
+      "kind": "text",
+      "bytes": 5309,
+      "sha256": "8ca5c442cf6744d01b4869142e0088306b2663d9bc576b388cda47e67774a8d9"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/CandidateSectionsPanel.tsx",
+      "kind": "text",
+      "bytes": 2493,
+      "sha256": "94ffd4cce402d916f83e5b1eff1b9d9fbf5ad444f06e0ba073f6a874931579fe"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/CircularPierFamilyPreview.test.tsx",
+      "kind": "text",
+      "bytes": 699,
+      "sha256": "d739260242aca3d4b3052366d54c437011d1cb27113daafc4bdf23e3d43bf1a4"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/CircularPierFamilyPreview.tsx",
+      "kind": "text",
+      "bytes": 5602,
+      "sha256": "140720a5b0fe3c53cf0b941b40eb9b0e363027c6e6346dbe70c075a4b994c56e"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/ConcreteTextureDefs.tsx",
+      "kind": "text",
+      "bytes": 484,
+      "sha256": "5288fdd5b9315e776d926c68023e6eabea2b7984ccfc9bfde1d45bbdcdef6fc1"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/FamilyResultsViewer.tsx",
+      "kind": "text",
+      "bytes": 9955,
+      "sha256": "14fd96a898c72af4680a546b053362e99acbd2be501e2791102bf9a67fc352db"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/FamilyTablesWorkspace.tsx",
+      "kind": "text",
+      "bytes": 16978,
+      "sha256": "a59323e474594b55cfc8e6af5282956af0f6875ccdb5cb52b8b2b2848f783ad7"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/FamilyWorkspaceShell.test.ts",
+      "kind": "text",
+      "bytes": 642,
+      "sha256": "31518a681961ab2a02d5d328c741dcebb0c1e3ef8aee5451a569216d5426f5e1"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/FamilyWorkspaceShell.tsx",
+      "kind": "text",
+      "bytes": 2267,
+      "sha256": "d2d8f21d007411691d2b521fc2334d55b11ffba5c3f7ba3d3c765b0d1d805e9a"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/PierFamilyPreview.tsx",
+      "kind": "text",
+      "bytes": 10168,
+      "sha256": "7bb8bdd88edc06625bcdb660ff22ab058c4baf1020bd8e73b7b652fb299895e8"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/PrecastGirderFamilyPreview.test.tsx",
+      "kind": "text",
+      "bytes": 2922,
+      "sha256": "56681042bf6361ffff7901618214bef5be0b20de0ac7cedf8c20cfb5e6a696e2"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/PrecastGirderFamilyPreview.tsx",
+      "kind": "text",
+      "bytes": 11021,
+      "sha256": "bec76f5a7f2f92d36db10b8da9efd340fb11278a93d5859aea0c1eef9359ea73"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/PrecastGirderSectionProperties.tsx",
+      "kind": "text",
+      "bytes": 1649,
+      "sha256": "791b940f6b8fe15e25efc78c960cabade9da0407d86d0ab962f8229ec2bb8c97"
+    },
+    {
+      "path": "frontend/src/features/family-tables/components/SectionInformationPanel.tsx",
+      "kind": "text",
+      "bytes": 2244,
+      "sha256": "0312b8009cbc6353a0189b54eec08128cde3cfbea9bd9dc17eae8891f8a13860"
+    },
+    {
+      "path": "frontend/src/features/family-tables/model/graphFamilyPresentation.test.ts",
+      "kind": "text",
+      "bytes": 5434,
+      "sha256": "63590493b12f97708aaa3d31ab656706cb6b28b057fdfb1b48a56feb7ac43d8e"
+    },
+    {
+      "path": "frontend/src/features/family-tables/model/graphFamilyPresentation.ts",
+      "kind": "text",
+      "bytes": 9277,
+      "sha256": "e1d6c71f9220f3604a1fcdc506d54413e7ce4612fc7c768185f883aaf941f5a6"
+    },
+    {
+      "path": "frontend/src/features/family-tables/model/pierSectionGeometry.test.ts",
+      "kind": "text",
+      "bytes": 1880,
+      "sha256": "fad7d931374061071adbece1caae255d92de19827845bcee944d3c93340d9f01"
+    },
+    {
+      "path": "frontend/src/features/family-tables/model/pierSectionGeometry.ts",
+      "kind": "text",
+      "bytes": 4279,
+      "sha256": "d12c943c6ce4b5c18a468cd1f15147764272ca4e29e9452d3a1c198c4d730e22"
+    },
+    {
+      "path": "frontend/src/features/family-tables/model/precastGirderDimensionPreset.ts",
+      "kind": "text",
+      "bytes": 466,
+      "sha256": "0dba7b22744094b9894162978fdd8a793de4797876caecb0d1ab88fddf91839d"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/components/FoundationFamiliesPanel.test.tsx",
+      "kind": "text",
+      "bytes": 5027,
+      "sha256": "fb09f2a517c9fa7a7d1e8f000531ee835ff07d688037d1cb7cecbbd93cfdfb4a"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/components/FoundationFamiliesPanel.tsx",
+      "kind": "text",
+      "bytes": 9985,
+      "sha256": "44ee77043326bad54eebe1c9c5114e81ed56d051672b475a69bc821ddb123af1"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/components/FoundationSchematic.tsx",
+      "kind": "text",
+      "bytes": 3308,
+      "sha256": "bbcf84e53feea8d1bf59fd08c2ea24d3122a885a7857d368318d2147729f3f5d"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/index.ts",
+      "kind": "text",
+      "bytes": 91,
+      "sha256": "bbd223cab6185b9b4c700a815976d485405394c52755a53cd90ec21deef5933e"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/model/service.test.ts",
+      "kind": "text",
+      "bytes": 2031,
+      "sha256": "84776a73b2952f15ed3c6225f8b86695b05910dcd94faa181ffa0de0551a8ae1"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/model/service.ts",
+      "kind": "text",
+      "bytes": 3876,
+      "sha256": "32f483c430d642c768d588ae8499e28b737a7dfeaf577ae6a204b3474ebbb988"
+    },
+    {
+      "path": "frontend/src/features/foundation-families/model/types.ts",
+      "kind": "text",
+      "bytes": 1130,
+      "sha256": "dca199a2ec5a30abd949177f726d29f6d20c0abaf706c42a19b24cc175d5f372"
+    },
+    {
+      "path": "frontend/src/features/generated-bridge-model/model/types.ts",
+      "kind": "text",
+      "bytes": 380,
+      "sha256": "d8d1bdcb70756aa7fbf9838c689a0c1aa97fe3f31483977b19bb678ffe53aa14"
+    },
+    {
+      "path": "frontend/src/features/girder-library/components/GirderLibraryPanel.tsx",
+      "kind": "text",
+      "bytes": 8756,
+      "sha256": "9de77b755210d1f2ce3ee3c21d86f48c6d0799d1f2c9b9c3e4b93eeab3694805"
+    },
+    {
+      "path": "frontend/src/features/girder-library/index.ts",
+      "kind": "text",
+      "bytes": 81,
+      "sha256": "24f604762244aea048d4c4cebe21f266d6f8b7c0defbde06ff2b0a0f1b9470e2"
+    },
+    {
+      "path": "frontend/src/features/girder-library/model/variants.ts",
+      "kind": "text",
+      "bytes": 1156,
+      "sha256": "387c96529fe97e126b939146f0fee3d39d684a3cbd13cfa553a060381a194d23"
+    },
+    {
+      "path": "frontend/src/features/graph/adapters/reactFlowAdapter.test.ts",
+      "kind": "text",
+      "bytes": 24006,
+      "sha256": "accc28e51070b583ecba595d36876665367fbf2e376e1a5953602adce9f00cea"
+    },
+    {
+      "path": "frontend/src/features/graph/adapters/reactFlowAdapter.ts",
+      "kind": "text",
+      "bytes": 15293,
+      "sha256": "1c93ab33017eb28505e7dd3a4f6fb550a4fe86bb644a1a696f22f14cb6031f23"
+    },
+    {
+      "path": "frontend/src/features/graph/api/graphMaterialService.ts",
+      "kind": "text",
+      "bytes": 1499,
+      "sha256": "e0b9554a563b3aa2644fa07c772a3fdeba13d5ef1778c1f89c0bcfa03b1cbf69"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/abutmentCandidates.test.ts",
+      "kind": "text",
+      "bytes": 2643,
+      "sha256": "088a47a5f672fdf0ad2624b2c98d00169d20d1aefe6bc2dcf3f8f1416ba2760d"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/abutmentCandidates.ts",
+      "kind": "text",
+      "bytes": 6191,
+      "sha256": "c2ba506af8eaf5acc5583042ca934557142d6dfbaaa63ca121d59982d1972d33"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/bearingCandidates.test.ts",
+      "kind": "text",
+      "bytes": 2536,
+      "sha256": "3a4dbcdedd2db748ebca11fa564bdaf4dfa32ae832bed30cfe1e50f3e719aba7"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/bearingCandidates.ts",
+      "kind": "text",
+      "bytes": 4212,
+      "sha256": "91c0cd0eb4f84e5fce06db7deacc29d92044deba7eb121a4c3a54d111e15ca86"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/bridgeAssembly.test.ts",
+      "kind": "text",
+      "bytes": 2600,
+      "sha256": "b054e986fa88ab4f11c7d3e4c5dd461de58f81ae6922d1267278310ad0a28f09"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/bridgeAssembly.ts",
+      "kind": "text",
+      "bytes": 5047,
+      "sha256": "ece3ac8b5b82c043506ed70b52bf64f1978dbaf27b5624b2b9410b77a4877a1c"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/circularSectionProperties.test.ts",
+      "kind": "text",
+      "bytes": 459,
+      "sha256": "eaac7a2fb7906a8558a379d214766f7efb6cb6772473626ce330080ef1d9852b"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/circularSectionProperties.ts",
+      "kind": "text",
+      "bytes": 529,
+      "sha256": "1ede5faf959111f42c3805866b59b146e9a10c6aa8d4d3f8f558862dce83c9f9"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/engineeringInputs.test.ts",
+      "kind": "text",
+      "bytes": 3013,
+      "sha256": "86cc10d47594124c49407320b4f0c4b6de507b29ada2534fe105524ca8d95458"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/engineeringInputs.ts",
+      "kind": "text",
+      "bytes": 2228,
+      "sha256": "d91ba889d15cf8d6777a29dc01964a84593a702d81b96b785c2a99a7fdf792c7"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/foundationCandidates.test.ts",
+      "kind": "text",
+      "bytes": 3333,
+      "sha256": "252f8d3d3c285f8b968a398a5f1fef17f7c8956c1d698eb31df4ebddc88691ef"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/foundationCandidates.ts",
+      "kind": "text",
+      "bytes": 4973,
+      "sha256": "d9fd22bb4383d911cf3970de770ba5929c42aa2189ce43a8927b489041629dca"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/girderCandidates.test.ts",
+      "kind": "text",
+      "bytes": 2420,
+      "sha256": "4acc5121bee19bfc59dc4303341ea3747d36f1f8a8c3bd2997a2ef91056b9a73"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/girderCandidates.ts",
+      "kind": "text",
+      "bytes": 6289,
+      "sha256": "03b23b843f325686fc6fb0ce76181af247d0da1ce7b8f503dac40e5b004835fd"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/nodeVisualThemes.test.ts",
+      "kind": "text",
+      "bytes": 3677,
+      "sha256": "c29ec2bed2d97fefc4702e08e7b4ae72634faa42e9ebde1186ae747c1b8ed619"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/nodeVisualThemes.ts",
+      "kind": "text",
+      "bytes": 10321,
+      "sha256": "8477c594702ace14a9970e665694a3453251b6ea47a87228fe42f826a1b86565"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/pierCandidates.test.ts",
+      "kind": "text",
+      "bytes": 5602,
+      "sha256": "38e9af5593ae03eb4ee51c70c6234617914521df3ff574c9a1b4f18558d5c4e1"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/pierCandidates.ts",
+      "kind": "text",
+      "bytes": 5293,
+      "sha256": "47576472aaa36f1ba5488b9d0f91504b8781ba602d23ccb3552f0e9dfca19d15"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/pierCapCandidates.test.ts",
+      "kind": "text",
+      "bytes": 3916,
+      "sha256": "be8a8f15e321fa57e01f86c4d708fc15d169114b16dd03f7777c552e32e05d5b"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/pierCapCandidates.ts",
+      "kind": "text",
+      "bytes": 3361,
+      "sha256": "ff5612ac384a1efacdde0c4e3fc554c40063bd4fd899a18b47b2303779dbbb0a"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/pierSectionProperties.test.ts",
+      "kind": "text",
+      "bytes": 1531,
+      "sha256": "511c4c0f28a0372b35df4209895803458988b3b666920333eb81c89fe18f6f5d"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/pierSectionProperties.ts",
+      "kind": "text",
+      "bytes": 2194,
+      "sha256": "84e552771ca89c42b85e0ff8629f7e3941cc5beaf318ea881116a5a087bf927b"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/quantities.test.ts",
+      "kind": "text",
+      "bytes": 2551,
+      "sha256": "c9bfc1cc7c33fa8ce7485aba2ffd7d05c79e41923ad84baab8a2ce2cc73fc8fe"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/quantities.ts",
+      "kind": "text",
+      "bytes": 7459,
+      "sha256": "03015bc5b4f08b71ccead830b6ce6123e24b1422e9d30c5604ba435cda02d250"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/spanArrangement.test.ts",
+      "kind": "text",
+      "bytes": 4546,
+      "sha256": "324eb6b12cdd35ba115647170eb7ee8adc7d256e40a1b60460dc4bd7fc575832"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/spanArrangement.ts",
+      "kind": "text",
+      "bytes": 5202,
+      "sha256": "0d8ee228b707de0f5359939cc86c06360083ce100eb878e0aabe3bb0aef1183a"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/superstructureCandidates.test.ts",
+      "kind": "text",
+      "bytes": 1091,
+      "sha256": "ebd265097ebd8d30875907c006976ea33f784945c4ff538f6ccd71adef638423"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/superstructureCandidates.ts",
+      "kind": "text",
+      "bytes": 2760,
+      "sha256": "244062784b2ffb21069ed15ff88dae0868258da2619b4644fe16197c89a58481"
+    },
+    {
+      "path": "frontend/src/features/graph/domain/types.ts",
+      "kind": "text",
+      "bytes": 3951,
+      "sha256": "fd763d6a1e00a0fe6b83eac92e9eeb6c76896459b753b300afe3304280e0a855"
+    },
+    {
+      "path": "frontend/src/features/graph/engine/graphEngine.test.ts",
+      "kind": "text",
+      "bytes": 30246,
+      "sha256": "0ccdc21885f2db5abd7736b9350d89ff5c11905d8aea6306657d79dee7f961df"
+    },
+    {
+      "path": "frontend/src/features/graph/engine/graphEngine.ts",
+      "kind": "text",
+      "bytes": 11607,
+      "sha256": "c2a2da9c3dea619ed3a1dcabe1000d0410fca66f0b865dbf716d16a69371aaf0"
+    },
+    {
+      "path": "frontend/src/features/graph/family/familyResults.test.ts",
+      "kind": "text",
+      "bytes": 3659,
+      "sha256": "e76dbd234e49f3f3eef28aa13b1e200ae0ecd22e61ddf601660014d044a9cde9"
+    },
+    {
+      "path": "frontend/src/features/graph/family/familyResults.ts",
+      "kind": "text",
+      "bytes": 6182,
+      "sha256": "6f1508e3589461864180424368fe8183b64b2f9bdeee1a53e1a4debb365d40bc"
+    },
+    {
+      "path": "frontend/src/features/graph/family/familySnapshotStore.test.ts",
+      "kind": "text",
+      "bytes": 1955,
+      "sha256": "600d8037641f70c9e6d98604fe61767c37e0abd0cbfffa5c1ba144df23e80a22"
+    },
+    {
+      "path": "frontend/src/features/graph/family/familySnapshotStore.ts",
+      "kind": "text",
+      "bytes": 1727,
+      "sha256": "e568134bbb1882e1591e2b9fa988e67664dd75fa894736c80fa5e640b92d5e7f"
+    },
+    {
+      "path": "frontend/src/features/graph/family/graphRunValidity.test.ts",
+      "kind": "text",
+      "bytes": 1200,
+      "sha256": "84274ef77891262a10ffb40c1e51199035269532faf19a558cab8bfb141878fe"
+    },
+    {
+      "path": "frontend/src/features/graph/family/graphRunValidity.ts",
+      "kind": "text",
+      "bytes": 2029,
+      "sha256": "548136eb030d223c55d4b6ad55a79c3d3b2a6ff4a0ab74f85ed99c5d73bdbd24"
+    },
+    {
+      "path": "frontend/src/features/graph/model/graphGroups.test.ts",
+      "kind": "text",
+      "bytes": 1307,
+      "sha256": "50bbee295dfd4e5812804379bc4af4438e9b1734e77374ba9b2b21dca0a7c1cc"
+    },
+    {
+      "path": "frontend/src/features/graph/model/graphGroups.ts",
+      "kind": "text",
+      "bytes": 2185,
+      "sha256": "6ce2de5a73d2840e2d86a20a344cb2296119cb937b4b5d4a20ba2710727eb6c0"
+    },
+    {
+      "path": "frontend/src/features/graph/registry/nodeLogos.ts",
+      "kind": "text",
+      "bytes": 1813,
+      "sha256": "632698b882a37de39b15c03e45b45ab23839ed67d66c8998d856fcf801bbdd28"
+    },
+    {
+      "path": "frontend/src/features/graph/registry/nodeRegistry.test.ts",
+      "kind": "text",
+      "bytes": 8543,
+      "sha256": "f1bfdd7d879a2ae2c15f77c6809fdb4869947e58fd1fc0d5baa783f3969bf340"
+    },
+    {
+      "path": "frontend/src/features/graph/registry/nodeRegistry.ts",
+      "kind": "text",
+      "bytes": 72220,
+      "sha256": "3d8c05547cc3ea22db7f05b67b38dcf562d16006759dea534336e1917a5a463b"
+    },
+    {
+      "path": "frontend/src/features/graph/state/graphClipboard.test.ts",
+      "kind": "text",
+      "bytes": 8227,
+      "sha256": "b2192ab901272fd1d2c432004ab656ca2111a093fde2c571c319641b85ef712f"
+    },
+    {
+      "path": "frontend/src/features/graph/state/graphClipboard.ts",
+      "kind": "text",
+      "bytes": 1988,
+      "sha256": "f15873b218a622a50d21a9042f36d4578d1232122fa49613b9af8e21e55f7712"
+    },
+    {
+      "path": "frontend/src/features/graph/state/graphStore.test.ts",
+      "kind": "text",
+      "bytes": 16316,
+      "sha256": "84827c4734fdc2c3c630cbf9daffb04085ca874007767dacef51732ea0e2ccbd"
+    },
+    {
+      "path": "frontend/src/features/graph/state/graphStore.ts",
+      "kind": "text",
+      "bytes": 14729,
+      "sha256": "8b40f2d2d361b2dc9b220ebea03fbd9734cad2edefe418316a5c2f9be5e7d990"
+    },
+    {
+      "path": "frontend/src/features/graph/state/graphViewPreferences.test.ts",
+      "kind": "text",
+      "bytes": 815,
+      "sha256": "271700a7c97387208d7ee36f6a0be9031a60421bd674e07bf8baf36211a4817e"
+    },
+    {
+      "path": "frontend/src/features/graph/state/graphViewPreferences.ts",
+      "kind": "text",
+      "bytes": 842,
+      "sha256": "ae57a20075df50c036a4f4cdb1f5542a1842f5b8a10bb076d07cb03cc9e1f269"
+    },
+    {
+      "path": "frontend/src/features/graph/state/useGraphStore.ts",
+      "kind": "text",
+      "bytes": 255,
+      "sha256": "88fcba3125cb77e9544d8b60e7eb0e0f939b59d139d355923adbae9239aac635"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/AssemblyInspector.tsx",
+      "kind": "text",
+      "bytes": 3750,
+      "sha256": "7fe7d18356d1ef318e14f880f70f4302bbc7ec9c241ac99f9f7ee5d67aac6b2d"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/BaseNode.test.tsx",
+      "kind": "text",
+      "bytes": 12599,
+      "sha256": "a9aba06362005014751292b3bef36a09855cfa799084565beff7b130898abd72"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/BaseNode.tsx",
+      "kind": "text",
+      "bytes": 15368,
+      "sha256": "6e3ca0a1beb6892ad133cc36a7b75adcaf53f844f87d59561a7759a7976ff73e"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/CanvasSelect.test.tsx",
+      "kind": "text",
+      "bytes": 3551,
+      "sha256": "1b62f598bc12fc9ba26716c14c2c90e71250d8c6ddab964d842c71ee9c0c2d5d"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/CanvasSelect.tsx",
+      "kind": "text",
+      "bytes": 5467,
+      "sha256": "cd9d45ae5caada27b842e179f23ec7ea7a7e5d7238b6ec5bbed2f79d87da1c7b"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/EditableNumericInput.test.tsx",
+      "kind": "text",
+      "bytes": 2314,
+      "sha256": "faaa42864b0044024daedc365c14bf161c9d84e89e9c03f0e846d4bafb56725e"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/EditableNumericInput.tsx",
+      "kind": "text",
+      "bytes": 2795,
+      "sha256": "ace0da11658d3ca8af3ed3f1a83427ac26e9102df78097036e71e9521fd44cfc"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/EngineeringNodeInspector.tsx",
+      "kind": "text",
+      "bytes": 22052,
+      "sha256": "538b5dc07393e6ac0908e3c3ea8e17b6caaff3df352cbbb4dd498ef32da737bb"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/EngineeringNodeShell.test.tsx",
+      "kind": "text",
+      "bytes": 14162,
+      "sha256": "a7cf75ba3df48a5b6cb02a55485d4dab0bc5524fb907573083b76a648e382f86"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/EngineeringNodeShell.tsx",
+      "kind": "text",
+      "bytes": 23744,
+      "sha256": "519fb308c6c26fc8e37553caf3c501fe1a7ee111b239c9c1820889fab5cd98f6"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/EngineeringSchematics.tsx",
+      "kind": "text",
+      "bytes": 44021,
+      "sha256": "e091b7703c08635622dda250cc7c26106f3a80c641fec862d6e32db8d854d327"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/GraphLog.tsx",
+      "kind": "text",
+      "bytes": 742,
+      "sha256": "3f9c3283f4d5fd18e845234e795f317f8d04f9fefd16e38fb3fb5ebff1e802b1"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/GraphWorkspace.tsx",
+      "kind": "text",
+      "bytes": 40867,
+      "sha256": "30b9e81169c53fbdd86ca8b25eba3595b7396668ed0abbe003150ecd194a37f6"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/InspectorParameterRow.tsx",
+      "kind": "text",
+      "bytes": 403,
+      "sha256": "70a329df2c10cca0799e3d4eadb289260765a89021ec45dfe2b352d0790f7775"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/InspectorSection.tsx",
+      "kind": "text",
+      "bytes": 379,
+      "sha256": "e9705adc451139acda1b86290ecb96a5dc1717bcefaeb12964a49d1215d44166"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/ListOutputNode.test.tsx",
+      "kind": "text",
+      "bytes": 7136,
+      "sha256": "af54a90022a73ed7d60eef1aaf179212b5aa8f218dbc786ab872dd82d3541069"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/ListOutputNode.tsx",
+      "kind": "text",
+      "bytes": 13997,
+      "sha256": "a429bf983f761e4ee031efff35a866e7ec4801c928768e1a3b023c1a015685c2"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/MaterialProperties.tsx",
+      "kind": "text",
+      "bytes": 1476,
+      "sha256": "049cbf5e273f3c5eb4fcc07cfa79e851fd7e6a3f9cad38605c28776a591cfc72"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/MaterialSelector.tsx",
+      "kind": "text",
+      "bytes": 682,
+      "sha256": "2a59fc8519c7f50814bddd56e3d213a71fcf0b7cb6cce986c17372a1ce62fff7"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeHeader.tsx",
+      "kind": "text",
+      "bytes": 2621,
+      "sha256": "af85ff047569e2f7243a750d1483a6ddd5a7f1e8b490420e130fc0ca0fb48544"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeIcon.tsx",
+      "kind": "text",
+      "bytes": 350,
+      "sha256": "e06784895ee3b84458ddfe82ed91a63cd9abc3c9b79392c2f2899fd9e9bc2c58"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeInspector.test.tsx",
+      "kind": "text",
+      "bytes": 8636,
+      "sha256": "d520e99aac7fff2acea9578c8985c162288275c8275495e9af2246735861f257"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeInspector.tsx",
+      "kind": "text",
+      "bytes": 12677,
+      "sha256": "b8def2d71620d9a7d705bcb75460d6d54f97a4e95558aa185b0b6b55953df411"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeLibrary.test.tsx",
+      "kind": "text",
+      "bytes": 3132,
+      "sha256": "ae899466d7ee4408620d9ea2d1d1247e756ed80ad12f85f8a68fb760dd7f8f44"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeLibrary.tsx",
+      "kind": "text",
+      "bytes": 4173,
+      "sha256": "8c789ad563f2628c548c40dab115157c98de2bb09a5c640e636a5d3af721ddb4"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/NodeStatusIndicator.tsx",
+      "kind": "text",
+      "bytes": 1581,
+      "sha256": "dfdccd2dd1104f986314de4a804f1e01598ccd8a7be3042971baee0e2bb5bf27"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/boxSelection.test.ts",
+      "kind": "text",
+      "bytes": 2229,
+      "sha256": "56e256b7b5fe526fc28612c385063c7753efcca834c1577f322b24fafc1bf024"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/boxSelection.ts",
+      "kind": "text",
+      "bytes": 1424,
+      "sha256": "ccade1f89a6455278070a407607c3a052fe7f0deaf9b76660e16cee70c97bd5b"
+    },
+    {
+      "path": "frontend/src/features/graph/ui/engineeringSchematicValues.ts",
+      "kind": "text",
+      "bytes": 1104,
+      "sha256": "49f8618d3a046bf0718401e9397eabcbbd424f2f10700d453230bb63b6ccfe13"
+    },
+    {
+      "path": "frontend/src/features/kopruq-fast-solver/api/fastSolverService.ts",
+      "kind": "text",
+      "bytes": 1437,
+      "sha256": "581c4d89bc81f65b0a0f0808dccc03912c740b38a18158379a45eb48b14b3886"
+    },
+    {
+      "path": "frontend/src/features/kopruq-fast-solver/components/FastSolverPanel.tsx",
+      "kind": "text",
+      "bytes": 9993,
+      "sha256": "f3ed2d3c4f2dcf3d76baf3486972d13249463eef577e1af260b098c4a65c6872"
+    },
+    {
+      "path": "frontend/src/features/kopruq-fast-solver/hooks/useFastSolver.ts",
+      "kind": "text",
+      "bytes": 596,
+      "sha256": "5fdcb576854758feddb3fe7621b890d9561a84b89056a215ecd00c2aebced9fe"
+    },
+    {
+      "path": "frontend/src/features/kopruq-fast-solver/index.ts",
+      "kind": "text",
+      "bytes": 75,
+      "sha256": "ca4c0944b34fd9a850a86f59ce34f802544c0d1036c4440fa838ee181e3d9e21"
+    },
+    {
+      "path": "frontend/src/features/kopruq-fast-solver/model/fastSolverSchema.test.ts",
+      "kind": "text",
+      "bytes": 1145,
+      "sha256": "2c8880fc8cd5dbc6bc1eb6987e59c87bd0bccea2a8e36092b8a91067101b9429"
+    },
+    {
+      "path": "frontend/src/features/kopruq-fast-solver/model/fastSolverSchema.ts",
+      "kind": "text",
+      "bytes": 1551,
+      "sha256": "12b1b8f180533235b40c7520a9711ff80f936c56fddd0a8d8bc81ab5953334ad"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/api/landXmlImportService.ts",
+      "kind": "text",
+      "bytes": 3772,
+      "sha256": "3f27c485cb46fd7ef9feceb10320521585a90b8b7d2dcd2855ed416debb18f59"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/components/LandXmlImportPanel.tsx",
+      "kind": "text",
+      "bytes": 8544,
+      "sha256": "914af901036456451fd8c29c62446f8c8536b0a74c980c2d886f007d1f69bab9"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/components/LongitudinalProfileChart.tsx",
+      "kind": "text",
+      "bytes": 2634,
+      "sha256": "82513aa0cc0fa973162d760602c1c6c03b138b219f001c8df7bdff58febd6771"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/hooks/useImportLandXml.ts",
+      "kind": "text",
+      "bytes": 210,
+      "sha256": "2c80592309fa0ec578388c6ba97043d7b31c6e75f238acec66a365082a3c4d1a"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/hooks/useInspectLandXml.ts",
+      "kind": "text",
+      "bytes": 213,
+      "sha256": "d5f5658f67720759eb5659ba7b8509264a9841f0e2694efbc38f6c627d05017d"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/hooks/useLongitudinalProfile.ts",
+      "kind": "text",
+      "bytes": 365,
+      "sha256": "fea14b25215835d98870cfee4924f1d14869f1ad187984ae1d9ff5e2fa12466c"
+    },
+    {
+      "path": "frontend/src/features/landxml-import/index.ts",
+      "kind": "text",
+      "bytes": 81,
+      "sha256": "6cba6447281c8d52dc69ded072717f15c1a9d4c2ae3d1ebc810b5694a47856d0"
+    },
+    {
+      "path": "frontend/src/features/layout-design-space/components/LayoutDesignSpacePanel.tsx",
+      "kind": "text",
+      "bytes": 4483,
+      "sha256": "939049d4d53654e38c2540958d51ef312b28e2323041f15064949d97a1c681d9"
+    },
+    {
+      "path": "frontend/src/features/layout-design-space/index.ts",
+      "kind": "text",
+      "bytes": 89,
+      "sha256": "b74956c90ed9f6fe61e73b55c982dbc01122e700d9c132d2e25323671c581f0c"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/api/layoutService.ts",
+      "kind": "text",
+      "bytes": 1222,
+      "sha256": "231947c472c945cc34a0783ea8d8b81ec3d92db27339cd8aa2e7913dfe002254"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/components/SiteLayoutPanel.tsx",
+      "kind": "text",
+      "bytes": 11146,
+      "sha256": "b28887e2974b4adb6fba7a106784b4ba798325fb856fccb39a5cc9bbe128b30a"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/hooks/useGenerateLayouts.ts",
+      "kind": "text",
+      "bytes": 615,
+      "sha256": "e536b9f776786c58d39b0eb13a3687b1eda56765ad0511d22bbd50e851f92ade"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/index.ts",
+      "kind": "text",
+      "bytes": 124,
+      "sha256": "9a02961c9404d6c55108d14d2ddaad95bf2e915b5c608d2ffbd72516c0a18fda"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/model/layoutGenerationSchema.test.ts",
+      "kind": "text",
+      "bytes": 1159,
+      "sha256": "98deb3ca1f561716df3922f5894228eddf1f0b3d196a548f9df58bdfee2ef456"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/model/layoutGenerationSchema.ts",
+      "kind": "text",
+      "bytes": 1928,
+      "sha256": "70cbba9df2c2e5bf753bb26a78d9c2fa7729d503d33c08a5a2cef528ec61f9da"
+    },
+    {
+      "path": "frontend/src/features/layout-generator/model/types.ts",
+      "kind": "text",
+      "bytes": 725,
+      "sha256": "602af6b3a08d708a39e1e68abe706b8a5d430e71d1f863f259d23a38ff00ddde"
+    },
+    {
+      "path": "frontend/src/features/loads/api/temperatureService.ts",
+      "kind": "text",
+      "bytes": 1159,
+      "sha256": "328bc62182392b34f6e3c4a1b2a06064af2a23ffb68086085472089f0ca7e064"
+    },
+    {
+      "path": "frontend/src/features/loads/api/trafficLoadsService.ts",
+      "kind": "text",
+      "bytes": 2609,
+      "sha256": "997cedfbfe7cd998b75f1c198ace5b09edc623d1e71a36430661b3db0109bf28"
+    },
+    {
+      "path": "frontend/src/features/loads/components/LoadsPanel.tsx",
+      "kind": "text",
+      "bytes": 4052,
+      "sha256": "bd6ecdc347a5bd1f403ceaf686c371110b05b08cc08ccbe3b5c9d4176711907a"
+    },
+    {
+      "path": "frontend/src/features/loads/components/SelfWeightPermanent.tsx",
+      "kind": "text",
+      "bytes": 11477,
+      "sha256": "6dc14fcadc81ec1fc5a9a1a20eb2456ef1f7b1f0d1828fa379dc0920db17d83d"
+    },
+    {
+      "path": "frontend/src/features/loads/components/seismic/SeismicMathFormula.tsx",
+      "kind": "text",
+      "bytes": 666,
+      "sha256": "c3121453f54773788913f06255da68f09e9524b092eb6db88a5ee1df46c1fdf5"
+    },
+    {
+      "path": "frontend/src/features/loads/components/seismic/SeismicPanel.tsx",
+      "kind": "text",
+      "bytes": 6380,
+      "sha256": "39ee498060e8b6fcbb9f14fbd943a36876b2ac3129ccee945c0ba793ca364017"
+    },
+    {
+      "path": "frontend/src/features/loads/components/temperature/UniformTemperaturePanel.tsx",
+      "kind": "text",
+      "bytes": 4976,
+      "sha256": "1be572b76fd307735af40cf0e224c81def41b96db04f26e04cc4551f26e251b8"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/CarriagewayNotionalLanes.tsx",
+      "kind": "text",
+      "bytes": 5388,
+      "sha256": "b4578479c5d16e07681f2c1e68481bcfaf94f524faa59d146b5ff7b17b2adda2"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/Lm1Panel.tsx",
+      "kind": "text",
+      "bytes": 3071,
+      "sha256": "770e708d51b53236dbf5baf5ae508e7c24fd70815605266ae70d22c62c979c25"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/Lm2Disabled.tsx",
+      "kind": "text",
+      "bytes": 993,
+      "sha256": "75bbb02a8bee17615e8c1082195608f8f4e401138b742e24cae08692a6794e97"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/LoadGroupsPanel.tsx",
+      "kind": "text",
+      "bytes": 2140,
+      "sha256": "a028b9e652657211a70809afaf911a900ede1ca6980da7c9b5c458cf7e46e157"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/TrafficGeneral.tsx",
+      "kind": "text",
+      "bytes": 2962,
+      "sha256": "3145b7603a2d27724ed080b1461b9503bc96e4b481c5cfa985e47617b2095864"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/TrafficLoadsPanel.tsx",
+      "kind": "text",
+      "bytes": 4222,
+      "sha256": "659e41f2bc2932774c2f8b723fa9fdbefb1af7076b9d19f092dedcda1348623b"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/TrafficPlaceholder.tsx",
+      "kind": "text",
+      "bytes": 662,
+      "sha256": "47163ffa14ab354224d5a6ddb812af4b0370954783525c17ae26c9f45bba828e"
+    },
+    {
+      "path": "frontend/src/features/loads/components/traffic/TrafficPreviewValidation.tsx",
+      "kind": "text",
+      "bytes": 3433,
+      "sha256": "92519162dfa4c752ce38b6c824bf74ec8d74c87428e187a7c6e067c533cf89da"
+    },
+    {
+      "path": "frontend/src/features/loads/components/wind/WindLoadsPanel.tsx",
+      "kind": "text",
+      "bytes": 5141,
+      "sha256": "2223de2b9d79d0e3f553730167edc50e242bf1deb8a712c05be46d14ce823819"
+    },
+    {
+      "path": "frontend/src/features/loads/hooks/useLm1Defaults.ts",
+      "kind": "text",
+      "bytes": 277,
+      "sha256": "35d9ee432ebe3c7c61a4c680726fab7cb5d85eed629ddaade0852fbea3e3681d"
+    },
+    {
+      "path": "frontend/src/features/loads/hooks/useLoadGroups.ts",
+      "kind": "text",
+      "bytes": 236,
+      "sha256": "9ce1976104df1f7837f1aefb7e0788ca572c23a94edff77026790c8bb87838ed"
+    },
+    {
+      "path": "frontend/src/features/loads/hooks/useResolveTraffic.ts",
+      "kind": "text",
+      "bytes": 739,
+      "sha256": "9adba7e40b52e36306c7822cc282240f8d9a8e87def3c385ee6d5233d930d331"
+    },
+    {
+      "path": "frontend/src/features/loads/index.ts",
+      "kind": "text",
+      "bytes": 65,
+      "sha256": "d44c56a49b7e124e911ca2d010828d15cdb3404dd28862a98d3f04fc4a875c9a"
+    },
+    {
+      "path": "frontend/src/features/materials/components/MaterialsPanel.test.tsx",
+      "kind": "text",
+      "bytes": 833,
+      "sha256": "0c2881b85e91a9a50533cb4ccd2d450b477e623fa7e45553795875641c5a10bb"
+    },
+    {
+      "path": "frontend/src/features/materials/components/MaterialsPanel.tsx",
+      "kind": "text",
+      "bytes": 4145,
+      "sha256": "b7e581df5da5feabfb1d65b5e47afdc54da4c968e8874138041f02ab42392c34"
+    },
+    {
+      "path": "frontend/src/features/materials/index.ts",
+      "kind": "text",
+      "bytes": 73,
+      "sha256": "5609ab110b390e82e64fa2e00bc1f5211d6518ad4bebfb17988dc3a87c196617"
+    },
+    {
+      "path": "frontend/src/features/materials/model/materialCatalog.ts",
+      "kind": "text",
+      "bytes": 710,
+      "sha256": "6d1148150201798d60d14e97b7418f3f78134401a00b15ba99cdf835f8af4150"
+    },
+    {
+      "path": "frontend/src/features/pier-cap-families/components/PierCapFamiliesPanel.tsx",
+      "kind": "text",
+      "bytes": 6420,
+      "sha256": "e4bbefaf7cb254a24702b0afa9a5cf69fd0a232131cedaafd522c92725419f75"
+    },
+    {
+      "path": "frontend/src/features/pier-cap-families/components/PierCapSchematic.tsx",
+      "kind": "text",
+      "bytes": 2687,
+      "sha256": "87dd4dcf81a058e0fb76396419b79fcd4442beb57d9d9cbd97e32f8467076464"
+    },
+    {
+      "path": "frontend/src/features/pier-cap-families/index.ts",
+      "kind": "text",
+      "bytes": 85,
+      "sha256": "1a0b1df2ee08e424f8ff9e82ec250cb2d552dc4c89d72e465d8ec71a6560b285"
+    },
+    {
+      "path": "frontend/src/features/pier-cap-families/model/service.ts",
+      "kind": "text",
+      "bytes": 1878,
+      "sha256": "da572d11f1ff8293a130e4ed1cb65e58baab76e9acd1227703ad9e2e695353b7"
+    },
+    {
+      "path": "frontend/src/features/pier-cap-families/model/types.ts",
+      "kind": "text",
+      "bytes": 800,
+      "sha256": "3cbcae0f5783d54ac0f3e5dc01dbffc11b6887395aa21395fa9db07b5acd1603"
+    },
+    {
+      "path": "frontend/src/features/pier-families/components/PierFamiliesPanel.tsx",
+      "kind": "text",
+      "bytes": 13144,
+      "sha256": "569792bfec89686dec7328a883c814b33ab1edb531904e988daee732516a8043"
+    },
+    {
+      "path": "frontend/src/features/pier-families/index.ts",
+      "kind": "text",
+      "bytes": 79,
+      "sha256": "4192d6bef334106f9328555df2560231ae50755766a6cf5923cbb999d76cc020"
+    },
+    {
+      "path": "frontend/src/features/pier-families/model/service.ts",
+      "kind": "text",
+      "bytes": 3572,
+      "sha256": "7fa4d982de11bbde3f696f8805d4469a921eb1b1ec3efc2deb96ea4863f9bbca"
+    },
+    {
+      "path": "frontend/src/features/pier-families/model/types.ts",
+      "kind": "text",
+      "bytes": 901,
+      "sha256": "d2506c40a53c51c0d2da93aea763463d7bd470f0fe1518ca3f1d61e50a913d56"
+    },
+    {
+      "path": "frontend/src/features/preferred-span/components/PreferredSpanPanel.tsx",
+      "kind": "text",
+      "bytes": 7150,
+      "sha256": "aded9a5ce81b274269961fec7da63965e6f1774238f686d6f4c3938dd7a7102a"
+    },
+    {
+      "path": "frontend/src/features/preferred-span/index.ts",
+      "kind": "text",
+      "bytes": 137,
+      "sha256": "e0a6898a8ad31f73ccb202d228511576cc81f82526b5233b89a790c4c24f5034"
+    },
+    {
+      "path": "frontend/src/features/preferred-span/model/types.ts",
+      "kind": "text",
+      "bytes": 476,
+      "sha256": "1c709ea1ba967a988d5c8b6d4f88e7ce2991e423d66d48fc928060c885616261"
+    },
+    {
+      "path": "frontend/src/features/project/api/excelImport.ts",
+      "kind": "text",
+      "bytes": 2789,
+      "sha256": "b1bb2e763bb10209fb054540edb786f7bacee530dee41636bb43b9558661d0d7"
+    },
+    {
+      "path": "frontend/src/features/project/components/ProjectDashboardPanel.tsx",
+      "kind": "text",
+      "bytes": 5068,
+      "sha256": "bde1483ace92e081cfb3f750635aa979eb043edd0b6b25356a4360d44f2e1f54"
+    },
+    {
+      "path": "frontend/src/features/project/components/ProjectPanel.tsx",
+      "kind": "text",
+      "bytes": 13886,
+      "sha256": "5ef957517b220e0e33f3a8476763d3d78225fa7c1011806876ebc42a9f7f9802"
+    },
+    {
+      "path": "frontend/src/features/project/components/ProjectWorkspace.tsx",
+      "kind": "text",
+      "bytes": 16119,
+      "sha256": "a58b844b54c623d55597aee20775946726e004d8debf87cc4945d891a9bda2e4"
+    },
+    {
+      "path": "frontend/src/features/project/index.ts",
+      "kind": "text",
+      "bytes": 303,
+      "sha256": "2a6035aa7dcccb6700038c1809e8e8757624a3f0f115aebb9ecea984710b121f"
+    },
+    {
+      "path": "frontend/src/features/project/model/projectWorkspace.ts",
+      "kind": "text",
+      "bytes": 3840,
+      "sha256": "52f8c6ef8e33967faa2d35fe88bea5d4d029d0eb2b8af62d7aa2323134dae6a4"
+    },
+    {
+      "path": "frontend/src/features/project/model/types.ts",
+      "kind": "text",
+      "bytes": 4687,
+      "sha256": "b824d5628b6414a1ba313c3203bbe5e5089cb3bc5f489e894179bfbff9d65e7d"
+    },
+    {
+      "path": "frontend/src/features/superstructure-families/components/PrecastCrossSection.tsx",
+      "kind": "text",
+      "bytes": 10213,
+      "sha256": "0bb9f3e41c778a21d91624b8001506675bf04d2d04ba37f5a76ad588d6be8c98"
+    },
+    {
+      "path": "frontend/src/features/superstructure-families/components/SuperstructureFamiliesPanel.tsx",
+      "kind": "text",
+      "bytes": 1781,
+      "sha256": "4f926157a8d507a7c96c304b7b4638e57739a3a819aec01de1d70b4648167de5"
+    },
+    {
+      "path": "frontend/src/features/superstructure-families/index.ts",
+      "kind": "text",
+      "bytes": 237,
+      "sha256": "7dddc7520743fe1e1d98b6b194d84bf122aede0935e9771bcf7aecb569c80dd2"
+    },
+    {
+      "path": "frontend/src/features/superstructure-families/model/types.ts",
+      "kind": "text",
+      "bytes": 870,
+      "sha256": "766a92a1686e21b3e36fa8491941f3ed6270c5d3e36058254f761ca392e869d9"
+    },
+    {
+      "path": "frontend/src/features/system-assembly/components/SystemAssemblyPanel.tsx",
+      "kind": "text",
+      "bytes": 26059,
+      "sha256": "1e41e3bcd12d3e628b39c40eb749d5d0b00cbc230f8c29def57b6fe83075342f"
+    },
+    {
+      "path": "frontend/src/features/system-assembly/index.ts",
+      "kind": "text",
+      "bytes": 83,
+      "sha256": "74731d224a2afe280a19cbbfd5b4feb99d4f7f99d49b95ea26d40261b7d4ac1c"
+    },
+    {
+      "path": "frontend/src/features/system-assembly/model/types.ts",
+      "kind": "text",
+      "bytes": 2299,
+      "sha256": "432945ffdbeef0d36463ce0fd9d90ecde901bd5ff82ec14a3cf79da77893609b"
+    },
+    {
+      "path": "frontend/src/features/terrain-dtm/api/terrainImportService.ts",
+      "kind": "text",
+      "bytes": 1607,
+      "sha256": "962f466d382ebbadf36ca797f8d9f62bc280643967f34781fbace051c6175203"
+    },
+    {
+      "path": "frontend/src/features/terrain-dtm/components/TerrainDtmPanel.tsx",
+      "kind": "text",
+      "bytes": 7194,
+      "sha256": "7bd96944d5fcd0102c535a0d7e2eaa3b5f68f03f2b0c9d4652acc8814f5660e3"
+    },
+    {
+      "path": "frontend/src/features/terrain-dtm/index.ts",
+      "kind": "text",
+      "bytes": 75,
+      "sha256": "eaee20faa83c168aa6552c5c1f97ae155af2efed066374b816839a0bfd790fb2"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/api/terrainViewerService.ts",
+      "kind": "text",
+      "bytes": 2190,
+      "sha256": "c3d4221c49d92610174087f5de00eeed42a41994d951f414f4cd0aba43cdc30b"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/components/AlignmentOverlay.tsx",
+      "kind": "text",
+      "bytes": 1816,
+      "sha256": "940e42d1eb4b8a154ec9b434443e1f33c1383e1beb14e34e3f063820f9635143"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/components/TerrainCanvasFrame.tsx",
+      "kind": "text",
+      "bytes": 2639,
+      "sha256": "f8d19b4b90a2e348dfa488dec3e2a05038960c016b72d33b4750fc019c323adf"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/components/TerrainMesh.tsx",
+      "kind": "text",
+      "bytes": 5709,
+      "sha256": "0ae85014063103c2b8b736a81fbc2df94ee033307823c359f30663059be87982"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/components/TerrainPreview.tsx",
+      "kind": "text",
+      "bytes": 2002,
+      "sha256": "1b8c47067db3de457a702d3d593a3338e0311a0861daee22d9446b843ad02e72"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/components/TerrainViewerPanel.tsx",
+      "kind": "text",
+      "bytes": 7485,
+      "sha256": "2e658eeb879d36bc578deb79bfb1cede9d3ebb20854c9f06644f32f4ddebf3f1"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/hooks/useAlignmentSample.ts",
+      "kind": "text",
+      "bytes": 495,
+      "sha256": "0e9b2d7bb72ee920d245f43087dadaac6f305700e47765918e21df15bc246940"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/hooks/useImportedAlignmentSample.ts",
+      "kind": "text",
+      "bytes": 412,
+      "sha256": "546a829f75dc64d053c0226f122ed460796415b228743848cd9223f7fd1322fb"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/hooks/useTerrainMesh.ts",
+      "kind": "text",
+      "bytes": 399,
+      "sha256": "e9c5085fe5cdb83dcd121d35208036df70ccdf9be0e76ca26592e2c5051b3203"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/index.ts",
+      "kind": "text",
+      "bytes": 154,
+      "sha256": "e1d958e1639ee6d73fcc24095e507496b37ccff05bf6729f81b7b68a8c857cc3"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/lib/coordinateTransform.ts",
+      "kind": "text",
+      "bytes": 665,
+      "sha256": "3b2c9c1f4a835bbd85fef36424f458f06840e633216a09f1c74123aacb4603a8"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/lib/terrainBinary.test.ts",
+      "kind": "text",
+      "bytes": 1643,
+      "sha256": "bb97182a2573de916587291a25caf61fe0555401831d4f7bc453bddc620381fb"
+    },
+    {
+      "path": "frontend/src/features/terrain-viewer/lib/terrainBinary.ts",
+      "kind": "text",
+      "bytes": 1408,
+      "sha256": "eef72fc7ae0711771cb704fc4d115226f8d76dd87b5e418df9c0041df51d110c"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "kind": "text",
+      "bytes": 9237,
+      "sha256": "94b12159694e6ea4b1a225ce3946e4cd6bdba4d2365f165ab223dd677a39dcd0"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "kind": "text",
+      "bytes": 354,
+      "sha256": "deeadbaeb970d0a78193fba6411c07f8a678abdef48b215f882cbe10a5d5e260"
+    },
+    {
+      "path": "frontend/src/pages/home/HomePanel.tsx",
+      "kind": "text",
+      "bytes": 3353,
+      "sha256": "63782ed5e0fe1d4020f6c15de4361a69102324f2206f2b6c3c66d92c889fee76"
+    },
+    {
+      "path": "frontend/src/shared/family-ui/FamilyUiTokens.ts",
+      "kind": "text",
+      "bytes": 542,
+      "sha256": "8e2255fadb7fa749af3eb43fd5681c06a8ab972c476d5378448367f13d8d7727"
+    },
+    {
+      "path": "frontend/src/shared/lib/countries.ts",
+      "kind": "text",
+      "bytes": 2228,
+      "sha256": "17a0af691f6530b432d5c82ae6ad93a82c76337e4125f20cd25b51772b60edb4"
+    },
+    {
+      "path": "frontend/src/shared/persistence/legacyStorageMigration.ts",
+      "kind": "text",
+      "bytes": 849,
+      "sha256": "e7ade8c773240b3e672a2749a799091d4b241c46b9b79d8618a380893aee2c81"
+    },
+    {
+      "path": "frontend/src/shared/project-file/projectFileService.test.ts",
+      "kind": "text",
+      "bytes": 7108,
+      "sha256": "1ce05dedd8987d6ffc249ce0af8830b71354faa8997d5ba4b90398015b52bddd"
+    },
+    {
+      "path": "frontend/src/shared/project-file/projectFileService.ts",
+      "kind": "text",
+      "bytes": 5599,
+      "sha256": "5d91b277df82bb52e2d51ed5da7bd2506d186b1ade19b932ac004140502bee59"
+    },
+    {
+      "path": "frontend/src/shared/project-file/projectFileTypes.ts",
+      "kind": "text",
+      "bytes": 870,
+      "sha256": "5e1508bebefe70623f26740779269fce61820c9c18b053a802dbd63813d534fd"
+    },
+    {
+      "path": "frontend/src/shared/project-file/recentProjects.test.ts",
+      "kind": "text",
+      "bytes": 5351,
+      "sha256": "003f7adfc398ec73963314d8496d32df9090e201d99e055798598df91e431fea"
+    },
+    {
+      "path": "frontend/src/shared/project-file/recentProjects.ts",
+      "kind": "text",
+      "bytes": 5765,
+      "sha256": "ceadfc33428b35120d5ef2aa4b21b18300f48616ddaf3d7ba6113f03e4a4f031"
+    },
+    {
+      "path": "frontend/src/shared/project-file/useProjectFile.test.tsx",
+      "kind": "text",
+      "bytes": 2182,
+      "sha256": "1a0ba4c480ced93c6a8b5887b2648b7f972c27936958c4c5d21dd790174323e1"
+    },
+    {
+      "path": "frontend/src/shared/project-file/useProjectFile.ts",
+      "kind": "text",
+      "bytes": 3296,
+      "sha256": "50d5ae9275ed38fa9f5d684e395a34248556932c2e9ac90bbaa44f01baf21070"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DimensionFormatter.ts",
+      "kind": "text",
+      "bytes": 359,
+      "sha256": "70042455a43f7da7df5b4f8edf1e125392f1ddc27a8ef05158f5e5ee7004d7c8"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DimensionGeometry.test.ts",
+      "kind": "text",
+      "bytes": 5196,
+      "sha256": "2a7fbdc77b1fd348958176e5044df50686762809c29a149952abe899899e6b11"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DimensionGeometry.ts",
+      "kind": "text",
+      "bytes": 2551,
+      "sha256": "ac8c54271df14bc7b36325c337e490baed63b0597426b3d3d8ef50be9525b55a"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DimensionLayout.ts",
+      "kind": "text",
+      "bytes": 792,
+      "sha256": "118da74da4d32e9ff5f4ca454fa302ccce4219b867ffd050161f58931f542fbf"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DimensionTypes.ts",
+      "kind": "text",
+      "bytes": 875,
+      "sha256": "a9efcef4e693f28526b4b948921b2babe5f23b071e9cc749135e9876ff9abdcd"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DrawingBounds.test.ts",
+      "kind": "text",
+      "bytes": 1346,
+      "sha256": "b369ea6a11cd6e045f477f785e4b2187f748c5d53d146bfdcdf9d49249405954"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/DrawingBounds.ts",
+      "kind": "text",
+      "bytes": 3580,
+      "sha256": "3344c8a6fca47623b8007eb30f060dee1278bf3a9fd22fb40b222b84d3c33530"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/SectionBounds.test.ts",
+      "kind": "text",
+      "bytes": 1525,
+      "sha256": "ee46e6a004de1f5ebd2d6992b3c97895887d56d526a69c59a12484b3ea9316c1"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/SectionBounds.ts",
+      "kind": "text",
+      "bytes": 679,
+      "sha256": "998bc46292864c08613ac8b9ac02ff0c2cefb0c0b6915d1f343d1f4bf03b806c"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/SectionPreviewTokens.test.ts",
+      "kind": "text",
+      "bytes": 933,
+      "sha256": "93d2d2deb433030406fef8f4dc525c047ad1821b948b5a55305b81de0f2f9e87"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/SectionPreviewTokens.ts",
+      "kind": "text",
+      "bytes": 1192,
+      "sha256": "93cf6107cada2897318b208602ccdd78dd176e34b85008272b085a8e340e1818"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/StructuralSectionPreviewLayout.test.ts",
+      "kind": "text",
+      "bytes": 1231,
+      "sha256": "807af56c3a02f7c99c5fd9540cb0c1c45fdfdd2c8a4c0aa38e8eff3461c0eada"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/StructuralSectionPreviewLayout.ts",
+      "kind": "text",
+      "bytes": 2637,
+      "sha256": "9330c9c6c92cd2fb03d2d349a2db5e4b0d601ff941074c9693f91a00f14af6e9"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/TechnicalDrawingFit.test.ts",
+      "kind": "text",
+      "bytes": 1937,
+      "sha256": "5af9a7a38357530d596a6df524b755c72c2b9e03cedc30675f00afae27dd8a4b"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/TechnicalDrawingFit.ts",
+      "kind": "text",
+      "bytes": 3390,
+      "sha256": "c6c0b5c26d4e9cc1a87df7d6946b1e096c4d4fa5e3f89e2cabc5a6e419ea058f"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/TechnicalDrawingTokens.ts",
+      "kind": "text",
+      "bytes": 507,
+      "sha256": "690eac3bd1de2458cedb7b62ead2d668bdca3606380bf491eb98837bc1b3d811"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/DimensionArrow.test.ts",
+      "kind": "text",
+      "bytes": 1969,
+      "sha256": "58939319617a7b262bf738007ba2395000fc8dc67d3b027e22c3ac50551f5458"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/DimensionArrow.tsx",
+      "kind": "text",
+      "bytes": 1443,
+      "sha256": "33636af2a368f31c417e430c549c2dbcda368f25c56bfe6eadad909868e7c3cd"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/DimensionLayers.tsx",
+      "kind": "text",
+      "bytes": 1367,
+      "sha256": "f9eac341919bd314ae2c187f4e5d8c020dc1a6b63d1d4ecea3054c1a10fcb9d8"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/DimensionText.tsx",
+      "kind": "text",
+      "bytes": 675,
+      "sha256": "f7aed4f8f308d81e434675a916bc2bede5cb9e17c0f01a001271f69d8cfbdfe3"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/ExtensionLine.tsx",
+      "kind": "text",
+      "bytes": 467,
+      "sha256": "5506678545178ab759b4e408fbf1c709a22d35c2f4fa3a31eda7f56ce853661a"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/HorizontalDimension.tsx",
+      "kind": "text",
+      "bytes": 360,
+      "sha256": "b9ef4e539950b8c4b28b5d5930cc04f8f5f2c8428c128202a5e77a59d34e075e"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/InlineDimension.tsx",
+      "kind": "text",
+      "bytes": 356,
+      "sha256": "2ecdc88bcb2ed572839a6d0e8133a3ff6f539755434b77969cb4c7e8eb9003c5"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/TechnicalDimensionGroup.tsx",
+      "kind": "text",
+      "bytes": 1823,
+      "sha256": "337714afde321c2a7b2a59e7dd3c4c9eaded85e0c2a9d1dd460627f2f591871a"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/components/VerticalDimension.tsx",
+      "kind": "text",
+      "bytes": 358,
+      "sha256": "62f2d4007efc09dda71e0c736b0ccc8ca03793fde868d34c07321ee608e306f9"
+    },
+    {
+      "path": "frontend/src/shared/technical-drawing/useTechnicalDrawingViewport.ts",
+      "kind": "text",
+      "bytes": 1213,
+      "sha256": "cee4c8406409f05aefa80c7c40ce77ed7e816f34cc0e8b641b6f5b4ea4aecd0e"
+    },
+    {
+      "path": "frontend/src/shared/ui/BulbTeeGirderShape.test.ts",
+      "kind": "text",
+      "bytes": 383,
+      "sha256": "a6d434aaa94bcf3ad1e722d932c7f57766cfc1641353b2c2fe479a27de3e832f"
+    },
+    {
+      "path": "frontend/src/shared/ui/BulbTeeGirderShape.tsx",
+      "kind": "text",
+      "bytes": 2064,
+      "sha256": "3dfbaa3e035e95e7e99fe4e3a5ba87c68242ee6103cdc6840759045036614be1"
+    },
+    {
+      "path": "frontend/src/shared/ui/CountryMap.tsx",
+      "kind": "text",
+      "bytes": 1275,
+      "sha256": "8b2d1d4cdeb327427675bfb6c875644dcccd684778fc09ad291c461d6d1bc102"
+    },
+    {
+      "path": "frontend/src/shared/ui/DecimalInput.tsx",
+      "kind": "text",
+      "bytes": 1826,
+      "sha256": "fd11f6e644ec193f97f151f98299bc0a497bdb601c3dec8c3030823a78a09cc6"
+    },
+    {
+      "path": "frontend/src/shared/ui/DesignSystemUi.tsx",
+      "kind": "text",
+      "bytes": 2743,
+      "sha256": "8e82f9648b75bbfb3cf15227338c833cb8bfb918da410405d6162f60d5cedbea"
+    },
+    {
+      "path": "frontend/src/shared/ui/DisabledItemGrid.tsx",
+      "kind": "text",
+      "bytes": 748,
+      "sha256": "ec0ff0084b0dd2571bc268d8a8d7fd0f073eb6a2527c10d80f737badf315e36f"
+    },
+    {
+      "path": "frontend/src/shared/ui/EngineeringWorkspace.tsx",
+      "kind": "text",
+      "bytes": 403,
+      "sha256": "fd78bea627f867d5177834cbbb43dc8311b637e1959770be0811a152735804c6"
+    },
+    {
+      "path": "frontend/src/shared/ui/ImportActionScreen.tsx",
+      "kind": "text",
+      "bytes": 1148,
+      "sha256": "9bb5329809a34a898b4146144c410ac1165dd8460722a32ed637705b9bd887d1"
+    },
+    {
+      "path": "frontend/src/shared/ui/ParamSweepCard.test.ts",
+      "kind": "text",
+      "bytes": 1225,
+      "sha256": "6c0fe2e88091d9826661ddc546d412ce50be15525b54769d5a18800b9f15f865"
+    },
+    {
+      "path": "frontend/src/shared/ui/ParamSweepCard.tsx",
+      "kind": "text",
+      "bytes": 4379,
+      "sha256": "b4c6ad4b9b1c2adb3340ec65fd18bf787d352e034d24d77f8a77fdc9e81065ce"
+    },
+    {
+      "path": "frontend/src/shared/ui/ParameterProvenanceTable.tsx",
+      "kind": "text",
+      "bytes": 4539,
+      "sha256": "1039a5b20bf8401d952a399ca2d8301e5c19490ea3e5b0a896fc4c01f7cf4175"
+    },
+    {
+      "path": "frontend/src/shared/ui/RecentFileAccessModal.tsx",
+      "kind": "text",
+      "bytes": 675,
+      "sha256": "3a1a6cf91fefbefe6ebebf8408cb30ab1420cea93c81ac6ae09b88f43ac61dac"
+    },
+    {
+      "path": "frontend/src/shared/ui/TabDetailPanel.tsx",
+      "kind": "text",
+      "bytes": 2780,
+      "sha256": "cb949584da1bc58602c5836707d369d1059fb7275129575d3eaef950a8aac8fa"
+    },
+    {
+      "path": "frontend/src/shared/ui/UnsavedChangesModal.tsx",
+      "kind": "text",
+      "bytes": 830,
+      "sha256": "3f294739ae2cfd305bd204297fd24e24aa33f2fce786dc887db525235afd1ede"
+    },
+    {
+      "path": "frontend/src/shared/ui/generation.ts",
+      "kind": "text",
+      "bytes": 496,
+      "sha256": "1d00e78f1d93844015b65476a84bb8cd746b9e711a86367b19d554bd5120a180"
+    },
+    {
+      "path": "frontend/src/test/setup.ts",
+      "kind": "text",
+      "bytes": 528,
+      "sha256": "c7bc14a6755da9cb848c4ac0e17c2fae429a8cc0c9b7170922d95fb75ee76cdc"
+    },
+    {
+      "path": "frontend/tsconfig.app.json",
+      "kind": "text",
+      "bytes": 681,
+      "sha256": "bbcd078c923aa26585b32222f966a047948210372f3adbf41617e7553ef73e13"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "kind": "text",
+      "bytes": 126,
+      "sha256": "ad28d132ee48d6e23917cf5827cace785d0fc01a44ca68b0dda51cc8c3fd3f52"
+    },
+    {
+      "path": "frontend/tsconfig.node.json",
+      "kind": "text",
+      "bytes": 581,
+      "sha256": "a9e6c7f6fd3ec455a6fe1d4fbb83091e774b62fe116008ab6d8c5e1e88af4629"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "kind": "text",
+      "bytes": 263,
+      "sha256": "cfdf6a3f324ff013c38d8c50eb2a20996fa08bca40ecf663a0e31b4404ee6f38"
+    },
+    {
+      "path": "frontend/vitest-errors.txt",
+      "kind": "binary-or-non-utf8",
+      "bytes": 433306,
+      "sha256": "16bdf070803ca2451feb0c53d4f3b50865e9a7445f9ff68efd0e8b17b94e9686"
+    }
+  ],
+  "excluded": [],
+  "fingerprint": "4c47f2ea828ad8c7674fa580c9607feb661e9359850ca517e96dda2daf0f2f52",
+  "created_at": "2026-10-11T19:37:56.971742+00:00",
+  "counts": {
+    "selected": 345,
+    "excluded": 0,
+    "text": 307
+  },
+  "limits": [
+    "Git-ignored files absent; configured dependencies/generated paths excluded.",
+    "Endpoint comparison is not atomic; concurrent sessions unsupported."
+  ]
+}

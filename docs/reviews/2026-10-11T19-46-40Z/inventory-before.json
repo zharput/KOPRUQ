@@ -1,0 +1,1411 @@
+{
+  "scope": "backend",
+  "head": "bdca6d8b5704392e36621f12d4d3cdd740d381c3",
+  "config_sha256": "78cd8ca8be7ed8a7a61fcb473d8809dc6290545d38aad8e15ad3b1b393b6706b",
+  "files": [
+    {
+      "path": "backend/alignment/pom.xml",
+      "kind": "text",
+      "bytes": 933,
+      "sha256": "7259df57187745aeb6cb18bc075b8b415589fa5679411698a86fbeb9aeef4c43"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/Alignment.java",
+      "kind": "text",
+      "bytes": 11887,
+      "sha256": "0f73b903baf49d9ad1341dbb91140ea23544d7358b995f853667471d0ede47dc"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/ChainagePosition.java",
+      "kind": "text",
+      "bytes": 519,
+      "sha256": "278ccdc1c3f99685d4a044bf8654c356aae053f19834d84b12ca2d2922b511ae"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/CurveElement.java",
+      "kind": "text",
+      "bytes": 1186,
+      "sha256": "44afcc55535a882ea974c3d97b77c091810904e34ca0510d1055a26b7263b1ba"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/HorizontalElement.java",
+      "kind": "text",
+      "bytes": 601,
+      "sha256": "b685a5258f8f44188cf66c8e268177ac7ccc0730b40274077e77e3273eed422c"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/Pvi.java",
+      "kind": "text",
+      "bytes": 653,
+      "sha256": "4699638f0e495615abab8762c96539381f9b871601ce14aa2abb75a6e94ab762"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/StraightElement.java",
+      "kind": "text",
+      "bytes": 618,
+      "sha256": "2938c2c7724e59cbb7b058564b933c5cef4a634343cd3349e3dc6958de88df24"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/VerticalProfile.java",
+      "kind": "text",
+      "bytes": 3202,
+      "sha256": "da0fd161537841794e2873a19732a23b20eee1f7d9084fe504d1cf27149bf42c"
+    },
+    {
+      "path": "backend/alignment/src/main/java/com/kopruq/alignment/package-info.java",
+      "kind": "text",
+      "bytes": 574,
+      "sha256": "46a91e429d99bd99e098082281f3d999dd24d9c6681c9d2a65da2a07eb2e162d"
+    },
+    {
+      "path": "backend/alignment/src/test/java/com/kopruq/alignment/AlignmentTest.java",
+      "kind": "text",
+      "bytes": 4227,
+      "sha256": "3ea343323ef647dcadc7408d04d1ae219133e3f54b20e0f78f2493c91f192d1f"
+    },
+    {
+      "path": "backend/alignment/src/test/java/com/kopruq/alignment/CurveElementTest.java",
+      "kind": "text",
+      "bytes": 3808,
+      "sha256": "1fbf3bad6c9bc06bd18dc8e9297020ea0bafdda0f36688defa9478faad8eea5b"
+    },
+    {
+      "path": "backend/alignment/src/test/java/com/kopruq/alignment/VerticalProfileTest.java",
+      "kind": "text",
+      "bytes": 2183,
+      "sha256": "674fa175ac9a04ac8f9e750dc41e318a1a36e2cb09520acdcba1fe7e7dbc776a"
+    },
+    {
+      "path": "backend/analysis-api/pom.xml",
+      "kind": "text",
+      "bytes": 1011,
+      "sha256": "3b613d93d0c891586bc81421c9380264d56f519c7ab47d76973a48e7a3f7d4ec"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisElement.java",
+      "kind": "text",
+      "bytes": 378,
+      "sha256": "2d6769639d1de2b82c6f40543c20c585e5dc77f44edcc9f06fc08f937f56e241"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisEngine.java",
+      "kind": "text",
+      "bytes": 1009,
+      "sha256": "144f3a4e897ec85066cabd1b06f6e21d2004474d797be14bc006d524bb3cc1e9"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisJob.java",
+      "kind": "text",
+      "bytes": 210,
+      "sha256": "9e8a58f4893cf265f22c1cae7c22b719c35e3ec645a365ff472a2d4be2845711"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisJobId.java",
+      "kind": "text",
+      "bytes": 104,
+      "sha256": "d7afb5e7d203550453dd9b86ef4283616e6fe779736739d7bf641470e37a387b"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisMaterial.java",
+      "kind": "text",
+      "bytes": 921,
+      "sha256": "7f5f6b3438b5bac8a63466f469010b5dc5b5ad3328efbf8e54d5a13b89482574"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisNode.java",
+      "kind": "text",
+      "bytes": 174,
+      "sha256": "c7fbcb12f18f40468cbba657717b8ff89acb72564db425e2506e5ed00eb05e02"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisRequest.java",
+      "kind": "text",
+      "bytes": 1678,
+      "sha256": "287fbe1eff6c263ae01c06c22dd4ffbb1bdd032ba1741f5ed8e6d3682e1a8813"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisResult.java",
+      "kind": "text",
+      "bytes": 603,
+      "sha256": "1efd229e4c050e9a0f22bbd7e2e82cc132aa99393b3d788cf5a67487f462b29f"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisSection.java",
+      "kind": "text",
+      "bytes": 537,
+      "sha256": "092a1dad2d361f39c7d3ea11c5fdc3fd0fa98c9b845212b38dee8b5647c16ebf"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/AnalysisStatus.java",
+      "kind": "text",
+      "bytes": 614,
+      "sha256": "6fe98ec1052cd7549decfca63e0d4ed0bafe45f213940a7b360ca62aed02906f"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/BoundaryCondition.java",
+      "kind": "text",
+      "bytes": 463,
+      "sha256": "aa73f7a3676b04e68a2f172e689770f4be4273310a8674afa48d8a8f0c741767"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/DisplacementResult.java",
+      "kind": "text",
+      "bytes": 235,
+      "sha256": "cbce1457285a241536a81e9f4d33bb14e569ff228ae9340acaaa584c0addac1e"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/ElasticLinkElement.java",
+      "kind": "text",
+      "bytes": 1030,
+      "sha256": "354165b8b9a3df70e065ddabee29532e8387de3d250ba66346eaf3553950557d"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/EurocodeConcrete.java",
+      "kind": "text",
+      "bytes": 2174,
+      "sha256": "8a70baffa6a8be17bb09e911d26e661304b4f2d7934533f34debcc6cdd1416f0"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/ISection.java",
+      "kind": "text",
+      "bytes": 605,
+      "sha256": "a2607177112011c391f81659c9469b28f764fb736bed166371c279937da7124b"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/LoadCase.java",
+      "kind": "text",
+      "bytes": 346,
+      "sha256": "395504ed95c919821b552e11353c47aac3732b38d83b7f511f1764a14d7ac34b"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/ReactionResult.java",
+      "kind": "text",
+      "bytes": 229,
+      "sha256": "a84f67af2da2a486adf2408e2dc65bfe91a1ddfb759289769f8a1c00f2eccd5e"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/SelfWeight.java",
+      "kind": "text",
+      "bytes": 426,
+      "sha256": "234e2076678d09452ffa59afbf101e7d578582286f4b74f98bbb0c6a0a22f70a"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/SolidCircularSection.java",
+      "kind": "text",
+      "bytes": 229,
+      "sha256": "1ba59c96e74b6ab4177554d608838baea7dbbea174017d7ca15049a20d73503f"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/SolidRectangleSection.java",
+      "kind": "text",
+      "bytes": 238,
+      "sha256": "d661083d6ab49356abdfd02a608c481404d59edce3ef1c01374036d3ed1b1859"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/UniformElementLoad.java",
+      "kind": "text",
+      "bytes": 579,
+      "sha256": "f783062206d29d4fc5f6e01738eb72b98e11db5342c6f69cf09ab6214c6cf7f3"
+    },
+    {
+      "path": "backend/analysis-api/src/main/java/com/kopruq/analysis/package-info.java",
+      "kind": "text",
+      "bytes": 820,
+      "sha256": "3b6efc8aeba0a5b37f9691f503f0e591e8be2e6f59bd3753738fb70c536edbad"
+    },
+    {
+      "path": "backend/analysis-api/src/test/java/com/kopruq/analysis/EurocodeConcreteTest.java",
+      "kind": "text",
+      "bytes": 1276,
+      "sha256": "9e9d863e0466b8f020221ebba8d83358d0ce5a7829253543c96585c2e60f3457"
+    },
+    {
+      "path": "backend/analysis-engine/pom.xml",
+      "kind": "text",
+      "bytes": 1207,
+      "sha256": "af044b00327e811e3b1842580b2c784999bdf96843b49f97de71fc52b3a40831"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/DenseLinearSolver.java",
+      "kind": "text",
+      "bytes": 2087,
+      "sha256": "c8743d853bdde0f3d0a914131c9ec4959c97a030be44a114eb9b0497aa034fd0"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/ElasticLinkStiffness.java",
+      "kind": "text",
+      "bytes": 971,
+      "sha256": "535272d4afb4cfed4d459423cfb8ade875334d39290ad00a8ad0a352a2eaf960"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/FrameElementStiffness.java",
+      "kind": "text",
+      "bytes": 2775,
+      "sha256": "24b5b1d5cd192869b2246c756b7df5d7fdf5ebadaf12f1b962b803289299b35d"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/FrameSolver.java",
+      "kind": "text",
+      "bytes": 9550,
+      "sha256": "502fdc4912f72c4ff7c3404c6e616c1029c95ece62cd63ac5496580e656d9888"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/FrameTransformation.java",
+      "kind": "text",
+      "bytes": 2396,
+      "sha256": "d20a95980f27acdda2a43fa9e9ae719c76f169d3f5639835b94f963efd4feff0"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/KopruqAnalysisEngine.java",
+      "kind": "text",
+      "bytes": 3492,
+      "sha256": "f17f6ab658f473bb70966bc9b2da93d0d3bfcc0d4f88c5859db5d7271a46c342"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/MatrixUtils.java",
+      "kind": "text",
+      "bytes": 1741,
+      "sha256": "2dd248754ba857d255db519ee2da6d6d032df16c9566e18a7c47989a70bc6373"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/RectangularSectionProperties.java",
+      "kind": "text",
+      "bytes": 2495,
+      "sha256": "51d366176237afe964ec15aa25684c892614327afbc78e8df916b37ff6780cff"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/UniformLoadDistribution.java",
+      "kind": "text",
+      "bytes": 2028,
+      "sha256": "12f201eba0ce93c1200060e8934924414ec65edbf2c43178b439d6a0887fcc6e"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/Vector3.java",
+      "kind": "text",
+      "bytes": 889,
+      "sha256": "dd1a119c2fe8ceb46510f036612029b1ddcf2b28e6ff3a35b8c7a59c417c0b9b"
+    },
+    {
+      "path": "backend/analysis-engine/src/main/java/com/kopruq/analysisengine/package-info.java",
+      "kind": "text",
+      "bytes": 610,
+      "sha256": "8e485d285865aeecbcfb3b5664624201964d24c532bbecdfdca2385194169ca9"
+    },
+    {
+      "path": "backend/analysis-engine/src/test/java/com/kopruq/analysisengine/FrameSolverTest.java",
+      "kind": "text",
+      "bytes": 6464,
+      "sha256": "7f993905d264f96901cb2f122aa55b34cf5a4f6f3cc327100346baa38d2ad637"
+    },
+    {
+      "path": "backend/api/pom.xml",
+      "kind": "text",
+      "bytes": 3877,
+      "sha256": "b8aabfc732b11ead610575725b0539180cb9131f184308a82f08ca7254d29d3d"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/KopruqApiApplication.java",
+      "kind": "text",
+      "bytes": 602,
+      "sha256": "320a711a7499d58362a9672e1b47e9abb58de46aac228de0ffcfc7dfa8aed1d6"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/alignment/AlignmentController.java",
+      "kind": "text",
+      "bytes": 4112,
+      "sha256": "51056859c374501d9a1ab6974ea043eacc90647afd5233341f0215da66a92927"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/alignment/AlignmentSamplePoint.java",
+      "kind": "text",
+      "bytes": 526,
+      "sha256": "e234c17ff79032f001f46648fd042e749ee1d6d49cfcd31b4e36eba64ec7784b"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/alignment/AlignmentSampleRequest.java",
+      "kind": "text",
+      "bytes": 307,
+      "sha256": "195f6c9fe7503564b0d4ead61ad9e88749687036e261748caeb54e461a4f73f9"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/alternatives/AlternativeGenerationController.java",
+      "kind": "text",
+      "bytes": 1850,
+      "sha256": "a77033735b903e6e3adcc33181516464c4dd31b505d70a6b4be50758e1f65909"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/alternatives/AlternativeRow.java",
+      "kind": "text",
+      "bytes": 1432,
+      "sha256": "c9df1df683071cb084b7cd1d892ec7c1581297968efeebcea7afbe3803a29f27"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/config/SharedRepositoriesConfig.java",
+      "kind": "text",
+      "bytes": 1631,
+      "sha256": "8263289b907eb46516c4581e493a55f03ddbd8396ca001289ea0c9d8bc9c08d9"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/DeckDisplacementRow.java",
+      "kind": "text",
+      "bytes": 259,
+      "sha256": "068d2386fc893b81fec2566b293397fb12069efc993163c6aa7b038c9c40df14"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/FastSolverController.java",
+      "kind": "text",
+      "bytes": 5569,
+      "sha256": "ce6fa9b5c48c1f724f8e0ff21805e3d1903639da13833a467c3f8ca4bcb464a3"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/FastSolverModel.java",
+      "kind": "text",
+      "bytes": 336,
+      "sha256": "fc75c89f666a7354dbaa7db01a71ee5def48ead98689410b347387d5893e21c5"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/FastSolverModelBuilder.java",
+      "kind": "text",
+      "bytes": 7851,
+      "sha256": "1af1208a4c2a3639b3b59130e3ed3d74049a690e5368593146f6f4807ce3599b"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/FastSolverRequest.java",
+      "kind": "text",
+      "bytes": 1429,
+      "sha256": "088b0802e55cccc263591608706bff1b9a342b6ef2a8590b8cf268c331a84aed"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/FastSolverResponse.java",
+      "kind": "text",
+      "bytes": 629,
+      "sha256": "318f418b9af6412378ff80d9c6c61534ccba4fc22fb96f84741f5d285c44e135"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/NamedNode.java",
+      "kind": "text",
+      "bytes": 210,
+      "sha256": "2f698ebdd219f284af2f4949f5cc8b8e3200b1a245b7cbe29188bd763f8424c6"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/fastsolver/SupportReactionRow.java",
+      "kind": "text",
+      "bytes": 248,
+      "sha256": "e77cc0f30c8e42fb1e72637f306e515e9000d033782abb532005f0b0ca0a1c4c"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/kernel/KernelStateController.java",
+      "kind": "text",
+      "bytes": 1274,
+      "sha256": "a44f63c5153344d54adc27fe3ace6ce9abdae649d0bf00d0df858c6725e50863"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/kernel/KernelStateRequest.java",
+      "kind": "text",
+      "bytes": 1667,
+      "sha256": "32b2688f8267c154575b804e03c8bdda88c10a4614ca2038a7cda636fb787643"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/kernel/KernelStateResponse.java",
+      "kind": "text",
+      "bytes": 491,
+      "sha256": "ecd03b3130aa933ccc2beec7fe908ab67161655915a1f8ab8aaf8ec870bd65d4"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/landxml/LandXmlController.java",
+      "kind": "text",
+      "bytes": 6903,
+      "sha256": "9194a0abfcbe8d9d13e5909b5c9ba11fa6873dc88b951812ba12e61bc73f9088"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/landxml/LandXmlImportSummaryResponse.java",
+      "kind": "text",
+      "bytes": 1687,
+      "sha256": "19cd5ce5c3b1344c50d480f77c0ec56aa79f8797daaead5d4aa68660c9158583"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/landxml/LandXmlInspectResponse.java",
+      "kind": "text",
+      "bytes": 2394,
+      "sha256": "3e716007cec0306ed104aadc157cdc243802b04c7e8300d1d0f98419f5c132f8"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/landxml/LongitudinalProfilePoint.java",
+      "kind": "text",
+      "bytes": 319,
+      "sha256": "5fb0cfab70d54c02aba943aa303db839ce3706472800ffcf061eff71a6f7fb74"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/layout/LayoutAlternativeRow.java",
+      "kind": "text",
+      "bytes": 1368,
+      "sha256": "795e1474e94f9eb82aea084067e06094ab69a2807788fbf1ebce12075548fcb8"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/layout/LayoutGenerationController.java",
+      "kind": "text",
+      "bytes": 1653,
+      "sha256": "26194ae0b01e831654781a5aca5981784cdfebba36837caee79f44d1ef699351"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/layout/LayoutGenerationRequest.java",
+      "kind": "text",
+      "bytes": 1505,
+      "sha256": "ff2b6007354bbb8a2155bb2baececb6e399b0d8baa740a074d67bab372ad350f"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/layout/NoPierZoneRequest.java",
+      "kind": "text",
+      "bytes": 374,
+      "sha256": "ac03c6c7db4ecc20f59f2d46de091a752ed0ba1103a085806375927676ae987f"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/layout/PierRow.java",
+      "kind": "text",
+      "bytes": 577,
+      "sha256": "49fe91592c32f2aa5350e1647312b131085a7316981eed733982597787a7422f"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/materials/ConcreteMaterialController.java",
+      "kind": "text",
+      "bytes": 2562,
+      "sha256": "05bfe8613e9f215011359b8de71c3b4f7173388f4dd37bda0b730c8d98e5be3e"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/terrain/TerrainBinaryWriter.java",
+      "kind": "text",
+      "bytes": 1338,
+      "sha256": "9037f3e40deb348af6803e94ae12543ad0b1ed62b2ce4e65e5974c2f302be4e5"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/terrain/TerrainController.java",
+      "kind": "text",
+      "bytes": 5896,
+      "sha256": "ef3b8b8327f4535670ee57fdf43d1f6739745535c7ff9591baea54e3f8d64937"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/terrain/TerrainElevationResponse.java",
+      "kind": "text",
+      "bytes": 207,
+      "sha256": "446890e4a0123bd404d3526b0bf7114650d780986917779425835ef8b26f10e1"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/terrain/TerrainImportResponse.java",
+      "kind": "text",
+      "bytes": 1432,
+      "sha256": "2cbe4b2e17f91edfc2e2622c1a57b4c763840284031634ce01c3e9371859a5ec"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/terrain/TerrainMeshResponse.java",
+      "kind": "text",
+      "bytes": 2050,
+      "sha256": "c206027afbb49819d3ee782550fefb58da79cd75d37a27721b4ffd72db8cba8b"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/trafficloads/SeismicSpectrumController.java",
+      "kind": "text",
+      "bytes": 477,
+      "sha256": "648fad27c3b84f935b173489e2408fb328b8b0bc1368484e856ad215f4870c36"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/trafficloads/TrafficLoadsController.java",
+      "kind": "text",
+      "bytes": 2493,
+      "sha256": "1b1a801ec4284065736b0f375974f0c1257040ad12e092f8cf46da2dcd35f8dd"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/trafficloads/TrafficResolveRequest.java",
+      "kind": "text",
+      "bytes": 230,
+      "sha256": "2db2afb204a7f6598bfdcb280743d889b4fbf938370d7d262016a91674edc4c4"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/trafficloads/TrafficResolveResponse.java",
+      "kind": "text",
+      "bytes": 330,
+      "sha256": "cf21c93d2d88b1445839b963a8e0d3ec70a1be92ef7d048bff9a669aea22cdbb"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/trafficloads/UniformTemperatureController.java",
+      "kind": "text",
+      "bytes": 952,
+      "sha256": "074aed3ca85b429580752491093020db467749f2cb0fbe4a4bc04e4bdb2912c3"
+    },
+    {
+      "path": "backend/api/src/main/java/com/kopruq/api/trafficloads/WindLoadsController.java",
+      "kind": "text",
+      "bytes": 447,
+      "sha256": "fde5ae41ee4a1d8e5939826ea3f122d577596de80d0edefd18a7ba6b1064f2da"
+    },
+    {
+      "path": "backend/api/src/main/resources/application.properties",
+      "kind": "text",
+      "bytes": 495,
+      "sha256": "f0ed5efdf154c81cf7e8d36b86e48badd2b9be00fd0bf8f5d727ca38a65b831e"
+    },
+    {
+      "path": "backend/api/src/test/java/com/kopruq/api/alternatives/AlternativeGenerationControllerTest.java",
+      "kind": "text",
+      "bytes": 1399,
+      "sha256": "18bf4a3c1e39e82a7e0396c2cee6dfbfcc6d668b92f545b4b9f88c64654a10e7"
+    },
+    {
+      "path": "backend/api/src/test/java/com/kopruq/api/kernel/KernelStateControllerTest.java",
+      "kind": "text",
+      "bytes": 1479,
+      "sha256": "2f0f24494ae6db1c07350ed3d49c671203e974a386a95b053ae7e078646a1122"
+    },
+    {
+      "path": "backend/api/src/test/java/com/kopruq/api/layout/LayoutGenerationControllerTest.java",
+      "kind": "text",
+      "bytes": 2132,
+      "sha256": "96ed80eb12c1aac9027f7f13c020acd4bb709d4ab8675961d8bcda12bfd4e18b"
+    },
+    {
+      "path": "backend/api/src/test/java/com/kopruq/api/materials/ConcreteMaterialControllerTest.java",
+      "kind": "text",
+      "bytes": 1543,
+      "sha256": "8136468e892ebe6a139c20d0a3992746d65880d5edc14e3d83217bed0fe52c14"
+    },
+    {
+      "path": "backend/api/src/test/java/com/kopruq/api/terrain/BentleyProductionTerrainTest.java",
+      "kind": "text",
+      "bytes": 6255,
+      "sha256": "0c533d9ad4d3042edaa41dc6d17079a9f708217719c40236f9588a3ffe4be613"
+    },
+    {
+      "path": "backend/api/src/test/java/com/kopruq/api/terrain/TerrainBinaryWriterTest.java",
+      "kind": "text",
+      "bytes": 1730,
+      "sha256": "1ddebe0bf2b072986616f7e25814ee3601fdfd4dcfd0e74339d98aa80e90665f"
+    },
+    {
+      "path": "backend/bridge-core/pom.xml",
+      "kind": "text",
+      "bytes": 651,
+      "sha256": "19b5a51efb56a91782bee2de454c02f1cdde2090d1ee17e933d0887f44be51f0"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Bridge.java",
+      "kind": "text",
+      "bytes": 298,
+      "sha256": "b1cc425ed4515dddd984abafc768c65bb5c59336ee46154574a77c00b10a428c"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/BridgeAlternative.java",
+      "kind": "text",
+      "bytes": 1676,
+      "sha256": "80a28e6dc378f5c142efd9df4da636d768936ad7027badb413fde2104c8d6030"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Deck.java",
+      "kind": "text",
+      "bytes": 162,
+      "sha256": "2906b6259ae9fae95c469abb1b26308ff144e2ac674255fa967bd30992eae014"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/DesignSpace.java",
+      "kind": "text",
+      "bytes": 1944,
+      "sha256": "4c80d3948c6cd2dd16812f7ae5647d0f3a2fdb693adb81b4ee4d61c68866ff99"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Foundation.java",
+      "kind": "text",
+      "bytes": 888,
+      "sha256": "3280cd8166f25b17079c307af5e06b15e665e88a6f5bf6907bd28b82797e4aaf"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/FoundationType.java",
+      "kind": "text",
+      "bytes": 153,
+      "sha256": "c9c30551bc991a8304eb1bc5b8856d1453763cb972af8bb3381bc17adaef5e9b"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Girder.java",
+      "kind": "text",
+      "bytes": 334,
+      "sha256": "08339c57f80e9e71751ffce53a0b7547b0cff5bec8a0c292db876202588b5dd3"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Pier.java",
+      "kind": "text",
+      "bytes": 626,
+      "sha256": "da7a814869d7b82e69c5f2f72c819a9680452df11d01d7052dabe58b42fb970e"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Project.java",
+      "kind": "text",
+      "bytes": 2520,
+      "sha256": "549f61a645e04f6e4512bd2cfdbb93525f139dda7913d700dab426797b9f675e"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/Span.java",
+      "kind": "text",
+      "bytes": 122,
+      "sha256": "ff5d16cefb1455d1feba40213ab991f330d362faded617f2e6e4fe9bdddb8173"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/SpanLayout.java",
+      "kind": "text",
+      "bytes": 401,
+      "sha256": "ba714265bc92d9227313b726c05e90b32992e64f03500b40312bb48f9d449909"
+    },
+    {
+      "path": "backend/bridge-core/src/main/java/com/kopruq/bridgecore/package-info.java",
+      "kind": "text",
+      "bytes": 899,
+      "sha256": "af4fe446c2b1dc5cf71a78610dcac8648d445fc8b8dc7a1396c6f4d1535a3cf4"
+    },
+    {
+      "path": "backend/bridge-core/src/test/java/com/kopruq/bridgecore/BridgeAlternativeTest.java",
+      "kind": "text",
+      "bytes": 1906,
+      "sha256": "42a6cb9a3e8682d18a707d8d5402b41ad7c417ed5fba149c50440eb57f1b76c3"
+    },
+    {
+      "path": "backend/bridge-core/src/test/java/com/kopruq/bridgecore/ProjectTest.java",
+      "kind": "text",
+      "bytes": 1808,
+      "sha256": "c2f27b1a12d42fa398b824e6e213c570f6ed34fee3bf897cdb1b03d3e4b8411f"
+    },
+    {
+      "path": "backend/bridge-core/src/test/java/com/kopruq/bridgecore/SpanLayoutTest.java",
+      "kind": "text",
+      "bytes": 826,
+      "sha256": "170e4d23569fdbe097df36c9b0ab7b6140ee5e3e63607e0975b76d0695e6d998"
+    },
+    {
+      "path": "backend/bridge-layout/pom.xml",
+      "kind": "text",
+      "bytes": 1253,
+      "sha256": "c92155101b20ce22c9c56d545cddc11a88cf7175c6f2b5d1a0ada84bdb207673"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/AbutmentCandidate.java",
+      "kind": "text",
+      "bytes": 487,
+      "sha256": "76b1c3a37843d9ecf4982e67ce5a0f9b1fc6b8a024bd0e5e198022068c94fc22"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/BridgeLayoutAlternative.java",
+      "kind": "text",
+      "bytes": 1075,
+      "sha256": "0a911e2122b289d5ff60e5cda570f9847931077910f6cf1e37e51f0ecaec2b09"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/BridgeLayoutEngine.java",
+      "kind": "text",
+      "bytes": 6784,
+      "sha256": "6cc408796f9f0333eb5049a9d6a878af13fcc68aff66fc1c0989c89f50cb0ad5"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/BridgeSite.java",
+      "kind": "text",
+      "bytes": 739,
+      "sha256": "58a70291712becf04ab246f69699f9b6fa633287c6ccce750467b5efdd824605"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/ConstraintCheckResult.java",
+      "kind": "text",
+      "bytes": 302,
+      "sha256": "74bcbf49865bfbd9d2d0fceff4f1ff68e1e2c865c0247bfdc2bd9c923e59401a"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/FeasibilityStatus.java",
+      "kind": "text",
+      "bytes": 438,
+      "sha256": "c0e88894ed6c0c5aaa1c1d5c111691920b7c6763edeb1daba16193dd91120820"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/LayoutDesignSpace.java",
+      "kind": "text",
+      "bytes": 1271,
+      "sha256": "2fa10c58899964ca97fc7827d027c8c020b1cf22b9efcdf914cd75eac7f87b58"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/PierCandidate.java",
+      "kind": "text",
+      "bytes": 341,
+      "sha256": "1dc16c9532b8b5bfb7c68d67f12918dc82f89cfd2a617912a4a4503f4287b31b"
+    },
+    {
+      "path": "backend/bridge-layout/src/main/java/com/kopruq/bridgelayout/package-info.java",
+      "kind": "text",
+      "bytes": 687,
+      "sha256": "62b21de17867075d591636e38ebe6c250945e03ea8981a17cb12efc455cb2f61"
+    },
+    {
+      "path": "backend/bridge-layout/src/test/java/com/kopruq/bridgelayout/BridgeLayoutEngineTest.java",
+      "kind": "text",
+      "bytes": 5539,
+      "sha256": "d0b8b22b30aff40083617536637d50b9fb1601df471a42e06268c0bf52342ec1"
+    },
+    {
+      "path": "backend/constraints/pom.xml",
+      "kind": "text",
+      "bytes": 867,
+      "sha256": "33ce428caa346a3bdd91252214447f04fd018bcc3af0cabbaeb5cee5811ae4cd"
+    },
+    {
+      "path": "backend/constraints/src/main/java/com/kopruq/constraints/NoPierZone.java",
+      "kind": "text",
+      "bytes": 1254,
+      "sha256": "5f1cf4f519c59d608f543f56f04b49ecd0bfa0a9a38da6ea59a44f05725476f4"
+    },
+    {
+      "path": "backend/constraints/src/main/java/com/kopruq/constraints/package-info.java",
+      "kind": "text",
+      "bytes": 330,
+      "sha256": "41868ec3700e466ffb48d81f225ccbca01de72b30eae23935ca749fb69967b00"
+    },
+    {
+      "path": "backend/generative-engine/pom.xml",
+      "kind": "text",
+      "bytes": 1032,
+      "sha256": "0677f9986a61334fd32d03e5fa645ada2bfd24dd1b99ba38795369fb9cc6b32b"
+    },
+    {
+      "path": "backend/generative-engine/src/main/java/com/kopruq/generative/AlternativeGenerator.java",
+      "kind": "text",
+      "bytes": 4587,
+      "sha256": "018a585a5fc3cc84724298b031da27cda91388d2578e2e8ae471ccec592fe95b"
+    },
+    {
+      "path": "backend/generative-engine/src/main/java/com/kopruq/generative/package-info.java",
+      "kind": "text",
+      "bytes": 596,
+      "sha256": "3c75084f4467ef0fc640935f98e85c33d4cb8b5520faaedb1314800f71ce8d61"
+    },
+    {
+      "path": "backend/generative-engine/src/test/java/com/kopruq/generative/AlternativeGeneratorTest.java",
+      "kind": "text",
+      "bytes": 3830,
+      "sha256": "f73fa730cd753eaa1caa3102ae7de695cefeed83ac48c779a0e1f37b6322ba71"
+    },
+    {
+      "path": "backend/landxml-import/pom.xml",
+      "kind": "text",
+      "bytes": 1466,
+      "sha256": "5ae3e8934d32c2d6d5cdf34de45d1606c3976e762ea4ff6250fc333484ebeee4"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/CoordinateOrder.java",
+      "kind": "text",
+      "bytes": 453,
+      "sha256": "bff8c0d92d3d36412a21c7f3ac259b37d0ac57234037a8842026ff363affcf2e"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/CrsStatus.java",
+      "kind": "text",
+      "bytes": 219,
+      "sha256": "990349ba2dee0229e6c31f7d2af3224846acdbe93a1526804d6e60260b18d821"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/InMemoryLandXmlImportRepository.java",
+      "kind": "text",
+      "bytes": 606,
+      "sha256": "39101becc7f69b0a35404a03b86ef2e60b79362e4900b9c760b5c29d379eb585"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlAlignment.java",
+      "kind": "text",
+      "bytes": 320,
+      "sha256": "a25a239591a066dd3a059d47a768a0fb09ba8e70b4e3fd4b4ff2e3eef670e778"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlAlignmentMapper.java",
+      "kind": "text",
+      "bytes": 1571,
+      "sha256": "1b708d6fb37f70bf40aa665868a6f04bd09c9770010e82dfed24a304fc4d0bec"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlBoundary.java",
+      "kind": "text",
+      "bytes": 159,
+      "sha256": "b27559a53f70c1cd6badd89f6ec676ab994b05e704f8ada8cf694aab83af0f86"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlBreakline.java",
+      "kind": "text",
+      "bytes": 129,
+      "sha256": "79628ca5cbac7b5739d65d7e9043e15df2a7bac729ac13cf518182517c9606d2"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlCurve.java",
+      "kind": "text",
+      "bytes": 406,
+      "sha256": "9d9b487fa35e4efae3a3c785e163284e871015caa44c45129c6b8ac8faf81373"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlDocument.java",
+      "kind": "text",
+      "bytes": 717,
+      "sha256": "0a750891ff28e4aca55b343dff63981d1fc2798a616c0f5017e978fa403353e8"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlFace.java",
+      "kind": "text",
+      "bytes": 182,
+      "sha256": "809516f7c5003f046a8844e08783242d111d12cd45d92ddc0b5bc3ca5055231c"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlGeometryElement.java",
+      "kind": "text",
+      "bytes": 490,
+      "sha256": "1c8d41b11c6cd720df80115878aad7957be88667378e587d16eaee7186c8e6c9"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlImportRepository.java",
+      "kind": "text",
+      "bytes": 568,
+      "sha256": "7f76d668284a8be63fd9b23642084b0ac8463743c8aa88a7d9c6a3a880c2c5c0"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlImportResult.java",
+      "kind": "text",
+      "bytes": 499,
+      "sha256": "a204635ee0ad3a384cfcc734af7e70a86165a0316056e6b646c4fe9aa581d47a"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlImportService.java",
+      "kind": "text",
+      "bytes": 4338,
+      "sha256": "84f9a490476fc8ecec94905149522f31f42f0b5cc03b44d5c4dd9263b371e3f2"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlLine.java",
+      "kind": "text",
+      "bytes": 153,
+      "sha256": "2052b2c196180318531bd7800b4c49f2a9cc56b7c5c87da3c13c5e4b7b09873c"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlParseException.java",
+      "kind": "text",
+      "bytes": 291,
+      "sha256": "6956fce95ce6f99f7f510b7ac0aa28438a30d448e7f25a8bc5448092251ab3b1"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlParser.java",
+      "kind": "text",
+      "bytes": 19838,
+      "sha256": "e42aab9b9192b032ea356d25b3999267c1ee1f8130dfe036fdc8997c22e3b1e1"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlPoint.java",
+      "kind": "text",
+      "bytes": 197,
+      "sha256": "122c46622d3439bd59dc8f6baa64174fb1bf669237affbd22b33f342a24c2342"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlProfile.java",
+      "kind": "text",
+      "bytes": 268,
+      "sha256": "d6448642487fcda75866062e038a35a1f9cd36eae30380942576de1bbacfce78"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlProfileMapper.java",
+      "kind": "text",
+      "bytes": 641,
+      "sha256": "2a5b00022f10e13905b5553f0b7915bb8bdfb60e8c044eef4a5c84adc3a0c9de"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlPvi.java",
+      "kind": "text",
+      "bytes": 258,
+      "sha256": "409bcc5b9ac6fe7c18c08139364ece04964faab1d7f35db23e01f5a220c7d5d2"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlSurface.java",
+      "kind": "text",
+      "bytes": 589,
+      "sha256": "df75c1b2fde45c907b0440522b733618f1fca7ed6abdba0d3d687c42ae839584"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlTerrainMapper.java",
+      "kind": "text",
+      "bytes": 4936,
+      "sha256": "38d1d32d8eef5efa4c1bb936fde4dabfb5e3f9bbbd7fb688c25fde1bfa937ed9"
+    },
+    {
+      "path": "backend/landxml-import/src/main/java/com/kopruq/landxml/LandXmlUnits.java",
+      "kind": "text",
+      "bytes": 238,
+      "sha256": "f2ade043a731801de2343e2b90ca88385254569e1fc299ae3a334dc65dcbaaa7"
+    },
+    {
+      "path": "backend/landxml-import/src/test/java/com/kopruq/landxml/BentleyTerrainImportTest.java",
+      "kind": "text",
+      "bytes": 5509,
+      "sha256": "4076a814dae67fb2abfac53652c53c57f7a96e72967ec62015e4fc4ff1163ee8"
+    },
+    {
+      "path": "backend/landxml-import/src/test/java/com/kopruq/landxml/LandXmlImportServiceTest.java",
+      "kind": "text",
+      "bytes": 5032,
+      "sha256": "9c5e9fb5015dafcc8a3d0cd771a615a1f58c0790c69f46ab179cf0f9795f9f89"
+    },
+    {
+      "path": "backend/landxml-import/src/test/java/com/kopruq/landxml/LandXmlParserTest.java",
+      "kind": "text",
+      "bytes": 4061,
+      "sha256": "d4bf71bb4ed19b3534ff64a4e85f1886d6be7b8dc9e6f1c45a4b7b1d5d7ce5c2"
+    },
+    {
+      "path": "backend/landxml-import/src/test/resources/sample.landxml",
+      "kind": "text",
+      "bytes": 2549,
+      "sha256": "5ca07eb5950f466d21d4939f92cca1d6eba7fcdf7aa8e2a43a16eac369fe92d0"
+    },
+    {
+      "path": "backend/midas-adapter/pom.xml",
+      "kind": "text",
+      "bytes": 2053,
+      "sha256": "a49cdb08ddae31d1e97272c14282c0ecaa11f24a2eb7e07d7ebfc3bee6f30086"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasApiCall.java",
+      "kind": "text",
+      "bytes": 425,
+      "sha256": "36113233e5b413588e701906eb422a795033bfc86772810f6b93a4cc4353c325"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasApiClient.java",
+      "kind": "text",
+      "bytes": 3724,
+      "sha256": "bb4be317499cabce48e71f0d3b80cf2b45867751cdda8015cb014e224a67d629"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasApiException.java",
+      "kind": "text",
+      "bytes": 399,
+      "sha256": "6e621a0f55465142a735374b20cf869ca5679bcd745c0949c5e9228c4c19aef2"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasCivilNxAnalysisEngine.java",
+      "kind": "text",
+      "bytes": 4620,
+      "sha256": "0bdc12e8910964b616522de2a87f4256ce7f50322428e9f1195f2fbea0d103fa"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasHttpClient.java",
+      "kind": "text",
+      "bytes": 387,
+      "sha256": "5ae5e3463912dd8e8a89325bb58a1cac46bcb8a99b1710e645db2e73dc4d2c00"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasModelBuilder.java",
+      "kind": "text",
+      "bytes": 8597,
+      "sha256": "19c0e4cd42bd42576d5e87bf94b30eb76a1ed52541bd8051aebba945db79d692"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/MidasResultExtractor.java",
+      "kind": "text",
+      "bytes": 4065,
+      "sha256": "5a8cebfa52a7135d00d87461197252966b8b7d008efa237876936b250cc7b5c7"
+    },
+    {
+      "path": "backend/midas-adapter/src/main/java/com/kopruq/midas/package-info.java",
+      "kind": "text",
+      "bytes": 871,
+      "sha256": "00491732236f59d6d7f785e207dbd77f2540b435721858e3ebd33db63d90772f"
+    },
+    {
+      "path": "backend/midas-adapter/src/test/java/com/kopruq/midas/JsonAssertHelper.java",
+      "kind": "text",
+      "bytes": 792,
+      "sha256": "e7c005b9af65b34de530874abad7658c7c18d794fc8de484e25363d31b5ad25e"
+    },
+    {
+      "path": "backend/midas-adapter/src/test/java/com/kopruq/midas/MidasCivilNxAnalysisEngineTest.java",
+      "kind": "text",
+      "bytes": 5484,
+      "sha256": "181dbac8ae45512484b1a097bced51f8b6704f125d49449b3c48977ec2c249ff"
+    },
+    {
+      "path": "backend/midas-adapter/src/test/java/com/kopruq/midas/MidasModelBuilderTest.java",
+      "kind": "text",
+      "bytes": 5772,
+      "sha256": "67d3b0b52956aea51bac8790a235fed7a57acbab4fd86632ba159134282956ac"
+    },
+    {
+      "path": "backend/midas-adapter/src/test/java/com/kopruq/midas/MidasResultExtractorTest.java",
+      "kind": "text",
+      "bytes": 4157,
+      "sha256": "946f5d40865ec7b2e1248de9781827fe4681316b301613f9847b3378ffdbdfff"
+    },
+    {
+      "path": "backend/pom.xml",
+      "kind": "text",
+      "bytes": 3334,
+      "sha256": "d8964fd7d2bd73357bd58b1d054caf8104d003f0cc73c65bb33b4a652edb2410"
+    },
+    {
+      "path": "backend/rules-engine/pom.xml",
+      "kind": "text",
+      "bytes": 854,
+      "sha256": "4e686b61872a73f4657085e3f7b47e6dcc88f9014023f60cc14ac442fd20651d"
+    },
+    {
+      "path": "backend/rules-engine/src/main/java/com/kopruq/rules/EngineeringRule.java",
+      "kind": "text",
+      "bytes": 844,
+      "sha256": "310735b002a1a40b1c38d9c1d5b7ee6639ab86000a41d808f773b969f7fba259"
+    },
+    {
+      "path": "backend/rules-engine/src/main/java/com/kopruq/rules/RuleEngine.java",
+      "kind": "text",
+      "bytes": 1297,
+      "sha256": "daa609e10ea672019fca3856eebacbdf7f2b5d8f182649569ec1e362ce7b9a88"
+    },
+    {
+      "path": "backend/rules-engine/src/main/java/com/kopruq/rules/RuleEngineResult.java",
+      "kind": "text",
+      "bytes": 316,
+      "sha256": "55b19247511907d85ef4cf75b01312427ee4195fddc84fa319733858dec9fc64"
+    },
+    {
+      "path": "backend/rules-engine/src/main/java/com/kopruq/rules/RuleEvaluation.java",
+      "kind": "text",
+      "bytes": 393,
+      "sha256": "3e50990136ec3ae68b86a1f9533d89f280ac2fc641ef5b7a32f3f5bf693a7d10"
+    },
+    {
+      "path": "backend/rules-engine/src/main/java/com/kopruq/rules/RuleOutcome.java",
+      "kind": "text",
+      "bytes": 223,
+      "sha256": "b4708407f1dff90fd0c76cf80721cc285517ff64323e960887caa0d34db1e60b"
+    },
+    {
+      "path": "backend/rules-engine/src/main/java/com/kopruq/rules/package-info.java",
+      "kind": "text",
+      "bytes": 632,
+      "sha256": "5082afbd0570429b90ed313d496977e02c27242bfd3469b6b5b09dc588f4e6f0"
+    },
+    {
+      "path": "backend/rules-engine/src/test/java/com/kopruq/rules/RuleEngineTest.java",
+      "kind": "text",
+      "bytes": 3617,
+      "sha256": "ee54967896926148179c145be17f0ab4f822d32cf2b7c0c1ae5b4d73769efd47"
+    },
+    {
+      "path": "backend/spatial-core/pom.xml",
+      "kind": "text",
+      "bytes": 734,
+      "sha256": "a0bce9e266e7e1541122e588114ef10dbbadb93fddd28d40992ea761b9ff8e22"
+    },
+    {
+      "path": "backend/spatial-core/src/main/java/com/kopruq/spatialcore/CoordinateSystem.java",
+      "kind": "text",
+      "bytes": 170,
+      "sha256": "bda1eb4e2f1c2620e6546492eefc84e440e4660cc530887a739a64a259a81415"
+    },
+    {
+      "path": "backend/spatial-core/src/main/java/com/kopruq/spatialcore/Point3D.java",
+      "kind": "text",
+      "bytes": 172,
+      "sha256": "4142ca05912db1e6ec1cb22f4360026dd1fabf4d99d2259d98a0e2c94683acf9"
+    },
+    {
+      "path": "backend/spatial-core/src/main/java/com/kopruq/spatialcore/package-info.java",
+      "kind": "text",
+      "bytes": 483,
+      "sha256": "b6e92d4630a651afd0eed895e1fb35bfb5a5ae93f7ae82e27fd479eebc50a1fc"
+    },
+    {
+      "path": "backend/terrain/pom.xml",
+      "kind": "text",
+      "bytes": 1344,
+      "sha256": "8255dc96a1e72ebb3eccd4b9b7cae3afd30a30b73ae89ca51fc57d3bbef5866d"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/InMemoryTerrainRepository.java",
+      "kind": "text",
+      "bytes": 570,
+      "sha256": "df83beeda672dcfa502b45886cf7df2272ff0dfe0bbd154af3670bd2995a4c23"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainBoundary.java",
+      "kind": "text",
+      "bytes": 277,
+      "sha256": "09d05f13b29482e19428c18dfed45b63f7aba1d388264ac19f5f8e8e1b311362"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainBreakline.java",
+      "kind": "text",
+      "bytes": 164,
+      "sha256": "126beb994a39dff10dc6e4bd8b5ce657a53b9d66ad01c71b16c09398db511c2a"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainImportService.java",
+      "kind": "text",
+      "bytes": 4916,
+      "sha256": "e80e26db781805fcdc7c27533cec6a7288bd72b8f7121924338d3aafc3586a30"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainModel.java",
+      "kind": "text",
+      "bytes": 1982,
+      "sha256": "ac7e803069057d26dc08aa3a137ebf91a02dfa1b0a58dc2aaedc716706820ecf"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainQueryService.java",
+      "kind": "text",
+      "bytes": 2281,
+      "sha256": "e73e33fb4ce8deee7cf1bf7e62807df2ca6a62bdbe3884c87d17285a0d8a4436"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainRepository.java",
+      "kind": "text",
+      "bytes": 603,
+      "sha256": "965b8bcf40278e7f5ceaf5ed97d38193f90abfb58909c89cc1c25bf467345f37"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainSource.java",
+      "kind": "text",
+      "bytes": 427,
+      "sha256": "e8817f551fe1c9de9d242b6015cc7290f21363aba9443cc7d895f6d2783b9292"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainStatus.java",
+      "kind": "text",
+      "bytes": 369,
+      "sha256": "66b2f8fde2c8280352099bdfc84eb4adff1c33fa14c2f5907f430eaeabb141f6"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/TerrainTriangle.java",
+      "kind": "text",
+      "bytes": 185,
+      "sha256": "97594089ecbfb9bd17982cfb9ce68119b5cc872c069834f54a510bb2fd492a1a"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/XyzTerrainParser.java",
+      "kind": "text",
+      "bytes": 1613,
+      "sha256": "2132df14be72fcab681800615e215e4fd843e96ef7e05c61a5f707ea8e0deb1f"
+    },
+    {
+      "path": "backend/terrain/src/main/java/com/kopruq/terrain/package-info.java",
+      "kind": "text",
+      "bytes": 971,
+      "sha256": "47db0551323577c25c0329de8b355664995ec5fda28455aca39eeb0f99f5a0d6"
+    },
+    {
+      "path": "backend/terrain/src/test/java/com/kopruq/terrain/TerrainImportServiceTest.java",
+      "kind": "text",
+      "bytes": 1665,
+      "sha256": "c4ef46bf4a57eebeb4fde784dce59f2d4ca86930fe08e2789fc66593dce217ef"
+    },
+    {
+      "path": "backend/terrain/src/test/java/com/kopruq/terrain/TerrainQueryServiceTest.java",
+      "kind": "text",
+      "bytes": 2800,
+      "sha256": "77bbf0d234e177b090269392eb4dad4ea6cb77d1ae260837c6e0195266d11f2c"
+    },
+    {
+      "path": "backend/terrain/src/test/java/com/kopruq/terrain/XyzTerrainParserTest.java",
+      "kind": "text",
+      "bytes": 706,
+      "sha256": "0841e5b3e5f3de0c5c988c2125f3b4594b5ec39b55a3e541b07fb3743a3e5517"
+    },
+    {
+      "path": "backend/traffic-loads/pom.xml",
+      "kind": "text",
+      "bytes": 947,
+      "sha256": "2d509ab18fd9929d305d5ceba9c7a1ae7f8662422f6325cb3d49d591b11dc6cb"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/CarriagewayInput.java",
+      "kind": "text",
+      "bytes": 754,
+      "sha256": "7703ec0999313076969a42034c04d5987ffa1944a9ce6c1dd93de6ea00fe4da6"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/LaneFactor.java",
+      "kind": "text",
+      "bytes": 761,
+      "sha256": "248b170802205061c4b3827c49240788321c55aeda78234f9e583ecbbe4d61fd"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/Lm1DefaultsFactory.java",
+      "kind": "text",
+      "bytes": 1878,
+      "sha256": "2e0345b9a2b0878a1194e4e8ef539f862994e7452077f70925d77a50324a1adf"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/Lm1Parameters.java",
+      "kind": "text",
+      "bytes": 269,
+      "sha256": "ccf8f83d10ac64e8ae3e375f927863653a5ab4b307911a839809acde4b0b5fdc"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/NotionalLane.java",
+      "kind": "text",
+      "bytes": 96,
+      "sha256": "790478f2ab3cf8301b3d131e358bd2dec02ae945e56a2bcc41453c7dbebc7617"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/NotionalLaneGenerator.java",
+      "kind": "text",
+      "bytes": 1832,
+      "sha256": "8d882779c8bb13f87b328e2a1415c464b67bfb3b8f2f359f0a2f6c14fd83a6ac"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/NotionalLaneResult.java",
+      "kind": "text",
+      "bytes": 155,
+      "sha256": "600224a237fcdf4cdcc982b95fb5e2c16727312b0cc8308d228fbfd0e1423467"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/ParameterProvenance.java",
+      "kind": "text",
+      "bytes": 280,
+      "sha256": "869ca2d4c1f8b741a617fefb811b9f4bd7a76f717e63fbd8e3b7450057e0e9ae"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/ParameterValue.java",
+      "kind": "text",
+      "bytes": 489,
+      "sha256": "33b4eb9d36df7e49a95ed15be50442890cea91364797b3679f2bb474618faa17"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/SeismicSpectrumRequest.java",
+      "kind": "text",
+      "bytes": 152,
+      "sha256": "1f6f63a290843ca49f948bfeda50ea815a1833152618f70e742299d57832f11a"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/SeismicSpectrumResult.java",
+      "kind": "text",
+      "bytes": 267,
+      "sha256": "69c2771db0103c171982d1875ace8c21a2e0322ba1a99095ba71ac70737476dd"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/SeismicSpectrumService.java",
+      "kind": "text",
+      "bytes": 1072,
+      "sha256": "66422647b987da1e8478c77b8da1e238e00635c741e3193d17bc10654b16aee8"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/TemperatureMaterialCase.java",
+      "kind": "text",
+      "bytes": 424,
+      "sha256": "f49ad580252a38462e15e04c1779e0ac9331b98faa3b1d57d1e90beb0c94d51c"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/TrafficLoadGroup.java",
+      "kind": "text",
+      "bytes": 751,
+      "sha256": "6d0e90b4006455186c433b4dbee03e1f01e09e523916f04342bd3acebf726e33"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/TrafficLoadGroupCatalog.java",
+      "kind": "text",
+      "bytes": 1322,
+      "sha256": "0b145a968e564dd63d99f8ebcf1b3a38de52d3c605c4fee55cfdc4fc42e4cf36"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/TrafficLoadGroupComponent.java",
+      "kind": "text",
+      "bytes": 236,
+      "sha256": "1d49dfab65b441e9c5102b77601bd4bedabbe47fed3c39a9a7bcc2d845ec34b7"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/TrafficLoadsService.java",
+      "kind": "text",
+      "bytes": 2378,
+      "sha256": "30bebb4fe3c0ec3c2cc621255e48410d6394efe74df572ae13101e350365a615"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/TrafficValidationResult.java",
+      "kind": "text",
+      "bytes": 210,
+      "sha256": "fa4e94da849a9bca3015e73820db10d4e12f3dd481856560c97efeae6f9911f5"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/UniformTemperatureRequest.java",
+      "kind": "text",
+      "bytes": 183,
+      "sha256": "994abef32bef873ad8ae3cc893e9cfb086ea2c9ff7135d3177981933c5d0dcf6"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/UniformTemperatureResult.java",
+      "kind": "text",
+      "bytes": 617,
+      "sha256": "1ccf567738803ba60c485f2ba2c9e807972378cabab8c9476f6892cc7087a7fe"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/UniformTemperatureService.java",
+      "kind": "text",
+      "bytes": 1989,
+      "sha256": "d952dcceeddd88df051d36267b06e93dd373fd61b929c2c6aaad365f223859b3"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/WindLoadsService.java",
+      "kind": "text",
+      "bytes": 1246,
+      "sha256": "c606679c718720e4ff7711253c9d0369a62f9237c565ee8a03597ad6b22de530"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/WindRequest.java",
+      "kind": "text",
+      "bytes": 147,
+      "sha256": "c23727f0ce8ec3061596f7eaad2620a9e2041d27fac28152e024b10d2ea7a0cd"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/WindResult.java",
+      "kind": "text",
+      "bytes": 248,
+      "sha256": "d9a57da72c7bf79709cbbbfb6450aea230c7be81d10e1359b90eba610a5a7ee0"
+    },
+    {
+      "path": "backend/traffic-loads/src/main/java/com/kopruq/trafficloads/package-info.java",
+      "kind": "text",
+      "bytes": 931,
+      "sha256": "054fdd850f5ea73e5a2a6b550ebc2d32183e79b538745b9927c4724bb125dc3b"
+    },
+    {
+      "path": "backend/traffic-loads/src/test/java/com/kopruq/trafficloads/LaneFactorTest.java",
+      "kind": "text",
+      "bytes": 1603,
+      "sha256": "178eb08d2cf3fda5c577ba549c91e9eabca1cc72b8cf85021bbd8edff2c20114"
+    },
+    {
+      "path": "backend/traffic-loads/src/test/java/com/kopruq/trafficloads/Lm1DefaultsFactoryTest.java",
+      "kind": "text",
+      "bytes": 1783,
+      "sha256": "c01625dfea8d3a0f9c4be3b661d6786173cddbca2554d42a5210cdb96f6ff09a"
+    },
+    {
+      "path": "backend/traffic-loads/src/test/java/com/kopruq/trafficloads/NotionalLaneGeneratorTest.java",
+      "kind": "text",
+      "bytes": 2017,
+      "sha256": "b27e62f988a7d836905b7cb23633ed30fc76ea2c5a6bd5549d968148eecb101c"
+    },
+    {
+      "path": "backend/traffic-loads/src/test/java/com/kopruq/trafficloads/TrafficLoadsServiceTest.java",
+      "kind": "text",
+      "bytes": 2677,
+      "sha256": "a774e80b42bffe8963499246df59776b3a33f48dd432d10e4003858baca8dd81"
+    },
+    {
+      "path": "backend/traffic-loads/src/test/java/com/kopruq/trafficloads/UniformTemperatureServiceTest.java",
+      "kind": "text",
+      "bytes": 788,
+      "sha256": "8de325eb4b2c34d43ca9414012141cf7452843438a2e3ab7825a86478ee9d55f"
+    }
+  ],
+  "excluded": [],
+  "fingerprint": "cee2560eea5506ddecdb7edc45ca0f65f47d8b08829efe5b4bb1182c83fb5980",
+  "created_at": "2026-10-11T19:46:41.091166+00:00",
+  "counts": {
+    "selected": 232,
+    "excluded": 0,
+    "text": 232
+  },
+  "limits": [
+    "Git-ignored files absent; configured dependencies/generated paths excluded.",
+    "Endpoint comparison is not atomic; concurrent sessions unsupported."
+  ]
+}

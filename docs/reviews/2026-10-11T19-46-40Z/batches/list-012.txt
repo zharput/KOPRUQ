@@ -1,0 +1,12 @@
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/UniformTemperatureRequest.java
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/UniformTemperatureResult.java
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/UniformTemperatureService.java
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/WindLoadsService.java
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/WindRequest.java
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/WindResult.java
+backend/traffic-loads/src/main/java/com/kopruq/trafficloads/package-info.java
+backend/traffic-loads/src/test/java/com/kopruq/trafficloads/LaneFactorTest.java
+backend/traffic-loads/src/test/java/com/kopruq/trafficloads/Lm1DefaultsFactoryTest.java
+backend/traffic-loads/src/test/java/com/kopruq/trafficloads/NotionalLaneGeneratorTest.java
+backend/traffic-loads/src/test/java/com/kopruq/trafficloads/TrafficLoadsServiceTest.java
+backend/traffic-loads/src/test/java/com/kopruq/trafficloads/UniformTemperatureServiceTest.java

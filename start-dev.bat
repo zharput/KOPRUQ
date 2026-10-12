@@ -12,7 +12,7 @@ if errorlevel 1 (
 )
 
 echo === Starting backend (new window) ===
-start "KOPRUQ Backend" cmd /k "cd /d %~dp0backend && java -jar api\target\api-0.1.0-SNAPSHOT.jar"
+start "KOPRUQ Backend" cmd /k "cd /d %~dp0backend && java -jar target\kopruq-backend-0.1.0-SNAPSHOT.jar"
 
 echo === Starting frontend (new window) ===
 start "KOPRUQ Frontend" cmd /k "cd /d %~dp0frontend && npm.cmd run dev"

@@ -1788,3 +1788,24 @@ Separate remediation track (approved plan U7: the /feature-implement approval st
 ### BACKEND-ARCHITECTURE Faz 9 - Closing: documentation and stale comments
 
 - [x] Faz 9: documentation, stale comments, final checks. BACKEND-ARCHITECTURE track complete (Faz 0-9): modules materials, environmental-loads, model-builder added; api split into api/application layers; module graph and api layering enforced by the build.
+
+## BACKEND-MODULAR-MONOLITH track (2026-10-12)
+
+Seventeen Maven modules merged into one Spring Boot module (`kopruq-backend`) with the reference package layout (`docs/architecture/backend-reference.md`). Pure move, no behavior change; 367 tests (348 + 19 old architecture tests) became 369 (348 + 21 `ArchitectureTests`).
+
+- [x] BACKEND-MODULAR-MONOLITH Faz 0: baseline, 367 tests green.
+- [x] BACKEND-MODULAR-MONOLITH Faz 1: single Maven module, packages unchanged; ArchitectureTests replace the four module-boundary tests; jar is backend/target/kopruq-backend-0.1.0-SNAPSHOT.jar.
+- [x] BACKEND-MODULAR-MONOLITH Faz 2: KopruqApplication, shared.config/exception/validation, contract tests moved.
+- [x] BACKEND-MODULAR-MONOLITH Faz 3: geometry domain (spatial-core).
+- [x] BACKEND-MODULAR-MONOLITH Faz 4: alignment domain.
+- [x] BACKEND-MODULAR-MONOLITH Faz 5: terrain domain.
+- [x] BACKEND-MODULAR-MONOLITH Faz 6: landxml domain.
+- [x] BACKEND-MODULAR-MONOLITH Faz 7: loads domain (traffic + environmental loads).
+- [x] BACKEND-MODULAR-MONOLITH Faz 8: materials domain.
+- [x] BACKEND-MODULAR-MONOLITH Faz 9: layout domain (bridge-layout + constraints).
+- [x] BACKEND-MODULAR-MONOLITH Faz 10: bridge domain (bridge-core + kernel api).
+- [x] BACKEND-MODULAR-MONOLITH Faz 11: rules domain.
+- [x] BACKEND-MODULAR-MONOLITH Faz 12: generative domain.
+- [x] BACKEND-MODULAR-MONOLITH Faz 13: analysis domain (port, model-builder, native engine, MIDAS adapter, fastsolver).
+- [x] BACKEND-MODULAR-MONOLITH Faz 14: final architecture tests, legacy tables removed, final greps empty.
+- [x] BACKEND-MODULAR-MONOLITH Faz 15: architecture.md, roadmap.md, CLAUDE.md, README.md updated; legacy module directories cleaned.

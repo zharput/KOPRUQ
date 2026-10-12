@@ -50,7 +50,7 @@ packages do not import Spring, `..application..` or `..api..` (the
 reference's own `ArchitectureTests` rule). Domain boundaries are
 enforced by architecture tests, not by Maven modules. The migration
 from the old 17-module layout is tracked as a feature
-(`docs/features/`); until it is implemented the old layout still exists.
+(`docs/features/`) and is implemented (BACKEND-MODULAR-MONOLITH): the backend is now one Maven module with this layout.
 
 Backend build: Maven (`backend/pom.xml`). Java 21.
 Local toolchain: JDK 21 (Microsoft build), Node.js LTS,
@@ -120,7 +120,7 @@ the ALLPLAN Tcl/API which was never verified.
 cd backend && mvn -B package
 
 # Run the API locally
-java -jar backend/api/target/api-*.jar   # then curl http://localhost:8080/actuator/health
+java -jar backend/target/kopruq-backend-*.jar   # then curl http://localhost:8080/actuator/health
 
 # Frontend (web app)
 cd frontend && npm install && npm run build

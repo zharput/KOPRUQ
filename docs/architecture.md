@@ -57,91 +57,91 @@ modules.
 
 ## Repository / module structure
 
+BACKEND-MODULAR-MONOLITH: the former 17 Maven modules are one Spring Boot module with package-level boundaries.
+
 ```
 KOPRUQ/
-â”œâ”€â”€ frontend/                      React + TypeScript (Vite), web app (browser-based)
-â”œâ”€â”€ backend/                       Maven multi-module, Java 21
-â”‚   â”œâ”€â”€ pom.xml                     parent (dependency management: Spring Boot 3.5.16 BOM, JUnit 5 BOM)
-â”‚   â”œâ”€â”€ spatial-core/                 coordinate/point primitives (site/layout domain) - no deps
-â”‚   â”œâ”€â”€ alignment/                    chainage <-> XYZ geometry - depends on spatial-core
-â”‚   â”œâ”€â”€ constraints/                  NoPierZone (chainage-range, LAYOUT-P01 scope) - no deps
-â”‚   â”œâ”€â”€ bridge-layout/                Bridge Layout Engine (LAYOUT-P01) - depends on alignment, constraints
-â”‚   â”œâ”€â”€ bridge-core/                 solver-independent domain model - no deps
-â”‚   â”œâ”€â”€ rules-engine/                deterministic feasibility - depends on bridge-core
-â”‚   â”œâ”€â”€ generative-engine/           alternative generation - depends on bridge-core, rules-engine
-â”‚   â”œâ”€â”€ analysis-api/                job/status/result ports - no module dependencies
-â”‚   â”œâ”€â”€ materials/                    EN 1992-1-1 concrete relations + strength-class catalog (Faz 4) - no deps
-â”‚   â”œâ”€â”€ environmental-loads/          wind, seismic spectrum, temperature (Faz 5) - no deps
-â”‚   â”œâ”€â”€ model-builder/                portal-frame AnalysisRequest builder + applied-load check (Faz 8) - analysis-api, materials
-â”‚   â”œâ”€â”€ midas-adapter/               MIDAS-specific code - depends on analysis-api
-â”‚   â””â”€â”€ api/                         Spring Boot app - see the dependency graph below (midas-adapter returns with P07)
-â”œâ”€â”€ services/                       Python, deferred to after P01
-â”‚   â”œâ”€â”€ optimization-service/        placeholder only
-â”‚   â””â”€â”€ ai-service/                  placeholder only
-â”œâ”€â”€ docs/
-â”‚   â”œâ”€â”€ KOPRUQ_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
-â”‚   â”œâ”€â”€ ARCHITECTURE_AMENDMENT_V2.md  supersedes spec sections 3/4/12-14/19-20's tech choices
-â”‚   â”œâ”€â”€ architecture.md              this file
-â”‚   â””â”€â”€ roadmap.md                   milestone status
-â””â”€â”€ archive/                        two earlier build generations - reference only
+|-- frontend/                      React + TypeScript (Vite), web app (browser-based)
+|-- backend/                       ONE Maven module (kopruq-backend, packaging jar), Java 21
+|   |-- pom.xml                     Spring Boot 3.5.16 BOM + JUnit 5 BOM; jts-core, jackson-databind
+|   `-- src/
+|       |-- main/java/com/kopruq/
+|       |   |-- KopruqApplication.java       @SpringBootApplication (component scan base com.kopruq)
+|       |   |-- shared/{config,exception,validation}/
+|       |   `-- <domain>/{api,application,domain,model,enums,infra}/   (created only when needed)
+|       |         geometry (spatial-core)         alignment        terrain         landxml
+|       |         loads (traffic + environmental) materials        layout (bridge-layout + constraints)
+|       |         bridge (bridge-core)            rules            generative
+|       |         analysis (analysis-api port in application, model-builder in domain,
+|       |                   native engine in infra/nativeengine, MIDAS adapter in infra/midas)
+|       |-- main/resources/application.properties
+|       `-- test/java/com/kopruq/    each test beside its subject; architecture/ and contract/
+|-- services/                       Python, deferred to after P01
+|   |-- optimization-service/        placeholder only
+|   `-- ai-service/                  placeholder only
+|-- docs/
+|   |-- KOPRUQ_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
+|   |-- ARCHITECTURE_AMENDMENT_V2.md  supersedes spec sections 3/4/12-14/19-20 tech choices
+|   |-- architecture/backend-reference.md  the reference package layout (R1-R15)
+|   |-- architecture.md              this file
+|   `-- roadmap.md                   milestone status
+`-- archive/                        two earlier build generations - reference only
 ```
 
-## Dependency graph (Maven)
+## Domain dependency graph (packages)
 
-Actual module dependencies as declared in the poms. BACKEND-ARCHITECTURE Faz 9 rewrote this block; the graph is
-pinned exactly by `ModuleBoundaryTest.ALLOWED_INTERNAL_DEPENDENCIES` (a pom that differs fails the build):
+Since BACKEND-MODULAR-MONOLITH the domain boundaries are packages, not Maven modules. The graph is pinned exactly by
+`backend/src/test/java/com/kopruq/architecture/ArchitectureTests` (rules in `ArchitectureRules`, plain JUnit over the real
+source tree and `backend/pom.xml`, no ArchUnit). Direct domain dependencies of the core layers (`model`, `domain`, `enums`),
+`CORE_DEPS`:
 
 ```
-spatial-core                              (no dependencies)
-alignment            -> spatial-core          (+ ChainageSampler: both sampling rules, U8 unchanged)
-terrain              -> spatial-core          (+ JTS, external; + LocalCoordinates)
-landxml-import       -> spatial-core, alignment, terrain
-traffic-loads                             (no dependencies; EN 1991-2 traffic loads only)
-environmental-loads                       (no dependencies; wind, seismic spectrum, uniform temperature)
-materials                                 (no dependencies; EurocodeConcrete, ConcreteStrengthClasses)
-constraints                               (no dependencies)
-bridge-layout        -> alignment, constraints
-bridge-core                               (no dependencies)
-rules-engine         -> bridge-core
-generative-engine    -> bridge-core, rules-engine   (EvaluatedAlternativeGenerator runs the rule engine)
-analysis-api                              (no dependencies - pure port layer, no solver vocabulary)
-analysis-engine      -> analysis-api              (native KOPRUQ solver)
-model-builder        -> analysis-api, materials   (solver-independent AnalysisRequest builders)
-midas-adapter        -> analysis-api              (+ jackson-databind, external)
-api                  -> bridge-core, rules-engine, generative-engine, analysis-api, analysis-engine,
-                        model-builder, materials, environmental-loads, spatial-core, alignment, terrain,
-                        landxml-import, traffic-loads, constraints, bridge-layout
-                     -> spring-boot-starter-web, spring-boot-starter-actuator
+geometry                                  (none)
+alignment            -> geometry
+terrain              -> geometry          (+ JTS, external, in terrain.domain only)
+landxml              -> geometry, alignment, terrain   (+ javax.xml in landxml.domain)
+loads                                     (none; EN 1991-2 traffic loads and wind/seismic/temperature)
+materials                                 (none)
+layout               -> alignment
+bridge                                    (none)
+rules                -> bridge
+generative           -> bridge, rules
+analysis             -> materials
 ```
 
-Only `api` depends on Spring (R3); every other module is plain Java. This is
-checked by the build: `backend/api/src/test/java/com/kopruq/api/architecture/ModuleBoundaryTest`
-(plain JUnit over the real source/pom tree, no extra dependency) fails if a module other than `api`
-imports Spring/Jakarta/Lombok or depends on a Spring artifact, if any module other than `midas-adapter` and
-`api` references `com.kopruq.midas`, if a module imports a `com.kopruq` package that its poms do not
-(transitively) depend on, if a module declares an internal dependency it never uses, or if the declared
-internal dependencies differ from the pinned graph. `ApiLayeringTest` checks the layering inside `api`.
-Both checkers are themselves tested with synthetic violations.
+All layers (`api`, `application`, `infra` included), `DOMAIN_DEPS`: the same, plus `alignment -> landxml`
+(AlignmentController reads LandXML imports) and `layout -> geometry`. `shared.exception -> landxml`
+(`ApiExceptionHandler` maps `LandXmlParseException`); `shared.config` is the composition root and is exempt.
+
+What `ArchitectureTests` enforce (a rule that cannot fail proves nothing, so each has a violating and a clean synthetic test):
+T1 every main package is `com.kopruq.<domain>/{api,application,domain,model,enums,infra[.sub]}`, `com.kopruq.shared.*` or
+`com.kopruq` (only `KopruqApplication`); T2 `model`/`domain`/`enums` import no Spring, jakarta (except persistence), lombok,
+application, api, infra or `shared.config`; T3 their imports stay on an allow-list; T4 the domain edges equal the pinned graph
+(an unused pinned edge is a violation too); T5 external imports only where allowed (`infra.nativeengine` java.* only,
+`infra.midas` java.* plus Jackson); T6 MIDAS/SCIA/ALLPLAN types only under `analysis.infra` (`com.kopruq.analysis.infra.midas`
+reachable only from itself and `shared.config`); T7 exactly 12 `@RestController` classes, only in `<domain>.api`; T8 no
+`@CrossOrigin`, no controller builds collaborators with `new`; T9 `application` does not import `api`; T10 `pom.xml` has no
+`<modules>`, packaging `jar` and exactly the approved six dependencies.
 
 Rule evaluation decision (BACKEND-ARCHITECTURE Faz 6, assumption A1): the rule engine is part of alternative
-generation. `EvaluatedAlternativeGenerator` (generative-engine) runs every alternative through the `RuleEngine`,
-so `generative-engine -> rules-engine` is a used edge and `KNOWN_UNUSED_EDGES` is empty. No rule is approved yet,
-so every alternative is feasible and nothing changed in the REST response.
+generation. `EvaluatedAlternativeGenerator` runs every alternative through the `RuleEngine`, so `generative -> rules` is a
+used edge. No rule is approved yet, so every alternative is feasible and nothing changed in the REST response.
 
-`api -> midas-adapter` was removed in BACKEND-REMEDIATION Faz 9 and returns with the first use case that calls
-MIDAS (P07). `bridge-layout` does not depend on `bridge-core` and vice versa yet - the seam between them
-(`StructuralAlternativeBuilder`, per the analysis document's section C) is a later milestone.
+The MIDAS adapter (`analysis.infra.midas`) is wired by `shared.config.CoreConfiguration`; `bridge-layout` and `bridge-core` do
+not depend on each other yet - the seam between them (`StructuralAlternativeBuilder`, per the analysis document section C)
+is a later milestone.
 
-### `api` package layout (BACKEND-ARCHITECTURE Faz 1-8)
+### Package layout
 
 ```
-com.kopruq.api
-  config/ error/ observability/        shared, in place (CoreConfiguration is the composition root, R12)
-  <feature>/api/                       @RestController + request/response records (HTTP mapping only)
-  <feature>/application/               plain-Java use cases / services (no Spring, jakarta or <x>.api imports)
-  <feature>/infra/                     only when a port implementation is needed (none today)
-features: alignment, alternatives, environmentalloads, fastsolver, kernel, landxml, layout, materials, terrain,
-trafficloads
+com.kopruq.<domain>
+  api/            @RestController + request/response records (HTTP mapping only)
+  application/    use cases, ports and repository interfaces (Spring is allowed; no <x>.api imports)
+  domain/         framework-free services/algorithms spanning several models
+  model/          framework-free models that own their business rules and invariants
+  enums/          domain enums
+  infra/          port implementations (in-memory repositories; analysis: nativeengine/, midas/)
+com.kopruq.shared/{config,exception,validation}   composition root, single error contract, field checks
 ```
 
 ### Analysis port units and the MIDAS notes for P07
@@ -2978,3 +2978,59 @@ Separate remediation track approved by the engineer (plan U7); not a product mil
 ### BACKEND-ARCHITECTURE Faz 9 - Closing: documentation and stale comments
 
 - Module tree, dependency graph, api package layout, rule-evaluation decision, port unit system and the P07 MIDAS notes (WIND mapping, session unit) updated above in the module/dependency sections. Stale comments fixed (SharedRepositoriesConfig javadoc, api/pom.xml). Final full build and the grep/diff acceptance checks were run (see the feature implementation report).
+
+## BACKEND-MODULAR-MONOLITH track (backend-modular-monolith feature, 2026-10-12)
+
+The 17 Maven modules became ONE Maven module `backend/pom.xml` (`kopruq-backend`, packaging jar) with the package layout of
+`docs/architecture/backend-reference.md`. Pure move: REST paths/methods/statuses/JSON, engineering values and dependencies
+are unchanged; edits in moved files are limited to package/import lines (plus package text in FQNs inside code and comments).
+
+### BACKEND-MODULAR-MONOLITH Faz 0 - Baseline
+- 367 tests, 0 failures, 0 errors, 1 skipped (BentleyProductionTerrainTest) on the 17-module build. 348 are not architecture tests.
+
+### BACKEND-MODULAR-MONOLITH Faz 1 - One Maven module, packages unchanged
+- 17 module trees moved with git mv under `backend/src`; 17 sub-poms removed; `backend/pom.xml` is the jar module with the six approved dependencies. Jar: `backend/target/kopruq-backend-0.1.0-SNAPSHOT.jar`.
+- The four old architecture tests were replaced by `architecture/ArchitectureRules` + `ArchitectureTests` (21 tests, with temporary legacy tables). CLAUDE.md, README.md, start-dev.bat jar path updated. Smoke test: health UP, load-groups 200.
+
+### BACKEND-MODULAR-MONOLITH Faz 2 - shared, entry class, test packages
+- `KopruqApiApplication` is now `com.kopruq.KopruqApplication` (scan base `com.kopruq`); `api/error|config|observability` moved to `shared/exception|validation|config`; 7 contract tests to `contract/`; two package-name string edits in tests.
+
+### BACKEND-MODULAR-MONOLITH Faz 3 - geometry (spatial-core)
+- CoordinateSystem and Point3D in geometry/model. Full build green, 348 non-architecture tests.
+
+### BACKEND-MODULAR-MONOLITH Faz 4 - alignment
+- model (sealed HorizontalElement family), domain (ChainageSampler), api, application. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 5 - terrain
+- model, enums, domain (XyzTerrainParser and XyzParseResult stay package-private together), application (TerrainRepository), infra, api; wildcard imports split. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 6 - landxml
+- model (sealed LandXmlGeometryElement family), enums, domain, application, infra, api. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 7 - loads
+- traffic-loads and environmental-loads merged into loads; the two package-info files merged. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 8 - materials
+- domain (EurocodeConcrete, ConcreteStrengthClasses) and api. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 9 - layout
+- bridge-layout and constraints merged into layout (NoPierZone in layout/model). Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 10 - bridge
+- bridge-core model/enums plus the kernel-state api. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 11 - rules
+- model (results) and domain (RuleEngine, EngineeringRule). Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 12 - generative
+- model, domain, api (alternatives). Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 13 - analysis
+- analysis-api port in application, model-builder in domain, native engine in infra/nativeengine, MIDAS adapter in infra/midas, fastsolver api/application. Green, 348.
+
+### BACKEND-MODULAR-MONOLITH Faz 14 - Final architecture tests
+- Legacy tables and transition classification removed; T1 accepts only the target layout. Final greps for the old roots are empty.
+
+### BACKEND-MODULAR-MONOLITH Faz 15 - Docs and cleanup
+- This file, roadmap.md, CLAUDE.md and README.md updated; empty legacy module directories removed.
+- Known, accepted difference: log category names of `KopruqAnalysisEngine`, `MidasCivilNxAnalysisEngine` and `ApiExceptionHandler` follow the new package names.

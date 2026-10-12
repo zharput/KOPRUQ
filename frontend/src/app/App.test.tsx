@@ -80,9 +80,9 @@ describe('App workspace shell', () => {
     const user = userEvent.setup()
     await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
     expect(screen.getByRole('complementary', { name: 'Family Library' })).toBeInTheDocument()
-    expect(screen.getByText('Review structural family alternatives generated in Graph')).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Family Type' })).toBeInTheDocument()
-    expect(screen.getByText('Select a source node to view Graph-generated alternatives.')).toBeInTheDocument()
+    expect(screen.getByText('Graph-generated structural family results')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Family Bridge' })).toBeInTheDocument()
+    expect(screen.getByText('Select a candidate to preview its section.')).toBeInTheDocument()
   })
 
   it('keeps Family Workspace read-only while Bridge Definition remains separate', async () => {

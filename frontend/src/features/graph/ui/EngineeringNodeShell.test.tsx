@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import EngineeringNodeShell from './EngineeringNodeShell'
+import NodeInspector from './NodeInspector'
 import { ReactFlowProvider } from '@xyflow/react'
 import { getNodeDefinitions } from '../registry/nodeRegistry'
 import { toReactFlowNodes } from '../adapters/reactFlowAdapter'
@@ -15,16 +16,16 @@ describe('reusable engineering node shell', () => {
     const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === 'substructure.pier.rectangular')!
     const graph: KopruqGraph = { id: `pier-dim-${b}-${d}`, name: 'pier dimensions', schemaVersion: 1, nodes: [{ id: 'pier', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: { ...definition.createDefaultParameters({ length: 'm' }), BValue: b, DValue: d } }], connections: [] }
     const parametersBefore = { ...graph.nodes[0].parameters }
-    const { container } = render(<ReactFlowProvider><EngineeringNodeShell data={toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() })[0].data} selected={false} definition={definition} /></ReactFlowProvider>)
+    const { container } = render(<NodeInspector node={graph.nodes[0]} states={{}} errors={{}} outputs={{}} onNodeChange={vi.fn()} onParameterChange={vi.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: 'Expand rectangular pier detail' }))
     const bDimension = container.querySelector('[data-dimension="B"]')
     const dDimension = container.querySelector('[data-dimension="D"]')
     expect(bDimension).toBeTruthy()
     expect(dDimension).toBeTruthy()
-    expect(bDimension?.textContent).toContain(`B = ${b.toFixed(2)} m`)
-    expect(dDimension?.textContent).toContain(`D = ${d.toFixed(2)} m`)
-    expect(bDimension?.querySelector('[data-dimension-line]')?.getAttribute('x1')).toBe('445')
-    expect(dDimension?.querySelector('[data-dimension-line]')?.getAttribute('y1')).toBe('42')
+    expect(bDimension?.textContent).toContain(`B = ${b.toFixed(4)} m`)
+    expect(dDimension?.textContent).toContain(`D = ${d.toFixed(4)} m`)
+    expect(bDimension?.querySelector('[data-dimension-line]')?.getAttribute('y1')).toBe('42')
+    expect(dDimension?.querySelector('[data-dimension-line]')?.getAttribute('x1')).toBe('445')
     expect(bDimension?.querySelectorAll('[data-dimension-arrow]')).toHaveLength(2)
     expect(dDimension?.querySelectorAll('[data-dimension-arrow]')).toHaveLength(2)
     expect(container.querySelectorAll('[data-dimension-text]')).toHaveLength(2)
@@ -124,17 +125,17 @@ describe('reusable engineering node shell', () => {
 
   it.each([
     ['substructure.pier.circular', 'Diameter', 'DValue', 2],
-    ['substructure.pier.rectangular', 'B - Transverse', 'BValue', 3],
-    ['substructure.pier.box', 'B - Transverse', 'BValue', 3],
-    ['substructure.pier.h_section', 'B - Transverse', 'BValue', 3],
+    ['substructure.pier.rectangular', 'Longitudinal Length (B)', 'BValue', 3],
+    ['substructure.pier.box', 'Longitudinal Length (B)', 'BValue', 3],
+    ['substructure.pier.h_section', 'Longitudinal Length (B)', 'BValue', 3],
   ])('projects %s local lengths through the active project unit', (type, label, _parameter, canonical) => {
     const definition = getNodeDefinitions('STRUCTURAL_FAMILY').find(item => item.type === type)!
     const graph: KopruqGraph = { id: `units-${type}`, name: 'units', schemaVersion: 1, nodes: [{ id: 'pier', type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'cm' }) }], connections: [] }
     const { container, rerender } = render(<ReactFlowProvider><EngineeringNodeShell data={toReactFlowNodes(graph, { projectUnits: { length: 'cm' }, onParameterChange: vi.fn() })[0].data} selected={false} definition={definition} /></ReactFlowProvider>)
-    expect(container.querySelector(`input[aria-label="${label} local default"]`)).toHaveValue(String(canonical * 100))
+    expect(container.querySelector(`input[aria-label="${label} local default"]`)).toHaveValue(canonical * 100)
     const data = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() })[0].data
     rerender(<ReactFlowProvider><EngineeringNodeShell data={data} selected={false} definition={definition} /></ReactFlowProvider>)
-    expect(container.querySelector(`input[aria-label="${label} local default"]`)).toHaveValue(String(canonical))
+    expect(container.querySelector(`input[aria-label="${label} local default"]`)).toHaveValue(canonical)
   })
 
   it('shows grouped bearing inputs and the resolved stiffness range instead of its source name',()=>{

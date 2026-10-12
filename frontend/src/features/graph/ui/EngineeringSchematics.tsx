@@ -120,7 +120,7 @@ function PierFamilySchematic({ kind, node, candidates, previewInputs, connected,
   const web = representativeMetres(node, candidates, previewInputs, connected, 'w', 'w') ?? tw
   const flange = representativeMetres(node, candidates, previewInputs, connected, 'ft', 'ft') ?? tf
   const height = dimensionValue(node, candidates, previewInputs, connected, 'height', 'height', projectUnits)
-  const size = rectangularSize(d, b, 170, 105)
+  const size = rectangularSize(b, d, 170, 105)
   return <>
     <SchematicCard className="engineering-schematic-single spn-pier-family-preview">
       <svg viewBox="0 0 300 180" role="img" aria-label={`${kind.replace('_', ' ')} pier schematic`}>
@@ -134,9 +134,9 @@ function PierFamilySchematic({ kind, node, candidates, previewInputs, connected,
       <div className="spn-schematic-detail-dialog" role="dialog" aria-modal="true" aria-label={`${kind} pier detail view`} onMouseDown={event => event.stopPropagation()}>
         <div className="spn-schematic-detail-header"><strong>{kind.replace('_', ' ')} Pier Detail</strong><button type="button" aria-label={`Close ${kind} pier detail`} onClick={() => setDetail(false)}>×</button></div>
         <svg viewBox="0 0 520 360" role="img" aria-label={`${kind.replace('_', ' ')} pier detailed section`}>
-          <PierFamilyShape kind={kind} cx={260} cy={180} w={rectangularSize(d, b, 250, 230).w} h={rectangularSize(d, b, 250, 230).h} tw={tw} web={web} flange={flange} scale={rectangularSize(d, b, 250, 230).scale} />
-          <DimensionHorizontal x1={260 - rectangularSize(d, b, 250, 230).w / 2} x2={260 + rectangularSize(d, b, 250, 230).w / 2} y={42} toY={180 - rectangularSize(d, b, 250, 230).h / 2} label={`${kind === 'circular' ? 'D' : 'D'} = ${displayLength(d, projectUnits)}`} />
-          {kind !== 'circular' && <DimensionVertical y1={180 - rectangularSize(d, b, 250, 230).h / 2} y2={180 + rectangularSize(d, b, 250, 230).h / 2} x={445} toX={260 + rectangularSize(d, b, 250, 230).w / 2} label={`B = ${displayLength(b, projectUnits)}`} />}
+          <PierFamilyShape kind={kind} cx={260} cy={180} w={rectangularSize(b, d, 250, 230).w} h={rectangularSize(b, d, 250, 230).h} tw={tw} web={web} flange={flange} scale={rectangularSize(b, d, 250, 230).scale} />
+          <DimensionHorizontal x1={260 - rectangularSize(b, d, 250, 230).w / 2} x2={260 + rectangularSize(b, d, 250, 230).w / 2} y={42} toY={180 - rectangularSize(b, d, 250, 230).h / 2} label={`${kind === 'circular' ? 'D' : 'B'} = ${displayLength(kind === 'circular' ? d : b, projectUnits)}`} />
+          {kind !== 'circular' && <DimensionVertical y1={180 - rectangularSize(b, d, 250, 230).h / 2} y2={180 + rectangularSize(b, d, 250, 230).h / 2} x={445} toX={260 + rectangularSize(b, d, 250, 230).w / 2} label={`D = ${displayLength(d, projectUnits)}`} />}
           <BridgeAxisDirectional x={260} y={180} left={105} right={415} verticalTop={52} verticalBottom={308} />
           {kind === 'box' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">t = {displayLength(tw, projectUnits)}</text>}
           {kind === 'h_section' && <text className="engineering-dimension" x="260" y="330" textAnchor="middle">w = {displayLength(web, projectUnits)} · ft = {displayLength(flange, projectUnits)}</text>}
@@ -174,6 +174,7 @@ function RectangularPierSchematic({ node, candidates, previewInputs, connected, 
         <BridgeAxisDirectional x={150} y={82} left={48} right={252} verticalTop={28} verticalBottom={136} />
       </svg>
       <div className="spn-schematic-preview-note">Rectangular section preview</div>
+      <button type="button" aria-label="Expand rectangular pier detail" onClick={() => setDetail(true)}>Details</button>
     </SchematicCard>
     {detail && <div className="spn-schematic-detail-backdrop" role="presentation" onMouseDown={() => setDetail(false)}>
       <div className="spn-schematic-detail-dialog" role="dialog" aria-modal="true" aria-label="Rectangular pier detail view" onMouseDown={event => event.stopPropagation()}>
@@ -189,10 +190,10 @@ function RectangularPierSchematic({ node, candidates, previewInputs, connected, 
 }
 
 function PierDimensionPair({ b, d, projectUnits }: { b: number; d: number; projectUnits?: ProjectUnitPreferences }) {
-  const { w, h } = rectangularSize(d, b, 250, 230)
+  const { w, h } = rectangularSize(b, d, 250, 230)
   const left = 260 - w / 2, right = 260 + w / 2, top = 180 - h / 2, bottom = 180 + h / 2
-  const horizontal = pierDimension(resolveHorizontalDimension('D', 'D', { x: left, y: 42 }, { x: right, y: 42 }, displayLength(d, projectUnits)), [{ from: { x: left, y: top }, to: { x: left, y: 42 } }, { from: { x: right, y: top }, to: { x: right, y: 42 } }], [{ point: { x: left, y: 42 }, direction: 'right' }, { point: { x: right, y: 42 }, direction: 'left' }])
-  const vertical = pierDimension(resolveVerticalDimension('B', 'B', { x: 445, y: top }, { x: 445, y: bottom }, displayLength(b, projectUnits)), [{ from: { x: right, y: top }, to: { x: 445, y: top } }, { from: { x: right, y: bottom }, to: { x: 445, y: bottom } }], [{ point: { x: 445, y: top }, direction: 'down' }, { point: { x: 445, y: bottom }, direction: 'up' }])
+  const horizontal = pierDimension(resolveHorizontalDimension('B', 'B', { x: left, y: 42 }, { x: right, y: 42 }, displayLength(b, projectUnits)), [{ from: { x: left, y: top }, to: { x: left, y: 42 } }, { from: { x: right, y: top }, to: { x: right, y: 42 } }], [{ point: { x: left, y: 42 }, direction: 'right' }, { point: { x: right, y: 42 }, direction: 'left' }])
+  const vertical = pierDimension(resolveVerticalDimension('D', 'D', { x: 445, y: top }, { x: 445, y: bottom }, displayLength(d, projectUnits)), [{ from: { x: right, y: top }, to: { x: 445, y: top } }, { from: { x: right, y: bottom }, to: { x: 445, y: bottom } }], [{ point: { x: 445, y: top }, direction: 'down' }, { point: { x: 445, y: bottom }, direction: 'up' }])
   return <><HorizontalDimension definition={horizontal} /><VerticalDimension definition={vertical} /></>
 }
 
@@ -206,7 +207,7 @@ function rectangularSize(b: number, d: number, maxW: number, maxH: number) {
 }
 
 function RectangularPierShape({ b, d, x, y, maxW, maxH }: { b: number; d: number; x: number; y: number; maxW: number; maxH: number }) {
-  const { w, h } = rectangularSize(d, b, maxW, maxH)
+  const { w, h } = rectangularSize(b, d, maxW, maxH)
   return <rect className="engineering-outline" x={x - w / 2} y={y - h / 2} width={w} height={h} />
 }
 
@@ -221,13 +222,9 @@ function BridgeAxisDirectional({ x, y, left, right, verticalTop, verticalBottom 
 }
 
 function HSection({ cx, cy, width, height, web, flange }: { cx: number; cy: number; width: number; height: number; web: number; flange: number }) {
-  // The former I-like glyph is rotated 90 degrees: the two legs run in the longitudinal (D) direction.
-  // Keep the engineering web thickness represented without allowing a very
-  // small default value to turn the reinforced-concrete section into a steel
-  // I-profile. This only affects the illustrative SVG; candidate geometry is
-  // still read from the existing resolved parameters above.
+  // B spans the side legs horizontally; D spans their height vertically.
   const f = clamp(flange, 0, width / 2), t = clamp(web, 0, height)
-  return <path data-orientation="rotated-90" className="engineering-outline" d={`M${cx - width / 2} ${cy - height / 2} H${cx - width / 2 + f} V${cy - t / 2} H${cx + width / 2 - f} V${cy - height / 2} H${cx + width / 2} V${cy + height / 2} H${cx + width / 2 - f} V${cy + t / 2} H${cx - width / 2 + f} V${cy + height / 2} H${cx - width / 2} Z`} />
+  return <path data-orientation="native" className="engineering-outline" d={`M${cx - width / 2} ${cy - height / 2} H${cx - width / 2 + f} V${cy - t / 2} H${cx + width / 2 - f} V${cy - height / 2} H${cx + width / 2} V${cy + height / 2} H${cx + width / 2 - f} V${cy + t / 2} H${cx - width / 2 + f} V${cy + height / 2} H${cx - width / 2} Z`} />
 }
 
 function PierCapSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {

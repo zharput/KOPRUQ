@@ -93,8 +93,8 @@ describe('Watch node rendering', () => {
     const range=toReactFlowNodes(graph,{onParameterChange:onChange})[0]
     render(<ReactFlowProvider><BaseNode data={range.data} selected={false} id={range.id} type="kopruq" dragging={false} zIndex={0} positionAbsoluteX={0} positionAbsoluteY={0} isConnectable draggable deletable selectable sourcePosition={Position.Right} targetPosition={Position.Left} /></ReactFlowProvider>)
     expect(screen.getByText('13 values')).toBeInTheDocument()
-    const start=screen.getByRole('textbox',{name:'Range Start'}),end=screen.getByRole('textbox',{name:'Range End'}),step=screen.getByRole('textbox',{name:'Range Step'})
-    expect(start).toHaveValue('2');expect(end).toBeDisabled();expect(end).toHaveValue('8');expect(step).toHaveValue('0.5')
+    const start=screen.getByRole('spinbutton',{name:'Range Start'}),end=screen.getByRole('spinbutton',{name:'Range End'}),step=screen.getByRole('spinbutton',{name:'Range Step'})
+    expect(start).toHaveValue(2);expect(end).toBeDisabled();expect(end).toHaveValue(8);expect(step).toHaveValue(0.5)
     await userEvent.click(start);await userEvent.keyboard('{Control>}a{/Control}3{Enter}')
     expect(onChange).toHaveBeenCalledWith('range','min',3)
   })
@@ -104,7 +104,7 @@ describe('canvas port labels and structural family theme', () => {
   it.each([['input.number', '10'], ['input.integer', '5']])('%s keeps the editor and removes the redundant Value label', (type, value) => {
     const { container } = renderCanvasNode(type)
     expect(screen.queryByText('Value')).not.toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: type === 'input.integer' ? 'Integer value' : 'Number value' })).toHaveValue(value)
+    expect(screen.getByRole('spinbutton', { name: type === 'input.integer' ? 'Integer value' : 'Number value' })).toHaveValue(Number(value))
     expect(container.querySelector('.spn-graph-port-row small')).toBeNull()
   })
 

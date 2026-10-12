@@ -15,7 +15,7 @@ describe('Node Inspector', () => {
     const onParameterChange = vi.fn()
     render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} onNodeChange={vi.fn()} onParameterChange={onParameterChange} />)
     expect(screen.queryByLabelText('Length X unit')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Length X')).toHaveValue('0.6')
+    expect(screen.getByLabelText('Length X')).toHaveValue(0.6)
   })
   it.each(getNodeDefinitions().map(definition => [definition.type, definition.label]))('keeps implementation ports and IDs out of %s Inspector', (type, label) => {
     const value=node(type)
@@ -34,8 +34,8 @@ describe('Node Inspector', () => {
     expect(svg.querySelector('ellipse')).toBeNull()
     expect(svg.querySelector('rect[rx]')).toBeInTheDocument()
     expect(svg.getAttribute('aria-label')).not.toContain('Bridge Axis')
-    expect(container.textContent).toContain('B = 3.00 m')
-    expect(container.textContent).toContain('D = 1.50 m')
+    expect(container.textContent).toContain('B = 3.0000 m')
+    expect(container.textContent).toContain('D = 1.5000 m')
     expect(container.textContent).toContain('X-X')
     expect(container.textContent).toContain('Y-Y')
   })
@@ -44,11 +44,11 @@ describe('Node Inspector', () => {
     const value=node('substructure.pier.h_section')
     render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} {...handlers} />)
     const svg=screen.getByRole('img',{name:/h section pier schematic/i})
-    expect(svg.querySelector('[data-orientation="rotated-90"]')).toBeInTheDocument()
-    expect(svg.textContent).toContain('B = 3.00 m')
-    expect(svg.textContent).toContain('D = 6.00 m')
-    expect(svg.textContent).toContain('tw = 3.00 m')
-    expect(svg.textContent).toContain('tf = 0.75 m')
+    expect(svg.querySelector('[data-orientation="native"]')).toBeInTheDocument()
+    expect(svg.textContent).toContain('B = 3.0000 m')
+    expect(svg.textContent).toContain('D = 6.0000 m')
+    expect(svg.textContent).toContain('w = 3.0000 m')
+    expect(svg.textContent).toContain('ft = 0.7500 m')
   })
 
   it('draws T-Cap flange at the bottom with its stem extending upward', () => {
@@ -57,7 +57,7 @@ describe('Node Inspector', () => {
     const svg=screen.getByRole('img',{name:/t-cap with bottom flange/i}), path=svg.querySelector('path')!
     expect(path.getAttribute('data-flange-position')).toBe('bottom')
     expect(path.getAttribute('d')).toMatch(/^M[^ ]+ [^ ]+ H[^ ]+ V[^ ]+ H[^ ]+ V[^ ]+ H[^ ]+ V[^ ]+ H/)
-    for(const text of ['Length = 12.00 m','Top / Flange Width = 3.00 m','Stem = 1.50 m','H = 2.50 m','tf = 0.80 m','Bridge Axis']) expect(svg.textContent).toContain(text)
+    for(const text of ['Length = 12.0000 m','Top / Flange Width = 3.0000 m','Stem = 1.5000 m','H = 2.5000 m','tf = 0.8000 m','Bridge Axis']) expect(svg.textContent).toContain(text)
   })
 
   it('shows shallow foundation PLAN and SECTION with Lx, Ly, H and axis', () => {
@@ -67,9 +67,9 @@ describe('Node Inspector', () => {
     expect(within(svg).getByText('PLAN')).toBeInTheDocument()
     expect(within(svg).getByText('SECTION')).toBeInTheDocument()
     expect(svg.querySelectorAll('.engineering-outline')).toHaveLength(2)
-    expect(svg.textContent).toContain('Lx = 8.00 m')
-    expect(svg.textContent).toContain('Ly=6.00m')
-    expect(svg.textContent).toContain('H=2.00m')
+    expect(svg.textContent).toContain('Lx = 8.0000 m')
+    expect(svg.textContent).toContain('Ly=6.0000m')
+    expect(svg.textContent).toContain('H=2.0000m')
     expect(svg.textContent).toContain('Bridge Axis')
     expect(svg.textContent).not.toContain('FOOTING')
   })
@@ -81,16 +81,16 @@ describe('Node Inspector', () => {
     expect(within(svg).getByText('PLAN')).toBeInTheDocument()
     expect(within(svg).getByText('SECTION')).toBeInTheDocument()
     expect(svg.querySelectorAll('.engineering-pile').length).toBe(12)
-    for(const text of ['Lx = 13.20 m','Ly=9.60m','Nx = 4','Ny = 3','ax = 3.60 m','ay = 3.60 m','D = 1.20 m','H = 2.50 m','Bridge Axis']) expect(svg.textContent).toContain(text)
+    for(const text of ['Lx = 13.2000 m','Ly=9.6000m','Nx = 4','Ny = 3','ax = 3.6000 m','ay = 3.6000 m','D = 1.2000 m','H = 2.5000 m','Bridge Axis']) expect(svg.textContent).toContain(text)
   })
 
   it('converts schematic values to Project display units and indicates connected ranges', () => {
     const pier=node('substructure.pier.rectangular')
     const { container, rerender }=render(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} projectUnits={{length:'mm'}} {...handlers} />)
-    expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 3000.00 mm')
+    expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 3000 mm')
     rerender(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} previewInputs={{width:{sourceName:'Hidden source',value:[makeQuantity(2,'length','m'),makeQuantity(2.5,'length','m')]}}} connections={[{id:'private-edge-id',sourceNodeId:'private-source-id',sourcePortId:'values',targetNodeId:pier.id,targetPortId:'width'}]} projectUnits={{length:'m'}} {...handlers} />)
     const svg=screen.getByRole('img',{name:/rectangular pier schematic/i})
-    expect(container.textContent).toContain('2.00 m')
+    expect(container.textContent).toContain('2.0000 m')
     expect(svg.getAttribute('aria-label')).toContain('B/D 2.00 × 1.50 m')
     expect(svg.textContent).toContain('X-X')
     expect(svg.textContent).toContain('Y-Y')
@@ -100,10 +100,10 @@ describe('Node Inspector', () => {
   it('updates the schematic from changed local parameters without waiting for Run', () => {
     const pier=node('substructure.pier.rectangular')
     const { rerender }=render(<NodeInspector node={pier} states={{}} errors={{}} outputs={{}} {...handlers} />)
-    expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 3.00 m')
+    expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 3.0000 m')
     const updated={...pier,parameters:{...pier.parameters,BValue:4}}
     rerender(<NodeInspector node={updated} states={{}} errors={{}} outputs={{}} {...handlers} />)
-    expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 4.00 m')
+    expect(screen.getByRole('img',{name:/rectangular pier schematic/i}).textContent).toContain('B = 4.0000 m')
   })
 
   it('shows a concise concrete material result without exposing internal catalog IDs', () => {

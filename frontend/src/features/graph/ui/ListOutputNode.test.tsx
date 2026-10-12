@@ -15,17 +15,17 @@ describe('List output node', () => {
   it('renders the full Elastomeric Bearing candidate geometry and distinct stiffness units',async()=>{
     const bearing:BearingCandidate={id:'bearing-1',bearingType:'ELASTOMERIC',geometry:{lengthX:.6,widthY:.7,totalHeight:.15},stiffness:{kx:3000,ky:30000,kz:100000,krx:100000,kry:100000,krz:100000}}
     render(<ReactFlowProvider><ListOutputNode data={data([bearing],{length:'mm'})} selected={false}/></ReactFlowProvider>)
-    expect(screen.getByRole('listitem').textContent).toContain('Lx=600.00 mm')
+    expect(screen.getByRole('listitem').textContent).toContain('Lx=600 mm')
     expect(screen.getByRole('listitem').textContent).toContain('Kx=3000 kN/m')
     await userEvent.click(screen.getByRole('button',{name:'Expand item 0'}))
-    expect(screen.getByText('Length X').nextElementSibling).toHaveTextContent('600.00 mm')
+    expect(screen.getByText('Length X').nextElementSibling).toHaveTextContent('600 mm')
     expect(screen.getByText('Krx').nextElementSibling).toHaveTextContent('100000 kN·m/rad')
   })
   it('renders shallow and piled foundation candidates with source candidate-derived Lx/Ly',()=>{
     const shallow:FoundationCandidate={id:'s',foundationType:'SHALLOW',geometry:{Lx:8,Ly:6,height:2},material:{domainType:'ConcreteMaterial',id:'C35/45',name:'C35/45',properties:{}}}
     const piled:FoundationCandidate={id:'p',foundationType:'PILED',geometry:{pileDiameter:1.2,pileCountX:4,pileSpacingX:3.6,pileCountY:3,pileSpacingY:3.6,capHeight:2.5,derived:{Lx:13.2,Ly:9.6}},material:shallow.material}
-    const {rerender}=render(<ReactFlowProvider><ListOutputNode data={data([shallow])} selected={false}/></ReactFlowProvider>);expect(screen.getByText(/Shallow Foundation.*Lx=8.00 m.*Ly=6.00 m.*H=2.00 m.*C35\/45/)).toBeInTheDocument()
-    rerender(<ReactFlowProvider><ListOutputNode data={data([piled])} selected={false}/></ReactFlowProvider>);expect(screen.getByText(/Piled Foundation.*D=1.20 m.*nx=4.*Lx=13.20 m.*Ly=9.60 m.*C35\/45/)).toBeInTheDocument()
+    const {rerender}=render(<ReactFlowProvider><ListOutputNode data={data([shallow])} selected={false}/></ReactFlowProvider>);expect(screen.getByText(/Shallow Foundation.*Lx=8.0000 m.*Ly=6.0000 m.*H=2.0000 m.*C35\/45/)).toBeInTheDocument()
+    rerender(<ReactFlowProvider><ListOutputNode data={data([piled])} selected={false}/></ReactFlowProvider>);expect(screen.getByText(/Piled Foundation.*D=1.2000 m.*nx=4.*Lx=13.2000 m.*Ly=9.6000 m.*C35\/45/)).toBeInTheDocument()
   })
   it('renders indexed primitive and Quantity values using project units', () => {
     const primitive = render(<ReactFlowProvider><ListOutputNode data={data([2, 2.5, 3])} selected={false} /></ReactFlowProvider>)
@@ -42,7 +42,7 @@ describe('List output node', () => {
     const candidate: PierCandidate = { id: 'pier-1', pierType: 'RECTANGULAR', geometry: { B: 3, D: 4 }, heightM: 10, columnCount: 1, material: { domainType: 'ConcreteMaterial', id: 'C40/50', name: 'C40/50', properties: {} } }
     render(<ReactFlowProvider><ListOutputNode data={data([candidate], { length: 'm' })} selected={false} /></ReactFlowProvider>)
     const rows = screen.getByRole('list')
-    expect(within(rows).getByText(/Rectangular Pier.*B=3.00 m.*D=4.00 m.*H=10.00 m/)).toBeInTheDocument()
+    expect(within(rows).getByText(/Rectangular Pier.*B=3.0000 m.*D=4.0000 m.*H=10.0000 m/)).toBeInTheDocument()
     expect(within(rows).getByText(/Material C40\/50.*Columns 1/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Expand item 0' })).toHaveTextContent('Details')
     expect(rows.textContent).not.toContain(String.fromCharCode(0x00c3, 0x00a2))
@@ -51,7 +51,7 @@ describe('List output node', () => {
     expect(screen.getByRole('button', { name: 'Collapse item 0' })).toHaveTextContent('Hide')
     expect(within(rows).getByText('C40/50')).toBeInTheDocument()
     expect(within(rows).getByText('Columns')).toBeInTheDocument()
-    expect(within(rows).getByText('10.00 m')).toBeInTheDocument()
+    expect(within(rows).getByText('10.0000 m')).toBeInTheDocument()
   })
 
   it('renders compact Rectangular and T-Cap candidate rows and details',async()=>{
@@ -62,11 +62,11 @@ describe('List output node', () => {
     ]
     render(<ReactFlowProvider><ListOutputNode data={data(candidates,{length:'m'})} selected={false}/></ReactFlowProvider>)
     const rows=screen.getByRole('list')
-    expect(within(rows).getByText(/Rectangular Cap.*L=12.00 m.*W=3.00 m.*H=2.00 m.*Material C40\/50/)).toBeInTheDocument()
-    expect(within(rows).getByText(/T-Cap.*Top W=3.00 m.*Stem W=1.50 m.*tf=0.80 m/)).toBeInTheDocument()
+    expect(within(rows).getByText(/Rectangular Cap.*L=12.0000 m.*W=3.0000 m.*H=2.0000 m.*Material C40\/50/)).toBeInTheDocument()
+    expect(within(rows).getByText(/T-Cap.*Top W=3.0000 m.*Stem W=1.5000 m.*tf=0.8000 m/)).toBeInTheDocument()
     await user.click(screen.getByRole('button',{name:'Expand item 1'}))
     expect(within(rows).getByText('Flange Thickness')).toBeInTheDocument()
-    expect(within(rows).getByText('2.50 m')).toBeInTheDocument()
+    expect(within(rows).getByText('2.5000 m')).toBeInTheDocument()
   })
 
   it('renders only one bounded page from large collections', () => {

@@ -1809,3 +1809,18 @@ Seventeen Maven modules merged into one Spring Boot module (`kopruq-backend`) wi
 - [x] BACKEND-MODULAR-MONOLITH Faz 13: analysis domain (port, model-builder, native engine, MIDAS adapter, fastsolver).
 - [x] BACKEND-MODULAR-MONOLITH Faz 14: final architecture tests, legacy tables removed, final greps empty.
 - [x] BACKEND-MODULAR-MONOLITH Faz 15: architecture.md, roadmap.md, CLAUDE.md, README.md updated; legacy module directories cleaned.
+
+## FRONTEND-REMEDIATION track (2026-10-12)
+
+Frontend-only fixes from the 2026-10-11 frontend review (details in `docs/architecture.md`, "FRONTEND-REMEDIATION track"). No backend change, no new dependency. Baseline: 26 failing vitest tests that predate this work; they are unchanged (not repaired here).
+
+- [x] FRONTEND-REMEDIATION Faz 0: baseline recorded (`docs/features/frontend-remediation/baseline-*.md`).
+- [x] FRONTEND-REMEDIATION Faz 1: Open/Save integrity (modules-less files, failed open clears the file reference, Recent handle inheritance, Save errors shown).
+- [x] FRONTEND-REMEDIATION Faz 2: project modules round-trip (8 modules in the `.kopruq` file), New/Open reset, Preferred Span orphan rules kept, Dashboard from project data.
+- [x] FRONTEND-REMEDIATION Faz 3: Wind snapshot inputs, STALE, INVALID and error display.
+- [x] FRONTEND-REMEDIATION Faz 4: rotational stiffness unit, parameter range units, unit ids instead of labels, Inspector conversion no longer throws.
+- [ ] FRONTEND-REMEDIATION Faz 5: NOT started - waiting for the engineer (Q1 precast Wy, Q2 oval pier moduli, Q3 sweep rounding). Code untouched and unverified.
+- [x] FRONTEND-REMEDIATION Faz 6: graph freshness (transitive and unit-aware fingerprints, dirty graph hides old outputs, snapshot replace/stale events, Family freshness badge, Open/New clear snapshots).
+- [x] FRONTEND-REMEDIATION Faz 7: shared HTTP layer and `ApiErrorResponse` handling, `VITE_API_BASE`, terrain import status/warnings, field errors on forms.
+- [x] FRONTEND-REMEDIATION Faz 8: Seismic/Temperature as query hooks, INVALID handling, LM1 alpha text buffer with reset to EN default.
+- [x] FRONTEND-REMEDIATION Faz 9: architecture.md and roadmap.md updated.

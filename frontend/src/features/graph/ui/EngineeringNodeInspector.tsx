@@ -2,6 +2,7 @@ import type { GraphExecutionState, GraphValue, KopruqConnection, KopruqNode } fr
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { convertQuantity, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
+import { normalizeUnitId } from '../../project/model/projectWorkspace'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
 import { useState } from 'react'
 import EditableNumericInput from './EditableNumericInput'
@@ -105,8 +106,8 @@ function ParameterControl({ node, descriptor, projectUnits, onChange }: { node: 
   const storedUnit = String(node.parameters[unitKey] ?? 'm')
   const storedKind = getUnit(storedUnit)?.kind
   const shown = isLength && storedKind && typeof node.parameters[descriptor.key] === 'number' ? toDisplayValue(getUnit(storedUnit)!.toCanonical(Number(node.parameters[descriptor.key])), dimensionForKind(storedKind), projectUnits) : node.parameters[descriptor.key]
-  const sourceUnit = storedKind === 'translationalStiffness' ? `${projectUnits?.force ?? 'kN'}/${projectUnits?.length ?? 'm'}` : storedKind === 'rotationalStiffness' ? `${projectUnits?.moment ?? 'kNm'}/rad` : storedKind === 'length' ? projectUnits?.length ?? 'm' : storedUnit
-  return <EditableNumericInput value={shown} integer={descriptor.dataType === 'integer'} ariaLabel={label} onCommit={value => onChange(node.id, descriptor.key, isLength && sourceUnit !== storedUnit ? convertQuantity(Number(value), sourceUnit, storedUnit) : value)} />
+  const sourceUnit = storedKind === 'translationalStiffness' ? `${normalizeUnitId(projectUnits?.force ?? 'kN')}/${normalizeUnitId(projectUnits?.length ?? 'm')}` : storedKind === 'rotationalStiffness' ? `${normalizeUnitId(projectUnits?.moment ?? 'kNm')}/rad` : storedKind === 'length' ? normalizeUnitId(projectUnits?.length ?? 'm') : storedUnit
+  return <EditableNumericInput value={shown} integer={descriptor.dataType === 'integer'} ariaLabel={label} onCommit={value => { try { onChange(node.id, descriptor.key, isLength && sourceUnit !== storedUnit ? convertQuantity(Number(value), sourceUnit, storedUnit) : value) } catch { return false } }} />
 }
 
 function present(value: GraphValue, projectUnits?: ProjectUnitPreferences): string {

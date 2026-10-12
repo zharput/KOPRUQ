@@ -6,7 +6,7 @@ import type { GraphExecutionState, GraphValue, MaterialValue, KopruqGraph } from
 import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'
 import { getNodeDefinition } from '../registry/nodeRegistry'
-import { addConnection, addNode, beginMoveHistory, createGraphDocument, createGraphGroup, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, moveGraphGroup, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, ungroupGraph, updateGraphGroup, updateNode, updatePositions } from '../state/graphStore'
+import { addConnection, addNode, beginMoveHistory, createGraphDocument, createGraphGroup, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, getGraphStoreSnapshot, moveGraphGroup, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, ungroupGraph, updateGraphGroup, updateNode, updatePositions } from '../state/graphStore'
 import { useGraphStore } from '../state/useGraphStore'
 import { cloneGraphSelection, copyGraphSelection, sameGraphSelection, type GraphClipboard } from '../state/graphClipboard'
 import BaseNode from './BaseNode'
@@ -16,7 +16,8 @@ import NodeLibrary from './NodeLibrary'
 import { mergeBoxSelection, normalizedBox, selectNodeIdsByBox, selectionMode, transformBox, type BoxRect, type BoxSelectionMode } from './boxSelection'
 import { graphMaterialServices } from '../api/graphMaterialService'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
-import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from '../family/familyResults'
+import { adaptGraphExecutionToFamilySnapshots, graphFingerprint, unitsFingerprint } from '../family/familyResults'
+import { buildExecutionDisplay } from './executionDisplay'
 import { markFamilySnapshotsStale, publishFamilySnapshots } from '../family/familySnapshotStore'
 import { currentEngineeringFingerprint, recordSuccessfulGraphRun } from '../family/graphRunValidity'
 import { computeGraphGroupBounds, GRAPH_GROUP_TOKENS, type GraphGroupBounds } from '../model/graphGroups'
@@ -43,10 +44,12 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
   const [nodeOutputs, setNodeOutputs] = useState<Record<string, Record<string, GraphValue>>>({})
   const [resolvedInputs, setResolvedInputs] = useState<Record<string, Record<string, GraphValue>>>({})
   const [executedSignature, setExecutedSignature] = useState<string | undefined>(undefined)
-  const currentSignature = useMemo(() => graphExecutionSignature(graph), [graph])
-  useEffect(() => { if (graph.bridgeId) markFamilySnapshotsStale(graph.bridgeId, graph.id, graphFingerprint(graph)) }, [graph])
+  const currentSignature = useMemo(() => graphExecutionSignature(graph, project.units), [graph, project.units])
+  const projectUnitsRef = useRef(project.units)
+  useEffect(() => { projectUnitsRef.current = project.units }, [project.units])
+  useEffect(() => { if (graph.bridgeId) markFamilySnapshotsStale(graph.bridgeId, graph.id, graphFingerprint(graph, project.units)) }, [graph, project.units])
   const isDirty = executedSignature !== undefined && executedSignature !== currentSignature
-  const executionDisplay = useMemo(() => isDirty ? { states: {} as Record<string, GraphExecutionState>, errors: {} as Record<string, string>, resolvedInputs: {} as Record<string, Record<string, GraphValue>> } : { states, errors, resolvedInputs }, [isDirty, states, errors, resolvedInputs])
+  const executionDisplay = useMemo(() => buildExecutionDisplay(isDirty, { states, errors, resolvedInputs, outputs: nodeOutputs }), [isDirty, states, errors, resolvedInputs, nodeOutputs])
   const [log, setLog] = useState<GraphLogEntry[]>([])
   const [feedback, setFeedback] = useState('')
   const [isRunning, setIsRunning] = useState(false)
@@ -83,11 +86,15 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
     const projectUnits = project.units
     const result = await executeGraph(graph, abort.signal, { ...graphMaterialServices, projectUnits })
     const successful = Object.keys(result.errors).length === 0
-    const completedInputFingerprint = currentEngineeringFingerprint(graph)
+    const completedInputFingerprint = currentEngineeringFingerprint(graph, projectUnits)
     if (!abort.signal.aborted && graph.bridgeId) {
       if (successful) {
-        publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(graph, result))
-        recordSuccessfulGraphRun(graph, completedInputFingerprint)
+        // The graph or the project units may have changed while the run was in flight: publish such a result as STALE.
+        const latestGraph = getGraphStoreSnapshot().graphs.find(item => item.id === graph.id)
+        const changedDuringRun = latestGraph !== undefined && graphFingerprint(latestGraph, projectUnitsRef.current) !== completedInputFingerprint
+        const snapshots = adaptGraphExecutionToFamilySnapshots(graph, result, undefined, projectUnits)
+        publishFamilySnapshots(changedDuringRun ? snapshots.map(item => ({ ...item, freshness: 'STALE' as const })) : snapshots)
+        recordSuccessfulGraphRun(graph, projectUnits, completedInputFingerprint)
       } else {
         markFamilySnapshotsStale(graph.bridgeId, graph.id, completedInputFingerprint)
       }
@@ -127,7 +134,7 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
     else if (key === 'v' && pasteClipboard()) event.preventDefault()
     else if (key === 'd') { const ids = selectedForClipboard(); if (ids.length) { event.preventDefault(); pasteClipboard(copyGraphSelection(graph, ids)) } }
   }
-  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} diagnostics={diagnostics} isDirty={isDirty} project={project} setProject={setProject} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} selectedNodes={graph.nodes.filter(item => selectedNodeIds.includes(item.id))} states={executionDisplay.states} errors={executionDisplay.errors} outputs={nodeOutputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} connections={graph.connections} concreteMaterial={inspectorMaterial} projectUnits={projectUnitLabels} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
+  return <WorkspaceLayout leftTitle="Node Library" leftPanel={<NodeLibrary onAdd={onAdd} />} mainContent={<GraphCanvas graph={graph} addRef={addRef} onNewGraph={addDocument} onConnectionCreated={onConnectionCreated} onGraphShortcut={handleGraphShortcut} selectedNodeIds={selectedNodeIds} selectedEdgeIds={selectedEdgeIds} setSelectedNodeId={setSelectedNodeId} setSelectedNodeIds={setSelectedNodeIds} setSelectedEdgeIds={setSelectedEdgeIds} states={executionDisplay.states} errors={executionDisplay.errors} nodeOutputs={executionDisplay.outputs} resolvedInputs={executionDisplay.resolvedInputs} projectUnits={projectUnitLabels} onParameterChange={onParameterChange} log={log} feedback={feedback} setFeedback={setFeedback} isRunning={isRunning} run={run} canUndo={snapshot.canUndo} canRedo={snapshot.canRedo} diagnostics={diagnostics} isDirty={isDirty} project={project} setProject={setProject} />} rightTitle="Node Inspector" rightPanel={<NodeInspector node={selected} selectedNodes={graph.nodes.filter(item => selectedNodeIds.includes(item.id))} states={executionDisplay.states} errors={executionDisplay.errors} outputs={executionDisplay.outputs} resolvedInputs={executionDisplay.resolvedInputs} previewInputs={inspectorPreviewInputs} connections={graph.connections} concreteMaterial={inspectorMaterial} projectUnits={projectUnitLabels} onNodeChange={(id, patch) => updateNode(id, (node) => ({ ...node, ...patch }))} onParameterChange={onParameterChange} />} mainClassName="spn-workspace-main-graph" />
 }
 
 function GraphCanvas({ graph, addRef, onNewGraph, onConnectionCreated, onGraphShortcut, selectedNodeIds, selectedEdgeIds, setSelectedNodeId, setSelectedNodeIds, setSelectedEdgeIds, states, errors, nodeOutputs, resolvedInputs, projectUnits, onParameterChange, log, feedback, setFeedback, isRunning, run, canUndo, canRedo, diagnostics, isDirty, project, setProject }: {
@@ -418,6 +425,6 @@ function normalizeConnection(graph: KopruqGraph, connection: Pick<Connection, 's
   return undefined
 }
 
-function graphExecutionSignature(graph: KopruqGraph) {
-  return JSON.stringify({ id: graph.id, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })), connections: graph.connections })
+function graphExecutionSignature(graph: KopruqGraph, units: ProjectWorkspaceData['units']) {
+  return JSON.stringify({ id: graph.id, units: unitsFingerprint(units), nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })), connections: graph.connections })
 }

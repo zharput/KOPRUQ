@@ -1,9 +1,10 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { makeQuantity } from '../domain/quantities'
 import type { KopruqNode } from '../domain/types'
 import { getNodeDefinition, getNodeDefinitions } from '../registry/nodeRegistry'
 import NodeInspector from './NodeInspector'
+import { INITIAL_PROJECT } from '../../project/model/projectWorkspace'
 
 const handlers = { onNodeChange: vi.fn(), onParameterChange: vi.fn() }
 function node(type: string, id = 'internal-uuid-7f91'): KopruqNode { return { id, type, name: getNodeDefinition(type)!.label, position: { x: 0, y: 0 }, parameters: getNodeDefinition(type)!.createDefaultParameters({ length: 'm' }) } }
@@ -120,5 +121,20 @@ describe('Node Inspector', () => {
     expect(screen.getByText('Rectangular Pier').nextElementSibling).toHaveTextContent('2')
     rerender(<NodeInspector states={{}} errors={{}} outputs={{}} {...handlers} />)
     expect(screen.getByText('Select a node to inspect its properties.')).toBeInTheDocument()
+  })
+  it('saves a bearing Krx edit with the default project units without throwing and keeps the canonical unit', () => {
+    const value = node('substructure.bearing.elastomeric'); const onParameterChange = vi.fn()
+    render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} projectUnits={INITIAL_PROJECT.units} onNodeChange={vi.fn()} onParameterChange={onParameterChange} />)
+    const krx = screen.getByRole('spinbutton', { name: /krx/i })
+    fireEvent.change(krx, { target: { value: '200000' } }); fireEvent.blur(krx)
+    expect(onParameterChange).toHaveBeenCalledWith(value.id, 'krxValue', 200000)
+  })
+  it('does not throw for legacy unit labels and converts the edit to the stored rotational stiffness unit', () => {
+    // quantities.ts: kNmm/rad = 0.001 kNm/rad, so 200000 kNmm/rad is stored as 200 kNm/rad.
+    const value = node('substructure.bearing.elastomeric'); const onParameterChange = vi.fn()
+    render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} projectUnits={{ moment: 'kN·mm' }} onNodeChange={vi.fn()} onParameterChange={onParameterChange} />)
+    const krx = screen.getByRole('spinbutton', { name: /krx/i })
+    fireEvent.change(krx, { target: { value: '200000' } }); fireEvent.blur(krx)
+    expect(onParameterChange).toHaveBeenCalledWith(value.id, 'krxValue', 200)
   })
 })

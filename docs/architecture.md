@@ -3034,3 +3034,54 @@ are unchanged; edits in moved files are limited to package/import lines (plus pa
 ### BACKEND-MODULAR-MONOLITH Faz 15 - Docs and cleanup
 - This file, roadmap.md, CLAUDE.md and README.md updated; empty legacy module directories removed.
 - Known, accepted difference: log category names of `KopruqAnalysisEngine`, `MidasCivilNxAnalysisEngine` and `ApiExceptionHandler` follow the new package names.
+
+## FRONTEND-REMEDIATION track (frontend-remediation feature, 2026-10-12)
+
+Frontend-only. No backend change, no new npm dependency, no new REST endpoint, no new engineering value. Baseline before the change: build exit 0, 26 failing vitest tests (6 files, stale tests; list in `docs/features/frontend-remediation/baseline-vitest.md`), oxlint 85 warnings / 0 errors. After: the same 26 tests fail, nothing new fails.
+
+### Project modules (what travels in a `.kopruq` file)
+`frontend/src/shared/project-file/projectModules.ts` is the single list of project-scoped, localStorage-backed data. Each module has a zod schema (`parse` throws), a tolerant `read` (corrupt or invalid storage gives `undefined`), `write` (returns false when storage rejects it) and `reset`. `write`/`reset` emit `kopruq:project-data-changed` (dirty tracking) and `kopruq:project-module-changed`; an unchanged value emits nothing, so remount-time writes do not make the project dirty. `useProjectModule(id, fallback)` is the React hook (`useSyncExternalStore`).
+
+| Module id | localStorage key |
+|---|---|
+| `girderLibrary` | `kopruq.girder-library.precast` |
+| `preferredSpanRules` | `kopruq.project-design-system.girder-span-rules` |
+| `seismicInputs` | `kopruq.seismic` |
+| `windInputs` | `kopruq.wind-load.inputs` |
+| `temperatureInputs` | `kopruq.uniform-temperature.inputs` |
+| `crossSectionValues` | `kopruq.superstructure.cross-section.v1` (new) |
+| `selfWeightInputs` | `kopruq.loads.self-weight.v1` (new) |
+| `trafficLm1` | `kopruq.loads.traffic-lm1.v1` (new; only the project override, EN defaults still come from the backend) |
+
+- `buildProjectFile` writes all eight under `modules.<id>` (`null` = nothing stored); the existing `modules.windLoads` is unchanged. `schemaVersion` stays 1, so old files still open and old app versions ignore the new keys.
+- `validateProjectFile` normalizes a missing `modules` to `{}` and validates `modules.windLoads` and every present module before anything is applied.
+- `applyProjectFile` writes modules after graph and families and rolls graph, families and module storage back if any step fails. A module that is absent from the file is reset (like New Project) and returned in `missingModules`; the app tells the user which data the file did not contain (decision D-1). `null` means "was empty" and is not reported.
+- Open failure after the file was read: the file reference is cleared and the project is dirty, so the next Save cannot overwrite the previous file (C-013-02). Save/Save As errors other than `AbortError` are shown to the user (C-001-01). A Recent entry opened without a file handle never inherits another file's handle (C-013-03, decision D-2).
+- `useProjectFile` exposes `sessionId` (incremented on a successful Open and on New Project). `App` uses it in the `WorkspacePage` key, so panels that read storage on mount are rebuilt for the new project. Open and New also clear family snapshots and recorded graph runs. New Project no longer leaves the project dirty because of the persistence effects that run after the reset.
+
+Self Weight, Traffic LM1, Cross Section, Seismic, Wind and Temperature inputs and the Preferred Span rules now live in these modules, so they survive tab and workspace changes, page refresh and project switching. Preferred Span rules of variants that are temporarily missing are kept (shown as a count) and return unchanged. The Project Dashboard is read-only and shows the project's own name, country, status and last update (decision D-4); the former hard-coded sample project is gone.
+
+### Wind, Seismic, Temperature, LM1
+- Wind snapshot carries the real inputs `{vb, terrain, ze, deckWidthM, drefM}`; STALE = snapshot inputs differ from the current inputs or deck width. Details shows the snapshot's inputs. `status !== VALID` shows the backend `missing` text and a dash instead of zeros; HTTP errors show the backend message.
+- Seismic and Temperature use TanStack Query hooks (`loads/hooks/useSeismicSpectrum.ts`, `useUniformTemperature.ts`) whose query key is the input, so the result on screen always belongs to the inputs on screen. Emptying an input clears the result and sends no request. INVALID results show `INVALID` (Temperature lists `missingParameters`) instead of zero or partial values; errors are shown.
+- LM1 alpha uses a text buffer: Enter/blur commits a finite number as `PROJECT_OVERRIDE`; empty or invalid text is flagged (`aria-invalid`) and not committed; a per-row "EN default" button restores the backend default value and provenance. No range limit is applied (Q4: none given).
+
+### Graph freshness
+- `graphFingerprint(graph, units)` includes the normalized project units; `nodeRunValidity` fingerprints the node, everything upstream, the incoming connections and the units. A changed upstream parameter, a rewired connection or a changed project unit invalidates the downstream node and the graph run.
+- A dirty graph shows no previous run states, errors, resolved inputs or outputs (`graph/ui/executionDisplay.ts`).
+- `publishFamilySnapshots` replaces all snapshots of the graph (deleted nodes leave nothing); `markFamilySnapshotsStale` emits `kopruq:family-snapshots-changed`; a run that finishes after the graph or units changed is published as STALE. `FamilyResultsViewer` shows a freshness badge per source and a "not current" note for STALE/FAILED/INCOMPLETE.
+- Migration: the fingerprint format changed, so successful runs recorded earlier (`kopruq.graph.successful-runs.v1`) read as INVALID until the graph is run again (safe direction).
+
+### Units and Family tables
+- Project units are stored as unit ids (`kNm`, `C`); `normalizeUnitId` (project model) maps old display labels, including mojibake ones, and is applied when reading storage and when opening a file. `INITIAL_PROJECT.units` uses ids. The Inspector derives its source unit from the normalized id and no longer throws on a failed conversion (the input is flagged invalid and nothing is committed).
+- Family table: rotational bearing stiffness (`stiffness.kr*`) is converted with the rotation unit (the translational test used to catch it first); parameter Min/Max/Step are converted from canonical to the project unit and labelled with it (`parameterRangeDisplay`). Conversion factors come from `graph/domain/quantities.ts`; no value or formula was added.
+
+### Shared HTTP layer
+`frontend/src/shared/api/http.ts` is the only place with the backend base URL. `API_BASE` is `VITE_API_BASE` when set (non-empty), otherwise the local default (decision D-5). `requestJson`, `requestBinary`, `postJson` and `postForm` check `ok` and raise `ApiError {status, code, correlationId, fieldErrors[], path}` parsed from the backend `ApiErrorResponse`; a non-JSON body gives `HTTP <status>`; `correlationId` falls back to the `X-Correlation-ID` header. `formatApiError` renders `<message> (Ref: <correlationId>)`. All services (alternatives, layout, fast solver, traffic, temperature, wind, seismic, terrain import/viewer/diagnostics, LandXML, graph materials) use it. `shared/api/formErrors.ts` puts `errors[]` entries whose field is a top-level form field onto that field (react-hook-form `setError`) and lists the rest. Terrain import shows `status` and `warnings`; `REVIEW_REQUIRED` is flagged but the terrain is still linked to the project (decision D-3).
+
+### Not verified / not changed (needs the engineer)
+Phase 5 was NOT approved and no code was changed in `graph/domain/girderCandidates.ts`, `graph/domain/pierSectionProperties.ts` or `shared/ui/generation.ts`. The following stay unverified until the engineer answers:
+- Q1 (C-005-01): precast girder `Wy` is computed as `Iy / Math.max(Btf, Bbf) / 2` (= `Iy / (2*bmax)`), while the steel girder uses `Iy / (Math.max(Btf, Bbf) / 2)`. Which is correct, and the source with a numeric reference example, is not known.
+- Q2 (C-006-01): oval pier `wx = modulus(ix, B)`, `wy = modulus(iy, D)` versus `ix/(D/2)`, `iy/(B/2)` for the other sections; the B/D axis convention (linked to A-03) is not confirmed.
+- Q3 (C-016-01): parametric sweep generation rounds to 0.01 (`Math.round(v*100)/100`, accumulated); whether this resolution is acceptable and how duplicate values are handled is not decided.
+- Q5 (out of scope): the source of wind `drefM = 3` and other unreferenced constants (A-06).

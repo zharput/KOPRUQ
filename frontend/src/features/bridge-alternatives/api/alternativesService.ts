@@ -1,4 +1,5 @@
 import type { KernelStateFormValues } from '../model/kernelStateSchema'
+import { postJson } from '../../../shared/api/http'
 
 /**
  * The two real backend calls this feature makes (kernel-state, then
@@ -23,24 +24,8 @@ export interface GenerateAlternativesResult {
   alternatives: AlternativeRow[]
 }
 
-const API_BASE = 'http://localhost:8080'
-
-async function postJson<T>(path: string, body: KernelStateFormValues): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for ${path}`)
-  }
-  return res.json() as Promise<T>
-}
-
 export async function generateAlternatives(form: KernelStateFormValues): Promise<GenerateAlternativesResult> {
   const kernelState = await postJson<unknown>('/api/kernel-state', form)
   const alternatives = await postJson<AlternativeRow[]>('/api/alternatives', form)
   return { kernelState, alternatives }
 }
-
-export { API_BASE }

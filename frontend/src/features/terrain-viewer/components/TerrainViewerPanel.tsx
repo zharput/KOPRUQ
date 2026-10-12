@@ -6,6 +6,7 @@ import { useImportedAlignmentSample } from '../hooks/useImportedAlignmentSample'
 import TerrainMesh, { type TerrainSelection } from './TerrainMesh'
 import AlignmentOverlay from './AlignmentOverlay'
 import TerrainCanvasFrame from './TerrainCanvasFrame'
+import { formatApiError } from '../../../shared/api/http'
 
 /**
  * "3D & Visualization" (TERRAIN-P01, docs/roadmap.md) - the sidebar leaf
@@ -107,7 +108,7 @@ export default function TerrainViewerPanel({
       <div className="spn-home">
         <h1>3D &amp; Visualization</h1>
         <p className="spn-error">
-          {meshQuery.error instanceof Error ? meshQuery.error.message : 'Could not load the terrain mesh.'}
+          {meshQuery.error instanceof Error ? formatApiError(meshQuery.error) : 'Could not load the terrain mesh.'}
         </p>
       </div>
     )

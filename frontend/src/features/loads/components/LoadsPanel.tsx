@@ -53,7 +53,7 @@ export default function LoadsPanel({ crossSectionValues, windLoads, setWindLoads
     { label: 'Self Weight & Permanent', icon: Anchor, content: <SelfWeightPermanent crossSectionValues={crossSectionValues} /> },
     { label: 'Traffic', icon: Car, content: <TrafficLoadsPanel crossSectionValues={crossSectionValues} /> },
     { label: 'Temperature', icon: Thermometer, content: <UniformTemperaturePanel /> },
-    { label: 'Wind', icon: Wind, content: <WindLoadsPanel deckWidthM={crossSectionValues.platformWidthM} result={windLoads?.result ?? null} onResult={(result) => setWindLoads?.({ schemaVersion: 1, status: result?.status, inputs: { vb: '', terrain: '', ze: '', deckWidthM: crossSectionValues.platformWidthM, drefM: 3 }, result })} /> },
+    { label: 'Wind', icon: Wind, content: <WindLoadsPanel deckWidthM={crossSectionValues.platformWidthM} snapshot={windLoads ?? null} onSnapshot={(snapshot) => setWindLoads?.(snapshot)} /> },
     {
       label: 'Seismic',
       icon: Waves,

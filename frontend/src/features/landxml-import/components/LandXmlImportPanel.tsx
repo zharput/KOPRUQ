@@ -5,6 +5,7 @@ import { useImportLandXml } from '../hooks/useImportLandXml'
 import type { CoordinateOrder } from '../api/landXmlImportService'
 import { TerrainPreview } from '../../terrain-viewer'
 import LongitudinalProfileChart from './LongitudinalProfileChart'
+import { formatApiError } from '../../../shared/api/http'
 
 /** Shared terrain/alignment import: explicit surface and coordinate mapping, one canonical pipeline. */
 export default function LandXmlImportPanel({ onImported, initialFile, title = 'Alignment / LandXML', projectId = 'default', coordinateSystemLabel: initialCoordinateSystemLabel = 'Local / Unknown' }: {
@@ -63,7 +64,7 @@ export default function LandXmlImportPanel({ onImported, initialFile, title = 'A
         const next = event.target.files?.[0]; if (next) selectFile(next); event.target.value = ''
       }} />
       <p>{file?.name}</p>
-      {inspect.isError && <p className="spn-error">{inspect.error.message}</p>}
+      {inspect.isError && <p className="spn-error">{formatApiError(inspect.error)}</p>}
       {data && <>
         <p>Source: {data.application ?? 'not declared'} | LandXML {data.formatVersion} | Units: {data.unitsLabel ?? 'unknown'}</p>
         <div className="spn-field-grid">
@@ -96,7 +97,7 @@ export default function LandXmlImportPanel({ onImported, initialFile, title = 'A
         </button>
         {data.unitsLabel?.toLowerCase() !== 'meter' && <p className="spn-error">UNSUPPORTED_UNITS: this import requires explicitly declared meter units.</p>}
       </>}
-      {commit.isError && <p className="spn-error">{commit.error.message}</p>}
+      {commit.isError && <p className="spn-error">{formatApiError(commit.error)}</p>}
     </div>
     {result && <>
       <div className="spn-card">

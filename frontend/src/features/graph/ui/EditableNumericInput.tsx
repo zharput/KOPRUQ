@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import type { GraphParameterValue } from '../domain/types'
 
-export default function EditableNumericInput({ value, integer = false, ariaLabel, disabled = false, onCommit }: { value: GraphParameterValue | undefined; integer?: boolean; ariaLabel: string; disabled?: boolean; onCommit: (value: number | string) => void }) {
+export default function EditableNumericInput({ value, integer = false, ariaLabel, disabled = false, onCommit }: { value: GraphParameterValue | undefined; integer?: boolean; ariaLabel: string; disabled?: boolean; onCommit: (value: number | string) => void | boolean }) {
   const committedText = typeof value === 'number' || typeof value === 'string' ? String(value) : ''
   const [draft, setDraft] = useState(committedText)
   const [focused, setFocused] = useState(false)
@@ -20,7 +20,7 @@ export default function EditableNumericInput({ value, integer = false, ariaLabel
     lastCommit.current = draft
     const text = draft.trim(), validSyntax = integer ? /^-?\d+$/.test(text) : /^-?(?:\d+\.?\d*|\.\d+)$/.test(text), parsed = validSyntax ? Number(text) : Number.NaN
     if (!text || !Number.isFinite(parsed) || (integer && !Number.isInteger(parsed))) { setInvalid(true); onCommit(draft); return }
-    setInvalid(false); onCommit(parsed)
+    setInvalid(false); if (onCommit(parsed) === false) setInvalid(true)
   }
   return <span className="spn-graph-number-control"><input className={`spn-graph-editable-number nodrag nowheel nopan${invalid ? ' is-invalid' : ''}`} ref={inputRef} aria-label={ariaLabel} aria-invalid={invalid} disabled={disabled} inputMode={integer ? 'numeric' : 'decimal'} type="number" value={draft} onFocus={() => setFocused(true)} onChange={event => { setDraft(event.target.value); setInvalid(false); lastCommit.current = undefined }} onBlur={() => { commitDraft(); setFocused(false) }} onKeyDown={event => { event.stopPropagation(); if (event.key === 'Enter') { event.preventDefault(); commitDraft() }; if (event.key === 'Escape') { event.preventDefault(); setDraft(committedText); setInvalid(typeof value === 'string' && !isValidNumericText(value, integer)); lastCommit.current = committedText } }} /></span>
 }

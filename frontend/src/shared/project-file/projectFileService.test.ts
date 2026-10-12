@@ -67,4 +67,17 @@ describe('KOPRUQ project file', () => {
     expect(() => applyProjectFile(file)).toThrow('Unable to import family data: PIER_CAP'); spy.mockRestore()
     expect(exportGraphDocuments().graphs[0].name).toBe('Before'); expect(getFamilyRecords('PIER')).toEqual([{ id: 'before', name: 'Before' }])
   })
+  it('normalizes a file without modules to an empty modules object', () => {
+    const file = buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Legacy' }, bridges: [] }, { selectedBridgeId: null, definitions: {} })
+    const legacy = JSON.parse(JSON.stringify(file)); delete legacy.modules
+    expect(validateProjectFile(legacy).modules).toEqual({})
+  })
+  it('rejects a malformed modules.windLoads and writes nothing to the stores', () => {
+    const file = buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Bad Wind' }, bridges: [] }, { selectedBridgeId: null, definitions: {} })
+    const bad = JSON.parse(JSON.stringify(file)); bad.modules = { windLoads: { schemaVersion: 1, result: null } }
+    const before = JSON.stringify(exportGraphDocuments())
+    expect(() => applyProjectFile(bad)).toThrow()
+    expect(JSON.stringify(exportGraphDocuments())).toBe(before)
+    expect(() => validateProjectFile({ ...file, modules: 'x' })).toThrow()
+  })
 })

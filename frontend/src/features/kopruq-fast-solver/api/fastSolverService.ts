@@ -1,4 +1,5 @@
 import type { FastSolverFormValues } from '../model/fastSolverSchema'
+import { postJson } from '../../../shared/api/http'
 
 /**
  * The one real backend call this feature makes, relocated out of
@@ -38,18 +39,6 @@ export interface FastSolverResponse {
   totalReactionKn: number
 }
 
-const API_BASE = 'http://localhost:8080'
-
-export async function runFastSolver(form: FastSolverFormValues): Promise<FastSolverResponse> {
-  const res = await fetch(`${API_BASE}/api/fast-solver/solve`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form),
-  })
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/fast-solver/solve`)
-  }
-  return res.json() as Promise<FastSolverResponse>
+export function runFastSolver(form: FastSolverFormValues): Promise<FastSolverResponse> {
+  return postJson<FastSolverResponse>('/api/fast-solver/solve', form)
 }
-
-export { API_BASE }

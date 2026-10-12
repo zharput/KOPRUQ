@@ -348,4 +348,27 @@ describe('App workspace shell', () => {
     await user.click(document.body)
     expect(document.querySelector('.spn-file-dropdown')).not.toBeInTheDocument()
   })
+
+  it('shows a Save failure to the user but not a user cancellation', async () => {
+    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined); render(<App />)
+    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError')) })
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' }))
+    await new Promise((resolve) => setTimeout(resolve, 20)); expect(alert).not.toHaveBeenCalled()
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new Error('disk full')) })
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' }))
+    await waitFor(() => expect(alert).toHaveBeenCalledWith('disk full')); alert.mockRestore()
+  })
+
+  it('resets project modules on New Project and leaves the project clean', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.3', g: 'A', t: 'Type 2', i: '1' }))
+    localStorage.setItem('kopruq.superstructure.cross-section.v1', JSON.stringify({ platformWidthM: 9, leftWalkwayM: 1, rightWalkwayM: 1, spaceOfGirderM: 2, numberOfGirders: 3 }))
+    render(<App />)
+    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ }))
+    await waitFor(() => expect(localStorage.getItem('kopruq.seismic')).toBeNull())
+    expect(localStorage.getItem('kopruq.superstructure.cross-section.v1')).toBeNull()
+    expect(nav.getByRole('button', { name: /File/ })).not.toHaveTextContent('*')
+  })
 })

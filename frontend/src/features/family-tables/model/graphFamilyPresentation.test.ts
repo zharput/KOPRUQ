@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { candidateColumns, familyCandidateDisplayIds, familyGroups, filterFamilyCandidates, formatFamilyCandidateId, getPrecastGirderDisplayId, paginateAlternatives } from './graphFamilyPresentation'
+import { candidateColumns, cellValue, parameterRangeDisplay, familyCandidateDisplayIds, familyGroups, filterFamilyCandidates, formatFamilyCandidateId, getPrecastGirderDisplayId, paginateAlternatives } from './graphFamilyPresentation'
 import type { FamilyCalculationSnapshot } from '../../graph/family/familyResults'
 
 const snapshot = (sourceNodeId: string, sourceNodeName: string, candidates: any[], category: FamilyCalculationSnapshot['familyCategory'] = 'PIER'): FamilyCalculationSnapshot => ({ snapshotId: `${sourceNodeId}-${category}`, bridgeId: 'VIA-01', graphDocumentId: 'graph-1', sourceNodeId, sourceNodeType: 'structural.pier_rectangular', sourceNodeName, familyCategory: category, graphFingerprint: 'fp', candidates: candidates.map((candidate) => ({ bridgeId: 'VIA-01', graphDocumentId: 'graph-1', sourceNodeId, sourceNodeType: 'structural.pier_rectangular', familyCategory: category, candidateId: candidate.id, candidateData: candidate })), generatedAt: new Date(0).toISOString(), freshness: 'VALID', executionStatus: 'SUCCESS', errors: [] })
@@ -61,5 +61,21 @@ describe('graph family presentation', () => {
     expect(filterFamilyCandidates(alternatives, columns, '2.40', { length: 'm' }, ids)).toHaveLength(1)
     expect(filterFamilyCandidates(alternatives, columns, 'valid', { length: 'm' }, ids)).toHaveLength(1)
     expect(filterFamilyCandidates(alternatives, columns, '', { length: 'm' }, ids)).toHaveLength(2)
+  })
+  const bearing = (stiffness: Record<string, number>) => ({ candidateId: 'EB-1', candidateData: { stiffness } }) as any
+  it('converts rotational bearing stiffness with the rotation unit, not the translational one', () => {
+    // quantities.ts: kN/mm = 1000 kN/m; kNmm/rad = 0.001 kNm/rad. Canonical kx=1000 kN/m -> 1 kN/mm; krx=1000 kNm/rad -> 1,000,000 kNmm/rad.
+    const units = { force: 'kN', length: 'mm', moment: 'kNmm' }
+    expect(cellValue(bearing({ kx: 1000, krx: 1000 }), 'stiffness.kx', units)).toBe('1.00')
+    expect(cellValue(bearing({ kx: 1000, krx: 1000 }), 'stiffness.krx', units)).toBe('1000000.00')
+  })
+  it('shows parameter ranges in the project unit with the project unit label', () => {
+    // quantities.ts: mm = 0.001 m, so canonical 1.6 m = 1600 mm.
+    expect(parameterRangeDisplay([1.6, 1.8, 2], 'm', { length: 'mm' })).toEqual({ min: '1600.00', max: '2000.00', step: '200.00', unit: 'mm' })
+    expect(parameterRangeDisplay([1.6], 'mm', { length: 'm' })).toMatchObject({ min: '1.60', max: '1.60', unit: 'm' })
+  })
+  it('converts a local node value to the project unit when no candidate range exists', () => {
+    expect(parameterRangeDisplay([], 'cm', { length: 'mm' }, 160)).toEqual({ min: '1600.00', max: '1600.00', step: '—', unit: 'mm' })
+    expect(parameterRangeDisplay([], 'm', { length: 'm' }, undefined)).toEqual({ min: '—', max: '—', step: '—', unit: 'm' })
   })
 })

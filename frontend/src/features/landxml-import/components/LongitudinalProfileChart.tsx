@@ -1,5 +1,6 @@
 import { CartesianGrid, Line, LineChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useLongitudinalProfile } from '../hooks/useLongitudinalProfile'
+import { formatApiError } from '../../../shared/api/http'
 
 /**
  * LANDXML-P01's longitudinal profile chart (docs/roadmap.md section 23)
@@ -18,7 +19,7 @@ export default function LongitudinalProfileChart({ importId }: { importId: strin
   if (query.isError || !query.data) {
     return (
       <p className="spn-error">
-        {query.error instanceof Error ? query.error.message : 'Could not load the longitudinal profile.'}
+        {query.error instanceof Error ? formatApiError(query.error) : 'Could not load the longitudinal profile.'}
       </p>
     )
   }

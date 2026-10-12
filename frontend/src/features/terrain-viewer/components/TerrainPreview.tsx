@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTerrainMesh } from '../hooks/useTerrainMesh'
 import TerrainMesh, { type TerrainSelection } from './TerrainMesh'
 import TerrainCanvasFrame from './TerrainCanvasFrame'
+import { formatApiError } from '../../../shared/api/http'
 
 /**
  * A self-contained, embeddable 3D terrain preview - just the mesh,
@@ -24,7 +25,7 @@ export default function TerrainPreview({ terrainId }: { terrainId: string }) {
   if (meshQuery.isError || !meshQuery.data) {
     return (
       <p className="spn-error">
-        {meshQuery.error instanceof Error ? meshQuery.error.message : 'Could not load the 3D preview.'}
+        {meshQuery.error instanceof Error ? formatApiError(meshQuery.error) : 'Could not load the 3D preview.'}
       </p>
     )
   }

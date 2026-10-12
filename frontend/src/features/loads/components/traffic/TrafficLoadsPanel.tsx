@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useProjectModule } from '../../../../shared/project-file/useProjectModule'
+import type { Dispatch, SetStateAction } from 'react'
 import TabDetailPanel from '../../../../shared/ui/TabDetailPanel'
 import type { DetailCategory } from '../../../../shared/ui/TabDetailPanel'
 import type { CrossSectionValues } from '../../../superstructure-families'
@@ -24,15 +25,18 @@ import TrafficPlaceholder from './TrafficPlaceholder'
  * engineering computation happens in this component or its children
  * (plan principle #18).
  */
+/** Stable 'nothing stored' fallback for useProjectModule (undefined when no override has been saved). */
+const NO_LM1_OVERRIDE = undefined as unknown as Lm1Parameters
+
 export default function TrafficLoadsPanel({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
   const { data: lm1Defaults } = useLm1Defaults(3)
-  const [lm1, setLm1] = useState<Lm1Parameters | null>(null)
-
-  useEffect(() => {
-    if (lm1Defaults && lm1 == null) setLm1(lm1Defaults)
-    // Only seed once when defaults first load - not on every refetch (which would overwrite edits).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lm1Defaults])
+  const [storedLm1, storeLm1] = useProjectModule('trafficLm1', NO_LM1_OVERRIDE)
+  // Project override wins; otherwise the backend's code defaults are shown without being written into the project.
+  const lm1: Lm1Parameters | null = storedLm1 ?? lm1Defaults ?? null
+  const setLm1: Dispatch<SetStateAction<Lm1Parameters | null>> = (update) => {
+    const next = typeof update === 'function' ? update(lm1) : update
+    if (next) storeLm1(next)
+  }
 
   const carriagewayM = carriagewayWidthM(crossSectionValues)
   const carriageway = {
@@ -59,7 +63,7 @@ export default function TrafficLoadsPanel({ crossSectionValues }: { crossSection
     {
       label: 'LM1',
       content: lm1 ? (
-        <Lm1Panel lm1={lm1} onChange={setLm1} resolved={resolved?.lm1} />
+        <Lm1Panel lm1={lm1} onChange={setLm1} resolved={resolved?.lm1} defaults={lm1Defaults} />
       ) : (
         <p className="spn-card-subtitle">Loading...</p>
       ),

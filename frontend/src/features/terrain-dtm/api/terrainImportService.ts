@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080'
+import { postForm } from '../../../shared/api/http'
 
 export interface TerrainPreviewPoint {
   x: number
@@ -17,6 +17,8 @@ export interface TerrainImportResult {
   minElevationM: number
   maxElevationM: number
   previewPoints: TerrainPreviewPoint[]
+  status: 'IMPORTED' | 'VALID' | 'REVIEW_REQUIRED'
+  warnings: string[]
 }
 
 /**
@@ -39,11 +41,5 @@ export async function importTerrain(params: {
   formData.append('projectId', params.projectId)
   formData.append('coordinateSystemLabel', params.coordinateSystemLabel)
 
-  const res = await fetch(`${API_BASE}/api/terrain/import`, { method: 'POST', body: formData })
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/terrain/import`)
-  }
-  return res.json() as Promise<TerrainImportResult>
+  return postForm<TerrainImportResult>('/api/terrain/import', formData)
 }
-
-export { API_BASE }

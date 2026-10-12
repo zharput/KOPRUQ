@@ -1,7 +1,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { BridgeRow } from '../model/types'
-import type { ProjectWorkspaceData } from '../model/projectWorkspace'
+import { normalizeUnitId, type ProjectWorkspaceData } from '../model/projectWorkspace'
 import ProjectDashboardPanel from './ProjectDashboardPanel'
 import ProjectPanel from './ProjectPanel'
 import { CostDatabasePanel } from '../../cost-database'
@@ -36,15 +36,6 @@ const UNIT_OPTIONS: Record<keyof ProjectWorkspaceData['units'], string[]> = {
   temperature: ['C', 'F', 'K'],
 }
 const UNIT_LABELS: Record<string, string> = { Nm: 'N·m', kNm: 'kN·m', MNm: 'MN·m', kNmm: 'kN·mm', C: '°C', F: '°F' }
-function unitCode(value: string) {
-  if (value === 'N·m' || value.includes('NÂ·m')) return 'Nm'
-  if (value === 'kN·m' || value.includes('kNÂ·m')) return 'kNm'
-  if (value === 'MN·m' || value.includes('MNÂ·m')) return 'MNm'
-  if (value === 'kN·mm' || value.includes('kNÂ·mm')) return 'kNmm'
-  if (value === '°C' || value.includes('Â°C')) return 'C'
-  if (value === '°F' || value.includes('Â°F')) return 'F'
-  return value
-}
 function getPath(project: ProjectWorkspaceData, path: string): string { let value: unknown = project; for (const part of path.split('.')) value = (value as Record<string, unknown>)[part]; return typeof value === 'string' ? value : '' }
 function writePath(project: ProjectWorkspaceData, path: string, value: string): ProjectWorkspaceData {
   const result = structuredClone(project) as unknown as Record<string, unknown>; const parts = path.split('.'); let cursor = result
@@ -69,7 +60,7 @@ export default function ProjectWorkspace({ path, project, setProject, bridges, s
     const unitKey = path.startsWith('units.') ? path.slice('units.'.length) as keyof ProjectWorkspaceData['units'] : undefined
     if (unitKey) {
       const options = UNIT_OPTIONS[unitKey]
-      return <label className="spn-field" key={path}><span>{label}</span><select className="spn-input" value={unitCode(project.units[unitKey])} aria-label={label} onChange={(event) => setProject({ ...project, units: { ...project.units, [unitKey]: event.target.value } })}>{options.map((option) => <option key={option} value={option}>{UNIT_LABELS[option] ?? option}</option>)}</select></label>
+      return <label className="spn-field" key={path}><span>{label}</span><select className="spn-input" value={normalizeUnitId(project.units[unitKey])} aria-label={label} onChange={(event) => setProject({ ...project, units: { ...project.units, [unitKey]: event.target.value } })}>{options.map((option) => <option key={option} value={option}>{UNIT_LABELS[option] ?? option}</option>)}</select></label>
     }
     return <label className="spn-field" key={path}><span>{label}</span>{path === 'country' && editing ? <select className="spn-input" value={getPath(draft, path)} onChange={(event) => update(path, event.target.value)}><option value="">Not defined</option>{COUNTRIES.map((country) => <option key={country}>{country}</option>)}</select> : path === 'description' && editing ? <textarea className="spn-input" rows={5} value={getPath(draft, path)} placeholder="Not defined" onChange={(event) => update(path, event.target.value)} /> : <input className="spn-input" type={path === 'startDate' || path === 'targetDate' ? 'date' : 'text'} value={getPath(editing ? draft : project, path)} readOnly={!editing} placeholder="Not defined" onChange={(event) => update(path, event.target.value)} />}</label>
   }
@@ -108,7 +99,7 @@ export default function ProjectWorkspace({ path, project, setProject, bridges, s
       {selectedTitle === 'Units & Preferences' && <p className="spn-card-subtitle">Unit selections only. No unit conversion behavior is changed in this phase.</p>}
       {editing && <div className="spn-project-edit-actions"><button className="spn-button-primary" onClick={save}>Save</button><button className="spn-button-secondary" onClick={() => { setDraft(project); setEditing(false) }}>Cancel</button></div>}
     </div>
-  } else content = <ProjectDashboardPanel bridges={bridges} designCode={designCode} />
+  } else content = <ProjectDashboardPanel bridges={bridges} designCode={designCode} project={project} />
 
   const generalFields = FIELDS.General.concat(FIELDS.Stakeholders, [{ label: 'Country', path: 'country' }, { label: 'Start Date', path: 'startDate' }, { label: 'Target Date', path: 'targetDate' }])
   const additionalFields = [{ label: 'Project Type', path: 'projectType' }, { label: 'Region', path: 'region' }, { label: 'Coordinate System', path: 'coordinateSystem' }, { label: 'Project Description', path: 'description' }]

@@ -21,8 +21,10 @@ export function getPrecastGirderDefinition<T>(fallback: T): T {
 }
 export function savePrecastGirderDefinition(value: unknown): boolean {
   try {
-    localStorage.setItem('kopruq.girder-library.precast', JSON.stringify(value))
-    if (typeof window !== 'undefined') window.dispatchEvent(new Event('kopruq:girder-catalog-changed'))
+    const text = JSON.stringify(value)
+    if (localStorage.getItem('kopruq.girder-library.precast') === text) return true // unchanged: no event, so remount-time writes do not mark the project dirty
+    localStorage.setItem('kopruq.girder-library.precast', text)
+    if (typeof window !== 'undefined') { window.dispatchEvent(new Event('kopruq:girder-catalog-changed')); window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'girder' } })) }
     return true
   } catch { return false }
 }

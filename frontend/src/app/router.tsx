@@ -22,6 +22,7 @@ import { SystemAssemblyPanel } from '../features/system-assembly'
 import { BearingFamiliesPanel } from '../features/bearing-families'
 import { FoundationFamiliesPanel } from '../features/foundation-families'
 import type { Dispatch, SetStateAction } from 'react'
+import type { ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
 
 /**
  * URL-based route table (Milestone 2 of the architecture migration,
@@ -54,6 +55,7 @@ export default function AppRoutes(props: {
   setTerrainId: Dispatch<SetStateAction<string | null>>
   landXmlImportId: string | null
   setLandXmlImportId: Dispatch<SetStateAction<string | null>>
+  project: ProjectWorkspaceData
 }) {
   return (
     <Routes>
@@ -78,6 +80,7 @@ function SectionRoute({
   setTerrainId,
   landXmlImportId,
   setLandXmlImportId,
+  project,
 }: {
   onGenerated: (summary: GenerationSummary) => void
   layoutSeed: LayoutSeed | null
@@ -92,6 +95,7 @@ function SectionRoute({
   setTerrainId: Dispatch<SetStateAction<string | null>>
   landXmlImportId: string | null
   setLandXmlImportId: Dispatch<SetStateAction<string | null>>
+  project: ProjectWorkspaceData
 }) {
   const { section } = useParams<{ section: string }>()
   const navigate = useNavigate()
@@ -99,7 +103,7 @@ function SectionRoute({
   const bigMenuItems = BIG_MENU_ITEMS[active]
 
   if (active === 'home') return <Navigate to="/project" replace />
-  if (active === 'project-dashboard') return <ProjectDashboardPanel bridges={bridges} designCode={designCode} />
+  if (active === 'project-dashboard') return <ProjectDashboardPanel bridges={bridges} designCode={designCode} project={project} />
   if (active === 'project-information') {
     return <ProjectPanel bridges={bridges} setBridges={setBridges} designCode={designCode} setDesignCode={setDesignCode} />
   }

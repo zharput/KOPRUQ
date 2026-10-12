@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
+import { applyApiFieldErrors, requestErrorMessage } from '../../../shared/api/formErrors'
+import type { FieldError } from '../../../shared/api/http'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { layoutGenerationSchema, type LayoutGenerationFormValues } from '../model/layoutGenerationSchema'
@@ -50,6 +52,7 @@ export default function SiteLayoutPanel({ onUseLayout }: { onUseLayout: (seed: L
     register,
     control,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LayoutGenerationFormValues>({
     resolver: zodResolver(layoutGenerationSchema),
@@ -59,9 +62,12 @@ export default function SiteLayoutPanel({ onUseLayout }: { onUseLayout: (seed: L
   const mutation = useGenerateLayouts()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
+  const [unmatchedErrors, setUnmatchedErrors] = useState<FieldError[]>([])
+
   function onSubmit(data: LayoutGenerationFormValues) {
     setSelectedId(null)
-    mutation.mutate(data)
+    setUnmatchedErrors([])
+    mutation.mutate(data, { onError: (error) => setUnmatchedErrors(applyApiFieldErrors(error, setError, Object.keys(initialForm))) })
   }
 
   const alternatives = mutation.data ?? []
@@ -146,9 +152,10 @@ export default function SiteLayoutPanel({ onUseLayout }: { onUseLayout: (seed: L
       </button>
 
       {mutation.isError && (
-        <p className="spn-error">
-          {mutation.error instanceof Error ? `${mutation.error.message} - is the backend running?` : 'Unknown error'}
-        </p>
+        <div className="spn-error" role="alert">
+          <p>{requestErrorMessage(mutation.error)}</p>
+          {unmatchedErrors.length > 0 && <ul>{unmatchedErrors.map((item) => <li key={`${item.field}:${item.message}`}>{item.field}: {item.message}</li>)}</ul>}
+        </div>
       )}
 
       <div className="spn-card">

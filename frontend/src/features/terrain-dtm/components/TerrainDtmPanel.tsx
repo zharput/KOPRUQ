@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { importTerrain } from '../api/terrainImportService'
+import { formatApiError } from '../../../shared/api/http'
 import { TerrainPreview } from '../../terrain-viewer'
 import LandXmlImportPanel from '../../landxml-import/components/LandXmlImportPanel'
 
@@ -102,7 +103,7 @@ export default function TerrainDtmPanel({ onImported, projectId = 'default', coo
 
         {importMutation.isError && (
           <p className="spn-error">
-            {importMutation.error instanceof Error ? importMutation.error.message : 'Could not import that file.'}
+            {importMutation.error instanceof Error ? formatApiError(importMutation.error) : 'Could not import that file.'}
           </p>
         )}
 
@@ -110,6 +111,11 @@ export default function TerrainDtmPanel({ onImported, projectId = 'default', coo
 
         {result && (
           <>
+            <p className="spn-card-subtitle">
+              Import status: <strong className={result.status === 'REVIEW_REQUIRED' ? 'spn-error' : undefined}>{result.status}</strong>
+            </p>
+            {result.status === 'REVIEW_REQUIRED' && <p className="spn-error" role="alert">Review required - the imported terrain may be incomplete or unusable.</p>}
+            {result.warnings.length > 0 && <ul className="spn-error" aria-label="Import warnings">{result.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>}
             <p className="spn-card-subtitle">
               {sourceFileName} - {result.pointCount.toLocaleString()} point(s), {result.triangleCount.toLocaleString()}{' '}
               triangle(s). Bounds: X [{result.minXM.toFixed(2)}, {result.maxXM.toFixed(2)}], Y [

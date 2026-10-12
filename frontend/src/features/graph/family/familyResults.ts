@@ -1,3 +1,5 @@
+import type { ProjectUnits } from '../domain/quantities'
+import { normalizeUnitId } from '../../project/model/projectWorkspace'
 import type { GraphExecutionResult, GraphValue, KopruqGraph, KopruqNode } from '../domain/types'
 
 export type FamilyCategory = 'SPAN_ARRANGEMENT' | 'GIRDER' | 'SUPERSTRUCTURE' | 'PIER' | 'PIER_CAP' | 'FOUNDATION' | 'BEARING' | 'ABUTMENT'
@@ -43,12 +45,16 @@ const OUTPUT_CATEGORIES: Readonly<Record<string, FamilyCategory>> = {
   'abutmentCandidate[]': 'ABUTMENT',
 }
 
-export function graphFingerprint(graph: KopruqGraph): string {
-  return stableStringify({ id: graph.id, bridgeId: graph.bridgeId ?? null, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })).sort(byId), connections: graph.connections.slice().sort(byId).map(({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId }) => ({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId })) })
+export function unitsFingerprint(units?: ProjectUnits): string | null {
+  return units ? stableStringify(Object.fromEntries(Object.entries(units).filter(([, value]) => typeof value === 'string').map(([key, value]) => [key, normalizeUnitId(value as string)]))) : null
 }
 
-export function adaptGraphExecutionToFamilySnapshots(graph: KopruqGraph, result: GraphExecutionResult, generatedAt = new Date().toISOString()): FamilyCalculationSnapshot[] {
-  const fingerprint = graphFingerprint(graph)
+export function graphFingerprint(graph: KopruqGraph, units?: ProjectUnits): string {
+  return stableStringify({ units: unitsFingerprint(units), id: graph.id, bridgeId: graph.bridgeId ?? null, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })).sort(byId), connections: graph.connections.slice().sort(byId).map(({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId }) => ({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId })) })
+}
+
+export function adaptGraphExecutionToFamilySnapshots(graph: KopruqGraph, result: GraphExecutionResult, generatedAt = new Date().toISOString(), units?: ProjectUnits): FamilyCalculationSnapshot[] {
+  const fingerprint = graphFingerprint(graph, units)
   return graph.nodes.flatMap(node => familySnapshotsForNode(graph, node, result, fingerprint, generatedAt))
 }
 
@@ -93,4 +99,4 @@ function makeSnapshot(graph: KopruqGraph, node: KopruqNode, familyCategory: Fami
 
 function isObject(value: GraphValue): value is GraphValue & Record<string, unknown> { return typeof value === 'object' && value !== null && !Array.isArray(value) }
 function byId(a: { id: string }, b: { id: string }) { return a.id.localeCompare(b.id) }
-function stableStringify(value: unknown): string { if (value === null || typeof value !== 'object') return JSON.stringify(value); if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`; return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(',')}}` }
+export function stableStringify(value: unknown): string { if (value === null || typeof value !== 'object') return JSON.stringify(value); if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`; return `{${Object.entries(value as Record<string, unknown>).sort(([a], [b]) => a.localeCompare(b)).map(([key, item]) => `${JSON.stringify(key)}:${stableStringify(item)}`).join(',')}}` }

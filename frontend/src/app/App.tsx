@@ -11,6 +11,8 @@ import { INITIAL_BRIDGES, type BridgeRow } from '../features/project'
 import type { GenerationSummary } from '../features/bridge-alternatives'
 import type { LayoutSeed } from '../features/layout-generator'
 import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../features/superstructure-families'
+import { useProjectModule } from '../shared/project-file/useProjectModule'
+import { PROJECT_MODULES, PROJECT_MODULE_IDS } from '../shared/project-file/projectModules'
 import { ensureBridgeIds, INITIAL_PROJECT, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
 import { useProjectFile } from '../shared/project-file/useProjectFile'
 import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
@@ -67,7 +69,7 @@ function App() {
   }
   const designCode = projectState.project.designStandardFamily
   const setDesignCode: Dispatch<SetStateAction<string>> = (update) => setProjectState((previous) => ({ ...previous, project: { ...previous.project, designStandardFamily: typeof update === 'function' ? update(previous.project.designStandardFamily) : update } }))
-  const [crossSectionValues, setCrossSectionValues] = useState<CrossSectionValues>(INITIAL_CROSS_SECTION_VALUES)
+  const [crossSectionValues, setCrossSectionValues] = useProjectModule('crossSectionValues', INITIAL_CROSS_SECTION_VALUES)
   const [windLoads, setWindLoads] = useState<WindCalculationSnapshot | null>(null)
   const file = useProjectFile(projectState, setProjectState, bridgeDefinitions, setBridgeDefinitions, windLoads, setWindLoads)
   const [showWelcome, setShowWelcome] = useState(false)
@@ -75,6 +77,7 @@ function App() {
   const runAfterUnsavedDecision = (action: () => void) => { if (!file.dirty) { action(); return }; setPending(() => action) }
   const discardAndContinue = () => { const action = pending; setPending(null); file.setDirty(false); action?.() }
   const saveAndContinue = async () => { if (!pending) return; setModalBusy(true); try { await file.save(); const action = pending; setPending(null); action?.() } catch (error) { window.alert(error instanceof Error ? error.message : 'Save failed.'); } finally { setModalBusy(false) } }
+  const reportSaveError = (error: unknown) => { if ((error as DOMException)?.name === 'AbortError') return; window.alert(error instanceof Error ? error.message : 'Save failed.') }
   const newProject = () => runAfterUnsavedDecision(() => { setShowWelcome(false)
     const nextProjectState = { project: structuredClone(INITIAL_PROJECT), bridges: [] }
     const nextBridgeDefinitions = readBridgeDefinitionStore([])
@@ -82,22 +85,24 @@ function App() {
       resetGraphDocuments()
       ;(['PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'MATERIAL'] as FamilyRepositoryCategory[]).forEach((category) => { if (!saveFamilyRecords(category, [])) throw new Error(`Unable to reset family catalog: ${category}`) })
       if (!savePrecastGirderDefinition([])) throw new Error('Unable to reset girder catalog.')
+      PROJECT_MODULE_IDS.filter((id) => id !== 'girderLibrary').forEach((id) => PROJECT_MODULES[id].reset())
       setProjectState(nextProjectState); setBridgeDefinitions(nextBridgeDefinitions); file.resetForNewProject(nextProjectState, nextBridgeDefinitions)
     } catch (error) { window.alert(error instanceof Error ? error.message : 'Unable to create a new project.') }
   })
   const [recentAccessEntry, setRecentAccessEntry] = useState<RecentProject | null>(null)
   const [recentAccessError, setRecentAccessError] = useState<string>()
   const showRecentError = (error: unknown) => setRecentAccessError(error instanceof Error ? error.message : 'Unable to open recent project.')
-  const openProject = (input: File, fileRef?: FileRef) => runAfterUnsavedDecision(() => { setShowWelcome(false); void file.open(input, fileRef).catch(showRecentError) })
+  const notifyMissingModules = (result: { missingModules: string[] }) => { if (result.missingModules.length) window.alert(`This file did not contain the following project data, so it was reset to defaults: ${result.missingModules.join(', ')}.`) }
+  const openProject = (input: File, fileRef?: FileRef) => runAfterUnsavedDecision(() => { setShowWelcome(false); void file.open(input, fileRef).then(notifyMissingModules).catch(showRecentError) })
   const openRecentProject = (entry: RecentProject) => runAfterUnsavedDecision(() => { setShowWelcome(false)
     if (!entry.handle) { setRecentAccessEntry(entry); return }
-    void getRecentProjectFile(entry).then((recentFile) => file.open(recentFile, { name: entry.fileName, handle: entry.handle })).catch(showRecentError)
+    void getRecentProjectFile(entry).then((recentFile) => file.open(recentFile, { name: entry.fileName, handle: entry.handle })).then(notifyMissingModules).catch(showRecentError)
   })
   const reselectRecentProject = async () => {
     if (!recentAccessEntry) return
     const picker = (window as Window & { showOpenFilePicker?: (options?: unknown) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker
     if (!picker) { setRecentAccessError('Dosya seçici bu tarayıcıda desteklenmiyor.'); return }
-    try { const [handle] = await picker(KOPRUQ_FILE_PICKER_OPTIONS); if (handle.name !== recentAccessEntry.fileName) { setRecentAccessError(`Seçilen dosya ${recentAccessEntry.fileName} ile eşleşmiyor.`); return }; const selected = await handle.getFile(); await repairRecentProject(recentAccessEntry, handle); await file.open(selected, { name: handle.name, handle }); setRecentAccessEntry(null); setRecentAccessError(undefined) } catch (error) { if ((error as DOMException)?.name !== 'AbortError') showRecentError(error) }
+    try { const [handle] = await picker(KOPRUQ_FILE_PICKER_OPTIONS); if (handle.name !== recentAccessEntry.fileName) { setRecentAccessError(`Seçilen dosya ${recentAccessEntry.fileName} ile eşleşmiyor.`); return }; const selected = await handle.getFile(); await repairRecentProject(recentAccessEntry, handle); notifyMissingModules(await file.open(selected, { name: handle.name, handle })); setRecentAccessEntry(null); setRecentAccessError(undefined) } catch (error) { if ((error as DOMException)?.name !== 'AbortError') showRecentError(error) }
   }
   useEffect(() => { const beforeUnload = (event: BeforeUnloadEvent) => { if (file.dirty) { event.preventDefault(); event.returnValue = '' } }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload) }, [file.dirty])
   const terrainId = projectState.project.environment.terrainDatasetId
@@ -115,7 +120,7 @@ function App() {
           bridgeDefinitions={bridgeDefinitions} setBridgeDefinitions={setBridgeDefinitions}
           crossSectionValues={crossSectionValues} setCrossSectionValues={setCrossSectionValues}
           windLoads={windLoads} setWindLoads={setWindLoads}
-          terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId} file={file} onNewProject={newProject} onOpenProject={openProject} onRecentOpen={openRecentProject} onExit={() => runAfterUnsavedDecision(() => { file.closeSession(); setShowWelcome(true) })} showWelcome={showWelcome}
+          terrainId={terrainId} setTerrainId={setTerrainId} landXmlImportId={landXmlImportId} setLandXmlImportId={setLandXmlImportId} file={file} onNewProject={newProject} onOpenProject={openProject} onRecentOpen={openRecentProject} onSaveError={reportSaveError} onExit={() => runAfterUnsavedDecision(() => { file.closeSession(); setShowWelcome(true) })} showWelcome={showWelcome}
         /><UnsavedChangesModal open={pending !== null} busy={modalBusy} onSave={() => void saveAndContinue()} onDiscard={discardAndContinue} onCancel={() => setPending(null)} /><RecentFileAccessModal open={recentAccessEntry !== null || recentAccessError !== undefined} fileName={recentAccessEntry?.fileName} error={recentAccessError} onReselect={() => void reselectRecentProject()} onCancel={() => { setRecentAccessEntry(null); setRecentAccessError(undefined) }} /></>
       </BrowserRouter>
     </AppProviders>
@@ -148,6 +153,7 @@ type RoutedApplicationProps = {
   onOpenProject: (file: File, fileRef?: FileRef) => void
   onRecentOpen: (entry: import('../shared/project-file/recentProjects').RecentProject) => void
   onExit: () => void
+  onSaveError: (error: unknown) => void
   showWelcome: boolean
 }
 
@@ -161,7 +167,7 @@ function RoutedApplication(props: RoutedApplicationProps) {
   const migratedRoute = LEGACY_MIGRATED_ROUTES[location.pathname]
   const activeWorkspace = workspace ?? legacyWorkspace ?? WORKSPACES[0]
   return <div className="spn-app-root">
-    <TopWorkspaceNav dirty={props.file.dirty} projectName={props.file.projectName} fileName={props.file.fileName} recent={props.file.recent} onNew={props.onNewProject} onOpen={props.onOpenProject} onRecentOpen={props.onRecentOpen} onSave={() => void props.file.save()} onSaveAs={() => void props.file.save(true)} onExit={props.onExit} />
+    <TopWorkspaceNav dirty={props.file.dirty} projectName={props.file.projectName} fileName={props.file.fileName} recent={props.file.recent} onNew={props.onNewProject} onOpen={props.onOpenProject} onRecentOpen={props.onRecentOpen} onSave={() => void props.file.save().catch(props.onSaveError)} onSaveAs={() => void props.file.save(true).catch(props.onSaveError)} onExit={props.onExit} />
     {props.showWelcome ? <WelcomeScreen onNew={props.onNewProject} onOpen={() => { (document.querySelector('input[type="file"]') as HTMLInputElement | null)?.click() }} />
     : isHomeRoute || isUnknownWorkspaceRoute || location.pathname === '/project-dashboard'
       ? <Navigate to="/project" replace />
@@ -172,7 +178,7 @@ function RoutedApplication(props: RoutedApplicationProps) {
       : location.pathname === '/cost-database'
       ? <Navigate to="/project/cost-database" replace />
       : <WorkspacePage
-          key={`${activeWorkspace.id}${isLegacyRoute || (workspace?.id === 'project' && location.pathname !== '/project') ? location.pathname : ''}`}
+          key={`${props.file.sessionId}:${activeWorkspace.id}${isLegacyRoute || (workspace?.id === 'project' && location.pathname !== '/project') ? location.pathname : ''}`}
           workspace={activeWorkspace}
           initialSelectedItem={isLegacyRoute ? legacyItemFromPath(location.pathname) : undefined}
           mainContentOverride={isLegacyRoute ? <AppRoutes {...props} /> : undefined}

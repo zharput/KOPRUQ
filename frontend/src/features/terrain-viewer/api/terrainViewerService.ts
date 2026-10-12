@@ -1,5 +1,5 @@
 import { decodeTerrainMesh } from '../lib/terrainBinary'
-const API_BASE = 'http://localhost:8080'
+import { postJson, requestBinary, requestJson } from '../../../shared/api/http'
 
 export interface TerrainMeshData {
   id: string
@@ -9,19 +9,11 @@ export interface TerrainMeshData {
 }
 
 export async function fetchTerrainMesh(terrainId: string): Promise<TerrainMeshData> {
-  const res = await fetch(`${API_BASE}/api/terrain/${terrainId}/mesh.bin`)
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/terrain/${terrainId}/mesh.bin`)
-  }
-  return decodeTerrainMesh(await res.arrayBuffer(), terrainId)
+  return decodeTerrainMesh(await requestBinary(`/api/terrain/${terrainId}/mesh.bin`), terrainId)
 }
 
 export async function fetchTerrainElevation(terrainId: string, x: number, y: number): Promise<number | null> {
-  const res = await fetch(`${API_BASE}/api/terrain/${terrainId}/elevation?x=${x}&y=${y}`)
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/terrain/${terrainId}/elevation`)
-  }
-  const data = (await res.json()) as { elevationM: number | null }
+  const data = await requestJson<{ elevationM: number | null }>(`/api/terrain/${terrainId}/elevation?x=${x}&y=${y}`)
   return data.elevationM
 }
 
@@ -38,22 +30,15 @@ export async function sampleAlignment(params: {
   endYM: number
   stepM: number
 }): Promise<AlignmentSamplePoint[]> {
-  const res = await fetch(`${API_BASE}/api/alignment/sample`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  })
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/alignment/sample`)
-  }
-  return res.json() as Promise<AlignmentSamplePoint[]>
+  return postJson<AlignmentSamplePoint[]>('/api/alignment/sample', params)
 }
 
 /** LANDXML-P01: samples a real, committed LandXML alignment (which may include circular arcs) instead of a manually-typed straight line. */
 export async function fetchImportedAlignmentSample(importId: string, stepM = 0): Promise<AlignmentSamplePoint[]> {
-  const res = await fetch(`${API_BASE}/api/alignment/${importId}/sample?stepM=${stepM}`)
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/alignment/${importId}/sample`)
-  }
-  return res.json() as Promise<AlignmentSamplePoint[]>
+  return requestJson<AlignmentSamplePoint[]>(`/api/alignment/${importId}/sample?stepM=${stepM}`)
+}
+
+export interface TerrainDiagnosticLine { name: string; type: string; edgeTrim: boolean; positions: number[] }
+export function fetchTerrainDiagnostics(terrainId: string, breaklines: boolean): Promise<TerrainDiagnosticLine[]> {
+  return requestJson<TerrainDiagnosticLine[]>(`/api/terrain/${terrainId}/diagnostics?breaklines=${breaklines}`)
 }

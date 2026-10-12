@@ -1,5 +1,5 @@
 import type { FamilyCalculationSnapshot, FamilyCategory, FamilyAlternative } from '../../graph/family/familyResults'
-import { toDisplayValue, type ProjectUnits } from '../../graph/domain/quantities'
+import { getDisplayUnit, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type ProjectUnits, type QuantityKind } from '../../graph/domain/quantities'
 
 export const FAMILY_GROUPS: readonly FamilyCategory[] = ['SPAN_ARRANGEMENT', 'GIRDER', 'SUPERSTRUCTURE', 'PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'ABUTMENT']
 export const FAMILY_CANDIDATE_PREFIXES = { GIRDER: 'PG', PIER: 'RP', PIER_CAP: 'RC', FOUNDATION: 'SF', BEARING: 'EB', SUPERSTRUCTURE: 'SS', ABUTMENT: 'AB', SPAN_ARRANGEMENT: 'SA' } as const
@@ -93,7 +93,26 @@ function isValid(item: FamilyAlternative) { return validationOf(item) === 'VALID
 function worstFreshness(values: FamilyCalculationSnapshot['freshness'][]): FamilyCalculationSnapshot['freshness'] { return values.includes('FAILED') ? 'FAILED' : values.includes('STALE') ? 'STALE' : values.includes('INCOMPLETE') ? 'INCOMPLETE' : values.includes('VALID') ? 'VALID' : 'NO_RESULT' }
 function formatNumber(value: number, key: string, units: ProjectUnits) {
   if (['spanCount', 'pierCount', 'girderCount', 'columnCount', 'pileCountX', 'pileCountY'].some(item => key.toLowerCase().includes(item.toLowerCase()))) return String(value)
-  if (key.startsWith('stiffness.k')) return toDisplayValue(value, 'Translational Stiffness', units).toFixed(2)
   if (key.startsWith('stiffness.kr')) return toDisplayValue(value, 'Rotational Stiffness', units).toFixed(2)
+  if (key.startsWith('stiffness.k')) return toDisplayValue(value, 'Translational Stiffness', units).toFixed(2)
   return toDisplayValue(value, 'Length', units).toFixed(2)
+}
+
+const KIND_DIMENSION: Partial<Record<QuantityKind, PhysicalDimension>> = { length: 'Length', area: 'Area', volume: 'Volume', length4: 'Length^4', force: 'Force', moment: 'Moment', stress: 'Stress', mass: 'Mass', temperature: 'Absolute Temperature', temperatureDifference: 'Temperature Difference', translationalStiffness: 'Translational Stiffness', rotationalStiffness: 'Rotational Stiffness' }
+export type ParameterRangeDisplay = { min: string; max: string; step: string; unit: string }
+/**
+ * Min/Max/Step of a family parameter in the Project display unit. `canonicalValues` are the candidates' canonical (SI) values;
+ * when there are none, `localValue` (in `localUnit`, the node's own unit) is converted instead. The unit label is the unit the numbers are shown in.
+ */
+export function parameterRangeDisplay(canonicalValues: readonly number[], localUnit: string | undefined, units: ProjectUnits, localValue?: unknown): ParameterRangeDisplay {
+  const dash = '—'
+  const local = getUnit(localUnit ?? 'm')
+  if (!local) return { min: localValue == null ? dash : String(localValue), max: localValue == null ? dash : String(localValue), step: dash, unit: localUnit ?? '' }
+  const dimension = KIND_DIMENSION[local.kind]
+  const target = dimension ? getDisplayUnit(dimension, units) : local
+  const fromCanonical = (value: number) => dimension ? toDisplayValue(value, dimension, units) : quantityFromCanonical(value, local.kind, local.id)
+  const canonical = canonicalValues.length ? [...canonicalValues] : typeof localValue === 'number' && Number.isFinite(localValue) ? [local.toCanonical(localValue)] : []
+  if (!canonical.length) return { min: typeof localValue === 'string' && localValue ? localValue : dash, max: typeof localValue === 'string' && localValue ? localValue : dash, step: dash, unit: target.label }
+  const display = canonical.map(fromCanonical).sort((a, b) => a - b), unique = [...new Set(display)]
+  return { min: display[0].toFixed(2), max: display.at(-1)!.toFixed(2), step: unique.length > 1 ? Math.min(...unique.slice(1).map((value, index) => value - unique[index])).toFixed(2) : dash, unit: target.label }
 }

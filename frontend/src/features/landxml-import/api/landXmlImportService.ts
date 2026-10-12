@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080'
+import { postForm, requestJson } from '../../../shared/api/http'
 
 export type CoordinateOrder = 'FIRST_X_SECOND_Y' | 'FIRST_Y_SECOND_X'
 export interface SurfacePreview {
@@ -28,11 +28,7 @@ export interface LandXmlInspectResult {
 export async function inspectLandXml(file: File): Promise<LandXmlInspectResult> {
   const formData = new FormData()
   formData.append('file', file)
-  const res = await fetch(`${API_BASE}/api/landxml/inspect`, { method: 'POST', body: formData })
-  if (!res.ok) {
-    throw new Error(await errorMessage(res))
-  }
-  return res.json() as Promise<LandXmlInspectResult>
+  return postForm<LandXmlInspectResult>('/api/landxml/inspect', formData)
 }
 
 export interface LandXmlImportSummary {
@@ -70,11 +66,7 @@ export async function importLandXml(params: {
   if (params.alignmentName) {
     formData.append('alignmentName', params.alignmentName)
   }
-  const res = await fetch(`${API_BASE}/api/landxml/import`, { method: 'POST', body: formData })
-  if (!res.ok) {
-    throw new Error(await errorMessage(res))
-  }
-  return res.json() as Promise<LandXmlImportSummary>
+  return postForm<LandXmlImportSummary>('/api/landxml/import', formData)
 }
 
 export interface LongitudinalProfilePoint {
@@ -84,14 +76,5 @@ export interface LongitudinalProfilePoint {
 }
 
 export async function fetchLongitudinalProfile(importId: string, stepM = 0): Promise<LongitudinalProfilePoint[]> {
-  const res = await fetch(`${API_BASE}/api/landxml/${importId}/profile?stepM=${stepM}`)
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/landxml/${importId}/profile`)
-  }
-  return res.json() as Promise<LongitudinalProfilePoint[]>
-}
-
-async function errorMessage(response: Response): Promise<string> {
-  const body = await response.json().catch(() => null) as { message?: string } | null
-  return body?.message ?? `Import failed: HTTP ${response.status}`
+  return requestJson<LongitudinalProfilePoint[]>(`/api/landxml/${importId}/profile?stepM=${stepM}`)
 }

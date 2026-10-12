@@ -3,6 +3,7 @@ import type { UseFormRegisterReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fastSolverSchema, type FastSolverFormValues } from '../model/fastSolverSchema'
 import { useFastSolver } from '../hooks/useFastSolver'
+import { requestErrorMessage } from '../../../shared/api/formErrors'
 
 /**
  * KOPRUQ Fast Solver (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md addendum P):
@@ -127,7 +128,7 @@ export default function FastSolverPanel() {
 
       {mutation.isError && (
         <p className="spn-error">
-          {mutation.error instanceof Error ? `${mutation.error.message} - is the backend running?` : 'Unknown error'}
+          {requestErrorMessage(mutation.error)}
         </p>
       )}
       {response && response.status !== 'COMPLETED' && (

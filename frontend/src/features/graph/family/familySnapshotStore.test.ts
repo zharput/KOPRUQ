@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from './familyResults'
 import { clearFamilySnapshots, getFamilyAlternatives, getFamilySnapshot, getFamilySnapshots, markFamilySnapshotsStale, publishFamilySnapshots } from './familySnapshotStore'
 import type { GraphExecutionResult, KopruqGraph } from '../domain/types'
@@ -22,5 +22,21 @@ describe('Family snapshot runtime store', () => {
     markFamilySnapshotsStale('bridge-1', 'graph-1', `${graphFingerprint(graph)}-changed`)
     expect(getFamilySnapshot('bridge-1', 'graph-1', 'node-1')?.freshness).toBe('STALE')
     expect(getFamilySnapshot('bridge-1', 'graph-1', 'missing')).toBeUndefined()
+  })
+
+  it('replaces the snapshots of the same graph on publish, so deleted nodes leave no snapshot', () => {
+    publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(graph, result))
+    const next: KopruqGraph = { ...graph, nodes: [{ ...graph.nodes[0], id: 'node-2' }] }
+    publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(next, { ...result, values: { 'node-2': result.values['node-1'] } }))
+    expect(getFamilySnapshot('bridge-1', 'graph-1', 'node-1')).toBeUndefined(); expect(getFamilySnapshot('bridge-1', 'graph-1', 'node-2')).toBeDefined()
+  })
+
+  it('emits kopruq:family-snapshots-changed when snapshots are marked stale, and only then', () => {
+    publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(graph, result))
+    const listener = vi.fn(); window.addEventListener('kopruq:family-snapshots-changed', listener)
+    markFamilySnapshotsStale('bridge-1', 'graph-1', graphFingerprint(graph)); expect(listener).not.toHaveBeenCalled()
+    markFamilySnapshotsStale('bridge-1', 'graph-1', 'other'); expect(listener).toHaveBeenCalledTimes(1)
+    markFamilySnapshotsStale('bridge-1', 'graph-1', 'other'); expect(listener).toHaveBeenCalledTimes(1)
+    window.removeEventListener('kopruq:family-snapshots-changed', listener)
   })
 })

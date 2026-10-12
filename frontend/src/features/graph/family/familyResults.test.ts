@@ -36,4 +36,8 @@ describe('Family calculation result adapter', () => {
     expect(first.candidateId).toBe(second.candidateId)
     expect(first.bridgeId).not.toBe(second.bridgeId)
   })
+  it('changes the fingerprint when the project units change, but not when a unit label replaces its id', () => {
+    expect(graphFingerprint(graph(), { length: 'm' })).not.toBe(graphFingerprint(graph(), { length: 'mm' }))
+    expect(graphFingerprint(graph(), { moment: 'kNm' })).toBe(graphFingerprint(graph(), { moment: 'kN·m' }))
+  })
 })

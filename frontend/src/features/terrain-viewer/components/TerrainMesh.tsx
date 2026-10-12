@@ -4,11 +4,11 @@ import { Html } from '@react-three/drei'
 import { useQuery } from '@tanstack/react-query'
 import type { ThreeEvent } from '@react-three/fiber'
 import type { TerrainMeshData } from '../api/terrainViewerService'
-import { fetchTerrainElevation } from '../api/terrainViewerService'
+import { fetchTerrainDiagnostics, fetchTerrainElevation } from '../api/terrainViewerService'
 import { fromThreeVector, toThreeVector } from '../lib/coordinateTransform'
+import { formatApiError } from '../../../shared/api/http'
 
 export interface TerrainSelection { xM: number; yM: number; elevationM: number | null }
-interface DiagnosticLine { name: string; type: string; edgeTrim: boolean; positions: number[] }
 
 /** One indexed terrain mesh; optional batched diagnostics, never one object per point/face. */
 export default function TerrainMesh({ mesh, onSelect }: { mesh: TerrainMeshData; onSelect: (value: TerrainSelection) => void }) {
@@ -55,11 +55,7 @@ export default function TerrainMesh({ mesh, onSelect }: { mesh: TerrainMeshData;
 function DiagnosticLines({ terrainId, outer=false, voids=false, breaklines=false }: {
   terrainId:string; outer?:boolean; voids?:boolean; breaklines?:boolean
 }) {
-  const query=useQuery({ queryKey:['terrain-diagnostics',terrainId,breaklines], queryFn: async () => {
-    const response=await fetch(`http://localhost:8080/api/terrain/${terrainId}/diagnostics?breaklines=${breaklines}`)
-    if (!response.ok) throw new Error(`Diagnostics HTTP ${response.status}`)
-    return response.json() as Promise<DiagnosticLine[]>
-  }, staleTime:Infinity })
+  const query=useQuery({ queryKey:['terrain-diagnostics',terrainId,breaklines], queryFn: () => fetchTerrainDiagnostics(terrainId,breaklines), staleTime:Infinity })
   const geometry=useMemo(() => {
     const lines=(query.data ?? []).filter((line) => breaklines || (outer && line.type==='OUTER') || (voids && line.type==='VOID'))
     const count=lines.reduce((sum,line) => sum+Math.max(0,line.positions.length/3-1)*2,0)
@@ -80,7 +76,7 @@ function DiagnosticLines({ terrainId, outer=false, voids=false, breaklines=false
     return geom
   },[query.data,outer,voids,breaklines])
   useEffect(() => () => geometry.dispose(),[geometry])
-  if (query.isError) return <Html><span className="spn-error">{query.error.message}</span></Html>
+  if (query.isError) return <Html><span className="spn-error">{formatApiError(query.error)}</span></Html>
   if (query.isPending) return <Html>Loading diagnostics...</Html>
   return <lineSegments geometry={geometry}><lineBasicMaterial vertexColors depthTest={false} /></lineSegments>
 }

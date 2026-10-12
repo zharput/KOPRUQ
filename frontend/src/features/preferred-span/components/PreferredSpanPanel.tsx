@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useProjectModule } from '../../../shared/project-file/useProjectModule'
 import { generatePrecastGirderVariants, PRECAST_DIMENSIONS, type GirderVariant } from '../../girder-library/model/variants'
 import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import type { PreferredSpanRule, PreferredSpanStatus, SuperstructureType } from '../model/types'
 
-const RULES_KEY = 'kopruq.project-design-system.girder-span-rules'
+const NO_RULES: PreferredSpanRule[] = []
 const GIRDER_KEY = 'kopruq.girder-library.precast'
 
 function candidateSpans(minSpan: number, maxSpan: number, delta: number): number[] {
@@ -31,18 +32,8 @@ function dimensionsFromStorage(): Dimension[] {
   }
 }
 
-function readRules(): PreferredSpanRule[] {
-  if (typeof window === 'undefined') return []
-  try {
-    return JSON.parse(localStorage.getItem(RULES_KEY) ?? '[]') as PreferredSpanRule[]
-  } catch {
-    return []
-  }
-}
-
-function syncRules(existing: PreferredSpanRule[], variants: GirderVariant[], type: SuperstructureType): PreferredSpanRule[] {
-  const current = existing.filter((rule) => rule.superstructureType === type)
-  return variants.map((variant) => current.find((rule) => rule.girderVariantId === variant.id) ?? ({
+function newRule(variant: GirderVariant, type: SuperstructureType): PreferredSpanRule {
+  return {
     id: `girder-span-${variant.id}`,
     superstructureType: type,
     girderVariantId: variant.id,
@@ -52,34 +43,29 @@ function syncRules(existing: PreferredSpanRule[], variants: GirderVariant[], typ
     primarySpan: 0,
     enabled: true,
     source: 'PROJECT_DESIGN_SYSTEM',
-  } satisfies PreferredSpanRule))
+  } satisfies PreferredSpanRule
+}
+
+/** Adds missing rules for the current variants. Rules of variants that are temporarily gone are kept untouched. */
+function ensureRules(existing: PreferredSpanRule[], variants: GirderVariant[], type: SuperstructureType): PreferredSpanRule[] {
+  const missing = variants.filter((variant) => !existing.some((rule) => rule.superstructureType === type && rule.girderVariantId === variant.id)).map((variant) => newRule(variant, type))
+  return missing.length ? [...existing, ...missing] : existing
 }
 
 export default function PreferredSpanPanel() {
   const [type, setType] = useState<SuperstructureType>('PRECAST_GIRDER')
   const [dimensions, setDimensions] = useState<Dimension[]>(dimensionsFromStorage)
-  const [rules, setRules] = useState<PreferredSpanRule[]>(readRules)
+  const [rules, setRules] = useProjectModule('preferredSpanRules', NO_RULES)
   const variants = useMemo(() => type === 'PRECAST_GIRDER' ? generatePrecastGirderVariants(dimensions) : [], [dimensions, type])
-  const visibleRules = useMemo(() => syncRules(rules, variants, type), [rules, type, variants])
+  const visibleRules = useMemo(() => ensureRules(rules, variants, type).filter((rule) => rule.superstructureType === type && variants.some((variant) => variant.id === rule.girderVariantId)), [rules, type, variants])
+  const orphanCount = useMemo(() => rules.filter((rule) => rule.superstructureType === type && !variants.some((variant) => variant.id === rule.girderVariantId)).length, [rules, type, variants])
 
   useEffect(() => {
-    setRules((previous) => {
-      const next = [...previous.filter((rule) => rule.superstructureType !== type), ...syncRules(previous, variants, type)]
-      const oldIds = previous.filter((rule) => rule.superstructureType === type).map((rule) => rule.girderVariantId).join('|')
-      const nextIds = next.filter((rule) => rule.superstructureType === type).map((rule) => rule.girderVariantId).join('|')
-      return oldIds === nextIds ? previous : next
-    })
-  }, [type, variants])
+    setRules((previous) => ensureRules(previous, variants, type))
+  }, [type, variants, setRules])
 
   useEffect(() => {
-    localStorage.setItem(RULES_KEY, JSON.stringify(rules))
-  }, [rules])
-
-  useEffect(() => {
-    const refresh = () => {
-      setDimensions(dimensionsFromStorage())
-      setRules((previous) => [...previous.filter((rule) => rule.superstructureType !== 'PRECAST_GIRDER'), ...syncRules(previous, generatePrecastGirderVariants(dimensionsFromStorage()), 'PRECAST_GIRDER')])
-    }
+    const refresh = () => setDimensions(dimensionsFromStorage())
     window.addEventListener('storage', refresh)
     return () => window.removeEventListener('storage', refresh)
   }, [])
@@ -96,6 +82,7 @@ export default function PreferredSpanPanel() {
       {type === 'STEEL_GIRDER' ? <p className="spn-hint">No generated Steel Girder variants available.</p> : <>
         <p className="spn-hint">Girder variants are read from the current Girder Library H values. Existing rules are preserved by variant ID.</p>
         <GirderSpanTable variants={variants} rules={visibleRules} onUpdate={updateRule} />
+        {orphanCount > 0 && <p className="spn-hint">{orphanCount} rule(s) belong to variants that are not currently available (kept).</p>}
       </>}
     </div>
   </div>

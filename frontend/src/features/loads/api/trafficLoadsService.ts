@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080'
+import { postJson, requestJson } from '../../../shared/api/http'
 
 export type ParameterProvenance = 'CODE_DEFAULT' | 'NATIONAL_ANNEX' | 'PROJECT_OVERRIDE'
 
@@ -62,30 +62,14 @@ export interface TrafficResolveResponse {
  * Same `fetch` + typed-interface convention as every other feature's
  * `api/*Service.ts` in this app.
  */
-export async function fetchLm1Defaults(laneCount: number): Promise<Lm1Parameters> {
-  const res = await fetch(`${API_BASE}/api/traffic-loads/lm1-defaults?laneCount=${laneCount}`)
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/traffic-loads/lm1-defaults`)
-  }
-  return res.json() as Promise<Lm1Parameters>
+export function fetchLm1Defaults(laneCount: number): Promise<Lm1Parameters> {
+  return requestJson<Lm1Parameters>(`/api/traffic-loads/lm1-defaults?laneCount=${laneCount}`)
 }
 
-export async function fetchLoadGroups(): Promise<TrafficLoadGroup[]> {
-  const res = await fetch(`${API_BASE}/api/traffic-loads/load-groups`)
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/traffic-loads/load-groups`)
-  }
-  return res.json() as Promise<TrafficLoadGroup[]>
+export function fetchLoadGroups(): Promise<TrafficLoadGroup[]> {
+  return requestJson<TrafficLoadGroup[]>('/api/traffic-loads/load-groups')
 }
 
-export async function resolveTraffic(params: { carriageway: CarriagewayInput; lm1: Lm1Parameters }): Promise<TrafficResolveResponse> {
-  const res = await fetch(`${API_BASE}/api/traffic-loads/resolve`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  })
-  if (!res.ok) {
-    throw new Error(`Backend returned HTTP ${res.status} for /api/traffic-loads/resolve`)
-  }
-  return res.json() as Promise<TrafficResolveResponse>
+export function resolveTraffic(params: { carriageway: CarriagewayInput; lm1: Lm1Parameters }): Promise<TrafficResolveResponse> {
+  return postJson<TrafficResolveResponse>('/api/traffic-loads/resolve', params)
 }

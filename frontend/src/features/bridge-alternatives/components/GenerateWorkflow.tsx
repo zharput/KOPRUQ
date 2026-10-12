@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { applyApiFieldErrors, requestErrorMessage } from '../../../shared/api/formErrors'
+import type { FieldError } from '../../../shared/api/http'
 import type { UseFormRegisterReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { kernelStateSchema, type KernelStateFormValues } from '../model/kernelStateSchema'
@@ -55,6 +57,7 @@ export default function GenerateWorkflow({
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors },
   } = useForm<KernelStateFormValues>({
     resolver: zodResolver(kernelStateSchema),
@@ -71,9 +74,13 @@ export default function GenerateWorkflow({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const formValues = watch()
 
+  const [unmatchedErrors, setUnmatchedErrors] = useState<FieldError[]>([])
+
   function onSubmit(data: KernelStateFormValues) {
     setSelectedId(null)
+    setUnmatchedErrors([])
     mutation.mutate(data, {
+      onError: (error) => setUnmatchedErrors(applyApiFieldErrors(error, setError, Object.keys(initialForm))),
       onSuccess: (result) => {
         onGenerated({
           bridgeName: data.bridgeName,
@@ -127,9 +134,10 @@ export default function GenerateWorkflow({
       </button>
 
       {mutation.isError && (
-        <p className="spn-error">
-          {mutation.error instanceof Error ? `${mutation.error.message} - is the backend running?` : 'Unknown error'}
-        </p>
+        <div className="spn-error" role="alert">
+          <p>{requestErrorMessage(mutation.error)}</p>
+          {unmatchedErrors.length > 0 && <ul>{unmatchedErrors.map((item) => <li key={`${item.field}:${item.message}`}>{item.field}: {item.message}</li>)}</ul>}
+        </div>
       )}
 
       <div className="spn-card">

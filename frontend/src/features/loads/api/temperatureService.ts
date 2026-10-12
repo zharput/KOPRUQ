@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080'
+import { postJson } from '../../../shared/api/http'
 
 export interface UniformTemperatureResult {
   initialTemperatureC: number | null
@@ -18,11 +18,6 @@ export interface UniformTemperatureResult {
   steelAlphaStatus: string
 }
 
-export async function resolveUniformTemperature(effectiveMinimumTemperatureC: number | null, effectiveMaximumTemperatureC: number | null, initialTemperatureC: number | null) {
-  const response = await fetch(`${API_BASE}/api/temperature/uniform/resolve`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ effectiveMinimumTemperatureC, effectiveMaximumTemperatureC, initialTemperatureC }),
-  })
-  if (!response.ok) throw new Error(`Temperature resolve failed (${response.status})`)
-  return response.json() as Promise<UniformTemperatureResult>
+export function resolveUniformTemperature(effectiveMinimumTemperatureC: number | null, effectiveMaximumTemperatureC: number | null, initialTemperatureC: number | null, signal?: AbortSignal) {
+  return postJson<UniformTemperatureResult>('/api/temperature/uniform/resolve', { effectiveMinimumTemperatureC, effectiveMaximumTemperatureC, initialTemperatureC }, signal)
 }

@@ -13,6 +13,9 @@ function parseFinite(text: string): number | null {
 /** Text buffer: typing never writes to the project; Enter/blur commits a finite number, an empty or invalid text is flagged and not committed. */
 function AlphaInput({ value, label, onCommit }: { value: number | null; label: string; onCommit: (value: number) => void }) {
   const [draft, setDraft] = useState<string | null>(null)
+  // An external value change (e.g. reset to the EN default) discards the local draft.
+  const [seenValue, setSeenValue] = useState(value)
+  if (seenValue !== value) { setSeenValue(value); setDraft(null) }
   const shown = draft ?? (value == null ? '' : String(value))
   const invalid = draft !== null && parseFinite(draft) === null
   const commit = () => {
@@ -28,11 +31,13 @@ function AlphaInput({ value, label, onCommit }: { value: number | null; label: s
 }
 
 export default function Lm1Panel({ lm1, onChange, resolved, defaults }: { lm1: Lm1Parameters; onChange: Dispatch<SetStateAction<Lm1Parameters | null>>; resolved: Lm1Parameters | undefined; defaults?: Lm1Parameters }) {
+  // Bumped per row on reset so the row's input remounts and drops its draft even when the numeric value does not change.
+  const [resetCounts, setResetCounts] = useState<Record<string, number>>({})
   const patchAdjustment = (prev: Lm1Parameters, section: Section, index: number, change: (row: LaneFactor) => LaneFactor): Lm1Parameters =>
     section === 'remainingAreaUdl' ? { ...prev, remainingAreaUdl: change(prev.remainingAreaUdl) } : { ...prev, [section]: prev[section].map((row, i) => i === index ? change(row) : row) }
   const edit = (section: Section, index: number, value: number) => onChange(prev => prev ? patchAdjustment(prev, section, index, row => ({ ...row, adjustmentFactor: { ...row.adjustmentFactor, value, provenance: 'PROJECT_OVERRIDE' as const } })) : prev)
   const defaultRow = (section: Section, index: number): LaneFactor | undefined => section === 'remainingAreaUdl' ? defaults?.remainingAreaUdl : defaults?.[section][index]
-  const reset = (section: Section, index: number) => { const original = defaultRow(section, index); if (original) onChange(prev => prev ? patchAdjustment(prev, section, index, row => ({ ...row, adjustmentFactor: { ...original.adjustmentFactor } })) : prev) }
+  const reset = (section: Section, index: number) => { const original = defaultRow(section, index); if (original) setResetCounts(prev => ({ ...prev, [`${section}:${index}`]: (prev[`${section}:${index}`] ?? 0) + 1 })); if (original) onChange(prev => prev ? patchAdjustment(prev, section, index, row => ({ ...row, adjustmentFactor: { ...original.adjustmentFactor } })) : prev) }
   const rows = (items: LaneFactor[], resolvedItems: LaneFactor[] | undefined, unit: string, section: 'tandemSystem' | 'udl') => items.map((row, i) => ({ row, resolved: resolvedItems?.[i], unit, section, i }))
   const cell = (entry: { row: LaneFactor; resolved?: LaneFactor; unit: string; section: Section; i: number }) => {
     const effective = entry.resolved?.characteristicValue.value == null || entry.resolved.adjustmentFactor.value == null
@@ -40,7 +45,7 @@ export default function Lm1Panel({ lm1, onChange, resolved, defaults }: { lm1: L
       : entry.resolved.characteristicValue.value * entry.resolved.adjustmentFactor.value
     const canReset = entry.row.adjustmentFactor.provenance === 'PROJECT_OVERRIDE' && defaultRow(entry.section, entry.i) !== undefined
     return <tr key={entry.row.label}><td>{entry.row.label}</td><td>{entry.row.characteristicValue.value?.toFixed(entry.unit === 'kN' ? 0 : 1)}</td>
-      <td><AlphaInput value={entry.row.adjustmentFactor.value} label={`${entry.row.label} α`} onCommit={value => edit(entry.section, entry.i, value)} />{' '}
+      <td><AlphaInput key={resetCounts[`${entry.section}:${entry.i}`] ?? 0} value={entry.row.adjustmentFactor.value} label={`${entry.row.label} α`} onCommit={value => edit(entry.section, entry.i, value)} />{' '}
         <button type="button" className="spn-button-secondary" aria-label={`Reset ${entry.row.label} α to EN default`} disabled={!canReset} onClick={() => reset(entry.section, entry.i)}>EN default</button></td>
       <td>{effective?.toFixed(entry.unit === 'kN' ? 0 : 1) ?? '—'}</td><td>{entry.unit}</td></tr>
   }

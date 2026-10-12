@@ -18,7 +18,7 @@ import { useProjectFile } from '../shared/project-file/useProjectFile'
 import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
 import RecentFileAccessModal from '../shared/ui/RecentFileAccessModal'
 import { getRecentProjectFile, repairRecentProject, type RecentProject } from '../shared/project-file/recentProjects'
-import { KOPRUQ_FILE_PICKER_OPTIONS, type FileRef } from '../shared/project-file/projectFileService'
+import { KOPRUQ_FILE_PICKER_OPTIONS, missingModulesMessage, type ApplyProjectFileResult, type FileRef } from '../shared/project-file/projectFileService'
 import type { WindCalculationSnapshot } from '../shared/project-file/projectFileTypes'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
@@ -76,8 +76,8 @@ function App() {
   const [pending, setPending] = useState<(() => void) | null>(null); const [modalBusy, setModalBusy] = useState(false)
   const runAfterUnsavedDecision = (action: () => void) => { if (!file.dirty) { action(); return }; setPending(() => action) }
   const discardAndContinue = () => { const action = pending; setPending(null); file.setDirty(false); action?.() }
-  const saveAndContinue = async () => { if (!pending) return; setModalBusy(true); try { await file.save(); const action = pending; setPending(null); action?.() } catch (error) { window.alert(error instanceof Error ? error.message : 'Save failed.'); } finally { setModalBusy(false) } }
   const reportSaveError = (error: unknown) => { if ((error as DOMException)?.name === 'AbortError') return; window.alert(error instanceof Error ? error.message : 'Save failed.') }
+  const saveAndContinue = async () => { if (!pending) return; setModalBusy(true); try { await file.save(); const action = pending; setPending(null); action?.() } catch (error) { reportSaveError(error) } finally { setModalBusy(false) } }
   const newProject = () => runAfterUnsavedDecision(() => { setShowWelcome(false)
     const nextProjectState = { project: structuredClone(INITIAL_PROJECT), bridges: [] }
     const nextBridgeDefinitions = readBridgeDefinitionStore([])
@@ -92,7 +92,7 @@ function App() {
   const [recentAccessEntry, setRecentAccessEntry] = useState<RecentProject | null>(null)
   const [recentAccessError, setRecentAccessError] = useState<string>()
   const showRecentError = (error: unknown) => setRecentAccessError(error instanceof Error ? error.message : 'Unable to open recent project.')
-  const notifyMissingModules = (result: { missingModules: string[] }) => { if (result.missingModules.length) window.alert(`This file did not contain the following project data, so it was reset to defaults: ${result.missingModules.join(', ')}.`) }
+  const notifyMissingModules = (result: ApplyProjectFileResult) => { const message = missingModulesMessage(result); if (message) window.alert(message) }
   const openProject = (input: File, fileRef?: FileRef) => runAfterUnsavedDecision(() => { setShowWelcome(false); void file.open(input, fileRef).then(notifyMissingModules).catch(showRecentError) })
   const openRecentProject = (entry: RecentProject) => runAfterUnsavedDecision(() => { setShowWelcome(false)
     if (!entry.handle) { setRecentAccessEntry(entry); return }

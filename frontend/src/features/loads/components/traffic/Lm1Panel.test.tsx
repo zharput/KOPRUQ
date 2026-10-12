@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import type { Dispatch, SetStateAction } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import Lm1Panel from './Lm1Panel'
 import type { LaneFactor, Lm1Parameters } from '../../api/trafficLoadsService'
 
@@ -47,5 +47,15 @@ describe('Lm1Panel alpha editing', () => {
   it('disables reset when the value is already the EN default', () => {
     setup()
     expect(screen.getByRole('button', { name: 'Reset Lane 1 tandem α to EN default' })).toBeDisabled()
+  })
+  it('clears an invalid empty draft when the reset button is used and shows the default value', async () => {
+    const user = userEvent.setup()
+    const overridden: Lm1Parameters = { ...defaults, tandemSystem: [lane('Lane 1 tandem', 300, pv(0.8, 'PROJECT_OVERRIDE', 1))] }
+    function Harness() { const [lm1, setLm1] = useState<Lm1Parameters | null>(overridden); return lm1 ? <Lm1Panel lm1={lm1} defaults={defaults} onChange={setLm1} resolved={undefined} /> : null }
+    render(<Harness />)
+    const alpha = () => screen.getByLabelText('Lane 1 tandem α')
+    await user.clear(alpha()); expect(alpha()).toHaveValue(''); expect(alpha()).toHaveAttribute('aria-invalid', 'true')
+    await user.click(screen.getByRole('button', { name: 'Reset Lane 1 tandem α to EN default' }))
+    expect(alpha()).toHaveValue('1'); expect(alpha()).toHaveAttribute('aria-invalid', 'false')
   })
 })

@@ -106,7 +106,14 @@ export type ParameterRangeDisplay = { min: string; max: string; step: string; un
  */
 export function parameterRangeDisplay(canonicalValues: readonly number[], localUnit: string | undefined, units: ProjectUnits, localValue?: unknown): ParameterRangeDisplay {
   const dash = '—'
-  const local = getUnit(localUnit ?? 'm')
+  if (localUnit === undefined) {
+    // No `...Unit` key (e.g. integer count parameters): the value is unitless, so show it as is, without unit conversion.
+    const raw = canonicalValues.length ? [...canonicalValues] : typeof localValue === 'number' && Number.isFinite(localValue) ? [localValue] : []
+    if (!raw.length) return { min: dash, max: dash, step: dash, unit: '' }
+    const sorted = raw.sort((a, b) => a - b), distinct = [...new Set(sorted)]
+    return { min: sorted[0].toFixed(2), max: sorted.at(-1)!.toFixed(2), step: distinct.length > 1 ? Math.min(...distinct.slice(1).map((value, index) => value - distinct[index])).toFixed(2) : dash, unit: '' }
+  }
+  const local = getUnit(localUnit)
   if (!local) return { min: localValue == null ? dash : String(localValue), max: localValue == null ? dash : String(localValue), step: dash, unit: localUnit ?? '' }
   const dimension = KIND_DIMENSION[local.kind]
   const target = dimension ? getDisplayUnit(dimension, units) : local

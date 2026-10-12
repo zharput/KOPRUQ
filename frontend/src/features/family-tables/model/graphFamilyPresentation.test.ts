@@ -78,4 +78,10 @@ describe('graph family presentation', () => {
     expect(parameterRangeDisplay([], 'cm', { length: 'mm' }, 160)).toEqual({ min: '1600.00', max: '1600.00', step: '—', unit: 'mm' })
     expect(parameterRangeDisplay([], 'm', { length: 'm' }, undefined)).toEqual({ min: '—', max: '—', step: '—', unit: 'm' })
   })
+  it('does not unit-convert unitless (count) parameters', () => {
+    // A count parameter has no `...Unit` key: 4 piles stay 4 under a mm project length unit.
+    expect(parameterRangeDisplay([], undefined, { length: 'mm' }, 4)).toEqual({ min: '4.00', max: '4.00', step: '—', unit: '' })
+    expect(parameterRangeDisplay([3, 4, 5], undefined, { length: 'mm' })).toEqual({ min: '3.00', max: '5.00', step: '1.00', unit: '' })
+    expect(parameterRangeDisplay([], undefined, { length: 'mm' }, undefined)).toEqual({ min: '—', max: '—', step: '—', unit: '' })
+  })
 })

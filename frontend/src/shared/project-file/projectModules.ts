@@ -87,6 +87,12 @@ export type ProjectModuleId = keyof ProjectModules
 export type ProjectModuleValue<K extends ProjectModuleId> = NonNullable<ReturnType<ProjectModules[K]['read']>>
 export const PROJECT_MODULE_IDS = Object.keys(PROJECT_MODULES) as ProjectModuleId[]
 
+/** Human-readable module names for user-facing messages. */
+export const PROJECT_MODULE_LABELS: Record<ProjectModuleId, string> = {
+  girderLibrary: 'Girder library', preferredSpanRules: 'Preferred span rules', seismicInputs: 'Seismic inputs', windInputs: 'Wind inputs',
+  temperatureInputs: 'Temperature inputs', crossSectionValues: 'Cross section', selfWeightInputs: 'Self weight', trafficLm1: 'Traffic LM1',
+}
+
 /** Raw localStorage snapshot of every module key, used for rollback while applying a project file. */
 export function snapshotModuleStorage(): Record<string, string | null> {
   return Object.fromEntries(PROJECT_MODULE_IDS.map((id) => [PROJECT_MODULES[id].key, localStorage.getItem(PROJECT_MODULES[id].key)]))

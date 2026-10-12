@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyProjectFile, buildProjectFile, projectFileText, validateProjectFile } from './projectFileService'
+import { applyProjectFile, buildProjectFile, missingModulesMessage, projectFileText, validateProjectFile } from './projectFileService'
 import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'
 import { exportGraphDocuments } from '../../features/graph/state/graphStore'
 import { getFamilyRecords, saveFamilyRecords } from '../../features/family-registry/model/familyRepository'
@@ -48,5 +48,33 @@ describe('project modules in the project file', () => {
     expect(PROJECT_MODULES.seismicInputs.read()).toEqual(SAMPLE_MODULES.seismicInputs)
     expect(PROJECT_MODULES.windInputs.read()).toEqual(SAMPLE_MODULES.windInputs)
     expect(getFamilyRecords('PIER')).toEqual([{ id: 'old-pier', name: 'Old' }]); expect(JSON.stringify(exportGraphDocuments())).toBe(previousGraph)
+  })
+})
+
+describe('local data backup when opening a file without modules', () => {
+  const legacyFile = () => { const legacy = JSON.parse(projectFileText(buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Old' }, bridges: [] }, emptyDefs))); delete legacy.modules; return validateProjectFile(legacy) }
+  it('backs up non-empty local values under kopruq.backup.<ISO>.<key> before resetting them, and not empty ones', () => {
+    localStorage.clear()
+    const wind = JSON.stringify(SAMPLE_MODULES.windInputs); localStorage.setItem(PROJECT_MODULES.windInputs.key, wind)
+    const result = applyProjectFile(legacyFile())
+    const backups = Object.keys(localStorage).filter((key) => key.startsWith('kopruq.backup.'))
+    expect(backups).toHaveLength(1)
+    expect(backups[0].startsWith('kopruq.backup.')).toBe(true); expect(backups[0].endsWith(`Z.${PROJECT_MODULES.windInputs.key}`)).toBe(true)
+    expect(Number.isNaN(Date.parse(backups[0].slice('kopruq.backup.'.length, -`.${PROJECT_MODULES.windInputs.key}`.length)))).toBe(false)
+    expect(localStorage.getItem(backups[0])).toBe(wind)
+    expect(result.backedUpModules).toEqual(['windInputs'])
+    expect(PROJECT_MODULES.windInputs.read()).toBeUndefined()
+  })
+  it('writes no backup when local values are empty', () => {
+    localStorage.clear()
+    applyProjectFile(legacyFile())
+    expect(Object.keys(localStorage).filter((key) => key.startsWith('kopruq.backup.'))).toEqual([])
+  })
+  it('uses readable module labels and mentions the backup in the notification text', () => {
+    localStorage.clear(); localStorage.setItem(PROJECT_MODULES.seismicInputs.key, JSON.stringify(SAMPLE_MODULES.seismicInputs))
+    const message = missingModulesMessage(applyProjectFile(legacyFile()))!
+    expect(message).toContain('Girder library'); expect(message).toContain('Preferred span rules'); expect(message).toContain('Seismic inputs'); expect(message).toContain('Traffic LM1')
+    expect(message).not.toContain('seismicInputs'); expect(message).toMatch(/backed up/i)
+    expect(missingModulesMessage({ missingModules: [], backedUpModules: [] })).toBeUndefined()
   })
 })

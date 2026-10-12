@@ -155,4 +155,16 @@ describe('reusable engineering node shell', () => {
     expect(container.querySelectorAll('.spn-engineering-input-row')).toHaveLength(9)
     expect(container.querySelector('.spn-engineering-output-value')).toHaveTextContent('2 candidates')
   })
+
+  it('does not throw when committing a bearing stiffness under an unregistered unit combination (length=cm)', () => {
+    const definition=getNodeDefinitions('STRUCTURAL_FAMILY').find(item=>item.type==='substructure.bearing.elastomeric')!
+    const graph:KopruqGraph={id:'bearing-cm',name:'bearing cm',schemaVersion:1,nodes:[{id:'bearing',type:definition.type,name:definition.label,position:{x:0,y:0},parameters:definition.createDefaultParameters({length:'m'})}],connections:[]}
+    const onParameterChange=vi.fn()
+    const node=toReactFlowNodes(graph,{projectUnits:{length:'cm'},onParameterChange})[0]
+    const {container}=render(<ReactFlowProvider><EngineeringNodeShell data={node.data} selected={false} definition={definition}/></ReactFlowProvider>)
+    const input=container.querySelector('input[aria-label$="local default"][aria-label^="Kx"], input[aria-label="Kx local default"]') as HTMLInputElement | null ?? container.querySelectorAll<HTMLInputElement>('input[aria-label$="local default"]')[0]
+    fireEvent.change(input,{target:{value:'777'}})
+    expect(()=>fireEvent.blur(input)).not.toThrow()
+    expect(onParameterChange).toHaveBeenCalledWith('bearing',expect.stringMatching(/Value$/),777)
+  })
 })

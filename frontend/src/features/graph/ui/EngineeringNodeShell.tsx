@@ -4,7 +4,7 @@ import type { GraphParameterValue, GraphValue } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import type { NodeDefinition, NodePortDefinition, ParameterDescriptor } from '../registry/nodeRegistry'
-import { CANONICAL_UNITS, convertQuantity, formatQuantity, getUnit, quantityFromCanonical, toDisplayValue, unitsForKind } from '../domain/quantities'
+import { CANONICAL_UNITS, convertQuantity, formatQuantity, getDisplayUnit, getUnit, quantityFromCanonical, toDisplayValue, unitsForKind } from '../domain/quantities'
 import EditableNumericInput from './EditableNumericInput'
 import { getNodeThemeForType } from '../domain/nodeVisualThemes'
 import NodeHeader from './NodeHeader'
@@ -102,7 +102,7 @@ function EngineeringInputRow({ port, definition, data }: { port: NodePortDefinit
   return <div className={`spn-engineering-input-row${connection ? ' is-connected' : ''}${connection?.error ? ' has-input-error' : ''}`} title={connection?.error ?? portTooltip(port, data.projectUnits)}>
     <Handle type="target" position={Position.Left} id={port.id} isConnectable title={portTooltip(port, data.projectUnits)} />
     <span className="spn-engineering-input-label" title={port.label}>{port.label}</span>
-    {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={displayedLocal} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => data.onParameterChange(node.id, valueParameter.key, toStoredValue(next, displayUnit, data.projectUnits, port.quantityKind, node.type))} /></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
+    {connection ? <span className="spn-engineering-input-value" title={connection.error ?? externalText}><strong>{externalText}</strong></span> : editable && valueParameter ? <span className="spn-engineering-local-value"><EditableNumericInput value={displayedLocal} integer={valueParameter.dataType === 'integer'} ariaLabel={`${port.label} local default`} onCommit={next => { const stored = toStoredValue(next, displayUnit, data.projectUnits, port.quantityKind, node.type); if (stored === undefined) return false; data.onParameterChange(node.id, valueParameter.key, stored) }} /></span> : <span className="spn-engineering-input-value" title={localText}>{localText}</span>}
   </div>
 }
 function girderLabel(value: GraphValue) { const item=Array.isArray(value)?value[0]:value; return typeof item==='object'&&item!==null&&'girderType' in item ? `${item.girderType==='PRECAST'?'Precast':'Steel'} Girder` : 'Not connected' }
@@ -121,7 +121,12 @@ function localValue(port: NodePortDefinition, descriptors: ParameterDescriptor[]
   return '-'
 }
 function isUnitAwareNode(type: string) { return type === 'structural.superstructure' || type === 'structural.span_arrangement' || type === 'structural.girder.precast' || type === 'structural.girder.steel' || type === 'structural.abutment' || type.startsWith('substructure.') }
-function toStoredValue(value: number | string, storedUnit: string, projectUnits: FlowGraphNode['data']['projectUnits'], kind: import('../domain/quantities').QuantityKind | undefined, nodeType: string) { const numeric=Number(value); if (!kind || !isUnitAwareNode(nodeType)) return numeric; const dimension=dimensionForKind(kind); const source=dimension==='Translational Stiffness' ? `${projectUnits?.force ?? 'kN'}/${projectUnits?.length ?? 'm'}` : dimension==='Rotational Stiffness' ? `${projectUnits?.moment ?? 'kNm'}/rad` : kind==='length' ? projectUnits?.length ?? 'm' : storedUnit; return source===storedUnit ? numeric : convertQuantity(numeric, source, storedUnit) }
+function toStoredValue(value: number | string, storedUnit: string, projectUnits: FlowGraphNode['data']['projectUnits'], kind: import('../domain/quantities').QuantityKind | undefined, nodeType: string): number | undefined {
+  const numeric=Number(value); if (!kind || !isUnitAwareNode(nodeType)) return numeric
+  const dimension=dimensionForKind(kind); if (dimension==='Dimensionless') return numeric
+  // The edit is read in the unit the local value is displayed in (getDisplayUnit, same source as `displayedLocal`); an unconvertible combination is rejected instead of thrown.
+  try { const source=getDisplayUnit(dimension, projectUnits).id; return source===storedUnit ? numeric : convertQuantity(numeric, source, storedUnit) } catch { return undefined }
+}
 function dimensionForKind(kind: import('../domain/quantities').QuantityKind): import('../domain/quantities').PhysicalDimension { return ({length:'Length',area:'Area',volume:'Volume',length4:'Length^4',force:'Force',moment:'Moment',stress:'Stress',mass:'Mass',temperature:'Absolute Temperature',temperatureDifference:'Temperature Difference',translationalStiffness:'Translational Stiffness',rotationalStiffness:'Rotational Stiffness'} as Record<string, import('../domain/quantities').PhysicalDimension>)[kind] ?? 'Dimensionless' }
 
 function portTooltip(port: NodePortDefinition, projectUnits?: FlowGraphNode['data']['projectUnits']) {

@@ -52,4 +52,12 @@ describe('SeismicPanel', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('INVALID')
     expect(screen.getByText('Soil Factor, S').nextElementSibling).toHaveTextContent('—'); expect(screen.getByTestId('chart')).toHaveAttribute('data-points', '0')
   })
+  it('does not show the cached agR=0 result after typing 0 and then clearing the field', async () => {
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => ok(JSON.parse(String(init.body)).agR === 0 ? result(0, 'INVALID') : result(0.2))); vi.stubGlobal('fetch', fetchMock)
+    renderPanel(); setPga('0')
+    expect(await screen.findByRole('alert')).toHaveTextContent('INVALID'); expect(fetchMock).toHaveBeenCalledTimes(1)
+    setPga('')
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument())
+    expect(screen.getByTestId('chart')).toHaveAttribute('data-points', '0'); expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
 })

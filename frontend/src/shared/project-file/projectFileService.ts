@@ -3,7 +3,7 @@ import type { BridgeDefinitionStore } from '../../features/bridge-definition/mod
 import { INITIAL_PROJECT, normalizeProjectUnits, type PersistedProjectState } from '../../features/project/model/projectWorkspace'
 import { exportGraphDocuments, importGraphDocuments, validateGraphDocuments } from '../../features/graph/state/graphStore'
 import { getFamilyRecords, saveFamilyRecords, type FamilyRepositoryCategory } from '../../features/family-registry/model/familyRepository'
-import { PROJECT_MODULES, PROJECT_MODULE_IDS, restoreModuleStorage, snapshotModuleStorage } from './projectModules'
+import { PROJECT_MODULES, PROJECT_MODULE_IDS, PROJECT_MODULE_LABELS, restoreModuleStorage, snapshotModuleStorage } from './projectModules'
 import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile, type WindCalculationSnapshot } from './projectFileTypes'
 
 const windLoadsSchema = z.object({ schemaVersion: z.literal(1), status: z.string().optional(), inputs: z.object({ vb: z.string(), terrain: z.string(), ze: z.string(), deckWidthM: z.number(), drefM: z.number() }), result: z.unknown() }).passthrough()
@@ -47,17 +47,32 @@ export function migrateLegacyBoxPierParameters(file: ProjectFile): ProjectFile {
   }
   return migrated
 }
-export type ApplyProjectFileResult = { missingModules: string[] }
+export type ApplyProjectFileResult = { missingModules: string[]; backedUpModules: string[] }
+/** Best-effort copy of a module's current local value to `kopruq.backup.<ISO timestamp>.<moduleKey>` before it is reset. Returns true when a backup was written. */
+function backupModuleValue(key: string, timestamp: string): boolean {
+  try {
+    const current = localStorage.getItem(key)
+    if (current == null || ['', '[]', '{}'].includes(current.trim())) return false
+    localStorage.setItem(`kopruq.backup.${timestamp}.${key}`, current)
+    return true
+  } catch { return false }
+}
+export function missingModulesMessage(result: ApplyProjectFileResult): string | undefined {
+  if (!result.missingModules.length) return undefined
+  const label = (id: string) => PROJECT_MODULE_LABELS[id as keyof typeof PROJECT_MODULE_LABELS] ?? id
+  const backup = result.backedUpModules.length ? ` Previous local values were backed up in browser storage (keys starting with "kopruq.backup.") for: ${result.backedUpModules.map(label).join(', ')}.` : ''
+  return `This file did not contain the following project data, so it was reset to defaults: ${result.missingModules.map(label).join(', ')}.${backup}`
+}
 export function applyProjectFile(input: ProjectFile): ApplyProjectFileResult {
   const file = validateProjectFile(input)
   const previousGraph = exportGraphDocuments(); const previousFamilies = Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)])); const previousModules = snapshotModuleStorage()
-  const missingModules: string[] = []
+  const missingModules: string[] = [], backedUpModules: string[] = [], backupTimestamp = new Date().toISOString()
   try {
     importGraphDocuments(file.graph)
     for (const category of CATEGORIES) { const records = file.families[category]; if (!saveFamilyRecords(category, records as never[])) throw new Error(`Unable to import family data: ${category}`) }
     for (const id of PROJECT_MODULE_IDS) {
       const value = file.modules[id]
-      if (value == null) { if (value === undefined) missingModules.push(id); PROJECT_MODULES[id].reset(); continue }
+      if (value == null) { if (value === undefined) missingModules.push(id); if (backupModuleValue(PROJECT_MODULES[id].key, backupTimestamp)) backedUpModules.push(id); PROJECT_MODULES[id].reset(); continue }
       if (!(PROJECT_MODULES[id] as { write(v: unknown): boolean }).write(value)) throw new Error(`Unable to import project data: ${id}`)
     }
   } catch (error) {
@@ -68,7 +83,7 @@ export function applyProjectFile(input: ProjectFile): ApplyProjectFileResult {
     } catch (rollbackError) { throw new Error(`Project import failed and rollback failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`, { cause: error }) }
     throw error
   }
-  return { missingModules }
+  return { missingModules, backedUpModules }
 }
 export async function readProjectFile(file: File): Promise<ProjectFile> {
   const migrated = migrateLegacyBoxPierParameters(validateProjectFile(JSON.parse(await file.text())))

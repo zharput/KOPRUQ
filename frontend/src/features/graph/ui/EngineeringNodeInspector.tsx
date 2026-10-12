@@ -1,8 +1,7 @@
 import type { GraphExecutionState, GraphValue, KopruqConnection, KopruqNode } from '../domain/types'
 import type { FlowGraphNode } from '../adapters/reactFlowAdapter'
-import { convertQuantity, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
+import { convertQuantity, getDisplayUnit, getUnit, toDisplayValue, type QuantityKind } from '../domain/quantities'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
-import { normalizeUnitId } from '../../project/model/projectWorkspace'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
 import { useState } from 'react'
 import EditableNumericInput from './EditableNumericInput'
@@ -106,7 +105,8 @@ function ParameterControl({ node, descriptor, projectUnits, onChange }: { node: 
   const storedUnit = String(node.parameters[unitKey] ?? 'm')
   const storedKind = getUnit(storedUnit)?.kind
   const shown = isLength && storedKind && typeof node.parameters[descriptor.key] === 'number' ? toDisplayValue(getUnit(storedUnit)!.toCanonical(Number(node.parameters[descriptor.key])), dimensionForKind(storedKind), projectUnits) : node.parameters[descriptor.key]
-  const sourceUnit = storedKind === 'translationalStiffness' ? `${normalizeUnitId(projectUnits?.force ?? 'kN')}/${normalizeUnitId(projectUnits?.length ?? 'm')}` : storedKind === 'rotationalStiffness' ? `${normalizeUnitId(projectUnits?.moment ?? 'kNm')}/rad` : storedKind === 'length' ? normalizeUnitId(projectUnits?.length ?? 'm') : storedUnit
+  // The edit is read in the unit the value is displayed in (same source as `shown`), so unregistered project-unit combinations cannot desynchronise them.
+  const sourceUnit = (() => { if (!isLength || !storedKind) return storedUnit; const dimension = dimensionForKind(storedKind); if (dimension === 'Dimensionless') return storedUnit; try { return getDisplayUnit(dimension, projectUnits).id } catch { return storedUnit } })()
   return <EditableNumericInput value={shown} integer={descriptor.dataType === 'integer'} ariaLabel={label} onCommit={value => { try { onChange(node.id, descriptor.key, isLength && sourceUnit !== storedUnit ? convertQuantity(Number(value), sourceUnit, storedUnit) : value) } catch { return false } }} />
 }
 

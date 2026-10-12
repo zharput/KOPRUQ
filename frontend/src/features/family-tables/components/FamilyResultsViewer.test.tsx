@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { INITIAL_PROJECT } from '../../project/model/projectWorkspace'
 import FamilyResultsViewer from './FamilyResultsViewer'
 import { clearFamilySnapshots, publishFamilySnapshots } from '../../graph/family/familySnapshotStore'
 import type { FamilyCalculationSnapshot } from '../../graph/family/familyResults'
@@ -24,5 +25,18 @@ describe('FamilyResultsViewer freshness', () => {
     expect(screen.queryByText(/not current/i)).not.toBeInTheDocument()
     act(() => publishFamilySnapshots([snapshot('FAILED')]))
     expect(screen.getByText('FAILED')).toBeInTheDocument()
+  })
+})
+
+describe('FamilyResultsViewer count parameters', () => {
+  it('shows a piled-foundation pile count without length conversion under a mm project unit', () => {
+    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: { ...INITIAL_PROJECT, units: { ...INITIAL_PROJECT.units, length: 'mm' } }, bridges: [] }))
+    localStorage.setItem('kopruq.graph.documents.v1', JSON.stringify({ activeGraphId: 'graph-1', graphs: [{ id: 'graph-1', bridgeId: 'bridge-1', name: 'G', schemaVersion: 1, nodes: [{ id: 'n1', type: 'substructure.foundation.piled', name: 'Piled', position: { x: 0, y: 0 }, parameters: { pileCountXValue: 4 } }], connections: [] }] }))
+    publishFamilySnapshots([{ ...snapshot('VALID'), sourceNodeType: 'substructure.foundation.piled', familyCategory: 'FOUNDATION' }])
+    render(<FamilyResultsViewer bridges={bridges} />)
+    fireEvent.click(screen.getByRole('button', { name: /Piled Foundation/ }))
+    const row = within(screen.getByTestId('family-parameters-panel')).getByText('pileCountX').closest('tr')!
+    expect(within(row).getAllByText('4.00').length).toBeGreaterThan(0)
+    expect(row.textContent).not.toContain('4000')
   })
 })

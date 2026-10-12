@@ -137,4 +137,13 @@ describe('Node Inspector', () => {
     fireEvent.change(krx, { target: { value: '200000' } }); fireEvent.blur(krx)
     expect(onParameterChange).toHaveBeenCalledWith(value.id, 'krxValue', 200)
   })
+  it('edits a bearing kx under an unregistered unit combination (length=cm) in the displayed canonical unit', () => {
+    // kN/cm is not registered in quantities.ts: the shown value falls back to kN/m, so the edit must be read as kN/m (stored unit kN/m -> unchanged).
+    const value = node('substructure.bearing.elastomeric'); const onParameterChange = vi.fn()
+    render(<NodeInspector node={value} states={{}} errors={{}} outputs={{}} projectUnits={{ length: 'cm' }} onNodeChange={vi.fn()} onParameterChange={onParameterChange} />)
+    const kx = screen.getByRole('spinbutton', { name: /^kx/i })
+    fireEvent.change(kx, { target: { value: '12345' } }); fireEvent.blur(kx)
+    expect(onParameterChange).toHaveBeenCalledWith(value.id, 'kxValue', 12345)
+    expect(kx).not.toHaveAttribute('aria-invalid', 'true')
+  })
 })

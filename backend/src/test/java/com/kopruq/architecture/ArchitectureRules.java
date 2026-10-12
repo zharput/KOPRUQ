@@ -42,7 +42,11 @@ final class ArchitectureRules {
     static final Set<String> SHARED_PACKAGES = Set.of("config", "exception", "quantity", "validation");
     static final Set<String> ROOT_FILES = Set.of("KopruqApplication.java");
 
-    static final List<String> FRAMEWORK_PREFIXES = List.of("org.springframework.", "jakarta.", "org.slf4j.", "com.fasterxml.jackson.");
+    static final List<String> FRAMEWORK_PREFIXES = List.of("org.springframework.", "jakarta.", "org.slf4j.",
+            "com.fasterxml.jackson.", "org.hibernate.");
+
+    /** Persistence technology: only {@code <domain>.infra.persistence} may import it. */
+    static final List<String> PERSISTENCE_PREFIXES = List.of("jakarta.persistence.", "org.springframework.data.", "org.hibernate.");
 
     /** Direct domain dependencies of the core layers (model, domain, enums), as of the pinned graph. */
     static final Map<String, Set<String>> CORE_DEPS = Map.ofEntries(
@@ -82,7 +86,12 @@ final class ArchitectureRules {
             "org.locationtech.jts:jts-core:compile",
             "com.fasterxml.jackson.core:jackson-databind:compile",
             "org.springframework.boot:spring-boot-starter-test:test",
-            "org.junit.jupiter:junit-jupiter:test");
+            "org.junit.jupiter:junit-jupiter:test",
+            "org.springframework.boot:spring-boot-starter-data-jpa:compile",
+            "org.flywaydb:flyway-core:compile",
+            "org.flywaydb:flyway-database-postgresql:runtime",
+            "org.postgresql:postgresql:runtime",
+            "com.h2database:h2:test");
 
     /** Where a package lives. {@code owner} is the domain, or {@code shared.<x>}, or {@code root}. */
     record Location(String owner, String layer, String sub) {
@@ -201,7 +210,7 @@ final class ArchitectureRules {
             }
             for (String imported : imports(file.getValue())) {
                 if (imported.startsWith("org.springframework.") || imported.startsWith("lombok.")
-                        || (imported.startsWith("jakarta.") && !imported.startsWith("jakarta.persistence."))) {
+                        || imported.startsWith("jakarta.") || imported.startsWith("org.hibernate.")) {
                     violations.add(file.getKey() + ": core layer imports framework type " + imported);
                     continue;
                 }
@@ -361,6 +370,32 @@ final class ArchitectureRules {
                 || from.owner().equals("shared.config") || from.owner().equals("shared.exception")
                 || from.isDomain() && Set.of("api", "application", "infra").contains(from.layer());
         return frameworkAllowed && FRAMEWORK_PREFIXES.stream().anyMatch(imported::startsWith);
+    }
+
+    // ------------------------------------------------------ persistence imports
+
+    /**
+     * JPA / Spring Data / Hibernate types are imported only by {@code com.kopruq.<domain>.infra.persistence}; no other
+     * layer (core, api, application, other infra, shared) may use them. Core layers are additionally covered by
+     * {@link #coreIsolationViolations}.
+     */
+    static List<String> persistenceImportViolations(Map<String, String> sources) {
+        List<String> violations = new ArrayList<>();
+        for (Map.Entry<String, String> file : sources.entrySet()) {
+            Location from = locationOf(file);
+            boolean persistencePackage = from != null && from.isDomain() && from.layer().equals("infra")
+                    && from.sub().equals("persistence");
+            if (persistencePackage) {
+                continue;
+            }
+            for (String imported : imports(file.getValue())) {
+                if (PERSISTENCE_PREFIXES.stream().anyMatch(imported::startsWith)) {
+                    violations.add(file.getKey() + ": imports persistence type " + imported
+                            + " (only com.kopruq.<domain>.infra.persistence may use JPA, Spring Data or Hibernate)");
+                }
+            }
+        }
+        return violations;
     }
 
     // ------------------------------------------------------------- T6 solver code

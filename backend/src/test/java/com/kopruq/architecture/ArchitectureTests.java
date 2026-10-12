@@ -95,6 +95,11 @@ class ArchitectureTests {
     }
 
     @Test
+    void persistenceTypes_onlyInInfraPersistence() throws IOException {
+        assertEquals(List.of(), ArchitectureRules.persistenceImportViolations(mainSources()));
+    }
+
+    @Test
     void solverSpecificCode_onlyInAnalysisInfra() throws IOException {
         assertEquals(List.of(), ArchitectureRules.solverViolations(mainSources()));
     }
@@ -171,9 +176,12 @@ class ArchitectureTests {
         assertEquals(1, ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.model", "com.kopruq.terrain.api.TerrainController")).size());
         assertEquals(1, ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.model", "com.kopruq.terrain.infra.InMemoryTerrainRepository")).size());
         assertEquals(1, ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.model", "com.kopruq.shared.config.CoreConfiguration")).size());
-        // clean: application/api/infra may use Spring, jakarta.persistence stays open for a future persistence layer
+        // jakarta.persistence / Hibernate are no longer open to the core layers: entities live in infra.persistence
+        assertEquals(1, ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.model", "jakarta.persistence.Entity")).size());
+        assertEquals(1, ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.domain", "org.hibernate.annotations.Type")).size());
+        // clean: application/api/infra may use Spring; a core layer with plain java imports is fine
         assertEquals(List.of(), ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.application", "org.springframework.stereotype.Service")));
-        assertEquals(List.of(), ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.model", "jakarta.persistence.Entity", "java.util.List")));
+        assertEquals(List.of(), ArchitectureRules.coreIsolationViolations(one("com.kopruq.bridge.model", "java.util.List")));
     }
 
     @Test
@@ -278,6 +286,21 @@ class ArchitectureTests {
         assertEquals(List.of(), ArchitectureRules.applicationDependsOnApiViolations(one("com.kopruq.terrain.api", "com.kopruq.terrain.application.TerrainReadService")));
     }
 
+    @Test
+    void t11_persistenceImportsOutsideInfraPersistence_areCaught_andInfraPersistencePasses() {
+        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.model", "jakarta.persistence.Entity")).size());
+        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.application", "org.springframework.data.jpa.repository.JpaRepository")).size());
+        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.api", "org.hibernate.annotations.Type")).size());
+        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.analysis.infra.midas", "jakarta.persistence.Id")).size());
+        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.shared.config", "jakarta.persistence.EntityManager")).size());
+        // clean: the persistence adapter package, and non-persistence framework imports elsewhere
+        assertEquals(List.of(), ArchitectureRules.persistenceImportViolations(
+                one("com.kopruq.bridge.infra.persistence", "jakarta.persistence.Entity", "org.springframework.data.jpa.repository.JpaRepository", "org.hibernate.annotations.Type")));
+        assertEquals(List.of(), ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.application", "org.springframework.stereotype.Service")));
+        // and the persistence package itself is an allowed location
+        assertEquals(List.of(), ArchitectureRules.locationViolations(one("com.kopruq.bridge.infra.persistence", "jakarta.persistence.Entity")));
+    }
+
     private static String pom(String packaging, String modules, String dependencies) {
         return "<project>\n<groupId>com.kopruq</groupId>\n<artifactId>kopruq-backend</artifactId>\n<packaging>" + packaging
                 + "</packaging>\n" + modules + "<dependencyManagement><dependencies><dependency><groupId>x</groupId>"
@@ -295,7 +318,12 @@ class ArchitectureTests {
             + dep("org.locationtech.jts", "jts-core", null)
             + dep("com.fasterxml.jackson.core", "jackson-databind", null)
             + dep("org.springframework.boot", "spring-boot-starter-test", "test")
-            + dep("org.junit.jupiter", "junit-jupiter", "test");
+            + dep("org.junit.jupiter", "junit-jupiter", "test")
+            + dep("org.springframework.boot", "spring-boot-starter-data-jpa", null)
+            + dep("org.flywaydb", "flyway-core", null)
+            + dep("org.flywaydb", "flyway-database-postgresql", "runtime")
+            + dep("org.postgresql", "postgresql", "runtime")
+            + dep("com.h2database", "h2", "test");
 
     @Test
     void t10_pomWithModulesWrongPackagingOrOtherDependencies_isCaught() {

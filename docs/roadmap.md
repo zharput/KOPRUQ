@@ -1824,3 +1824,16 @@ Frontend-only fixes from the 2026-10-11 frontend review (details in `docs/archit
 - [x] FRONTEND-REMEDIATION Faz 7: shared HTTP layer and `ApiErrorResponse` handling, `VITE_API_BASE`, terrain import status/warnings, field errors on forms.
 - [x] FRONTEND-REMEDIATION Faz 8: Seismic/Temperature as query hooks, INVALID handling, LM1 alpha text buffer with reset to EN default.
 - [x] FRONTEND-REMEDIATION Faz 9: architecture.md and roadmap.md updated.
+
+## BACKEND persistence track (2026-10-12)
+
+PostgreSQL + JPA persistence and Docker for the backend (details in `docs/architecture.md`, "BACKEND persistence track"; plan and evidence in `docs/features/backend/`). No new REST endpoint.
+
+- [x] Dependencies and architecture-test approved list (Spring Data JPA, Flyway, PostgreSQL driver, H2 test).
+- [x] Datasource/Flyway configuration, H2 test profile, `DB_PASSWORD` fail-fast.
+- [x] Flyway V1 (terrain, LandXML import) and V2 (bridge Project aggregate).
+- [x] JPA adapters: `JpaTerrainRepository`, `JpaLandXmlImportRepository`, `JpaProjectRepository`; in-memory repositories moved to test sources.
+- [x] Transactional LandXML import.
+- [x] Persistence tests (codec, three adapters, import transaction, `PersistenceContractTest`) and the `postgres-test` run against real PostgreSQL 17.
+- [x] `backend/Dockerfile`, `compose.yaml`, `.env.example`, `start-dev.bat`.
+- [ ] Not done (future milestones): use case/endpoint that saves a bridge `Project`; linking terrains to a `Project`; persisting computed results; domain-level revision control (`expectedRevision`); frontend localStorage migration.

@@ -4,12 +4,13 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * The root KOPRUQ project object (spec section 18 describes the
  * eventual .kopruq-equivalent project persistence; persistence itself
- * is out of scope for P01, see docs/roadmap.md).
+ * is stored by {@code bridge.infra.persistence}, see docs/architecture.md).
  *
  * <p>Mutable by design (unlike the other bridge-core types, which are
  * immutable records): a Project represents evolving session/application
@@ -18,12 +19,22 @@ import java.util.UUID;
  */
 public final class Project {
 
+    private UUID id = UUID.randomUUID();
     private String projectName = "";
     private Instant createdUtc = Instant.now();
     private Bridge bridge;
     private DesignSpace designSpace;
     private final List<BridgeAlternative> generatedAlternatives = new ArrayList<>();
     private UUID selectedAlternativeId;
+
+    /** Stable identity of the project (assigned at construction; persistence restores a stored one with {@link #setId}). */
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = Objects.requireNonNull(id, "id");
+    }
 
     public String getProjectName() {
         return projectName;

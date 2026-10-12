@@ -1,0 +1,63 @@
+# Local development stack: PostgreSQL 17 + the backend. The frontend is run with `npm run dev` (no container).
+# Configuration comes from the environment / a local `.env` file (copy .env.example). No secret is stored here;
+# DB_PASSWORD has no default and compose refuses to start without it.
+name: kopruq
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${DB_NAME:-kopruq}
+      POSTGRES_USER: ${DB_USERNAME:-kopruq}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set (copy .env.example to .env and fill it in)}
+    volumes:
+      - kopruq-pgdata:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-kopruq}
+      DB_USERNAME: ${DB_USERNAME:-kopruq}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set (copy .env.example to .env and fill it in)}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    healthcheck:
+      # The JRE image has bash but no curl: speak HTTP over /dev/tcp.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # Throw-away PostgreSQL for running the backend tests against a real server (AC16 / `mvn test`):
+  #   docker compose --profile postgres-test up -d --wait postgres-test
+  #   KOPRUQ_TEST_DB_URL=jdbc:postgresql://localhost:5433/kopruq_test KOPRUQ_TEST_DB_USERNAME=... KOPRUQ_TEST_DB_PASSWORD=... mvn -f backend/pom.xml -B test
+  postgres-test:
+    profiles: ["postgres-test"]
+    image: postgres:17
+    environment:
+      POSTGRES_DB: kopruq_test
+      POSTGRES_USER: ${DB_USERNAME:-kopruq}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set (copy .env.example to .env and fill it in)}
+    tmpfs:
+      - /var/lib/postgresql/data
+    ports:
+      - "${DB_TEST_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  kopruq-pgdata:

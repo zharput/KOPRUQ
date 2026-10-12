@@ -4,12 +4,9 @@ import java.util.Optional;
 import com.kopruq.terrain.model.TerrainModel;
 
 /**
- * Storage port for {@link TerrainModel}s. TERRAIN-P01 ships only
- * {@link InMemoryTerrainRepository} - no persistence layer exists
- * anywhere else in this app yet either (BridgeLayoutEngine/
- * GenerateWorkflow results aren't persisted server-side today), so an
- * in-memory store matches the rest of the codebase rather than
- * introducing a database decision nobody has asked for.
+ * Storage port for {@link TerrainModel}s. The production adapter is
+ * {@code com.kopruq.terrain.infra.persistence.JpaTerrainRepository} (PostgreSQL via JPA/Flyway); an in-memory
+ * implementation exists only in the test sources.
  */
 public interface TerrainRepository {
 

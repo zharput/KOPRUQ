@@ -28,6 +28,9 @@ import com.kopruq.terrain.domain.TerrainImportService;
 import com.kopruq.terrain.domain.TerrainQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionOperations;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Composition root for the framework-free domain services.
@@ -35,8 +38,8 @@ import org.springframework.context.annotation.Configuration;
  * <p>The domain modules deliberately know nothing about Spring (they carry no {@code @Component}); this class is
  * the one place that turns them into beans, so controllers receive their collaborators through the constructor
  * instead of building them with {@code new}. The services are stateless (or, like
- * {@link KopruqAnalysisEngine}, thread-safe), so one shared instance each is fine. The two stateful
- * repositories live in {@link SharedRepositoriesConfig}.
+ * {@link KopruqAnalysisEngine}, thread-safe), so one shared instance each is fine. The repositories are
+ * JPA adapters found by component scan ({@code <domain>.infra.persistence}).
  */
 @Configuration(proxyBeanMethods = false)
 public class CoreConfiguration {
@@ -93,10 +96,18 @@ public class CoreConfiguration {
         return new LandXmlImportService();
     }
 
+    /** Programmatic transaction boundary for use cases that must write several repositories atomically. */
+    @Bean
+    public TransactionOperations transactionOperations(PlatformTransactionManager transactionManager) {
+        return new TransactionTemplate(transactionManager);
+    }
+
     @Bean
     public LandXmlImportUseCase landXmlImportUseCase(LandXmlImportService importService,
-            TerrainRepository terrainRepository, LandXmlImportRepository landXmlImportRepository) {
-        return new LandXmlImportUseCase(importService, terrainRepository, landXmlImportRepository);
+            TerrainRepository terrainRepository, LandXmlImportRepository landXmlImportRepository,
+            TransactionOperations transactionOperations) {
+        return new LandXmlImportUseCase(importService, terrainRepository, landXmlImportRepository,
+                transactionOperations);
     }
 
     @Bean

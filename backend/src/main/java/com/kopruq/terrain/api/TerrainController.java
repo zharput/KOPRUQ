@@ -35,11 +35,9 @@ import java.nio.charset.StandardCharsets;
  * spring.servlet.multipart.max-file-size}/{@code max-request-size} are
  * raised in {@code application.properties} to 200MB accordingly.
  *
- * <p>Storage is in-memory and per-process, same as every other backend
- * service in this app today (no persistence layer exists anywhere yet).
- * All collaborators are injected; the use cases must be built over the same shared
- * repository the LandXML import writes into (see
- * {@code com.kopruq.shared.config.SharedRepositoriesConfig}).
+ * <p>Terrains are persisted in PostgreSQL through the {@code TerrainRepository} port (JPA adapter in
+ * {@code terrain.infra.persistence}); all collaborators are injected, and the LandXML import writes into the same
+ * repository.
  */
 @RestController
 @RequestMapping("/api/terrain")

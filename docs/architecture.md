@@ -115,13 +115,13 @@ All layers (`api`, `application`, `infra` included), `DOMAIN_DEPS`: the same, pl
 
 What `ArchitectureTests` enforce (a rule that cannot fail proves nothing, so each has a violating and a clean synthetic test):
 T1 every main package is `com.kopruq.<domain>/{api,application,domain,model,enums,infra[.sub]}`, `com.kopruq.shared.*` or
-`com.kopruq` (only `KopruqApplication`); T2 `model`/`domain`/`enums` import no Spring, jakarta (except persistence), lombok,
+`com.kopruq` (only `KopruqApplication`); T2 `model`/`domain`/`enums` import no Spring, jakarta (persistence included), Hibernate, lombok,
 application, api, infra or `shared.config`; T3 their imports stay on an allow-list; T4 the domain edges equal the pinned graph
 (an unused pinned edge is a violation too); T5 external imports only where allowed (`infra.nativeengine` java.* only,
 `infra.midas` java.* plus Jackson); T6 MIDAS/SCIA/ALLPLAN types only under `analysis.infra` (`com.kopruq.analysis.infra.midas`
 reachable only from itself and `shared.config`); T7 exactly 12 `@RestController` classes, only in `<domain>.api`; T8 no
 `@CrossOrigin`, no controller builds collaborators with `new`; T9 `application` does not import `api`; T10 `pom.xml` has no
-`<modules>`, packaging `jar` and exactly the approved six dependencies.
+`<modules>`, packaging `jar` and exactly the approved eleven dependencies (the original six plus Spring Data JPA, Flyway core/PostgreSQL, the PostgreSQL driver and H2 for tests); T11 JPA, Spring Data and Hibernate imports occur only in `<domain>.infra.persistence`.
 
 Rule evaluation decision (BACKEND-ARCHITECTURE Faz 6, assumption A1): the rule engine is part of alternative
 generation. `EvaluatedAlternativeGenerator` runs every alternative through the `RuleEngine`, so `generative -> rules` is a
@@ -140,7 +140,7 @@ com.kopruq.<domain>
   domain/         framework-free services/algorithms spanning several models
   model/          framework-free models that own their business rules and invariants
   enums/          domain enums
-  infra/          port implementations (in-memory repositories; analysis: nativeengine/, midas/)
+  infra/          port implementations (terrain, landxml, bridge: persistence/ JPA adapters; analysis: nativeengine/, midas/)
 com.kopruq.shared/{config,exception,validation}   composition root, single error contract, field checks
 ```
 
@@ -3085,3 +3085,15 @@ Phase 5 was NOT approved and no code was changed in `graph/domain/girderCandidat
 - Q2 (C-006-01): oval pier `wx = modulus(ix, B)`, `wy = modulus(iy, D)` versus `ix/(D/2)`, `iy/(B/2)` for the other sections; the B/D axis convention (linked to A-03) is not confirmed.
 - Q3 (C-016-01): parametric sweep generation rounds to 0.01 (`Math.round(v*100)/100`, accumulated); whether this resolution is acceptable and how duplicate values are handled is not decided.
 - Q5 (out of scope): the source of wind `drefM = 3` and other unreferenced constants (A-06).
+
+## BACKEND persistence track (PostgreSQL + JPA + Docker, 2026-10-12)
+
+Feature `backend` (plan/implementation in `docs/features/backend/`). The backend now stores data in PostgreSQL, modelled on the reference (`docs/architecture/backend-reference.md` R6, R13, R15, R16).
+
+- **Stack:** Spring Data JPA, Flyway (`V1__terrain_landxml.sql`, `V2__bridge_project.sql`; `ddl-auto=validate`), PostgreSQL 17 (runtime), H2 in PostgreSQL mode for tests. Connection from `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` (no password default; `shared.config.DatabaseConfigurationGuard` stops startup with `Could not resolve placeholder 'DB_PASSWORD'`). `spring.jpa.open-in-view=false`. `src/test/resources/config/application.properties` points tests at H2, or at a real PostgreSQL when `KOPRUQ_TEST_DB_URL` (+ `_USERNAME`/`_PASSWORD`) is set.
+- **Persisted:** `TerrainModel` (TIN vertices/triangles as little-endian binary blobs, `TinBinaryCodec`; source, boundaries and breaklines as child rows), `LandXmlImportResult` (alignment elements, vertical-profile PVIs, warnings, terrain reference) and the bridge `Project` aggregate (bridge, design space, alternatives with spans/girder/deck/pier/foundation). **Not persisted:** computed results (rule results, layouts, loads, analysis, materials) - they are recomputed from inputs so a changed rule can never leave stale engineering values looking valid.
+- **Boundaries:** ports stay in `<domain>/application` (`TerrainRepository`, `LandXmlImportRepository`, new `bridge.application.ProjectRepository`); JPA entities, Spring Data interfaces and `Jpa*Repository` adapters live only in `<domain>/infra/persistence` and map by hand to the framework-free records (deliberate deviation from the reference, which annotates the model). Rehydration goes through the model constructors, so invariants are re-checked on read. No new controller or endpoint; the 12-controller inventory is unchanged. `Project` got an `id`; `Alignment` got `elements()`.
+- **Atomic LandXML import:** `LandXmlImportUseCase` parses outside any transaction and writes terrain + import together inside a `TransactionOperations` (the old compensating `deleteById` stays as a second line of defence). The in-memory repositories moved to `src/test/java`; `SharedRepositoriesConfig` was removed.
+- **Engineering safety:** no DB `DEFAULT` and no value `CHECK` on engineering columns (only structural checks); no rule, default or limit was added. `Foundation` PILE/SPREAD vs pile fields stays unconstrained (no rule exists), `Pier.pierType` stays free text.
+- **Docker/dev:** `backend/Dockerfile` (Maven build stage, JRE runtime, non-root), `compose.yaml` (`postgres`, `backend`, `postgres-test` profile on tmpfs), `.env.example` (empty `DB_PASSWORD`; `.env` is git-ignored), `start-dev.bat` reads `.env`, starts PostgreSQL via Compose, then builds and starts backend and frontend. Running `java -jar` now needs `DB_PASSWORD` and a reachable PostgreSQL (CLAUDE.md "Build & test" should mention this - suggested to the engineer, not edited by the agent).
+- **ArchitectureTests:** pom pinned to 11 dependencies; new T11 rule (persistence imports only in `*.infra.persistence`); T2 now forbids `jakarta.persistence` in core layers.

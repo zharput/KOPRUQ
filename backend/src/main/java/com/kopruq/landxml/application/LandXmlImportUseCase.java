@@ -5,6 +5,8 @@ import com.kopruq.landxml.enums.CoordinateOrder;
 import com.kopruq.landxml.model.LandXmlImportResult;
 import com.kopruq.terrain.application.TerrainRepository;
 
+import org.springframework.transaction.support.TransactionOperations;
+
 import java.io.InputStream;
 
 /**
@@ -12,22 +14,30 @@ import java.io.InputStream;
  * {@link TerrainRepository}, where the {@code /api/terrain/{id}/...} endpoints read it) and the import itself
  * (alignment + profile, in the {@link LandXmlImportRepository}).
  *
- * <p>The two stores are separate and there is no transaction manager, so a failure of the second write would
- * leave an orphan terrain that no import record points to. This use case compensates: if storing the import
- * fails, the terrain it just stored is deleted again and the original failure is rethrown. (The in-memory
- * stores are lost on restart anyway, so this only covers in-process failures.)
+ * <p>Parsing runs outside any transaction (it can be slow and touches no database); the two writes run together in
+ * one transaction ({@link TransactionOperations}), so a failure of the second rolls back the first and no orphan
+ * terrain remains. The compensating {@code deleteById} is kept as well: with
+ * {@link TransactionOperations#withoutTransaction()} (the 3-argument constructor, used by in-memory stores that have
+ * no transaction support) it is the only protection, and it is harmless after a rollback.
  */
 public class LandXmlImportUseCase {
 
     private final LandXmlImportService importService;
     private final TerrainRepository terrainRepository;
     private final LandXmlImportRepository landXmlImportRepository;
+    private final TransactionOperations transactions;
 
     public LandXmlImportUseCase(LandXmlImportService importService, TerrainRepository terrainRepository,
             LandXmlImportRepository landXmlImportRepository) {
+        this(importService, terrainRepository, landXmlImportRepository, TransactionOperations.withoutTransaction());
+    }
+
+    public LandXmlImportUseCase(LandXmlImportService importService, TerrainRepository terrainRepository,
+            LandXmlImportRepository landXmlImportRepository, TransactionOperations transactions) {
         this.importService = importService;
         this.terrainRepository = terrainRepository;
         this.landXmlImportRepository = landXmlImportRepository;
+        this.transactions = transactions;
     }
 
     public LandXmlImportResult importLandXml(InputStream input, String projectId, String sourceFileName,
@@ -35,13 +45,20 @@ public class LandXmlImportUseCase {
         LandXmlImportResult result = importService.commit(
                 input, projectId, sourceFileName, coordinateSystemLabel, surfaceName, alignmentName, coordinateOrder);
 
-        terrainRepository.save(result.terrain());
-        try {
-            landXmlImportRepository.save(result);
-        } catch (RuntimeException | Error failure) {
-            terrainRepository.deleteById(result.terrain().id());
-            throw failure;
-        }
+        transactions.executeWithoutResult(status -> {
+            terrainRepository.save(result.terrain());
+            try {
+                landXmlImportRepository.save(result);
+            } catch (RuntimeException | Error failure) {
+                try {
+                    terrainRepository.deleteById(result.terrain().id());
+                } catch (RuntimeException | Error compensationFailure) {
+                    // inside a failed transaction the compensation may not be possible; the rollback covers it
+                    failure.addSuppressed(compensationFailure);
+                }
+                throw failure;
+            }
+        });
         return result;
     }
 }

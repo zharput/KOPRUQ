@@ -62,6 +62,11 @@ public final class Alignment {
         return totalLengthM;
     }
 
+    /** The horizontal elements in travel order (immutable); used e.g. to persist and rebuild an alignment. */
+    public List<HorizontalElement> elements() {
+        return elements;
+    }
+
     /** Resolves a chainage/offset/elevation position to a real-world point - elevation is exactly what the caller supplied. */
     public Point3D toXYZ(ChainagePosition position) {
         int index = elementIndexAtChainage(position.chainageM());

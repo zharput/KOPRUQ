@@ -17,5 +17,9 @@
  * {@link com.kopruq.bridge.model.DesignSpace},
  * {@link com.kopruq.bridge.model.BridgeAlternative} - all lengths in
  * meters (SI).
+ *
+ * <p>Persistence: the {@code Project} aggregate is stored by the JPA adapter in {@code bridge.infra.persistence}
+ * behind the {@code bridge.application.ProjectRepository} port; the model types stay framework-free. Computed results
+ * (rule results, layouts, loads, analysis) are deliberately not persisted.
  */
 package com.kopruq.bridge;

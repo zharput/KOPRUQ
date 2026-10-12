@@ -1,0 +1,1 @@
+backend tarafında artık db kullanmaya başlamamız lazım https://github.com/CemHarput/spanova-backend referans projedeki gibi olsun , jpa modellerini olustur projede sonrasında docker dosyasını olusturabilirsin

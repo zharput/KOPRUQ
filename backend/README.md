@@ -35,7 +35,7 @@ flowchart LR
         API[API layer<br/>controllers and DTOs]
         APP[Application layer<br/>use-case orchestration and ports]
         DOMAIN[Domain and model layers<br/>invariants, rules, generation, calculations]
-        MEMORY[(In-memory repositories)]
+        MEMORY[(PostgreSQL via JPA)]
         NATIVE[Native fast solver]
         MIDAS[MIDAS Civil NX adapter]
 
@@ -70,7 +70,9 @@ concepts remain inside their adapter boundaries.
 - `domain` contains framework-free algorithms and domain services.
 - `model` owns domain data and invariants.
 - `enums` contains domain vocabulary.
-- `infra` contains adapters such as in-memory repositories and solver clients.
+- `infra` contains adapters such as JPA repositories (`infra.persistence`) and solver clients.
+- JPA, Spring Data and Hibernate types are used only in `<domain>.infra.persistence`; the
+  framework-free `model` records stay unannotated and are mapped by hand.
 - `shared` contains cross-cutting configuration, validation, and the common
   error contract.
 - Spring may be used in `api`, `application`, `infra`, and `shared.config`.
@@ -95,19 +97,21 @@ com.kopruq
 |   |-- application       # Import/read use cases and repository port
 |   |-- domain            # Parsing, triangulation support, TIN query
 |   |-- model             # Solver/rendering-independent TerrainModel
-|   `-- infra             # In-memory terrain repository
+|   `-- infra/persistence # JPA entities and the PostgreSQL TerrainRepository adapter
 |-- landxml
 |   |-- api               # Inspect/import/profile endpoints
 |   |-- application       # Import transaction and read use cases
 |   |-- domain            # StAX parser and anti-corruption mappers
 |   |-- model             # LandXML import DTOs
-|   `-- infra             # In-memory import repository
+|   `-- infra/persistence # JPA entities and the PostgreSQL LandXmlImportRepository adapter
 |-- layout
 |   |-- api               # Layout-generation endpoint
 |   |-- domain            # BridgeLayoutEngine
 |   `-- model             # Site, design space, candidates, constraints
 |-- bridge
 |   |-- api               # Kernel-state request mapping
+|   |-- application       # ProjectRepository port
+|   |-- infra/persistence # JPA entities and the PostgreSQL ProjectRepository adapter
 |   `-- model             # Canonical solver-independent bridge model
 |-- rules
 |   |-- domain            # EngineeringRule and RuleEngine
@@ -149,7 +153,7 @@ com.kopruq
 | Build | Maven, single `jar` module |
 | Tests | JUnit 5 and Spring Boot Test |
 | Health endpoints | Spring Boot Actuator |
-| Persistence | In-memory repositories only; no database dependency yet |
+| Persistence | Spring Data JPA, Flyway migrations, PostgreSQL 17 (runtime); H2 in PostgreSQL mode for tests |
 
 ## Domain model
 
@@ -312,7 +316,7 @@ are design variables rather than merely typed constants.
 2. The engineer selects the surface and optional alignment.
 3. Import with explicit coordinate order using `POST /api/landxml/import`.
 4. The mapper preserves valid source TIN topology and stores canonical
-   `TerrainModel` and import data in shared in-memory repositories.
+   `TerrainModel` and import data in PostgreSQL (shared repositories, one transaction for a LandXML import).
 5. Read the mesh, diagnostics, elevation, alignment samples, or longitudinal
    profile through their GET endpoints.
 
@@ -571,14 +575,43 @@ Common codes include `INVALID_REQUEST`, `INVALID_INPUT`,
 - JDK 21
 - Apache Maven 3.9+
 
-No database or message broker is required for the current backend.
+- PostgreSQL 17 for running the API (Docker Desktop with Compose v2.17+ is the easiest way).
+  Building and testing need no database (tests use in-memory H2).
+
+### Database (PostgreSQL via Docker Compose)
+
+```powershell
+copy .env.example .env      # then set DB_PASSWORD in .env (git-ignored)
+docker compose up -d --wait postgres
+```
+
+The backend reads `DB_URL` (default `jdbc:postgresql://localhost:5432/kopruq`), `DB_USERNAME`
+(default `kopruq`) and `DB_PASSWORD` (no default - startup stops with
+`Could not resolve placeholder 'DB_PASSWORD'` if it is missing). Flyway creates the schema
+(`src/main/resources/db/migration`; released migrations are never edited, add `V3+`);
+Hibernate only validates it (`ddl-auto=validate`).
+
+Persisted: terrain (TIN as binary blobs), LandXML imports (alignment elements, vertical profile PVIs,
+warnings, terrain reference) and the bridge `Project` aggregate (bridge, design space, alternatives).
+Computed results (rule results, layouts, loads, analysis) are not stored. There is no REST endpoint
+for saving a bridge `Project` yet (only the repository exists).
 
 From the repository root:
 
 ```powershell
+$env:DB_PASSWORD = "<the password from .env>"
 mvn -B -f backend/pom.xml package
 java -jar backend/target/kopruq-backend-0.1.0-SNAPSHOT.jar
 ```
+
+The whole stack in containers (backend image built from `backend/Dockerfile`):
+
+```powershell
+docker compose up -d --wait        # postgres + backend; set BACKEND_PORT if 8080 is taken
+```
+
+`start-dev.bat` starts PostgreSQL through Compose (it reads `.env`), builds the backend and opens
+the backend and frontend windows.
 
 Or run directly with Spring Boot:
 
@@ -593,6 +626,7 @@ Useful configuration properties:
 | Property | Default | Purpose |
 | --- | --- | --- |
 | `server.port` | `8080` | HTTP port. |
+| `DB_URL` / `DB_USERNAME` / `DB_PASSWORD` | `jdbc:postgresql://localhost:5432/kopruq` / `kopruq` / none | Database connection (environment variables; the password is required). |
 | `kopruq.cors.allowed-origins` | `http://localhost:5173` | Comma-separated browser origins allowed for `/api/**`. |
 | `spring.servlet.multipart.max-file-size` | `200MB` | Maximum uploaded file size. |
 | `spring.servlet.multipart.max-request-size` | `200MB` | Maximum multipart request size. |
@@ -605,6 +639,18 @@ Run all backend tests:
 
 ```powershell
 mvn -B -f backend/pom.xml test
+```
+
+Tests run on in-memory H2 (PostgreSQL mode); no Docker is needed. To run the same suite against a
+real PostgreSQL 17 (throw-away container on port 5433):
+
+```powershell
+docker compose --profile postgres-test up -d --wait postgres-test
+$env:KOPRUQ_TEST_DB_URL = "jdbc:postgresql://localhost:5433/kopruq_test"
+$env:KOPRUQ_TEST_DB_USERNAME = "kopruq"          # DB_USERNAME of .env
+$env:KOPRUQ_TEST_DB_PASSWORD = "<DB_PASSWORD>"
+mvn -B -f backend/pom.xml test
+docker compose --profile postgres-test down -v
 ```
 
 Build the executable jar and run the same test suite:
@@ -622,11 +668,15 @@ The suite includes:
 - native solver validation and MIDAS mapping contracts;
 - controller and end-to-end REST contract tests;
 - exact endpoint-inventory tests;
+- persistence round trips (terrain, LandXML import, bridge project) and the import transaction;
 - architecture boundary tests.
 
 ## Current limitations
 
-- Storage is in memory; no JPA/database-backed project persistence exists.
+- The bridge `Project` aggregate is persistable (`ProjectRepository`) but no use case or endpoint saves it yet;
+  terrains are not linked to a `Project` (`terrain.project_id` is free text).
+- Computed results (rules, layouts, loads, analysis) are recomputed, not stored; there is no domain-level
+  revision check (only a technical `@Version`).
 - The layout-to-structural-alternative seam is not fully automated.
 - The rule engine contains infrastructure but no approved production
   engineering rules.

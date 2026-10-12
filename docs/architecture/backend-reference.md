@@ -165,7 +165,7 @@ Bir domain'de ihtiyaç olmayan alt paket açılmaz.
 | R12 `@Configuration` ile bean kurma | Aynen: framework'süz domain servisleri `shared/config` (veya domain `infra`/config) içinde `@Bean` olur; Spring bileşenleri (`@Service`, `@RestController`) `application`/`api` paketlerinde. |
 | R13 revizyon / atomik dosya | Kalıcılık eklendiğinde uygulanır. |
 | R14 correlation ID, yalnızca health | Aynen; `shared/config`. |
-| R15/R16 JPA + PostgreSQL + Compose | Hâlâ kapsam dışı (milestone onayı gerekir). Eklendiğinde referanstaki gibi JPA eşlemesi doğrudan `model` sınıflarına yapılabilir (framework'süzlük kuralı artık yok; `jakarta.persistence` referansın R3 testinde de serbest). |
+| R15/R16 JPA + PostgreSQL + Compose | **Uygulandi (feature `backend`, 2026-10-12).** PostgreSQL 17 + Spring Data JPA + Flyway (`ddl-auto=validate`), `open-in-view=false`, baglanti `DB_URL/DB_USERNAME/DB_PASSWORD`, testler H2 (PostgreSQL modu), `compose.yaml` (`postgres`, `backend`, `postgres-test`), `backend/Dockerfile`. Bilincli sapmalar: (1) JPA entity'leri `model` record'larina degil ayri `<domain>/infra/persistence` siniflarina konur ve elle eslenir (`model` framework'suz kalir; `jakarta.persistence` core katmanlarda artik YASAK, `ArchitectureTests` `persistenceImportViolations`); (2) portlar `application`'da framework'suz arayuz (R6), `Jpa*Repository` adapter'i infra'da; (3) `validation` starter, devtools, springdoc eklenmedi (yeni endpoint yok, milestone onayi yok). Bagimliliklar: `spring-boot-starter-data-jpa`, `flyway-core`, `flyway-database-postgresql` (runtime), `postgresql` (runtime), `h2` (test). |
 
 ## Bağımlılıklar (kullanıcının belirttiği aday set)
 

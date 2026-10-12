@@ -44,4 +44,9 @@ public record TerrainModel(
                 minElevationM, maxElevationM, vertices, triangles, localOrigin, version, status,
                 List.of(), List.of(), null);
     }
+
+    /** Number of boundaries of the given {@code type} (e.g. {@code "OUTER"}, {@code "VOID"}). */
+    public long countBoundaries(String type) {
+        return boundaries.stream().filter(b -> type.equals(b.type())).count();
+    }
 }

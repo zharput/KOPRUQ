@@ -1,8 +1,8 @@
-package com.kopruq.api.trafficloads;
+package com.kopruq.api.environmentalloads.api;
 
-import com.kopruq.trafficloads.UniformTemperatureRequest;
-import com.kopruq.trafficloads.UniformTemperatureResult;
-import com.kopruq.trafficloads.UniformTemperatureService;
+import com.kopruq.environmentalloads.UniformTemperatureRequest;
+import com.kopruq.environmentalloads.UniformTemperatureResult;
+import com.kopruq.environmentalloads.UniformTemperatureService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

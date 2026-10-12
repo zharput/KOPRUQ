@@ -1,6 +1,6 @@
-package com.kopruq.api.materials;
+package com.kopruq.api.materials.api;
 
-import com.kopruq.analysis.EurocodeConcrete;
+import com.kopruq.materials.EurocodeConcrete;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 

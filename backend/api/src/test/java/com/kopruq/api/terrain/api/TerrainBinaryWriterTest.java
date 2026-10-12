@@ -1,4 +1,4 @@
-package com.kopruq.api.terrain;
+package com.kopruq.api.terrain.api;
 import com.kopruq.terrain.*;
 import com.kopruq.spatialcore.*;
 import java.util.*;

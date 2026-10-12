@@ -4,13 +4,13 @@ import java.util.List;
 
 /**
  * A solver-independent structural model + load description - the input
- * to {@link AnalysisEngine}. Field names/shapes mirror what MIDAS Civil
- * NX's own API needs (spec section 20's P06/P07: "canonical
- * BridgeAlternative -&gt; MIDAS model"), but this type itself must never
- * reference MIDAS - a future solver adapter (SCIA, ...) implements the
- * same {@link AnalysisEngine} contract against the same request shape.
+ * to {@link AnalysisEngine} (spec section 20's P06/P07: canonical bridge
+ * model to solver model). This type never references a specific solver;
+ * every solver adapter implements the same {@link AnalysisEngine}
+ * contract against the same request shape. Units: see the package
+ * documentation (m, kN, ...).
  *
- * <p>MIDAS-P01 scope: only {@code nodes}, one {@code materials} entry,
+ * <p>First-milestone scope: only {@code nodes}, one {@code materials} entry,
  * one {@code sections} entry, {@code elements}, {@code supports}, one
  * {@code loadCases} entry and its matching {@code selfWeights} entry are
  * populated - no load combinations, construction stages, moving loads,
@@ -21,7 +21,7 @@ import java.util.List;
  * {@code kopruq-analysis-engine} (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
  * addendum P) - bearings modelled as {@link ElasticLinkElement}s,
  * externally-supplied UDLs (e.g. SDL) as {@link UniformElementLoad}s -
- * neither MIDAS-specific. Empty lists = existing MIDAS-P01 requests
+ * neither solver-specific. Empty lists = the original first-milestone requests
  * unaffected.
  */
 public record AnalysisRequest(

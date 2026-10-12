@@ -1,8 +1,8 @@
-package com.kopruq.api.trafficloads;
+package com.kopruq.api.environmentalloads.api;
 
-import com.kopruq.trafficloads.WindLoadsService;
-import com.kopruq.trafficloads.WindRequest;
-import com.kopruq.trafficloads.WindResult;
+import com.kopruq.environmentalloads.WindLoadsService;
+import com.kopruq.environmentalloads.WindRequest;
+import com.kopruq.environmentalloads.WindResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

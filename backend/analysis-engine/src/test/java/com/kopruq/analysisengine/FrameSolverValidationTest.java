@@ -9,6 +9,8 @@ import com.kopruq.analysis.AnalysisStatus;
 import com.kopruq.analysis.BoundaryCondition;
 import com.kopruq.analysis.ElasticLinkElement;
 import com.kopruq.analysis.LoadCase;
+import com.kopruq.analysis.LoadCaseKind;
+import com.kopruq.analysis.MaterialKind;
 import com.kopruq.analysis.SelfWeight;
 import com.kopruq.analysis.SolidRectangleSection;
 import com.kopruq.analysis.UniformElementLoad;
@@ -29,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class FrameSolverValidationTest {
 
-    private static final AnalysisMaterial MATERIAL = new AnalysisMaterial(1, "CONC", "TEST", 30_000_000, 0.2, 1e-5, 25.0, 25.0 / 9.81);
+    private static final AnalysisMaterial MATERIAL = new AnalysisMaterial(1, MaterialKind.CONCRETE, "TEST", 30_000_000, 0.2, 1e-5, 25.0, 25.0 / 9.81);
     private static final SolidRectangleSection SECTION = new SolidRectangleSection(1, "TEST", 2, 1);
 
     private static AnalysisRequest request(List<AnalysisNode> nodes, List<AnalysisElement> elements,
@@ -42,7 +44,7 @@ class FrameSolverValidationTest {
     private static final List<AnalysisNode> TWO_NODES = List.of(new AnalysisNode(1, 0, 0, 0), new AnalysisNode(2, 10, 0, 0));
     private static final List<AnalysisElement> ONE_ELEMENT = List.of(new AnalysisElement(1, 1, 1, 1, 2));
     private static final List<BoundaryCondition> FIXED_1 = List.of(new BoundaryCondition(1, true, true, true, true, true, true));
-    private static final List<LoadCase> ONE_CASE = List.of(new LoadCase("Service", "D"));
+    private static final List<LoadCase> ONE_CASE = List.of(new LoadCase("Service", LoadCaseKind.DEAD));
     private static final List<SelfWeight> SW = List.of(new SelfWeight("Service", 0, 0, -1));
 
     private static AnalysisRequest valid() {
@@ -91,7 +93,7 @@ class FrameSolverValidationTest {
     @Test
     void moreThanOneLoadCase_isRejected() {
         var two = request(TWO_NODES, ONE_ELEMENT, FIXED_1,
-                List.of(new LoadCase("Service", "D"), new LoadCase("Wind", "W")), SW, List.of());
+                List.of(new LoadCase("Service", LoadCaseKind.DEAD), new LoadCase("Wind", LoadCaseKind.WIND)), SW, List.of());
         assertTrue(message(two).startsWith("The native solver supports exactly one load case, got 2"));
     }
 
@@ -138,7 +140,7 @@ class FrameSolverValidationTest {
         assertEquals("Support refers to unknown node id: 7", unknownSupport.errorMessage());
 
         AnalysisResult multi = engine.getResults(engine.submit(request(TWO_NODES, ONE_ELEMENT, FIXED_1,
-                List.of(new LoadCase("A", "D"), new LoadCase("B", "D")), SW, List.of())));
+                List.of(new LoadCase("A", LoadCaseKind.DEAD), new LoadCase("B", LoadCaseKind.DEAD)), SW, List.of())));
         assertEquals(AnalysisStatus.FAILED, multi.status());
         assertTrue(multi.errorMessage().contains("exactly one load case"));
     }

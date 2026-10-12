@@ -1,4 +1,4 @@
-package com.kopruq.analysis;
+package com.kopruq.materials;
 
 /**
  * EN 1992-1-1:2004 Table 3.1 concrete properties, computed from the

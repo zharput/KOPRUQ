@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.kopruq</groupId>
+    <artifactId>kopruq-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>environmental-loads</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Wind (EN 1991-1-4), seismic spectrum and uniform temperature (EN 1991-1-5) load services
+       (BACKEND-ARCHITECTURE Faz 5). Pure Java, no dependency on any other KOPRUQ module and none on a framework. -->
+</project>

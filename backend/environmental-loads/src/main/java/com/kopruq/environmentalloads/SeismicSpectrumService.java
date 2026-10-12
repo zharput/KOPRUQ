@@ -1,4 +1,4 @@
-package com.kopruq.trafficloads;
+package com.kopruq.environmentalloads;
 
 import java.util.ArrayList;
 import java.util.List;

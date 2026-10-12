@@ -1746,3 +1746,45 @@ Separate remediation track (approved plan U7: the /feature-implement approval st
 ### BACKEND-REMEDIATION Faz 10 - Layering: constructor injection, central CORS, atomic import
 
 - [x] Faz 10: controllers use constructor injection, CORS is configured once, the LandXML import is all-or-nothing, the sampling loops always terminate.
+
+## BACKEND-ARCHITECTURE track (2026-10-12)
+
+### BACKEND-ARCHITECTURE Faz 0 - Architecture guard tightened
+
+- [x] Faz 0: module graph pinned exactly by the build; MIDAS ban widened (no production change).
+
+### BACKEND-ARCHITECTURE Faz 1 - api package layout: pure move (R1)
+
+- [x] Faz 1: api features split into <feature>/api; ApiLayeringTest added.
+
+### BACKEND-ARCHITECTURE Faz 2 - Helpers moved to their owning modules (F-13)
+
+- [x] Faz 2: ChainageSampler to alignment; LocalCoordinates and countBoundaries in terrain/landxml-import.
+
+### BACKEND-ARCHITECTURE Faz 3 - api application services; controllers only map (R2)
+
+- [x] Faz 3: application services for alignment, landxml, terrain and traffic; controllers map only.
+
+### BACKEND-ARCHITECTURE Faz 4 - materials module (F-19)
+
+- [x] Faz 4: materials module (EurocodeConcrete, ConcreteStrengthClasses).
+
+### BACKEND-ARCHITECTURE Faz 5 - environmental-loads module (F-08)
+
+- [x] Faz 5: environmental-loads module (wind, seismic, temperature).
+
+### BACKEND-ARCHITECTURE Faz 6 - Rule evaluation moved into generative-engine
+
+- [x] Faz 6: rule evaluation lives in generative-engine; KNOWN_UNUSED_EDGES emptied.
+
+### BACKEND-ARCHITECTURE Faz 7 - Analysis port vocabulary and units (F-06 / F-14)
+
+- [x] Faz 7: analysis port speaks KOPRUQ enums and explicit units; MIDAS codes only in midas-adapter (WIND mapping and session unit remain P07 work).
+
+### BACKEND-ARCHITECTURE Faz 8 - model-builder module and FastSolver application service (F-05)
+
+- [x] Faz 8: model-builder module (FrameBridgeModelBuilder, AppliedLoadSummary) and FastSolverService; controller only maps.
+
+### BACKEND-ARCHITECTURE Faz 9 - Closing: documentation and stale comments
+
+- [x] Faz 9: documentation, stale comments, final checks. BACKEND-ARCHITECTURE track complete (Faz 0-9): modules materials, environmental-loads, model-builder added; api split into api/application layers; module graph and api layering enforced by the build.

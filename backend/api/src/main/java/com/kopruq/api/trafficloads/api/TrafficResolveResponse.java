@@ -1,4 +1,4 @@
-package com.kopruq.api.trafficloads;
+package com.kopruq.api.trafficloads.api;
 
 import com.kopruq.trafficloads.Lm1Parameters;
 import com.kopruq.trafficloads.NotionalLaneResult;

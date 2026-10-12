@@ -1,4 +1,4 @@
-package com.kopruq.api.fastsolver;
+package com.kopruq.api.fastsolver.api;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import java.util.List;
  * list of offending fields - it must never silently become {@code 0}.
  *
  * @param concreteFckMpa characteristic cylinder compressive strength,
- *        MPa (e.g. 30 for C30/37) - drives Ecm via {@link com.kopruq.analysis.EurocodeConcrete}
+ *        MPa (e.g. 30 for C30/37) - drives Ecm via {@link com.kopruq.materials.EurocodeConcrete}
  *        (EN 1992-1-1 Table 3.1); never invented, always engineer-supplied
  */
 public record FastSolverRequest(

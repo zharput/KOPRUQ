@@ -1,25 +1,24 @@
 package com.kopruq.analysis;
 
 /**
- * An isotropic material, as defined by the engineer (spec section 22 -
- * these numbers are never invented by Claude). Units follow whatever
- * force/length unit system the connected solver session is already
- * using (verified kN/m for the engineer's MIDAS Civil NX session at
- * MIDAS-P01 time) - the adapter does not change the solver's own unit
- * settings.
+ * An isotropic material, as defined by the engineer (spec section 22 - these numbers are never invented by
+ * Claude). Units are those of this port (see the package documentation): kN, m, so stresses and moduli are in
+ * kN/m2 and weights in kN/m3.
  *
- * @param type "CONC" | "STEEL" | "SRC" | "ALUMINUM" | "User" - MIDAS's
- *        own material-type vocabulary, kept verbatim rather than
- *        translated into a KOPRUQ-specific enum, since MIDAS-P01 only
- *        needs to pass it through.
+ * @param kind                     what kind of material this is; the solver adapter maps it to its own vocabulary
+ * @param elasticModulusKnPerM2    Young modulus, kN/m2
+ * @param poissonRatio             Poisson ratio, dimensionless
+ * @param thermalCoefficientPerC   coefficient of thermal expansion, 1/degC
+ * @param weightDensityKnPerM3     weight density, kN/m3
+ * @param massDensityTonnesPerM3   mass density, t/m3
  */
 public record AnalysisMaterial(
         int id,
-        String type,
+        MaterialKind kind,
         String name,
-        double elasticModulus,
+        double elasticModulusKnPerM2,
         double poissonRatio,
-        double thermalCoefficient,
-        double weightDensity,
-        double massDensity) {
+        double thermalCoefficientPerC,
+        double weightDensityKnPerM3,
+        double massDensityTonnesPerM3) {
 }

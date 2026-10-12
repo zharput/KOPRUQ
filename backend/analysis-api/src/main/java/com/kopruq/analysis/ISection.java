@@ -1,10 +1,9 @@
 package com.kopruq.analysis;
 
 /**
- * MIDAS "Value" section, shape "H" (an I/H-section allowing different
- * top and bottom flange widths - fits an asymmetric precast girder).
- * Fillet radii are not modelled (MIDAS defaults them to 0) - a drawing
- * simplification, not a structural assumption.
+ * I/H section allowing different top and bottom flange widths - fits an
+ * asymmetric precast girder. Dimensions in metres. Fillet radii are not
+ * modelled - a drawing simplification, not a structural assumption.
  */
 public record ISection(
         int id,

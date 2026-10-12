@@ -1,4 +1,4 @@
-package com.kopruq.api.alignment.application;
+package com.kopruq.alignment;
 
 import org.junit.jupiter.api.Test;
 

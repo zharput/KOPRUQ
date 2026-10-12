@@ -67,10 +67,10 @@ final class FrameSolver {
             }
 
             var props = RectangularSectionProperties.of(section);
-            double g = material.elasticModulus() / (2 * (1 + material.poissonRatio()));
+            double g = material.elasticModulusKnPerM2() / (2 * (1 + material.poissonRatio()));
 
             double[][] localK = FrameElementStiffness.local(
-                    material.elasticModulus(), g, props.areaM2(), props.iyM4(), props.izM4(), props.jM4(), length);
+                    material.elasticModulusKnPerM2(), g, props.areaM2(), props.iyM4(), props.izM4(), props.jM4(), length);
             double[][] rotation = FrameTransformation.rotationMatrix(ni.xM(), ni.yM(), ni.zM(), nj.xM(), nj.yM(), nj.zM());
             double[][] t12 = FrameTransformation.transformationMatrix12(rotation);
             double[][] globalElementK = MatrixUtils.toGlobal(localK, t12);
@@ -78,7 +78,7 @@ final class FrameSolver {
             assemble(globalK, globalElementK, nodeIndex.get(ni.id()), nodeIndex.get(nj.id()));
 
             for (SelfWeight selfWeight : request.selfWeights()) {
-                double magnitude = props.areaM2() * material.weightDensity();
+                double magnitude = props.areaM2() * material.weightDensityKnPerM3();
                 double[] globalUdl = {
                         magnitude * selfWeight.factorX(),
                         magnitude * selfWeight.factorY(),

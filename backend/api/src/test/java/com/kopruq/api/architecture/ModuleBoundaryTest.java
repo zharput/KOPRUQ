@@ -33,14 +33,59 @@ class ModuleBoundaryTest {
     private static final String API = "api";
 
     /**
-     * Declared-but-unused internal edges that are KNOWN and deliberately left alone. Remove an entry when the edge is
-     * either used or deleted. generative-engine -> rules-engine: unused today, not part of the BACKEND-REMEDIATION
-     * Faz 9 approval (which removes exactly three other edges); the engineer decides whether the generator will call
-     * the rule engine itself (spec P04) or the edge goes away.
+     * Declared-but-unused internal edges that are KNOWN and deliberately left alone, as "module -> dependency". Empty
+     * since BACKEND-ARCHITECTURE Faz 6: generative-engine now uses rules-engine (EvaluatedAlternativeGenerator). Add an
+     * entry only deliberately, and remove it when the edge is either used or deleted.
      */
-    private static final Set<String> KNOWN_UNUSED_EDGES = Set.of("generative-engine -> rules-engine");
+    private static final Set<String> KNOWN_UNUSED_EDGES = Set.of();
+
+    /**
+     * BACKEND-ARCHITECTURE Faz 0: the module graph, pinned exactly (module -> direct internal pom dependencies,
+     * test scope excluded). A new module or edge must be added here deliberately.
+     */
+    private static final Map<String, Set<String>> ALLOWED_INTERNAL_DEPENDENCIES = Map.ofEntries(
+            Map.entry("spatial-core", Set.of()),
+            Map.entry("alignment", Set.of("spatial-core")),
+            Map.entry("terrain", Set.of("spatial-core")),
+            Map.entry("landxml-import", Set.of("spatial-core", "alignment", "terrain")),
+            Map.entry("traffic-loads", Set.of()),
+            Map.entry("materials", Set.of()),
+            Map.entry("environmental-loads", Set.of()),
+            Map.entry("constraints", Set.of()),
+            Map.entry("bridge-layout", Set.of("alignment", "constraints")),
+            Map.entry("bridge-core", Set.of()),
+            Map.entry("rules-engine", Set.of("bridge-core")),
+            Map.entry("generative-engine", Set.of("bridge-core", "rules-engine")),
+            Map.entry("analysis-api", Set.of()),
+            Map.entry("analysis-engine", Set.of("analysis-api")),
+            Map.entry("model-builder", Set.of("analysis-api", "materials")),
+            Map.entry("midas-adapter", Set.of("analysis-api")),
+            Map.entry("api", Set.of("bridge-core", "rules-engine", "generative-engine", "analysis-api", "spatial-core",
+                    "alignment", "terrain", "landxml-import", "traffic-loads", "materials", "environmental-loads", "constraints",
+                    "bridge-layout", "analysis-engine", "model-builder")));
 
     // ---- the real tree
+
+    @Test
+    void everyModule_declaresExactlyItsAllowedInternalDependencies() throws Exception {
+        Path backend = findBackendRoot();
+        Map<String, Set<String>> actual = new LinkedHashMap<>();
+        for (String module : moduleNames(backend)) {
+            actual.put(module, new HashSet<>(dependencies(parse(backend.resolve(module).resolve("pom.xml")), true)));
+        }
+        assertEquals(List.of(), ModuleBoundaryRules.graphViolations(actual, ALLOWED_INTERNAL_DEPENDENCIES),
+                "module dependency graph differs from the pinned one");
+    }
+
+    @Test
+    void scanner_flagsAnUnknownModuleAnExtraEdgeAndAMissingEdge() {
+        Map<String, Set<String>> allowed = Map.of("a", Set.of(), "b", Set.of("a"));
+        assertEquals(List.of(), ModuleBoundaryRules.graphViolations(Map.of("a", Set.of(), "b", Set.of("a")), allowed));
+        assertEquals(1, ModuleBoundaryRules.graphViolations(Map.of("a", Set.of(), "b", Set.of("a"), "c", Set.of()), allowed).size());
+        assertEquals(1, ModuleBoundaryRules.graphViolations(Map.of("a", Set.of("b"), "b", Set.of("a")), allowed).size());
+        assertEquals(1, ModuleBoundaryRules.graphViolations(Map.of("a", Set.of(), "b", Set.of()), allowed).size());
+        assertEquals(1, ModuleBoundaryRules.graphViolations(Map.of("a", Set.of()), allowed).size());
+    }
 
     @Test
     void everyModule_respectsTheBoundaries() throws Exception {
@@ -167,7 +212,9 @@ class ModuleBoundaryTest {
         Map<String, String> sources = Map.of("B.java", "import com.kopruq.midas.MidasApiClient;\n");
         assertEquals(1, ModuleBoundaryRules.violations("bridge-core", sources, Set.of("bridgecore", "midas"), false).size());
         assertEquals(1, ModuleBoundaryRules.violations("generative-engine", sources, Set.of("generative", "midas"), false).size());
+        assertEquals(1, ModuleBoundaryRules.violations("analysis-api", sources, Set.of("analysis", "midas"), false).size());
         assertEquals(0, ModuleBoundaryRules.violations("midas-adapter", sources, Set.of("midas"), false).size());
+        assertEquals(0, ModuleBoundaryRules.violations("api", sources, Set.of("api", "midas"), true).size());
     }
 
     @Test

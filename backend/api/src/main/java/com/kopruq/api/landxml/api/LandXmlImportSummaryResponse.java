@@ -1,4 +1,4 @@
-package com.kopruq.api.landxml;
+package com.kopruq.api.landxml.api;
 
 import com.kopruq.landxml.LandXmlImportResult;
 
@@ -28,8 +28,8 @@ public record LandXmlImportSummaryResponse(
                 result.profile() != null,
                 result.warnings(), result.terrain().status().name(), result.terrain().source(),
                 result.terrain().boundsMin(), result.terrain().boundsMax(),
-                result.terrain().boundaries().stream().filter(b -> "OUTER".equals(b.type())).count(),
-                result.terrain().boundaries().stream().filter(b -> "VOID".equals(b.type())).count(),
+                result.terrain().countBoundaries("OUTER"),
+                result.terrain().countBoundaries("VOID"),
                 result.terrain().breaklines().size());
     }
 }

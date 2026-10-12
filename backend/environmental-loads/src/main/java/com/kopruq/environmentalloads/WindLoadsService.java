@@ -1,4 +1,4 @@
-package com.kopruq.trafficloads;
+package com.kopruq.environmentalloads;
 
 /**
  * EN 1991-1-4 terrain profile and bridge-deck transverse action, base rules only.

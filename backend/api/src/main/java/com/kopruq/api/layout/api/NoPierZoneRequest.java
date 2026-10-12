@@ -1,4 +1,4 @@
-package com.kopruq.api.layout;
+package com.kopruq.api.layout.api;
 
 import com.kopruq.api.error.FieldChecks;
 import com.kopruq.api.error.FieldViolation;

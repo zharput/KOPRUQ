@@ -16,13 +16,11 @@ import org.springframework.context.annotation.Configuration;
  * - written by {@code LandXmlController}, read by {@code
  * AlignmentController}'s {@code /api/alignment/{id}/sample}.
  *
- * <p>Every other service in this app stays a plain per-controller field
- * (`private final X service = new X();`, e.g. {@code
- * LayoutGenerationController}/{@code TerrainController}'s own
- * import/query services) - those are stateless, so sharing an instance
- * doesn't matter. These two repositories are the only case where two
- * different controllers must see the same mutable state, which is what
- * actually requires Spring-managed singleton beans here.
+ * <p>Every other service is a stateless bean built in {@link CoreConfiguration}
+ * and injected through constructors (controllers never build collaborators
+ * with {@code new}), so sharing an instance does not matter for them. These
+ * two repositories are the only case where two different controllers must
+ * see the same mutable state, which is why they are single shared beans.
  */
 @Configuration
 public class SharedRepositoriesConfig {

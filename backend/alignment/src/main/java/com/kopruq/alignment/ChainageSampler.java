@@ -1,4 +1,4 @@
-package com.kopruq.api.alignment.application;
+package com.kopruq.alignment;
 
 import java.util.ArrayList;
 import java.util.List;

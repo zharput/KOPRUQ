@@ -1,4 +1,4 @@
-package com.kopruq.api.kernel;
+package com.kopruq.api.kernel.api;
 
 import com.kopruq.bridgecore.Bridge;
 import com.kopruq.bridgecore.DesignSpace;

@@ -1,8 +1,8 @@
-package com.kopruq.api.materials;
+package com.kopruq.api.materials.api;
 
-import com.kopruq.analysis.EurocodeConcrete;
+import com.kopruq.materials.ConcreteStrengthClasses;
+import com.kopruq.materials.EurocodeConcrete;
 import java.util.Map;
-import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,20 +14,10 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/api/materials/concrete")
 public final class ConcreteMaterialController {
-    private static final Set<String> SUPPORTED_MATERIAL_IDS = Set.of("C12/15", "C16/20", "C20/25", "C25/30", "C30/37", "C35/45", "C40/50", "C45/55", "C50/60", "C55/67", "C60/75", "C70/85", "C80/95", "C90/105");
-
     @GetMapping
     public ConcreteMaterialDto getConcreteMaterial(@RequestParam String materialId) {
-        int separator = materialId.indexOf('/');
-        if (!SUPPORTED_MATERIAL_IDS.contains(materialId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown concrete material ID: " + materialId);
-        }
-        final int fck;
-        try {
-            fck = Integer.parseInt(materialId.substring(1, separator));
-        } catch (NumberFormatException error) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown concrete material ID: " + materialId);
-        }
+        final int fck = ConcreteStrengthClasses.characteristicStrengthMpa(materialId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown concrete material ID: " + materialId));
         double unitWeight = EurocodeConcrete.UNIT_WEIGHT_REINFORCED_KN_PER_M3;
         return new ConcreteMaterialDto("ConcreteMaterial", materialId, materialId, Map.of(
                 "fck", new QuantityDto(fck, "MPa"),

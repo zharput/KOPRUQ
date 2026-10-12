@@ -1,4 +1,4 @@
-package com.kopruq.api.landxml;
+package com.kopruq.api.landxml.api;
 import com.kopruq.landxml.*;
 import java.util.List;
 
@@ -17,8 +17,8 @@ public record LandXmlInspectResponse(String unitsLabel, String crsStatus, String
             bounds[4]=Math.min(bounds[4],p.z()); bounds[5]=Math.max(bounds[5],p.z());
         }
         return new SurfacePreview(surface.name(),surface.points().size(),surface.faces().size(),
-                surface.boundaries().stream().filter(b -> "OUTER".equals(b.type())).count(),
-                surface.boundaries().stream().filter(b -> "VOID".equals(b.type())).count(),surface.breaklines().size(),
+                surface.countBoundaries("OUTER"),
+                surface.countBoundaries("VOID"),surface.breaklines().size(),
                 surface.points().isEmpty() ? null : bounds,
                 surface.points().stream().limit(8).map(p -> new SourcePoint(p.id(),p.y(),p.x(),p.z())).toList());
     }

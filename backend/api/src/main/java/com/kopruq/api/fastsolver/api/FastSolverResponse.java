@@ -1,4 +1,4 @@
-package com.kopruq.api.fastsolver;
+package com.kopruq.api.fastsolver.api;
 
 import java.util.List;
 

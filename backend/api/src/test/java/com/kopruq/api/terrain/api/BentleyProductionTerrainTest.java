@@ -1,4 +1,4 @@
-package com.kopruq.api.terrain;
+package com.kopruq.api.terrain.api;
 
 import com.kopruq.landxml.*;
 import com.kopruq.terrain.*;

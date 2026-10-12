@@ -21,8 +21,13 @@ final class ModuleBoundaryRules {
     /** Import prefixes that only the {@code api} module may use. */
     static final List<String> FRAMEWORK_PREFIXES = List.of("org.springframework.", "jakarta.", "lombok.");
 
-    /** Modules that must know nothing about the MIDAS adapter. */
-    static final Set<String> MIDAS_FREE_MODULES = Set.of("bridge-core", "rules-engine", "generative-engine");
+    /** The only modules that may know the MIDAS adapter: the adapter itself and the Spring Boot application. */
+    static final Set<String> MIDAS_AWARE_MODULES = Set.of("midas-adapter", "api");
+
+    /** Every module except {@code midas-adapter} and {@code api} must know nothing about the MIDAS adapter. */
+    static boolean isMidasFree(String module) {
+        return !MIDAS_AWARE_MODULES.contains(module);
+    }
 
     private ModuleBoundaryRules() {
     }
@@ -70,7 +75,7 @@ final class ModuleBoundaryRules {
                         }
                     }
                 }
-                if (MIDAS_FREE_MODULES.contains(module) && imported.startsWith("com.kopruq.midas.")) {
+                if (isMidasFree(module) && imported.startsWith("com.kopruq.midas.")) {
                     violations.add(module + ": " + file.getKey() + " imports " + imported
                             + " (MIDAS-specific code lives only in midas-adapter)");
                 }
@@ -115,6 +120,40 @@ final class ModuleBoundaryRules {
             if (!roots.isEmpty() && roots.stream().noneMatch(importedRoots::contains)) {
                 violations.add(module + ": pom declares a dependency on '" + dependency
                         + "' but no source file imports anything from it");
+            }
+        }
+        return violations;
+    }
+
+    /**
+     * The module dependency graph must EQUAL the declared one: every reactor module is in {@code allowed}, and its
+     * direct internal pom dependencies are exactly the allowed set (neither an extra nor a missing edge).
+     *
+     * @param actual  module -> direct internal dependencies read from the poms
+     * @param allowed module -> the allowed direct internal dependencies
+     */
+    static List<String> graphViolations(Map<String, Set<String>> actual, Map<String, Set<String>> allowed) {
+        List<String> violations = new ArrayList<>();
+        for (Map.Entry<String, Set<String>> module : actual.entrySet()) {
+            Set<String> expected = allowed.get(module.getKey());
+            if (expected == null) {
+                violations.add(module.getKey() + ": module is not in the allowed dependency map");
+                continue;
+            }
+            for (String dependency : module.getValue()) {
+                if (!expected.contains(dependency)) {
+                    violations.add(module.getKey() + ": pom declares '" + dependency + "' which is not an allowed dependency");
+                }
+            }
+            for (String dependency : expected) {
+                if (!module.getValue().contains(dependency)) {
+                    violations.add(module.getKey() + ": allowed dependency '" + dependency + "' is not declared in the pom");
+                }
+            }
+        }
+        for (String module : allowed.keySet()) {
+            if (!actual.containsKey(module)) {
+                violations.add(module + ": allowed map names a module that is not in the reactor");
             }
         }
         return violations;

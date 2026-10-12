@@ -1,12 +1,11 @@
-package com.kopruq.api.trafficloads;
+package com.kopruq.api.trafficloads.api;
 
+import com.kopruq.api.trafficloads.application.TrafficResolution;
+import com.kopruq.api.trafficloads.application.TrafficResolveUseCase;
 import com.kopruq.trafficloads.Lm1DefaultsFactory;
 import com.kopruq.trafficloads.Lm1Parameters;
-import com.kopruq.trafficloads.NotionalLaneResult;
 import com.kopruq.trafficloads.TrafficLoadGroup;
 import com.kopruq.trafficloads.TrafficLoadGroupCatalog;
-import com.kopruq.trafficloads.TrafficLoadsService;
-import com.kopruq.trafficloads.TrafficValidationResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,13 +32,13 @@ public class TrafficLoadsController {
 
     private final Lm1DefaultsFactory lm1DefaultsFactory;
     private final TrafficLoadGroupCatalog loadGroupCatalog;
-    private final TrafficLoadsService service;
+    private final TrafficResolveUseCase resolveUseCase;
 
     public TrafficLoadsController(Lm1DefaultsFactory lm1DefaultsFactory, TrafficLoadGroupCatalog loadGroupCatalog,
-            TrafficLoadsService service) {
+            TrafficResolveUseCase resolveUseCase) {
         this.lm1DefaultsFactory = lm1DefaultsFactory;
         this.loadGroupCatalog = loadGroupCatalog;
-        this.service = service;
+        this.resolveUseCase = resolveUseCase;
     }
 
     @GetMapping("/lm1-defaults")
@@ -54,11 +53,7 @@ public class TrafficLoadsController {
 
     @PostMapping("/resolve")
     public TrafficResolveResponse resolve(@RequestBody TrafficResolveRequest request) {
-        if (request.carriageway() == null) {
-            throw new IllegalArgumentException("carriageway is required");
-        }
-        NotionalLaneResult lanes = service.generateLanes(request.carriageway());
-        TrafficValidationResult validation = service.validate(lanes, request.lm1());
-        return new TrafficResolveResponse(lanes, request.lm1(), validation);
+        TrafficResolution resolution = resolveUseCase.resolve(request.carriageway(), request.lm1());
+        return new TrafficResolveResponse(resolution.lanes(), resolution.lm1(), resolution.validation());
     }
 }

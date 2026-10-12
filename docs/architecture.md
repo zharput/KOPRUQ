@@ -70,6 +70,9 @@ KOPRUQ/
 â”‚   â”œâ”€â”€ rules-engine/                deterministic feasibility - depends on bridge-core
 â”‚   â”œâ”€â”€ generative-engine/           alternative generation - depends on bridge-core, rules-engine
 â”‚   â”œâ”€â”€ analysis-api/                job/status/result ports - no module dependencies
+â”‚   â”œâ”€â”€ materials/                    EN 1992-1-1 concrete relations + strength-class catalog (Faz 4) - no deps
+â”‚   â”œâ”€â”€ environmental-loads/          wind, seismic spectrum, temperature (Faz 5) - no deps
+â”‚   â”œâ”€â”€ model-builder/                portal-frame AnalysisRequest builder + applied-load check (Faz 8) - analysis-api, materials
 â”‚   â”œâ”€â”€ midas-adapter/               MIDAS-specific code - depends on analysis-api
 â”‚   â””â”€â”€ api/                         Spring Boot app - see the dependency graph below (midas-adapter returns with P07)
 â”œâ”€â”€ services/                       Python, deferred to after P01
@@ -85,43 +88,70 @@ KOPRUQ/
 
 ## Dependency graph (Maven)
 
-Actual module dependencies as declared in the poms
-(BACKEND-REMEDIATION Faz 9 rewrote this block - the earlier graph was out of date):
+Actual module dependencies as declared in the poms. BACKEND-ARCHITECTURE Faz 9 rewrote this block; the graph is
+pinned exactly by `ModuleBoundaryTest.ALLOWED_INTERNAL_DEPENDENCIES` (a pom that differs fails the build):
 
 ```
 spatial-core                              (no dependencies)
-alignment            -> spatial-core
-terrain              -> spatial-core          (+ JTS, external)
+alignment            -> spatial-core          (+ ChainageSampler: both sampling rules, U8 unchanged)
+terrain              -> spatial-core          (+ JTS, external; + LocalCoordinates)
 landxml-import       -> spatial-core, alignment, terrain
-traffic-loads                             (no dependencies)
+traffic-loads                             (no dependencies; EN 1991-2 traffic loads only)
+environmental-loads                       (no dependencies; wind, seismic spectrum, uniform temperature)
+materials                                 (no dependencies; EurocodeConcrete, ConcreteStrengthClasses)
 constraints                               (no dependencies)
 bridge-layout        -> alignment, constraints
 bridge-core                               (no dependencies)
 rules-engine         -> bridge-core
-generative-engine    -> bridge-core, rules-engine   (rules-engine edge is declared but unused - see below)
-analysis-api                              (no dependencies - pure port layer)
+generative-engine    -> bridge-core, rules-engine   (EvaluatedAlternativeGenerator runs the rule engine)
+analysis-api                              (no dependencies - pure port layer, no solver vocabulary)
 analysis-engine      -> analysis-api              (native KOPRUQ solver)
+model-builder        -> analysis-api, materials   (solver-independent AnalysisRequest builders)
 midas-adapter        -> analysis-api              (+ jackson-databind, external)
 api                  -> bridge-core, rules-engine, generative-engine, analysis-api, analysis-engine,
-                        spatial-core, alignment, terrain, landxml-import, traffic-loads,
-                        constraints, bridge-layout
+                        model-builder, materials, environmental-loads, spatial-core, alignment, terrain,
+                        landxml-import, traffic-loads, constraints, bridge-layout
                      -> spring-boot-starter-web, spring-boot-starter-actuator
 ```
 
 Only `api` depends on Spring (R3); every other module is plain Java. This is
 checked by the build: `backend/api/src/test/java/com/kopruq/api/architecture/ModuleBoundaryTest`
 (plain JUnit over the real source/pom tree, no extra dependency) fails if a module other than `api`
-imports Spring/Jakarta/Lombok or depends on a Spring artifact, if `bridge-core`/`rules-engine`/
-`generative-engine` reference `com.kopruq.midas`, if a module imports a `com.kopruq` package that its
-poms do not (transitively) depend on, or if a module declares an internal dependency it never uses.
-The checker is itself tested with synthetic violations.
+imports Spring/Jakarta/Lombok or depends on a Spring artifact, if any module other than `midas-adapter` and
+`api` references `com.kopruq.midas`, if a module imports a `com.kopruq` package that its poms do not
+(transitively) depend on, if a module declares an internal dependency it never uses, or if the declared
+internal dependencies differ from the pinned graph. `ApiLayeringTest` checks the layering inside `api`.
+Both checkers are themselves tested with synthetic violations.
 
-Removed in Faz 9 because no source used them: `api -> midas-adapter` (to be re-added with the first use
-case that calls MIDAS, milestone P07), `midas-adapter -> bridge-core` and `analysis-api -> bridge-core`.
-`generative-engine -> rules-engine` is also unused; it is on a documented allow-list in
-`ModuleBoundaryTest.KNOWN_UNUSED_EDGES` because it was not part of the approved removals.
-`bridge-layout` does not depend on `bridge-core` and vice versa yet - the seam between them
+Rule evaluation decision (BACKEND-ARCHITECTURE Faz 6, assumption A1): the rule engine is part of alternative
+generation. `EvaluatedAlternativeGenerator` (generative-engine) runs every alternative through the `RuleEngine`,
+so `generative-engine -> rules-engine` is a used edge and `KNOWN_UNUSED_EDGES` is empty. No rule is approved yet,
+so every alternative is feasible and nothing changed in the REST response.
+
+`api -> midas-adapter` was removed in BACKEND-REMEDIATION Faz 9 and returns with the first use case that calls
+MIDAS (P07). `bridge-layout` does not depend on `bridge-core` and vice versa yet - the seam between them
 (`StructuralAlternativeBuilder`, per the analysis document's section C) is a later milestone.
+
+### `api` package layout (BACKEND-ARCHITECTURE Faz 1-8)
+
+```
+com.kopruq.api
+  config/ error/ observability/        shared, in place (CoreConfiguration is the composition root, R12)
+  <feature>/api/                       @RestController + request/response records (HTTP mapping only)
+  <feature>/application/               plain-Java use cases / services (no Spring, jakarta or <x>.api imports)
+  <feature>/infra/                     only when a port implementation is needed (none today)
+features: alignment, alternatives, environmentalloads, fastsolver, kernel, landxml, layout, materials, terrain,
+trafficloads
+```
+
+### Analysis port units and the MIDAS notes for P07
+
+The `analysis-api` port is in m / kN (kN/m2, kN/m3, t/m3, rad, 1/degC, kN/m, kN*m/rad) and uses KOPRUQ enums
+(`MaterialKind.CONCRETE`, `LoadCaseKind.DEAD|WIND`); the MIDAS codes are in `midas-adapter`'s `MidasVocabulary`.
+For P07: (1) `LoadCaseKind.WIND` is refused by the adapter (`UnsupportedOperationException`) until its MIDAS code is
+verified on a live session; (2) the adapter does not set the MIDAS session unit, so the session must already be in
+kN and m - verify or add the unit call live; (3) the model-builder module is where the MIDAS path should get its
+`AnalysisRequest` from (the same builder as the native engine).
 
 **Do not add a dependency ahead of the milestone that needs it.** If you
 find yourself wiring a new module edge or a new frontend->backend call
@@ -2894,3 +2924,57 @@ Separate remediation track approved by the engineer (plan U7); not a product mil
 - New LandXmlImportUseCase (api/landxml/application): runs the import and stores the terrain then the import record; if the second write fails the terrain is deleted again (TerrainRepository.deleteById, internal only - no endpoint) and the original failure rethrown.
 - New ChainageSampler (api/alignment/application): the two existing sampling rules (overlay: strict <, default L/20; profile: inclusive <=, default L/50 + conditional end point) are moved unchanged (bit-identical, verified against copies of the old loops); the rules were NOT merged. New guard: a step that cannot advance or would need more points than an int is rejected instead of looping.
 - Tests: LandXmlImportUseCaseTest, ChainageSamplerTest, ControllerLayeringTest, contract additions; AlternativeGenerationControllerTest and LayoutGenerationControllerTest only had their construction lines updated.
+
+## BACKEND-ARCHITECTURE track (backend-architecture feature, 2026-10-12)
+
+### BACKEND-ARCHITECTURE Faz 0 - Architecture guard tightened
+
+- ModuleBoundaryTest pins the whole module graph (ALLOWED_INTERNAL_DEPENDENCIES, exact equality with the poms); the MIDAS import ban now covers every module except midas-adapter and api (ModuleBoundaryRules.isMidasFree). No production code changed.
+- Tests added: everyModule_declaresExactlyItsAllowedInternalDependencies, scanner_flagsAnUnknownModuleAnExtraEdgeAndAMissingEdge. Total 328 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 1 - api package layout: pure move (R1)
+
+- Every api feature package got an api sub-package (controller, request/response records); 44 files moved with git mv (package/import lines only). Wind, seismic and temperature controllers moved to environmentalloads/api. config, error and observability stay in place.
+- New ApiLayeringTest (rules: @RestController only in <feature>.api; application packages import no Spring/jakarta/<x>.api; feature packages hold only api/application/infra) with synthetic rule tests. Total 333 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 2 - Helpers moved to their owning modules (F-13)
+
+- ChainageSampler (+ ChainageSamplerTest) moved from api to the alignment module (com.kopruq.alignment); both sampling rules stay separate (U8). New terrain LocalCoordinates.relativePositions (used by TerrainMeshResponse and the diagnostics endpoint; TerrainBinaryWriter keeps its streaming float subtraction inline, noted in its javadoc). New TerrainModel.countBoundaries(String) and LandXmlSurface.countBoundaries(String) replace the duplicated OUTER/VOID stream counts.
+- Tests added: LocalCoordinatesTest (2), TerrainModelBoundaryCountTest, LandXmlSurfaceBoundaryCountTest. Poms unchanged. Total 337 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 3 - api application services; controllers only map (R2)
+
+- New plain-Java services (beans in CoreConfiguration): alignment/application AlignmentSamplingService + AlignmentSample; landxml/application LandXmlImportQueries, LongitudinalProfileService + ProfileSample; terrain/application TerrainImportUseCase, TerrainReadService; trafficloads/application TrafficResolveUseCase + TrafficResolution. AlignmentSampleRequest.toAlignment() builds the straight alignment. AlignmentController, LandXmlController, TerrainController and TrafficLoadsController now only map HTTP to these services; the 404 ResponseStatusExceptions stay in the controllers.
+- Tests added (9): AlignmentSamplingServiceTest (2), LandXmlImportQueriesTest, LongitudinalProfileServiceTest (2, characterization vs ChainageSampler.forProfile / terrain query / profile coverage), TerrainServicesTest (2), TrafficResolveUseCaseTest (2). Total 346 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 4 - materials module (F-19)
+
+- New framework-free module materials (package com.kopruq.materials, no internal dependencies). EurocodeConcrete (+ EurocodeConcreteTest) moved from analysis-api with git mv (package line only). New ConcreteStrengthClasses.characteristicStrengthMpa(String) holds the 14 strength-class identifiers and the fck parsing formerly in ConcreteMaterialController (same 404 message, thrown by the controller). api depends on materials; ModuleBoundaryTest map updated.
+- Tests added: ConcreteStrengthClassesTest (2). Total 348 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 5 - environmental-loads module (F-08)
+
+- New framework-free module environmental-loads (package com.kopruq.environmentalloads, no internal dependencies). Wind, seismic-spectrum and uniform-temperature services, requests/results and TemperatureMaterialCase (10 main + 3 test files) moved from traffic-loads with git mv (package line only); traffic-loads is now EN 1991-2 only. api depends on environmental-loads; ModuleBoundaryTest map updated.
+- No new tests (moved tests: WindLoadsServiceTest, SeismicSpectrumServiceTest, UniformTemperatureServiceTest). Total 348 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 6 - Rule evaluation moved into generative-engine
+
+- New generative EvaluatedAlternative / EvaluatedAlternativeGenerator (AlternativeGenerator unchanged) run every generated alternative through the RuleEngine in generation order; AlternativeGenerationController only maps (decision A1; no rule exists yet, so behavior is unchanged). generative-engine -> rules-engine is now a used edge and ModuleBoundaryTest.KNOWN_UNUSED_EDGES is empty.
+- Tests added: EvaluatedAlternativeGeneratorTest (2). AlternativeGenerationControllerTest only rewires its constructor (assertions unchanged). One transient failure in the new test (random alternative ids compared by record equality) was a test-authoring error and was fixed before continuing. Total 350 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 7 - Analysis port vocabulary and units (F-06 / F-14)
+
+- analysis-api: new enums MaterialKind {CONCRETE} and LoadCaseKind {DEAD, WIND} (only values in use). AnalysisMaterial is now (id, MaterialKind kind, name, elasticModulusKnPerM2, poissonRatio, thermalCoefficientPerC, weightDensityKnPerM3, massDensityTonnesPerM3); LoadCase is (name, LoadCaseKind kind). The package documentation fixes the port unit system (m, kN, kN/m2, kN/m3, t/m3, rad, 1/degC, kN/m, kN*m/rad); MIDAS shape codes and the stale dependency-direction wording were removed from the port javadocs.
+- midas-adapter: new package-private MidasVocabulary (CONCRETE -> "CONC", DEAD -> "D"; WIND -> UnsupportedOperationException, not verified against MIDAS). MidasModelBuilder uses it; its javadoc states the MIDAS session must already be in kN and m (no unit call is added; live verification is P07, together with the WIND mapping). The JSON sent to MIDAS is unchanged (MidasModelBuilderTest expected JSON untouched).
+- analysis-engine FrameSolver and api FastSolverModelBuilder/FastSolverController use the new names.
+- Tests added: MidasVocabularyTest (3). Six existing tests changed only in constructor arguments/imports (CONC/D/W to the enums). Poms unchanged. Total 353 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 8 - model-builder module and FastSolver application service (F-05)
+
+- New framework-free module model-builder (package com.kopruq.modelbuilder; depends on analysis-api and materials). NamedNode and FastSolverModel (renamed FrameBridgeModel) moved from api with git mv; new FrameBridgeInput (domain invariants, IllegalArgumentException), FrameBridgeModelBuilder (the portal-frame topology, body moved from FastSolverModelBuilder with the same modelling-simplification javadoc) and AppliedLoadSummary (the independent equilibrium total moved out of FastSolverController; unlike before, a non-rectangular section with self-weight throws IllegalArgumentException instead of counting 0 - not reachable via REST, decision A3).
+- api: FastSolverModelBuilder keeps request validation (unchanged messages/fields) and maps to FrameBridgeInput; new fastsolver/application FastSolverService (AnalysisEngine port; bean built explicitly over KopruqAnalysisEngine in CoreConfiguration) and FastSolverOutcome; FastSolverController only maps the outcome to FastSolverResponse. api depends on model-builder; ModuleBoundaryTest map updated.
+- Tests added (14): FrameBridgeModelBuilderTest (3), FrameBridgeInputTest (4), AppliedLoadSummaryTest (2), FastSolverServiceTest (5). FastSolverModelBuilderTest only changed imports and the FastSolverModel to FrameBridgeModel type name (decision A2). FastSolverContractTest snapshot (1e-9) unchanged and green. Total 367 tests, 0 failures, 1 skipped.
+
+### BACKEND-ARCHITECTURE Faz 9 - Closing: documentation and stale comments
+
+- Module tree, dependency graph, api package layout, rule-evaluation decision, port unit system and the P07 MIDAS notes (WIND mapping, session unit) updated above in the module/dependency sections. Stale comments fixed (SharedRepositoriesConfig javadoc, api/pom.xml). Final full build and the grep/diff acceptance checks were run (see the feature implementation report).

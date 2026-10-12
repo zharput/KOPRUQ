@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.kopruq</groupId>
+    <artifactId>kopruq-backend</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>model-builder</artifactId>
+  <packaging>jar</packaging>
+
+  <!-- Solver-independent analysis models built from bridge input (BACKEND-ARCHITECTURE Faz 8): the portal-frame
+       bridge model and its independent applied-load check. Produces an analysis-api AnalysisRequest; any solver
+       adapter (the native engine today, MIDAS later) can consume it. Pure Java, no framework. -->
+
+  <dependencies>
+    <dependency>
+      <groupId>com.kopruq</groupId>
+      <artifactId>analysis-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.kopruq</groupId>
+      <artifactId>materials</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</project>

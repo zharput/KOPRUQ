@@ -1,7 +1,8 @@
-package com.kopruq.api.alternatives;
+package com.kopruq.api.alternatives.api;
 
-import com.kopruq.api.kernel.KernelStateRequest;
+import com.kopruq.api.kernel.api.KernelStateRequest;
 import com.kopruq.generative.AlternativeGenerator;
+import com.kopruq.generative.EvaluatedAlternativeGenerator;
 import com.kopruq.rules.RuleEngine;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +17,7 @@ class AlternativeGenerationControllerTest {
 
     @Test
     void generate_specExample_returnsRowsMatchingTheExpectedSpanCounts() {
-        var controller = new AlternativeGenerationController(new AlternativeGenerator(), new RuleEngine());
+        var controller = new AlternativeGenerationController(new EvaluatedAlternativeGenerator(new AlternativeGenerator(), new RuleEngine()));
         var request = new KernelStateRequest("VIA-35", 210.0, 13.80, 30.0, 45.0, 4, 8, 1.8, 2.5);
 
         List<AlternativeRow> rows = controller.generate(request);
@@ -31,7 +32,7 @@ class AlternativeGenerationControllerTest {
 
     @Test
     void generate_withNoRulesApproved_marksEveryRowFeasible() {
-        var controller = new AlternativeGenerationController(new AlternativeGenerator(), new RuleEngine());
+        var controller = new AlternativeGenerationController(new EvaluatedAlternativeGenerator(new AlternativeGenerator(), new RuleEngine()));
         var request = new KernelStateRequest("VIA-35", 210.0, 13.80, 30.0, 45.0, 4, 8, 1.8, 2.5);
 
         List<AlternativeRow> rows = controller.generate(request);

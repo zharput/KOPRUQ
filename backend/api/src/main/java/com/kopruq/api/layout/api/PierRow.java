@@ -1,4 +1,4 @@
-package com.kopruq.api.layout;
+package com.kopruq.api.layout.api;
 
 import com.kopruq.bridgelayout.FeasibilityStatus;
 import com.kopruq.bridgelayout.PierCandidate;

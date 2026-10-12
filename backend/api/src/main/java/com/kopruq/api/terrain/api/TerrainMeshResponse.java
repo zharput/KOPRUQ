@@ -1,6 +1,7 @@
-package com.kopruq.api.terrain;
+package com.kopruq.api.terrain.api;
 
 import com.kopruq.spatialcore.Point3D;
+import com.kopruq.terrain.LocalCoordinates;
 import com.kopruq.terrain.TerrainModel;
 import com.kopruq.terrain.TerrainTriangle;
 
@@ -30,13 +31,7 @@ public record TerrainMeshResponse(
     public static TerrainMeshResponse from(TerrainModel terrain) {
         List<Point3D> vertices = terrain.vertices();
         Point3D origin = terrain.localOrigin();
-        double[] positions = new double[vertices.size() * 3];
-        for (int i = 0; i < vertices.size(); i++) {
-            Point3D v = vertices.get(i);
-            positions[i * 3] = v.x() - origin.x();
-            positions[i * 3 + 1] = v.y() - origin.y();
-            positions[i * 3 + 2] = v.z() - origin.z();
-        }
+        double[] positions = LocalCoordinates.relativePositions(vertices, origin);
 
         List<TerrainTriangle> triangles = terrain.triangles();
         int[] indices = new int[triangles.size() * 3];

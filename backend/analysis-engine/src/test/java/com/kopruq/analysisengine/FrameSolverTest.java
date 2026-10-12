@@ -7,6 +7,8 @@ import com.kopruq.analysis.AnalysisRequest;
 import com.kopruq.analysis.BoundaryCondition;
 import com.kopruq.analysis.ElasticLinkElement;
 import com.kopruq.analysis.LoadCase;
+import com.kopruq.analysis.LoadCaseKind;
+import com.kopruq.analysis.MaterialKind;
 import com.kopruq.analysis.SelfWeight;
 import com.kopruq.analysis.SolidRectangleSection;
 
@@ -46,10 +48,10 @@ class FrameSolverTest {
                 List.of(new AnalysisNode(1, 0, 0, 0), new AnalysisNode(2, length, 0, 0)),
                 List.of(new AnalysisElement(1, 1, 1, 1, 2)),
                 List.of(),
-                List.of(new AnalysisMaterial(1, "CONC", "TEST", E, POISSON, 1e-5, DENSITY, DENSITY / 9.81)),
+                List.of(new AnalysisMaterial(1, MaterialKind.CONCRETE, "TEST", E, POISSON, 1e-5, DENSITY, DENSITY / 9.81)),
                 List.of(new SolidRectangleSection(1, "TEST", height, width)),
                 List.of(new BoundaryCondition(1, true, true, true, true, true, true)),
-                List.of(new LoadCase("SelfWeight", "D")),
+                List.of(new LoadCase("SelfWeight", LoadCaseKind.DEAD)),
                 List.of(new SelfWeight("SelfWeight", 0, 0, -1)),
                 List.of());
 
@@ -74,10 +76,10 @@ class FrameSolverTest {
                 List.of(new AnalysisNode(1, 0, 0, 0), new AnalysisNode(2, 0, 0, length)),
                 List.of(new AnalysisElement(1, 1, 1, 1, 2)),
                 List.of(),
-                List.of(new AnalysisMaterial(1, "CONC", "TEST", E, POISSON, 1e-5, DENSITY, DENSITY / 9.81)),
+                List.of(new AnalysisMaterial(1, MaterialKind.CONCRETE, "TEST", E, POISSON, 1e-5, DENSITY, DENSITY / 9.81)),
                 List.of(new SolidRectangleSection(1, "TEST", side, side)),
                 List.of(new BoundaryCondition(1, true, true, true, true, true, true)),
-                List.of(new LoadCase("SelfWeight", "D")),
+                List.of(new LoadCase("SelfWeight", LoadCaseKind.DEAD)),
                 List.of(new SelfWeight("SelfWeight", 0, 0, -1)),
                 List.of());
 
@@ -112,10 +114,10 @@ class FrameSolverTest {
                         new AnalysisNode(3, length, 0, 0)),
                 List.of(new AnalysisElement(1, 1, 1, 2, 3)),
                 List.of(new ElasticLinkElement(1, 1, 2, kOther, kOther, kz, kOther, kOther, kOther)),
-                List.of(new AnalysisMaterial(1, "CONC", "TEST", E, POISSON, 1e-5, DENSITY, DENSITY / 9.81)),
+                List.of(new AnalysisMaterial(1, MaterialKind.CONCRETE, "TEST", E, POISSON, 1e-5, DENSITY, DENSITY / 9.81)),
                 List.of(new SolidRectangleSection(1, "TEST", side, side)),
                 List.of(new BoundaryCondition(1, true, true, true, true, true, true)),
-                List.of(new LoadCase("SelfWeight", "D")),
+                List.of(new LoadCase("SelfWeight", LoadCaseKind.DEAD)),
                 List.of(new SelfWeight("SelfWeight", 0, 0, -1)),
                 List.of());
 

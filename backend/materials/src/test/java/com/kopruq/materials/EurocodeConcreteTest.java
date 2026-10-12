@@ -1,4 +1,4 @@
-package com.kopruq.analysis;
+package com.kopruq.materials;
 
 import org.junit.jupiter.api.Test;
 

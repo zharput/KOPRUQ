@@ -25,6 +25,8 @@
     <module>terrain</module>
     <module>landxml-import</module>
     <module>traffic-loads</module>
+    <module>materials</module>
+    <module>environmental-loads</module>
     <module>constraints</module>
     <module>bridge-layout</module>
     <module>bridge-core</module>
@@ -32,6 +34,7 @@
     <module>generative-engine</module>
     <module>analysis-api</module>
     <module>analysis-engine</module>
+    <module>model-builder</module>
     <module>midas-adapter</module>
     <module>api</module>
   </modules>

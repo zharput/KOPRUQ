@@ -2,11 +2,12 @@ package com.kopruq.analysis;
 
 /**
  * The solver-independent port (the "IAnalysisEngine" from the master
- * spec/the engineer's MIDAS integration prompt, section 22). Bridge
- * Core, Rules Engine and Generative Engine depend on this interface
- * only, never on a specific solver adapter.
+ * spec/the engineer's MIDAS integration prompt, section 22). Code that
+ * needs an analysis depends on this interface only, never on a specific
+ * solver adapter; the domain modules (bridge-core, rules-engine,
+ * generative-engine) do not depend on it at all.
  *
- * <p>MIDAS-P01's {@code MidasCivilNxAnalysisEngine} implementation
+ * <p>The MIDAS adapter's {@code MidasCivilNxAnalysisEngine} implementation
  * happens to run {@code submit} synchronously to completion (MIDAS's own
  * {@code /doc/anal} call was verified to block until done), but callers
  * must not assume that - a future solver, or a later MIDAS milestone

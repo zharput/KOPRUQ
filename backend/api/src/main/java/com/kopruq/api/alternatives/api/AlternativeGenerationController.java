@@ -1,8 +1,7 @@
-package com.kopruq.api.alternatives;
+package com.kopruq.api.alternatives.api;
 
-import com.kopruq.api.kernel.KernelStateRequest;
-import com.kopruq.generative.AlternativeGenerator;
-import com.kopruq.rules.RuleEngine;
+import com.kopruq.api.kernel.api.KernelStateRequest;
+import com.kopruq.generative.EvaluatedAlternativeGenerator;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +14,9 @@ import java.util.List;
  * alternatives from the same 9-field request P02 introduced, and
  * returns them as a flat table-ready list.
  *
- * <p>P04 (spec section 11): each alternative is additionally run through
- * a {@link RuleEngine} to compute {@link AlternativeRow#feasible()}. The
- * engine holds NO rules yet (none approved by the engineer) - this wires
+ * <p>P04 (spec section 11): the {@link EvaluatedAlternativeGenerator} runs each
+ * alternative through the rule engine; the result feeds {@link AlternativeRow#feasible()}.
+ * The engine holds NO rules yet (none approved by the engineer) - this wires
  * real infrastructure ahead of the first real rule, it does not add any
  * engineering judgment of its own.
  */
@@ -25,12 +24,10 @@ import java.util.List;
 @RequestMapping("/api/alternatives")
 public class AlternativeGenerationController {
 
-    private final AlternativeGenerator generator;
-    private final RuleEngine ruleEngine;
+    private final EvaluatedAlternativeGenerator generator;
 
-    public AlternativeGenerationController(AlternativeGenerator generator, RuleEngine ruleEngine) {
+    public AlternativeGenerationController(EvaluatedAlternativeGenerator generator) {
         this.generator = generator;
-        this.ruleEngine = ruleEngine;
     }
 
     @PostMapping
@@ -40,9 +37,7 @@ public class AlternativeGenerationController {
 
         return generator.generate(bridge, designSpace)
                 .stream()
-                .map(alternative -> AlternativeRow.from(
-                        alternative,
-                        ruleEngine.evaluate(alternative, bridge, designSpace).feasible()))
+                .map(evaluated -> AlternativeRow.from(evaluated.alternative(), evaluated.feasible()))
                 .toList();
     }
 }

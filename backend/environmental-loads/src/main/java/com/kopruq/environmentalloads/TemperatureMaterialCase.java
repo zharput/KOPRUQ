@@ -1,4 +1,4 @@
-package com.kopruq.trafficloads;
+package com.kopruq.environmentalloads;
 
 /** Material-specific uniform-temperature case; values stay null until verified code data is configured. */
 public record TemperatureMaterialCase(

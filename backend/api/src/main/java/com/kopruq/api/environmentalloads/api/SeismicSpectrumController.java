@@ -1,8 +1,8 @@
-package com.kopruq.api.trafficloads;
+package com.kopruq.api.environmentalloads.api;
 
-import com.kopruq.trafficloads.SeismicSpectrumRequest;
-import com.kopruq.trafficloads.SeismicSpectrumResult;
-import com.kopruq.trafficloads.SeismicSpectrumService;
+import com.kopruq.environmentalloads.SeismicSpectrumRequest;
+import com.kopruq.environmentalloads.SeismicSpectrumResult;
+import com.kopruq.environmentalloads.SeismicSpectrumService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

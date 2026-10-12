@@ -1,4 +1,4 @@
-package com.kopruq.api.layout;
+package com.kopruq.api.layout.api;
 
 import com.kopruq.bridgelayout.BridgeLayoutEngine;
 import org.springframework.web.bind.annotation.PostMapping;

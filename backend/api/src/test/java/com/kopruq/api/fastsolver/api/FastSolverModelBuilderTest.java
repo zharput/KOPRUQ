@@ -1,8 +1,10 @@
-package com.kopruq.api.fastsolver;
+package com.kopruq.api.fastsolver.api;
 
 import com.kopruq.analysis.AnalysisRequest;
 import com.kopruq.api.error.FieldViolation;
 import com.kopruq.api.error.InvalidRequestException;
+import com.kopruq.modelbuilder.FrameBridgeModel;
+import com.kopruq.modelbuilder.NamedNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -56,7 +58,7 @@ class FastSolverModelBuilderTest {
 
     @Test
     void validRequest_buildsTheFiveSpanPortalFrameTopology() {
-        FastSolverModel model = builder.build(valid());
+        FrameBridgeModel model = builder.build(valid());
         AnalysisRequest r = model.analysisRequest();
 
         // 6 deck nodes (C1,P1..P4,C2), 6 substructure-top nodes, 4 piers x 4 column nodes

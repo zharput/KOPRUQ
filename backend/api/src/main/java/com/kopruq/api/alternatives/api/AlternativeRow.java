@@ -1,4 +1,4 @@
-package com.kopruq.api.alternatives;
+package com.kopruq.api.alternatives.api;
 
 import com.kopruq.bridgecore.BridgeAlternative;
 

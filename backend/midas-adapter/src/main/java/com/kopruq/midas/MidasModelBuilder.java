@@ -28,7 +28,15 @@ import java.util.List;
  *
  * <p>MIDAS-P01 scope only: isotropic materials, solid-rectangle
  * ("Value"/"SB") sections, beam elements, translation/rotation
- * constraint supports, and self-weight. No load combinations,
+ * constraint supports, and self-weight. Section shape codes ("SB" solid
+ * rectangle, "H" I/H-section, "SR" solid circle) and the material / load
+ * case TYPE codes ({@link MidasVocabulary}) are MIDAS vocabulary and live
+ * here only.
+ *
+ * <p><b>Units:</b> the port uses m and kN (see {@code com.kopruq.analysis}
+ * package documentation). This builder does not set the MIDAS session
+ * unit (no unit call exists in the verified API set), so the session MUST
+ * already be in kN and m - live verification is part of P07. No load combinations,
  * construction stages, moving loads, tendons or seismic - adding those
  * needs their own verified schema first (see the analysis doc's
  * capability matrix for what is/isn't confirmed yet).
@@ -84,7 +92,7 @@ public final class MidasModelBuilder {
         for (LoadCase loadCase : loadCases) {
             ObjectNode entry = assign.putObject(String.valueOf(index++));
             entry.put("NAME", loadCase.name());
-            entry.put("TYPE", loadCase.type());
+            entry.put("TYPE", MidasVocabulary.loadCaseType(loadCase.kind()));
         }
         return new MidasApiCall("PUT", "/db/stld", wrapAssign(assign));
     }
@@ -93,15 +101,15 @@ public final class MidasModelBuilder {
         ObjectNode assign = mapper.createObjectNode();
         for (AnalysisMaterial material : materials) {
             ObjectNode entry = assign.putObject(String.valueOf(material.id()));
-            entry.put("TYPE", material.type());
+            entry.put("TYPE", MidasVocabulary.materialType(material.kind()));
             entry.put("NAME", material.name());
             ObjectNode param = entry.putObject("PARAM");
             param.put("P_TYPE", 2); // Isotropic - see analysis-api's AnalysisMaterial doc
-            param.put("ELAST", material.elasticModulus());
+            param.put("ELAST", material.elasticModulusKnPerM2());
             param.put("POISN", material.poissonRatio());
-            param.put("THERMAL", material.thermalCoefficient());
-            param.put("DEN", material.weightDensity());
-            param.put("MASS", material.massDensity());
+            param.put("THERMAL", material.thermalCoefficientPerC());
+            param.put("DEN", material.weightDensityKnPerM3());
+            param.put("MASS", material.massDensityTonnesPerM3());
         }
         return new MidasApiCall("PUT", "/db/matl", wrapAssign(assign));
     }

@@ -1,4 +1,4 @@
-package com.kopruq.api.terrain;
+package com.kopruq.api.terrain.api;
 
 import com.kopruq.spatialcore.Point3D;
 import com.kopruq.terrain.TerrainImportResult;

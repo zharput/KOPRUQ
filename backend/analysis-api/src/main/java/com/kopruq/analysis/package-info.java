@@ -6,11 +6,17 @@
  * interface without bridge-core, rules-engine or generative-engine ever
  * knowing which solver is in use.
  *
- * {@link com.kopruq.analysis.AnalysisEngine} plus its request/result
+ * <p>{@link com.kopruq.analysis.AnalysisEngine} plus its request/result
  * types are the MIDAS-P01 minimal shape (reactions/displacements for a
  * simple beam only) - see docs/MIDAS_INTEGRATION_ANALYSIS.md for the
  * full staged plan (load combinations, moving loads, construction
  * stages, seismic, bearing/foundation results all come later, without
  * reshaping this port).
+ *
+ * <p><b>Unit system of this port</b> (a solver adapter must make its session use it, or convert):
+ * length m, force kN, so moduli and stresses kN/m2, weight density kN/m3, mass density t/m3, angles rad,
+ * thermal expansion 1/degC, translational spring stiffness kN/m, rotational spring stiffness kN*m/rad.
+ * Solver-specific vocabularies (material types, load-case types, section shape codes) live only in the
+ * adapters.
  */
 package com.kopruq.analysis;

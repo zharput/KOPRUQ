@@ -10,6 +10,8 @@ import com.kopruq.analysis.AnalysisRequest;
 import com.kopruq.analysis.AnalysisStatus;
 import com.kopruq.analysis.BoundaryCondition;
 import com.kopruq.analysis.LoadCase;
+import com.kopruq.analysis.LoadCaseKind;
+import com.kopruq.analysis.MaterialKind;
 import com.kopruq.analysis.SelfWeight;
 import com.kopruq.analysis.SolidRectangleSection;
 import org.junit.jupiter.api.Test;
@@ -36,12 +38,12 @@ class MidasCivilNxAnalysisEngineTest {
             List.of(new AnalysisNode(1, 0, 0, 0), new AnalysisNode(2, 20, 0, 0)),
             List.of(new AnalysisElement(1, 1, 1, 1, 2)),
             List.of(),
-            List.of(new AnalysisMaterial(1, "CONC", "C30", 30_000_000, 0.2, 0.00001, 24.5, 2.5)),
+            List.of(new AnalysisMaterial(1, MaterialKind.CONCRETE, "C30", 30_000_000, 0.2, 0.00001, 24.5, 2.5)),
             List.of(new SolidRectangleSection(1, "GIRDER-1", 2.0, 1.0)),
             List.of(
                     new BoundaryCondition(1, true, true, true, true, false, false),
                     new BoundaryCondition(2, false, true, true, true, false, false)),
-            List.of(new LoadCase("SelfWeight", "D")),
+            List.of(new LoadCase("SelfWeight", LoadCaseKind.DEAD)),
             List.of(new SelfWeight("SelfWeight", 0, 0, -1)),
             List.of());
 

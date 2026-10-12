@@ -1,12 +1,10 @@
-package com.kopruq.api.alignment;
+package com.kopruq.api.alignment.api;
 
 import com.kopruq.alignment.Alignment;
-import com.kopruq.api.alignment.application.ChainageSampler;
-import com.kopruq.alignment.ChainagePosition;
-import com.kopruq.alignment.StraightElement;
-import com.kopruq.landxml.LandXmlImportRepository;
+import com.kopruq.api.alignment.application.AlignmentSample;
+import com.kopruq.api.alignment.application.AlignmentSamplingService;
+import com.kopruq.api.landxml.application.LandXmlImportQueries;
 import com.kopruq.landxml.LandXmlImportResult;
-import com.kopruq.spatialcore.Point3D;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,40 +38,32 @@ import java.util.List;
 @RequestMapping("/api/alignment")
 public class AlignmentController {
 
-    private final LandXmlImportRepository landXmlImportRepository;
-    private final ChainageSampler chainageSampler;
+    private final LandXmlImportQueries importQueries;
+    private final AlignmentSamplingService samplingService;
 
-    public AlignmentController(LandXmlImportRepository landXmlImportRepository, ChainageSampler chainageSampler) {
-        this.landXmlImportRepository = landXmlImportRepository;
-        this.chainageSampler = chainageSampler;
+    public AlignmentController(LandXmlImportQueries importQueries, AlignmentSamplingService samplingService) {
+        this.importQueries = importQueries;
+        this.samplingService = samplingService;
     }
 
     @PostMapping("/sample")
     public List<AlignmentSamplePoint> sample(@RequestBody AlignmentSampleRequest request) {
         request.validate();
-        var start = new Point3D(request.startXM(), request.startYM(), 0);
-        var end = new Point3D(request.endXM(), request.endYM(), 0);
-        var alignment = new Alignment(List.of(new StraightElement(start, end)));
-        return sampleAt(alignment, request.stepM());
+        return toPoints(samplingService.sample(request.toAlignment(), request.stepM()));
     }
 
     @GetMapping("/{id}/sample")
     public List<AlignmentSamplePoint> sampleImported(@PathVariable String id, @RequestParam(defaultValue = "0") double stepM) {
-        LandXmlImportResult result = landXmlImportRepository.findById(id)
+        LandXmlImportResult result = importQueries.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No LandXML import with id " + id));
         Alignment alignment = result.alignment();
         if (alignment == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Import " + id + " has no alignment");
         }
-        return sampleAt(alignment, stepM);
+        return toPoints(samplingService.sample(alignment, stepM));
     }
 
-    private List<AlignmentSamplePoint> sampleAt(Alignment alignment, double requestedStepM) {
-        List<AlignmentSamplePoint> samples = new ArrayList<>();
-        for (double chainageM : chainageSampler.forOverlay(alignment.totalLengthM(), requestedStepM)) {
-            Point3D p = alignment.toXYZ(new ChainagePosition(chainageM, 0, 0));
-            samples.add(new AlignmentSamplePoint(p.x(), p.y(), chainageM));
-        }
-        return samples;
+    private static List<AlignmentSamplePoint> toPoints(List<AlignmentSample> samples) {
+        return samples.stream().map(s -> new AlignmentSamplePoint(s.xM(), s.yM(), s.chainageM())).toList();
     }
 }

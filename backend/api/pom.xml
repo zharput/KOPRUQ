@@ -16,7 +16,8 @@
     The only Spring Boot module (spec/architecture amendment v2:
     "Backend API - use-case orchestration, authorization, workflow,
     audit - Spring Boot modular monolith"). Depends on every other
-    backend module and exposes them to the frontend as REST/JSON.
+    backend module except midas-adapter (re-added with P07) and exposes
+    them to the frontend as REST/JSON.
   -->
 
   <dependencies>
@@ -69,6 +70,16 @@
     </dependency>
     <dependency>
       <groupId>com.kopruq</groupId>
+      <artifactId>materials</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.kopruq</groupId>
+      <artifactId>environmental-loads</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.kopruq</groupId>
       <artifactId>constraints</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -80,6 +91,11 @@
     <dependency>
       <groupId>com.kopruq</groupId>
       <artifactId>analysis-engine</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.kopruq</groupId>
+      <artifactId>model-builder</artifactId>
       <version>${project.version}</version>
     </dependency>
 

@@ -1,16 +1,12 @@
-package com.kopruq.api.landxml;
+package com.kopruq.api.landxml.api;
 
 import com.kopruq.alignment.Alignment;
-import com.kopruq.alignment.ChainagePosition;
-import com.kopruq.api.alignment.application.ChainageSampler;
+import com.kopruq.api.landxml.application.LandXmlImportQueries;
 import com.kopruq.api.landxml.application.LandXmlImportUseCase;
+import com.kopruq.api.landxml.application.LongitudinalProfileService;
 import com.kopruq.landxml.LandXmlDocument;
-import com.kopruq.landxml.LandXmlImportRepository;
 import com.kopruq.landxml.LandXmlImportResult;
 import com.kopruq.landxml.LandXmlImportService;
-import com.kopruq.spatialcore.Point3D;
-import com.kopruq.terrain.TerrainModel;
-import com.kopruq.terrain.TerrainQueryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,7 +21,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,19 +42,16 @@ import java.util.List;
 public class LandXmlController {
 
     private final LandXmlImportService importService;
-    private final TerrainQueryService terrainQueryService;
-    private final LandXmlImportRepository landXmlImportRepository;
+    private final LandXmlImportQueries importQueries;
     private final LandXmlImportUseCase importUseCase;
-    private final ChainageSampler chainageSampler;
+    private final LongitudinalProfileService profileService;
 
-    public LandXmlController(LandXmlImportService importService, TerrainQueryService terrainQueryService,
-            LandXmlImportRepository landXmlImportRepository, LandXmlImportUseCase importUseCase,
-            ChainageSampler chainageSampler) {
+    public LandXmlController(LandXmlImportService importService, LandXmlImportQueries importQueries,
+            LandXmlImportUseCase importUseCase, LongitudinalProfileService profileService) {
         this.importService = importService;
-        this.terrainQueryService = terrainQueryService;
-        this.landXmlImportRepository = landXmlImportRepository;
+        this.importQueries = importQueries;
         this.importUseCase = importUseCase;
-        this.chainageSampler = chainageSampler;
+        this.profileService = profileService;
     }
 
     @PostMapping(value = "/inspect", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -102,27 +94,15 @@ public class LandXmlController {
      */
     @GetMapping("/{id}/profile")
     public List<LongitudinalProfilePoint> profile(@PathVariable String id, @RequestParam(defaultValue = "0") double stepM) {
-        LandXmlImportResult result = landXmlImportRepository.findById(id)
+        LandXmlImportResult result = importQueries.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No LandXML import with id " + id));
         Alignment alignment = result.alignment();
         if (alignment == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Import " + id + " has no alignment");
         }
-        TerrainModel terrain = result.terrain();
-        List<LongitudinalProfilePoint> points = new ArrayList<>();
-        for (double chainageM : chainageSampler.forProfile(alignment.totalLengthM(), stepM)) {
-            points.add(profilePointAt(alignment, terrain, result, chainageM));
-        }
-        return points;
-    }
-
-    private LongitudinalProfilePoint profilePointAt(Alignment alignment, TerrainModel terrain, LandXmlImportResult result, double chainageM) {
-        Point3D horizontal = alignment.toXYZ(new ChainagePosition(chainageM, 0, 0));
-        Double groundElevationM = terrainQueryService.getElevation(terrain, horizontal.x(), horizontal.y()).orElse(null);
-        // Outside the PVI range the profile would only be an extrapolation of its end grades: report no design elevation.
-        Double designElevationM = result.profile() != null && result.profile().covers(chainageM)
-                ? result.profile().elevationAt(chainageM) : null;
-        return new LongitudinalProfilePoint(chainageM, groundElevationM, designElevationM);
+        return profileService.profile(result, stepM).stream()
+                .map(p -> new LongitudinalProfilePoint(p.chainageM(), p.groundElevationM(), p.designElevationM()))
+                .toList();
     }
 
     private static InputStream openStream(MultipartFile file) {

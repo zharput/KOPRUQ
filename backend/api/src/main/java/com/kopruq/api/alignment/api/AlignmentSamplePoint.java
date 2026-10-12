@@ -1,4 +1,4 @@
-package com.kopruq.api.alignment;
+package com.kopruq.api.alignment.api;
 
 /**
  * A horizontal-only sample point along an alignment - no z/elevation,

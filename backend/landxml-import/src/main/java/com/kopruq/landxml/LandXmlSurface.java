@@ -9,4 +9,9 @@ public record LandXmlSurface(String name, List<LandXmlPoint> points, List<LandXm
     public LandXmlSurface(String name, List<LandXmlPoint> points, List<LandXmlFace> faces) {
         this(name, points, faces, List.of(), List.of(), 0, 0);
     }
+
+    /** Number of boundaries of the given {@code type} (e.g. {@code "OUTER"}, {@code "VOID"}). */
+    public long countBoundaries(String type) {
+        return boundaries.stream().filter(b -> type.equals(b.type())).count();
+    }
 }

@@ -1,10 +1,9 @@
-package com.kopruq.api.terrain;
+package com.kopruq.api.terrain.api;
 
+import com.kopruq.api.terrain.application.TerrainImportUseCase;
+import com.kopruq.api.terrain.application.TerrainReadService;
 import com.kopruq.terrain.TerrainImportResult;
-import com.kopruq.terrain.TerrainImportService;
 import com.kopruq.terrain.TerrainModel;
-import com.kopruq.terrain.TerrainQueryService;
-import com.kopruq.terrain.TerrainRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,23 +35,20 @@ import java.nio.charset.StandardCharsets;
  *
  * <p>Storage is in-memory and per-process, same as every other backend
  * service in this app today (no persistence layer exists anywhere yet).
- * All collaborators are injected; {@code repository} must be the same shared
- * instance the LandXML import writes into (see
+ * All collaborators are injected; the use cases must be built over the same shared
+ * repository the LandXML import writes into (see
  * {@code com.kopruq.api.config.SharedRepositoriesConfig}).
  */
 @RestController
 @RequestMapping("/api/terrain")
 public class TerrainController {
 
-    private final TerrainImportService importService;
-    private final TerrainQueryService queryService;
-    private final TerrainRepository repository;
+    private final TerrainImportUseCase importUseCase;
+    private final TerrainReadService readService;
 
-    public TerrainController(TerrainImportService importService, TerrainQueryService queryService,
-            TerrainRepository repository) {
-        this.importService = importService;
-        this.queryService = queryService;
-        this.repository = repository;
+    public TerrainController(TerrainImportUseCase importUseCase, TerrainReadService readService) {
+        this.importUseCase = importUseCase;
+        this.readService = readService;
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -68,8 +64,7 @@ public class TerrainController {
             throw new UncheckedIOException("Could not read uploaded file " + sourceFileName, e);
         }
 
-        TerrainImportResult result = importService.importXyzWithDiagnostics(projectId, sourceFileName, coordinateSystemLabel, content);
-        repository.save(result.terrain());
+        TerrainImportResult result = importUseCase.importXyz(projectId, sourceFileName, coordinateSystemLabel, content);
         return TerrainImportResponse.from(result);
     }
 
@@ -97,22 +92,17 @@ public class TerrainController {
     }
 
     private static double[] localPositions(java.util.List<com.kopruq.spatialcore.Point3D> points, TerrainModel terrain) {
-        double[] positions = new double[points.size()*3];
-        var origin=terrain.localOrigin();
-        for (int i=0;i<points.size();i++) {
-            var p=points.get(i);positions[3*i]=p.x()-origin.x();positions[3*i+1]=p.y()-origin.y();positions[3*i+2]=p.z()-origin.z();
-        }
-        return positions;
+        return com.kopruq.terrain.LocalCoordinates.relativePositions(points, terrain.localOrigin());
     }
 
     @GetMapping("/{id}/elevation")
     public TerrainElevationResponse elevation(@PathVariable String id, @RequestParam double x, @RequestParam double y) {
         TerrainModel terrain = findOrThrow(id);
-        return new TerrainElevationResponse(queryService.getElevation(terrain, x, y).orElse(null));
+        return new TerrainElevationResponse(readService.elevationAt(terrain, x, y).orElse(null));
     }
 
     private TerrainModel findOrThrow(String id) {
-        return repository.findById(id)
+        return readService.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No terrain with id " + id));
     }
 }

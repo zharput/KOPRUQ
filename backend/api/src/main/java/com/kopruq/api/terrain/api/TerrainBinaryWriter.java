@@ -1,9 +1,15 @@
-package com.kopruq.api.terrain;
+package com.kopruq.api.terrain.api;
 import com.kopruq.terrain.TerrainModel;
 import java.io.*;
 import java.nio.*;
 
-/** Version 1: LE magic/version/counts/origin (40 bytes), Float32 XYZ-local positions, UInt32 indices. */
+/**
+ * Version 1: LE magic/version/counts/origin (40 bytes), Float32 XYZ-local positions, UInt32 indices.
+ *
+ * <p>The local-origin subtraction is deliberately inline (it is not {@code LocalCoordinates.relativePositions}):
+ * this writer streams {@code float} values through a fixed buffer and must not allocate a {@code double[]} for
+ * the whole mesh.
+ */
 public final class TerrainBinaryWriter {
     public static final int MAGIC = 0x53504e54;
     private TerrainBinaryWriter() { }

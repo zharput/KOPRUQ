@@ -1,5 +1,6 @@
 package com.kopruq.api.layout;
 
+import com.kopruq.bridgelayout.BridgeLayoutEngine;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,12 +14,12 @@ class LayoutGenerationControllerTest {
     // span range 30-50 m step 10, span count 2-3, C1 fixed at chainage 0
     // -> 4 alternatives, one rejected once a no-pier zone blocks chainage 40.
     private static LayoutGenerationRequest requestWithZone(List<NoPierZoneRequest> zones) {
-        return new LayoutGenerationRequest(100, 0, 100, "River", zones, 30, 50, 2, 3, 10, 100);
+        return new LayoutGenerationRequest(100.0, 0.0, 100.0, "River", zones, 30.0, 50.0, 2, 3, 10.0, 100.0);
     }
 
     @Test
     void generate_withNoZones_returnsFourFeasibleAlternatives() {
-        var controller = new LayoutGenerationController();
+        var controller = new LayoutGenerationController(new BridgeLayoutEngine());
 
         List<LayoutAlternativeRow> rows = controller.generate(requestWithZone(List.of()));
 
@@ -28,8 +29,8 @@ class LayoutGenerationControllerTest {
 
     @Test
     void generate_withNoPierZone_rejectsExactlyOneAlternative() {
-        var controller = new LayoutGenerationController();
-        var zone = new NoPierZoneRequest("NPZ-1", 38, 42, "Main river channel");
+        var controller = new LayoutGenerationController(new BridgeLayoutEngine());
+        var zone = new NoPierZoneRequest("NPZ-1", 38.0, 42.0, "Main river channel");
 
         List<LayoutAlternativeRow> rows = controller.generate(requestWithZone(List.of(zone)));
 
@@ -44,8 +45,8 @@ class LayoutGenerationControllerTest {
 
     @Test
     void generate_withNullZonesList_treatsAsNoConstraints() {
-        var controller = new LayoutGenerationController();
-        var request = new LayoutGenerationRequest(100, 0, 100, "River", null, 30, 50, 2, 3, 10, 100);
+        var controller = new LayoutGenerationController(new BridgeLayoutEngine());
+        var request = new LayoutGenerationRequest(100.0, 0.0, 100.0, "River", null, 30.0, 50.0, 2, 3, 10.0, 100.0);
 
         List<LayoutAlternativeRow> rows = controller.generate(request);
 

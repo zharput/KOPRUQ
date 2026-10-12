@@ -26,6 +26,9 @@ public final class MidasResultExtractor {
     private static final String REACTIONS_TABLE_NAME = "Reactions";
     private static final String DISPLACEMENTS_TABLE_NAME = "Displacements";
 
+    private static final List<String> REACTIONS_HEAD = List.of("Index", "Node", "Load", "FX", "FY", "FZ", "MX", "MY", "MZ");
+    private static final List<String> DISPLACEMENTS_HEAD = List.of("Index", "Node", "Load", "DX", "DY", "DZ", "RX", "RY", "RZ");
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     public MidasApiCall reactionsRequest(String loadCaseName) {
@@ -50,7 +53,7 @@ public final class MidasResultExtractor {
     /** HEAD: ["Index", "Node", "Load", "FX", "FY", "FZ", "MX", "MY", "MZ"] */
     public List<ReactionResult> parseReactions(JsonNode response) {
         var results = new ArrayList<ReactionResult>();
-        for (JsonNode row : dataRows(response, REACTIONS_TABLE_NAME)) {
+        for (JsonNode row : dataRows(response, REACTIONS_TABLE_NAME, REACTIONS_HEAD)) {
             results.add(new ReactionResult(
                     row.get(1).asInt(),
                     row.get(3).asDouble(),
@@ -66,7 +69,7 @@ public final class MidasResultExtractor {
     /** HEAD: ["Index", "Node", "Load", "DX", "DY", "DZ", "RX", "RY", "RZ"] */
     public List<DisplacementResult> parseDisplacements(JsonNode response) {
         var results = new ArrayList<DisplacementResult>();
-        for (JsonNode row : dataRows(response, DISPLACEMENTS_TABLE_NAME)) {
+        for (JsonNode row : dataRows(response, DISPLACEMENTS_TABLE_NAME, DISPLACEMENTS_HEAD)) {
             results.add(new DisplacementResult(
                     row.get(1).asInt(),
                     row.get(3).asDouble(),
@@ -79,10 +82,26 @@ public final class MidasResultExtractor {
         return results;
     }
 
-    private JsonNode dataRows(JsonNode response, String tableName) {
+    /**
+     * Rows are read by FIXED column index, so the table's HEAD must be exactly the documented column list;
+     * any other order, a missing HEAD or a different column count would silently read the wrong quantity.
+     * (Units are not verified here - that remains open.)
+     */
+    private JsonNode dataRows(JsonNode response, String tableName, List<String> expectedHead) {
         JsonNode table = response.get(tableName);
         if (table == null) {
             throw new MidasApiException("Expected a \"" + tableName + "\" table in the MIDAS response, got: " + response);
+        }
+        JsonNode head = table.get("HEAD");
+        if (head == null || !head.isArray() || head.size() != expectedHead.size()) {
+            throw new MidasApiException("MIDAS \"" + tableName + "\" table has an unexpected HEAD (expected " + expectedHead
+                    + ", got " + head + ")");
+        }
+        for (int i = 0; i < expectedHead.size(); i++) {
+            if (!expectedHead.get(i).equals(head.get(i).asText())) {
+                throw new MidasApiException("MIDAS \"" + tableName + "\" table column " + i + " is \"" + head.get(i).asText()
+                        + "\", expected \"" + expectedHead.get(i) + "\" (full HEAD: " + head + ")");
+            }
         }
         JsonNode data = table.get("DATA");
         if (data == null) {

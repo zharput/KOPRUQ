@@ -32,8 +32,13 @@ public final class EurocodeConcrete {
     private EurocodeConcrete() {
     }
 
-    /** @param fckMpa characteristic cylinder compressive strength, MPa (e.g. 30 for C30/37) */
+    /**
+     * @param fckMpa characteristic cylinder compressive strength, MPa (e.g. 30 for C30/37)
+     * @throws IllegalArgumentException if fck is not a finite number greater than 0 (no Table 3.1
+     *         class range is enforced here - that is an open engineer question)
+     */
     public static double meanCompressiveStrengthMpa(double fckMpa) {
+        requireValidFck(fckMpa);
         return fckMpa + 8;
     }
 
@@ -42,11 +47,18 @@ public final class EurocodeConcrete {
      *
      * @param fckMpa characteristic cylinder compressive strength, MPa
      * @return Ecm in kN/m2, matching this project's SI (m, kN) convention
+     * @throws IllegalArgumentException if fck is not a finite number greater than 0
      */
     public static double elasticModulusKnPerM2(double fckMpa) {
         double fcmMpa = meanCompressiveStrengthMpa(fckMpa);
         double ecmGpa = 22 * Math.pow(fcmMpa / 10.0, 0.3);
         return ecmGpa * 1_000_000; // 1 GPa = 1e6 kN/m2
+    }
+
+    private static void requireValidFck(double fckMpa) {
+        if (!Double.isFinite(fckMpa) || fckMpa <= 0) {
+            throw new IllegalArgumentException("fck must be a finite number greater than 0 MPa, got " + fckMpa);
+        }
     }
 
     /** Mass density derived from unit weight (weight = mass * g), in t/m3. */

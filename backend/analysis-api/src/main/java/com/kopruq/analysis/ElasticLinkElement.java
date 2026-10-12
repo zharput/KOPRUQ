@@ -19,4 +19,12 @@ public record ElasticLinkElement(
         int id, int nodeI, int nodeJ,
         double kx, double ky, double kz,
         double krx, double kry, double krz) {
+
+    /** Stiffnesses must be finite numbers; no sign or range rule is applied here. */
+    public ElasticLinkElement {
+        if (!Double.isFinite(kx) || !Double.isFinite(ky) || !Double.isFinite(kz)
+                || !Double.isFinite(krx) || !Double.isFinite(kry) || !Double.isFinite(krz)) {
+            throw new IllegalArgumentException("ElasticLinkElement " + id + ": all stiffnesses must be finite numbers");
+        }
+    }
 }

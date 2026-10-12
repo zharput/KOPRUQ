@@ -17,6 +17,9 @@ package com.kopruq.constraints;
 public record NoPierZone(String id, double startChainageM, double endChainageM, String description) {
 
     public NoPierZone {
+        if (!Double.isFinite(startChainageM) || !Double.isFinite(endChainageM)) {
+            throw new IllegalArgumentException("startChainageM and endChainageM must be finite numbers");
+        }
         if (startChainageM > endChainageM) {
             throw new IllegalArgumentException("startChainageM must be <= endChainageM");
         }

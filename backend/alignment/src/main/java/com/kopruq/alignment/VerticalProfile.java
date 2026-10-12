@@ -24,6 +24,26 @@ public record VerticalProfile(String name, List<Pvi> pvis) {
         if (pvis == null || pvis.size() < 2) {
             throw new IllegalArgumentException("VerticalProfile requires at least 2 PVIs");
         }
+        for (int i = 0; i < pvis.size(); i++) {
+            Pvi pvi = pvis.get(i);
+            if (pvi == null || !Double.isFinite(pvi.chainageM()) || !Double.isFinite(pvi.elevationM())
+                    || !Double.isFinite(pvi.curveLengthM())) {
+                throw new IllegalArgumentException("VerticalProfile PVI #" + (i + 1) + " must have finite chainage, elevation and curve length");
+            }
+            if (i > 0 && pvi.chainageM() <= pvis.get(i - 1).chainageM()) {
+                throw new IllegalArgumentException("VerticalProfile PVI chainages must be strictly increasing (PVI #"
+                        + (i + 1) + " at " + pvi.chainageM() + " follows " + pvis.get(i - 1).chainageM() + ")");
+            }
+        }
+    }
+
+    /**
+     * Whether the profile is defined at this chainage, i.e. between its first and last PVI.
+     * {@link #elevationAt(double)} still extends the end grades beyond that range (unchanged);
+     * callers that must not show an extrapolated design elevation use this to decide.
+     */
+    public boolean covers(double chainageM) {
+        return chainageM >= pvis.get(0).chainageM() && chainageM <= pvis.get(pvis.size() - 1).chainageM();
     }
 
     /**

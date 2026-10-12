@@ -1,13 +1,13 @@
 package com.kopruq.api.alignment;
 
 import com.kopruq.alignment.Alignment;
+import com.kopruq.api.alignment.application.ChainageSampler;
 import com.kopruq.alignment.ChainagePosition;
 import com.kopruq.alignment.StraightElement;
 import com.kopruq.landxml.LandXmlImportRepository;
 import com.kopruq.landxml.LandXmlImportResult;
 import com.kopruq.spatialcore.Point3D;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,17 +39,19 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/alignment")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AlignmentController {
 
     private final LandXmlImportRepository landXmlImportRepository;
+    private final ChainageSampler chainageSampler;
 
-    public AlignmentController(LandXmlImportRepository landXmlImportRepository) {
+    public AlignmentController(LandXmlImportRepository landXmlImportRepository, ChainageSampler chainageSampler) {
         this.landXmlImportRepository = landXmlImportRepository;
+        this.chainageSampler = chainageSampler;
     }
 
     @PostMapping("/sample")
     public List<AlignmentSamplePoint> sample(@RequestBody AlignmentSampleRequest request) {
+        request.validate();
         var start = new Point3D(request.startXM(), request.startYM(), 0);
         var end = new Point3D(request.endXM(), request.endYM(), 0);
         var alignment = new Alignment(List.of(new StraightElement(start, end)));
@@ -67,19 +69,12 @@ public class AlignmentController {
         return sampleAt(alignment, stepM);
     }
 
-    private static List<AlignmentSamplePoint> sampleAt(Alignment alignment, double requestedStepM) {
-        double totalLengthM = alignment.totalLengthM();
-        double stepM = requestedStepM > 0 ? requestedStepM : Math.max(totalLengthM / 20, 1);
-
+    private List<AlignmentSamplePoint> sampleAt(Alignment alignment, double requestedStepM) {
         List<AlignmentSamplePoint> samples = new ArrayList<>();
-        double chainageM = 0;
-        while (chainageM < totalLengthM) {
+        for (double chainageM : chainageSampler.forOverlay(alignment.totalLengthM(), requestedStepM)) {
             Point3D p = alignment.toXYZ(new ChainagePosition(chainageM, 0, 0));
             samples.add(new AlignmentSamplePoint(p.x(), p.y(), chainageM));
-            chainageM += stepM;
         }
-        Point3D lastPoint = alignment.toXYZ(new ChainagePosition(totalLengthM, 0, 0));
-        samples.add(new AlignmentSamplePoint(lastPoint.x(), lastPoint.y(), totalLengthM));
         return samples;
     }
 }

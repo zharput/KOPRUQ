@@ -19,11 +19,6 @@
     No solver-specific type may appear here.
   -->
 
-  <dependencies>
-    <dependency>
-      <groupId>com.kopruq</groupId>
-      <artifactId>bridge-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-  </dependencies>
+  <!-- BACKEND-REMEDIATION Faz 9: the former dependency on bridge-core was never used (no import) and was removed;
+       this module is a pure port layer and depends on no other KOPRUQ module. -->
 </project>

@@ -3,6 +3,8 @@ package com.kopruq.analysis;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Validates {@link EurocodeConcrete} against EN 1992-1-1:2004 Table 3.1's
@@ -26,6 +28,22 @@ class EurocodeConcreteTest {
         double actual = EurocodeConcrete.elasticModulusKnPerM2(C30_37_FCK_MPA);
 
         assertEquals(expectedEcmKnPerM2, actual, 5000); // formula vs. rounded table value, small tolerance
+    }
+
+    @Test
+    void nonPositiveOrNonFiniteFck_isRejected() {
+        for (double bad : new double[] {0, -1, -8, -20, Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+            assertThrows(IllegalArgumentException.class, () -> EurocodeConcrete.elasticModulusKnPerM2(bad), "Ecm " + bad);
+            assertThrows(IllegalArgumentException.class, () -> EurocodeConcrete.meanCompressiveStrengthMpa(bad), "fcm " + bad);
+        }
+    }
+
+    @Test
+    void positiveFck_outsideTable31Classes_isNotRangeLimited() {
+        // The Table 3.1 class range is an open engineer decision; only fck > 0 and finite is enforced.
+        assertEquals(20.0 + 8, EurocodeConcrete.meanCompressiveStrengthMpa(20.0), 1e-12);
+        assertEquals(5.0 + 8, EurocodeConcrete.meanCompressiveStrengthMpa(5.0), 1e-12);
+        assertTrue(EurocodeConcrete.elasticModulusKnPerM2(120.0) > 0);
     }
 
     @Test

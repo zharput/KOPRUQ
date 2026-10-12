@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class KopruqAnalysisEngine implements AnalysisEngine {
 
+    private static final System.Logger LOG = System.getLogger(KopruqAnalysisEngine.class.getName());
+
     private final Map<AnalysisJobId, AnalysisJob> jobs = new ConcurrentHashMap<>();
 
     @Override
@@ -39,6 +41,7 @@ public final class KopruqAnalysisEngine implements AnalysisEngine {
 
         try {
             FrameSolver.SolveResult solved = FrameSolver.solve(request);
+            requireFiniteResults(solved);
 
             List<DisplacementResult> displacements = new ArrayList<>();
             solved.displacements().forEach((nodeId, d) ->
@@ -51,7 +54,8 @@ public final class KopruqAnalysisEngine implements AnalysisEngine {
             var result = new AnalysisResult(AnalysisStatus.COMPLETED, reactions, displacements, null);
             jobs.put(jobId, new AnalysisJob(jobId, AnalysisStatus.COMPLETED, result));
         } catch (RuntimeException e) {
-            var result = new AnalysisResult(AnalysisStatus.FAILED, List.of(), List.of(), e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Analysis job " + jobId + " failed", e);
+            var result = new AnalysisResult(AnalysisStatus.FAILED, List.of(), List.of(), failureMessage(e));
             jobs.put(jobId, new AnalysisJob(jobId, AnalysisStatus.FAILED, result));
         }
 
@@ -69,12 +73,36 @@ public final class KopruqAnalysisEngine implements AnalysisEngine {
         if (job.status() == AnalysisStatus.RUNNING) {
             throw new IllegalStateException("Job " + jobId + " has not finished yet");
         }
+        // The result is handed over exactly once; keeping every finished job forever would leak memory.
+        jobs.remove(jobId);
         return job.result();
     }
 
     @Override
     public void cancel(AnalysisJobId jobId) {
         throw new UnsupportedOperationException("submit() already runs to completion synchronously - there is nothing to cancel");
+    }
+
+    /**
+     * A solve that produced NaN/infinity (degenerate or overflowing model) is not a result:
+     * it must fail the job instead of being reported as COMPLETED.
+     */
+    private static void requireFiniteResults(FrameSolver.SolveResult solved) {
+        solved.displacements().forEach((nodeId, d) -> requireFinite("displacement", nodeId, d));
+        solved.reactions().forEach((nodeId, r) -> requireFinite("reaction", nodeId, r));
+    }
+
+    private static void requireFinite(String kind, int nodeId, double[] values) {
+        for (double v : values) {
+            if (!Double.isFinite(v)) {
+                throw new IllegalStateException("The solution contains a non-finite " + kind + " at node " + nodeId
+                        + " - the model is degenerate or numerically unstable.");
+            }
+        }
+    }
+
+    private static String failureMessage(RuntimeException e) {
+        return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
     }
 
     private AnalysisJob job(AnalysisJobId jobId) {

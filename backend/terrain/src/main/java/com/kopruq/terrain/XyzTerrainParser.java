@@ -20,7 +20,22 @@ final class XyzTerrainParser {
     }
 
     static List<Point3D> parse(String text) {
+        return parseWithDiagnostics(text).points();
+    }
+
+    /**
+     * Same tolerant parsing as {@link #parse}, plus the counts of rows that were skipped for
+     * non-finite numbers and of rows with more than three numeric columns. A leading UTF-8 byte
+     * order mark (common in Windows exports) is removed so it does not turn the first point into
+     * a non-numeric "header" row.
+     */
+    static XyzParseResult parseWithDiagnostics(String text) {
         List<Point3D> points = new ArrayList<>();
+        int nonFiniteRows = 0;
+        int wideRows = 0;
+        if (text.startsWith("\uFEFF")) {
+            text = text.substring(1);
+        }
         for (String rawLine : text.split("\\r?\\n")) {
             String line = rawLine.trim();
             if (line.isEmpty()) {
@@ -36,9 +51,22 @@ final class XyzTerrainParser {
             if (x == null || y == null || z == null) {
                 continue;
             }
+            if (!Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z)) {
+                nonFiniteRows++;
+                continue;
+            }
+            int numericColumns = 0;
+            for (String token : tokens) {
+                if (tryParse(token) != null) {
+                    numericColumns++;
+                }
+            }
+            if (numericColumns > 3) {
+                wideRows++;
+            }
             points.add(new Point3D(x, y, z));
         }
-        return points;
+        return new XyzParseResult(points, nonFiniteRows, wideRows);
     }
 
     private static Double tryParse(String token) {

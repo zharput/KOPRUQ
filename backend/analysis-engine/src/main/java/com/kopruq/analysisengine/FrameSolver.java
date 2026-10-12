@@ -7,11 +7,15 @@ import com.kopruq.analysis.AnalysisRequest;
 import com.kopruq.analysis.AnalysisSection;
 import com.kopruq.analysis.BoundaryCondition;
 import com.kopruq.analysis.ElasticLinkElement;
+import com.kopruq.analysis.LoadCase;
 import com.kopruq.analysis.SelfWeight;
 import com.kopruq.analysis.UniformElementLoad;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The actual linear-elastic direct-stiffness solve: assemble the global
@@ -27,6 +31,7 @@ final class FrameSolver {
     }
 
     static SolveResult solve(AnalysisRequest request) {
+        validate(request);
         Map<Integer, Integer> nodeIndex = new HashMap<>();
         int index = 0;
         for (AnalysisNode node : request.nodes()) {
@@ -169,6 +174,55 @@ final class FrameSolver {
         }
 
         return new SolveResult(displacements, reactions);
+    }
+
+    /**
+     * Rejects requests the solver would otherwise silently mis-handle: duplicate ids (a later entry would overwrite
+     * an earlier one), supports on nodes that do not exist (they would be ignored, leaving the model unrestrained),
+     * and load cases (the solver assembles ONE combined load vector, so several cases cannot be distinguished
+     * and a load that names an undefined case cannot be placed).
+     */
+    private static void validate(AnalysisRequest request) {
+        requireUnique("node", request.nodes().stream().map(AnalysisNode::id).toList());
+        requireUnique("element", request.elements().stream().map(AnalysisElement::id).toList());
+        requireUnique("material", request.materials().stream().map(AnalysisMaterial::id).toList());
+        requireUnique("section", request.sections().stream().map(AnalysisSection::id).toList());
+        requireUnique("elastic link", request.elasticLinks().stream().map(ElasticLinkElement::id).toList());
+
+        Set<Integer> nodeIds = new HashSet<>();
+        request.nodes().forEach(n -> nodeIds.add(n.id()));
+        for (BoundaryCondition bc : request.supports()) {
+            if (!nodeIds.contains(bc.nodeId())) {
+                throw new IllegalArgumentException("Support refers to unknown node id: " + bc.nodeId());
+            }
+        }
+
+        if (request.loadCases().size() > 1) {
+            throw new IllegalArgumentException("The native solver supports exactly one load case, got "
+                    + request.loadCases().size() + " (" + request.loadCases().stream().map(LoadCase::name).toList() + ")");
+        }
+        Set<String> loadCaseNames = new HashSet<>();
+        request.loadCases().forEach(lc -> loadCaseNames.add(lc.name()));
+        for (SelfWeight selfWeight : request.selfWeights()) {
+            if (!loadCaseNames.contains(selfWeight.loadCaseName())) {
+                throw new IllegalArgumentException("Self-weight refers to unknown load case: " + selfWeight.loadCaseName());
+            }
+        }
+        for (UniformElementLoad load : request.uniformLoads()) {
+            if (!loadCaseNames.contains(load.loadCaseName())) {
+                throw new IllegalArgumentException("Uniform load on element " + load.elementId()
+                        + " refers to unknown load case: " + load.loadCaseName());
+            }
+        }
+    }
+
+    private static void requireUnique(String kind, List<Integer> ids) {
+        Set<Integer> seen = new HashSet<>();
+        for (Integer id : ids) {
+            if (!seen.add(id)) {
+                throw new IllegalArgumentException("Duplicate " + kind + " id: " + id);
+            }
+        }
     }
 
     private static void assemble(double[][] globalK, double[][] elementK, int nodeIPos, int nodeJPos) {

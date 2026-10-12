@@ -3,7 +3,6 @@ package com.kopruq.api.alternatives;
 import com.kopruq.api.kernel.KernelStateRequest;
 import com.kopruq.generative.AlternativeGenerator;
 import com.kopruq.rules.RuleEngine;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,11 +23,15 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/alternatives")
-@CrossOrigin(origins = "http://localhost:5173")
 public class AlternativeGenerationController {
 
-    private final AlternativeGenerator generator = new AlternativeGenerator();
-    private final RuleEngine ruleEngine = new RuleEngine();
+    private final AlternativeGenerator generator;
+    private final RuleEngine ruleEngine;
+
+    public AlternativeGenerationController(AlternativeGenerator generator, RuleEngine ruleEngine) {
+        this.generator = generator;
+        this.ruleEngine = ruleEngine;
+    }
 
     @PostMapping
     public List<AlternativeRow> generate(@RequestBody KernelStateRequest request) {

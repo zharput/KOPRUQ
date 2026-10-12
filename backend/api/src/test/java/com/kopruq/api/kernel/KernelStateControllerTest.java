@@ -16,7 +16,7 @@ class KernelStateControllerTest {
     @Test
     void buildKernelState_constructsARealBridgeAndDesignSpace() {
         var controller = new KernelStateController();
-        var request = new KernelStateRequest("VIA-35", 210, 13.80, 30, 45, 4, 8, 1.8, 2.5);
+        var request = new KernelStateRequest("VIA-35", 210.0, 13.80, 30.0, 45.0, 4, 8, 1.8, 2.5);
 
         var response = controller.buildKernelState(request);
 

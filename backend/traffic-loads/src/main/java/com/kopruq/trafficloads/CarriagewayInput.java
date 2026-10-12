@@ -11,6 +11,12 @@ package com.kopruq.trafficloads;
  */
 public record CarriagewayInput(double deckWidthM, double leftWalkwayM, double rightWalkwayM) {
 
+    public CarriagewayInput {
+        if (!Double.isFinite(deckWidthM) || !Double.isFinite(leftWalkwayM) || !Double.isFinite(rightWalkwayM)) {
+            throw new IllegalArgumentException("deckWidthM, leftWalkwayM and rightWalkwayM must be finite numbers");
+        }
+    }
+
     public double carriagewayWidthM() {
         return deckWidthM - leftWalkwayM - rightWalkwayM;
     }

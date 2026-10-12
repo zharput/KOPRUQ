@@ -2,7 +2,6 @@ package com.kopruq.api.kernel;
 
 import com.kopruq.bridgecore.Bridge;
 import com.kopruq.bridgecore.DesignSpace;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,14 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
  * {@link DesignSpace} from the frontend's 9 fields and returns them
  * back as JSON. Deliberately does nothing else - no persistence.
  *
- * <p>{@code @CrossOrigin} is a P02 convenience for the Vite dev server
- * (default port 5173) talking to this API (default port 8080) during
- * local development - revisit with a real CORS policy or a dev proxy
- * once the frontend's actual deployment shape is decided.
+ * <p>Cross-origin access for the Vite dev server (port 5173) is configured
+ * centrally in {@code WebCorsConfiguration}, not per controller.
  */
 @RestController
 @RequestMapping("/api/kernel-state")
-@CrossOrigin(origins = "http://localhost:5173")
 public class KernelStateController {
 
     @PostMapping

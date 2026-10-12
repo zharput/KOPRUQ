@@ -1,5 +1,7 @@
 package com.kopruq.api.fastsolver;
 
+import com.kopruq.api.error.FieldViolation;
+import com.kopruq.api.error.InvalidRequestException;
 import com.kopruq.analysis.AnalysisElement;
 import com.kopruq.analysis.AnalysisMaterial;
 import com.kopruq.analysis.AnalysisNode;
@@ -35,10 +37,8 @@ import java.util.List;
 public final class FastSolverModelBuilder {
 
     public FastSolverModel build(FastSolverRequest request) {
+        validate(request);
         int pierCount = request.pierHeightsM().size();
-        if (request.spanLengthsM().size() != pierCount + 1) {
-            throw new IllegalArgumentException("pierHeightsM must have one entry per intermediate pier (spanCount - 1)");
-        }
 
         var nodes = new ArrayList<AnalysisNode>();
         var elements = new ArrayList<AnalysisElement>();
@@ -51,7 +51,7 @@ public final class FastSolverModelBuilder {
         double e = EurocodeConcrete.elasticModulusKnPerM2(request.concreteFckMpa());
         double unitWeight = EurocodeConcrete.UNIT_WEIGHT_REINFORCED_KN_PER_M3;
         var material = new AnalysisMaterial(
-                1, "CONC", "C" + (int) request.concreteFckMpa(),
+                1, "CONC", "C" + (int) (double) request.concreteFckMpa(),
                 e, EurocodeConcrete.POISSON_RATIO_UNCRACKED, EurocodeConcrete.THERMAL_COEFFICIENT_PER_C,
                 unitWeight, EurocodeConcrete.massDensityTonnesPerM3(unitWeight));
 
@@ -142,6 +142,83 @@ public final class FastSolverModelBuilder {
                 uniformLoads);
 
         return new FastSolverModel(analysisRequest, deckNamedNodes, supportNamedNodes);
+    }
+
+    /**
+     * Input-domain checks only (finite numbers, required fields, dimensions
+     * greater than 0) - no engineering limit is applied. {@code sdlKnPerM} and
+     * the bearing stiffnesses are required and finite but deliberately have no
+     * sign/range rule. Every violation is collected and reported together.
+     */
+    static void validate(FastSolverRequest request) {
+        var violations = new ArrayList<FieldViolation>();
+        if (request == null) {
+            violations.add(new FieldViolation("request", "is required"));
+            throw new InvalidRequestException(violations);
+        }
+
+        List<Double> spans = request.spanLengthsM();
+        if (spans == null) {
+            violations.add(new FieldViolation("spanLengthsM", "is required"));
+        } else if (spans.isEmpty()) {
+            violations.add(new FieldViolation("spanLengthsM", "must contain at least one span"));
+        } else {
+            for (int i = 0; i < spans.size(); i++) {
+                requirePositive(violations, "spanLengthsM[" + i + "]", spans.get(i));
+            }
+        }
+
+        List<Double> piers = request.pierHeightsM();
+        if (piers == null) {
+            violations.add(new FieldViolation("pierHeightsM", "is required"));
+        } else {
+            for (int i = 0; i < piers.size(); i++) {
+                requirePositive(violations, "pierHeightsM[" + i + "]", piers.get(i));
+            }
+            if (spans != null && !spans.isEmpty() && piers.size() != spans.size() - 1) {
+                violations.add(new FieldViolation("pierHeightsM",
+                        "must have one entry per intermediate pier (spanCount - 1 = " + (spans.size() - 1) + "), got " + piers.size()));
+            }
+        }
+
+        requirePositive(violations, "deckWidthM", request.deckWidthM());
+        requirePositive(violations, "deckThicknessM", request.deckThicknessM());
+        requirePositive(violations, "columnLongitudinalM", request.columnLongitudinalM());
+        requirePositive(violations, "columnTransverseM", request.columnTransverseM());
+        requirePositive(violations, "columnSpacingTransverseM", request.columnSpacingTransverseM());
+        requirePositive(violations, "capBeamWidthM", request.capBeamWidthM());
+        requirePositive(violations, "capBeamDepthM", request.capBeamDepthM());
+        requirePositive(violations, "concreteFckMpa", request.concreteFckMpa());
+
+        requireFinite(violations, "sdlKnPerM", request.sdlKnPerM());
+        requireFinite(violations, "bearingKx", request.bearingKx());
+        requireFinite(violations, "bearingKy", request.bearingKy());
+        requireFinite(violations, "bearingKz", request.bearingKz());
+        requireFinite(violations, "bearingKrx", request.bearingKrx());
+        requireFinite(violations, "bearingKry", request.bearingKry());
+        requireFinite(violations, "bearingKrz", request.bearingKrz());
+
+        if (!violations.isEmpty()) {
+            throw new InvalidRequestException(violations);
+        }
+    }
+
+    private static void requireFinite(List<FieldViolation> violations, String field, Double value) {
+        if (value == null) {
+            violations.add(new FieldViolation(field, "is required"));
+        } else if (!Double.isFinite(value)) {
+            violations.add(new FieldViolation(field, "must be a finite number"));
+        }
+    }
+
+    private static void requirePositive(List<FieldViolation> violations, String field, Double value) {
+        if (value == null) {
+            violations.add(new FieldViolation(field, "is required"));
+        } else if (!Double.isFinite(value)) {
+            violations.add(new FieldViolation(field, "must be a finite number"));
+        } else if (value <= 0) {
+            violations.add(new FieldViolation(field, "must be greater than 0"));
+        }
     }
 
     private static final class IdGenerator {

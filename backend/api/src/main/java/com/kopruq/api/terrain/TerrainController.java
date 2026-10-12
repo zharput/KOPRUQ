@@ -1,12 +1,12 @@
 package com.kopruq.api.terrain;
 
+import com.kopruq.terrain.TerrainImportResult;
 import com.kopruq.terrain.TerrainImportService;
 import com.kopruq.terrain.TerrainModel;
 import com.kopruq.terrain.TerrainQueryService;
 import com.kopruq.terrain.TerrainRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,20 +36,22 @@ import java.nio.charset.StandardCharsets;
  *
  * <p>Storage is in-memory and per-process, same as every other backend
  * service in this app today (no persistence layer exists anywhere yet).
- * {@code repository} is injected (not {@code new InMemoryTerrainRepository()}
- * inline) - it must be the same shared instance {@code LandXmlController}
- * writes into (see {@code com.kopruq.api.config.SharedRepositoriesConfig}).
+ * All collaborators are injected; {@code repository} must be the same shared
+ * instance the LandXML import writes into (see
+ * {@code com.kopruq.api.config.SharedRepositoriesConfig}).
  */
 @RestController
 @RequestMapping("/api/terrain")
-@CrossOrigin(origins = "http://localhost:5173")
 public class TerrainController {
 
-    private final TerrainImportService importService = new TerrainImportService();
-    private final TerrainQueryService queryService = new TerrainQueryService();
+    private final TerrainImportService importService;
+    private final TerrainQueryService queryService;
     private final TerrainRepository repository;
 
-    public TerrainController(TerrainRepository repository) {
+    public TerrainController(TerrainImportService importService, TerrainQueryService queryService,
+            TerrainRepository repository) {
+        this.importService = importService;
+        this.queryService = queryService;
         this.repository = repository;
     }
 
@@ -66,14 +68,9 @@ public class TerrainController {
             throw new UncheckedIOException("Could not read uploaded file " + sourceFileName, e);
         }
 
-        TerrainModel terrain;
-        try {
-            terrain = importService.importXyz(projectId, sourceFileName, coordinateSystemLabel, content);
-        } catch (IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
-        }
-        repository.save(terrain);
-        return TerrainImportResponse.from(terrain);
+        TerrainImportResult result = importService.importXyzWithDiagnostics(projectId, sourceFileName, coordinateSystemLabel, content);
+        repository.save(result.terrain());
+        return TerrainImportResponse.from(result);
     }
 
     @GetMapping("/{id}/mesh")

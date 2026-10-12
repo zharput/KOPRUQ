@@ -7,7 +7,6 @@ import com.kopruq.trafficloads.TrafficLoadGroup;
 import com.kopruq.trafficloads.TrafficLoadGroupCatalog;
 import com.kopruq.trafficloads.TrafficLoadsService;
 import com.kopruq.trafficloads.TrafficValidationResult;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,12 +29,18 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/traffic-loads")
-@CrossOrigin(origins = "http://localhost:5173")
 public class TrafficLoadsController {
 
-    private final Lm1DefaultsFactory lm1DefaultsFactory = new Lm1DefaultsFactory();
-    private final TrafficLoadGroupCatalog loadGroupCatalog = new TrafficLoadGroupCatalog();
-    private final TrafficLoadsService service = new TrafficLoadsService();
+    private final Lm1DefaultsFactory lm1DefaultsFactory;
+    private final TrafficLoadGroupCatalog loadGroupCatalog;
+    private final TrafficLoadsService service;
+
+    public TrafficLoadsController(Lm1DefaultsFactory lm1DefaultsFactory, TrafficLoadGroupCatalog loadGroupCatalog,
+            TrafficLoadsService service) {
+        this.lm1DefaultsFactory = lm1DefaultsFactory;
+        this.loadGroupCatalog = loadGroupCatalog;
+        this.service = service;
+    }
 
     @GetMapping("/lm1-defaults")
     public Lm1Parameters lm1Defaults(@RequestParam(defaultValue = "3") int laneCount) {
@@ -49,6 +54,9 @@ public class TrafficLoadsController {
 
     @PostMapping("/resolve")
     public TrafficResolveResponse resolve(@RequestBody TrafficResolveRequest request) {
+        if (request.carriageway() == null) {
+            throw new IllegalArgumentException("carriageway is required");
+        }
         NotionalLaneResult lanes = service.generateLanes(request.carriageway());
         TrafficValidationResult validation = service.validate(lanes, request.lm1());
         return new TrafficResolveResponse(lanes, request.lm1(), validation);

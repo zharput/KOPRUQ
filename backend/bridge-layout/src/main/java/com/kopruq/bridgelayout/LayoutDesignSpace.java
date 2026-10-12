@@ -24,4 +24,12 @@ public record LayoutDesignSpace(
 
     public static final double DEFAULT_SPAN_LENGTH_STEP_M = 0.50;
     public static final double DEFAULT_C1_STEP_M = 1.00;
+
+    /** Only finiteness is enforced here; range and step rules stay in {@code BridgeLayoutEngine}. */
+    public LayoutDesignSpace {
+        if (!Double.isFinite(minSpanM) || !Double.isFinite(maxSpanM)
+                || !Double.isFinite(spanLengthStepM) || !Double.isFinite(c1StepM)) {
+            throw new IllegalArgumentException("minSpanM, maxSpanM, spanLengthStepM and c1StepM must be finite numbers");
+        }
+    }
 }

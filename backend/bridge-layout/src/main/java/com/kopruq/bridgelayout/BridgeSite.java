@@ -11,6 +11,9 @@ package com.kopruq.bridgelayout;
 public record BridgeSite(String id, String name, double startChainageM, double endChainageM, String crossingType) {
 
     public BridgeSite {
+        if (!Double.isFinite(startChainageM) || !Double.isFinite(endChainageM)) {
+            throw new IllegalArgumentException("startChainageM and endChainageM must be finite numbers");
+        }
         if (startChainageM >= endChainageM) {
             throw new IllegalArgumentException("startChainageM must be < endChainageM");
         }

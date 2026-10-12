@@ -43,12 +43,20 @@ public final class BridgeLayoutEngine {
         var results = new ArrayList<BridgeLayoutAlternative>();
         int counter = 0;
 
-        for (double c1ChainageM = site.startChainageM();
-             c1ChainageM <= site.endChainageM() + TOLERANCE_M;
-             c1ChainageM += designSpace.c1StepM()) {
+        requireAdvancing(site.startChainageM(), designSpace.c1StepM(), "c1StepM");
+        requireRepresentable((site.endChainageM() - site.startChainageM()) / designSpace.c1StepM(), "c1StepM");
+        List<Double> spanLengths = feasibleSpanLengths(designSpace);
 
-            for (int spanCount = designSpace.minSpanCount(); spanCount <= designSpace.maxSpanCount(); spanCount++) {
-                for (double spanLengthM : feasibleSpanLengths(designSpace)) {
+        // Index-based C1 walk (c1 = start + i * step): "c1 += step" never ends once the step falls below the ULP of c1.
+        for (long c1Index = 0; ; c1Index++) {
+            double c1ChainageM = site.startChainageM() + c1Index * designSpace.c1StepM();
+            if (c1ChainageM > site.endChainageM() + TOLERANCE_M) {
+                break;
+            }
+
+            // long counter: an int counter wraps (and never ends) when maxSpanCount == Integer.MAX_VALUE
+            for (long spanCount = designSpace.minSpanCount(); spanCount <= designSpace.maxSpanCount(); spanCount++) {
+                for (double spanLengthM : spanLengths) {
                     double bridgeLengthM = spanCount * spanLengthM;
                     double c2ChainageM = c1ChainageM + bridgeLengthM;
                     if (c2ChainageM > site.endChainageM() + TOLERANCE_M) {
@@ -83,8 +91,8 @@ public final class BridgeLayoutEngine {
                         piers.add(new PierCandidate(pierChainageM, status, List.copyOf(reasons)));
                     }
 
-                    var spanLengthsM = new ArrayList<Double>(spanCount);
-                    for (int i = 0; i < spanCount; i++) {
+                    var spanLengthsM = new ArrayList<Double>((int) spanCount);
+                    for (long i = 0; i < spanCount; i++) {
                         spanLengthsM.add(spanLengthM);
                     }
 
@@ -105,13 +113,30 @@ public final class BridgeLayoutEngine {
     }
 
     private static List<Double> feasibleSpanLengths(LayoutDesignSpace designSpace) {
+        requireAdvancing(designSpace.minSpanM(), designSpace.spanLengthStepM(), "spanLengthStepM");
+        requireRepresentable((designSpace.maxSpanM() - designSpace.minSpanM()) / designSpace.spanLengthStepM(), "spanLengthStepM");
         var lengths = new ArrayList<Double>();
-        for (double lengthM = designSpace.minSpanM();
-             lengthM <= designSpace.maxSpanM() + 1e-9;
-             lengthM += designSpace.spanLengthStepM()) {
+        for (long i = 0; ; i++) {
+            double lengthM = designSpace.minSpanM() + i * designSpace.spanLengthStepM();
+            if (lengthM > designSpace.maxSpanM() + 1e-9) {
+                break;
+            }
             lengths.add(Math.round(lengthM * 1_000_000d) / 1_000_000d);
         }
         return lengths;
+    }
+
+    /** A step that does not change the value it is added to would make a walk loop forever. */
+    private static void requireAdvancing(double from, double step, String name) {
+        if (!(from + step > from)) {
+            throw new IllegalArgumentException(name + " is too small to advance (it does not change the value it is added to)");
+        }
+    }
+
+    private static void requireRepresentable(double stepCount, String name) {
+        if (!(stepCount <= Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(name + " produces more steps than can be represented");
+        }
     }
 
     private static void validate(Alignment alignment, BridgeSite site, LayoutDesignSpace designSpace) {
@@ -120,16 +145,16 @@ public final class BridgeLayoutEngine {
                     "BridgeSite [" + site.startChainageM() + ", " + site.endChainageM() +
                             "] m falls outside the alignment (0 - " + alignment.totalLengthM() + " m)");
         }
-        if (designSpace.minSpanM() <= 0 || designSpace.maxSpanM() < designSpace.minSpanM()) {
+        if (!(designSpace.minSpanM() > 0) || designSpace.maxSpanM() < designSpace.minSpanM()) {
             throw new IllegalArgumentException("minSpanM/maxSpanM range is invalid");
         }
         if (designSpace.minSpanCount() < 1 || designSpace.maxSpanCount() < designSpace.minSpanCount()) {
             throw new IllegalArgumentException("minSpanCount/maxSpanCount range is invalid");
         }
-        if (designSpace.spanLengthStepM() <= 0) {
+        if (!(designSpace.spanLengthStepM() > 0)) {
             throw new IllegalArgumentException("spanLengthStepM must be > 0");
         }
-        if (designSpace.c1StepM() <= 0) {
+        if (!(designSpace.c1StepM() > 0)) {
             throw new IllegalArgumentException("c1StepM must be > 0");
         }
     }

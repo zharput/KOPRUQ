@@ -1,5 +1,9 @@
 package com.kopruq.api.kernel;
 
+import com.kopruq.api.error.FieldChecks;
+import com.kopruq.api.error.FieldViolation;
+import java.util.ArrayList;
+
 import com.kopruq.bridgecore.Bridge;
 import com.kopruq.bridgecore.DesignSpace;
 
@@ -20,20 +24,39 @@ import com.kopruq.bridgecore.DesignSpace;
  */
 public record KernelStateRequest(
         String bridgeName,
-        double totalLengthM,
-        double deckWidthM,
-        double minSpanM,
-        double maxSpanM,
-        int minGirderCount,
-        int maxGirderCount,
-        double minGirderDepthM,
-        double maxGirderDepthM) {
+        Double totalLengthM,
+        Double deckWidthM,
+        Double minSpanM,
+        Double maxSpanM,
+        Integer minGirderCount,
+        Integer maxGirderCount,
+        Double minGirderDepthM,
+        Double maxGirderDepthM) {
+
+    /**
+     * Every numeric field is required and finite (a missing field must not silently become 0).
+     * Reports all offending fields at once via {@link InvalidRequestException}.
+     */
+    void validate() {
+        var violations = new ArrayList<FieldViolation>();
+        FieldChecks.requireFinite(violations, "totalLengthM", totalLengthM);
+        FieldChecks.requireFinite(violations, "deckWidthM", deckWidthM);
+        FieldChecks.requireFinite(violations, "minSpanM", minSpanM);
+        FieldChecks.requireFinite(violations, "maxSpanM", maxSpanM);
+        FieldChecks.requireNonNull(violations, "minGirderCount", minGirderCount);
+        FieldChecks.requireNonNull(violations, "maxGirderCount", maxGirderCount);
+        FieldChecks.requireFinite(violations, "minGirderDepthM", minGirderDepthM);
+        FieldChecks.requireFinite(violations, "maxGirderDepthM", maxGirderDepthM);
+        FieldChecks.throwIfAny(violations);
+    }
 
     public Bridge toBridge() {
+        validate();
         return new Bridge(bridgeName, totalLengthM, deckWidthM);
     }
 
     public DesignSpace toDesignSpace() {
+        validate();
         return new DesignSpace(
                 minSpanM, maxSpanM,
                 minGirderCount, maxGirderCount,

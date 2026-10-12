@@ -29,11 +29,8 @@
   -->
 
   <dependencies>
-    <dependency>
-      <groupId>com.kopruq</groupId>
-      <artifactId>bridge-core</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    <!-- BACKEND-REMEDIATION Faz 9: the unused bridge-core dependency was removed (re-add it with the first
+         BridgeAlternative -> MIDAS import, milestone P07). -->
     <dependency>
       <groupId>com.kopruq</groupId>
       <artifactId>analysis-api</artifactId>

@@ -9,9 +9,11 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.triangulate.DelaunayTriangulationBuilder;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -33,14 +35,48 @@ import java.util.UUID;
 public final class TerrainImportService {
 
     public TerrainModel importXyz(String projectId, String sourceFileName, String coordinateSystemLabel, String xyzText) {
-        List<Point3D> rawPoints = XyzTerrainParser.parse(xyzText);
+        return importXyzWithDiagnostics(projectId, sourceFileName, coordinateSystemLabel, xyzText).terrain();
+    }
+
+    /**
+     * Same import as {@link #importXyz} (same first-occurrence-wins policy for a repeated (x,y), no tolerance
+     * and no averaging), but it also reports what could not be taken at face value: the terrain's status is
+     * {@link TerrainStatus#REVIEW_REQUIRED} when two points share (x,y) with different z (exact comparison),
+     * when fewer than 3 distinct points or no triangle resulted, or when rows had more than three numeric
+     * columns. Skipped non-finite rows are counted in the warnings.
+     */
+    public TerrainImportResult importXyzWithDiagnostics(String projectId, String sourceFileName,
+            String coordinateSystemLabel, String xyzText) {
+        XyzParseResult parsed = XyzTerrainParser.parseWithDiagnostics(xyzText);
+        List<Point3D> rawPoints = parsed.points();
         if (rawPoints.isEmpty()) {
             throw new IllegalArgumentException("No valid X Y Z points found in " + sourceFileName);
         }
 
+        List<String> warnings = new ArrayList<>();
+        boolean reviewRequired = false;
+        if (parsed.nonFiniteRows() > 0) {
+            warnings.add(parsed.nonFiniteRows() + " row(s) containing NaN or an infinite value were skipped.");
+        }
+        if (parsed.wideRows() > 0) {
+            reviewRequired = true;
+            warnings.add(parsed.wideRows() + " row(s) have more than three numeric columns; only the first three were read as X Y Z. "
+                    + "Confirm the file's column layout (and that a decimal comma was not split into two columns).");
+        }
+
         Map<Coordinate, Point3D> byLocation = new LinkedHashMap<>();
+        Set<Coordinate> conflictingLocations = new HashSet<>();
         for (Point3D p : rawPoints) {
-            byLocation.putIfAbsent(new Coordinate(p.x(), p.y()), p);
+            Coordinate location = new Coordinate(p.x(), p.y());
+            Point3D kept = byLocation.putIfAbsent(location, p);
+            if (kept != null && Double.compare(kept.z(), p.z()) != 0) {
+                conflictingLocations.add(location);
+            }
+        }
+        if (!conflictingLocations.isEmpty()) {
+            reviewRequired = true;
+            warnings.add(conflictingLocations.size() + " location(s) appear more than once with different elevations; "
+                    + "the first elevation of each was kept and the others were dropped.");
         }
 
         List<Point3D> vertices = new ArrayList<>(byLocation.values());
@@ -53,6 +89,13 @@ public final class TerrainImportService {
         }
 
         List<TerrainTriangle> triangles = triangulate(siteCoordinates, indexByLocation);
+        if (vertices.size() < 3) {
+            reviewRequired = true;
+            warnings.add("Only " + vertices.size() + " distinct point(s) - at least 3 are needed to form a surface.");
+        } else if (triangles.isEmpty()) {
+            reviewRequired = true;
+            warnings.add("The points could not be triangulated (no triangle was produced; they may be collinear).");
+        }
 
         double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY, minZ = Double.POSITIVE_INFINITY;
         double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY, maxZ = Double.NEGATIVE_INFINITY;
@@ -67,7 +110,7 @@ public final class TerrainImportService {
         Point3D boundsMin = new Point3D(minX, minY, minZ);
         Point3D boundsMax = new Point3D(maxX, maxY, maxZ);
 
-        return new TerrainModel(
+        TerrainModel terrain = new TerrainModel(
                 UUID.randomUUID().toString(),
                 projectId,
                 new CoordinateSystem(null, coordinateSystemLabel),
@@ -81,7 +124,8 @@ public final class TerrainImportService {
                 triangles,
                 boundsMin,
                 1,
-                TerrainStatus.IMPORTED);
+                reviewRequired ? TerrainStatus.REVIEW_REQUIRED : TerrainStatus.IMPORTED);
+        return new TerrainImportResult(terrain, List.copyOf(warnings));
     }
 
     private List<TerrainTriangle> triangulate(List<Coordinate> siteCoordinates, Map<Coordinate, Integer> indexByLocation) {

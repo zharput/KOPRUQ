@@ -18,4 +18,9 @@ public final class InMemoryTerrainRepository implements TerrainRepository {
     public Optional<TerrainModel> findById(String id) {
         return Optional.ofNullable(byId.get(id));
     }
+
+    @Override
+    public void deleteById(String id) {
+        byId.remove(id);
+    }
 }

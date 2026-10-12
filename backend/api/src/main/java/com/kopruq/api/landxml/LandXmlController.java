@@ -2,6 +2,8 @@ package com.kopruq.api.landxml;
 
 import com.kopruq.alignment.Alignment;
 import com.kopruq.alignment.ChainagePosition;
+import com.kopruq.api.alignment.application.ChainageSampler;
+import com.kopruq.api.landxml.application.LandXmlImportUseCase;
 import com.kopruq.landxml.LandXmlDocument;
 import com.kopruq.landxml.LandXmlImportRepository;
 import com.kopruq.landxml.LandXmlImportResult;
@@ -9,10 +11,8 @@ import com.kopruq.landxml.LandXmlImportService;
 import com.kopruq.spatialcore.Point3D;
 import com.kopruq.terrain.TerrainModel;
 import com.kopruq.terrain.TerrainQueryService;
-import com.kopruq.terrain.TerrainRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,17 +44,22 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/landxml")
-@CrossOrigin(origins = "http://localhost:5173")
 public class LandXmlController {
 
-    private final LandXmlImportService importService = new LandXmlImportService();
-    private final TerrainQueryService terrainQueryService = new TerrainQueryService();
-    private final TerrainRepository terrainRepository;
+    private final LandXmlImportService importService;
+    private final TerrainQueryService terrainQueryService;
     private final LandXmlImportRepository landXmlImportRepository;
+    private final LandXmlImportUseCase importUseCase;
+    private final ChainageSampler chainageSampler;
 
-    public LandXmlController(TerrainRepository terrainRepository, LandXmlImportRepository landXmlImportRepository) {
-        this.terrainRepository = terrainRepository;
+    public LandXmlController(LandXmlImportService importService, TerrainQueryService terrainQueryService,
+            LandXmlImportRepository landXmlImportRepository, LandXmlImportUseCase importUseCase,
+            ChainageSampler chainageSampler) {
+        this.importService = importService;
+        this.terrainQueryService = terrainQueryService;
         this.landXmlImportRepository = landXmlImportRepository;
+        this.importUseCase = importUseCase;
+        this.chainageSampler = chainageSampler;
     }
 
     @PostMapping(value = "/inspect", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -62,8 +67,8 @@ public class LandXmlController {
         LandXmlDocument document;
         try (InputStream input = openStream(file)) {
             document = importService.inspect(input);
-        } catch (IOException | RuntimeException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not read the uploaded file", e);
         }
         return LandXmlInspectResponse.from(document);
     }
@@ -80,14 +85,12 @@ public class LandXmlController {
 
         LandXmlImportResult result;
         try (InputStream input = openStream(file)) {
-            result = importService.commit(
+            result = importUseCase.importLandXml(
                     input, projectId, sourceFileName, coordinateSystemLabel, surfaceName, alignmentName, coordinateOrder);
-        } catch (IOException | IllegalArgumentException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Could not read the uploaded file", e);
         }
 
-        terrainRepository.save(result.terrain());
-        landXmlImportRepository.save(result);
         return LandXmlImportSummaryResponse.from(result);
     }
 
@@ -106,17 +109,9 @@ public class LandXmlController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Import " + id + " has no alignment");
         }
         TerrainModel terrain = result.terrain();
-        double totalLengthM = alignment.totalLengthM();
-        double effectiveStepM = stepM > 0 ? stepM : Math.max(totalLengthM / 50, 1);
-
         List<LongitudinalProfilePoint> points = new ArrayList<>();
-        double chainageM = 0;
-        while (chainageM <= totalLengthM) {
+        for (double chainageM : chainageSampler.forProfile(alignment.totalLengthM(), stepM)) {
             points.add(profilePointAt(alignment, terrain, result, chainageM));
-            chainageM += effectiveStepM;
-        }
-        if (chainageM - effectiveStepM < totalLengthM) {
-            points.add(profilePointAt(alignment, terrain, result, totalLengthM));
         }
         return points;
     }
@@ -124,7 +119,9 @@ public class LandXmlController {
     private LongitudinalProfilePoint profilePointAt(Alignment alignment, TerrainModel terrain, LandXmlImportResult result, double chainageM) {
         Point3D horizontal = alignment.toXYZ(new ChainagePosition(chainageM, 0, 0));
         Double groundElevationM = terrainQueryService.getElevation(terrain, horizontal.x(), horizontal.y()).orElse(null);
-        Double designElevationM = result.profile() != null ? result.profile().elevationAt(chainageM) : null;
+        // Outside the PVI range the profile would only be an extrapolation of its end grades: report no design elevation.
+        Double designElevationM = result.profile() != null && result.profile().covers(chainageM)
+                ? result.profile().elevationAt(chainageM) : null;
         return new LongitudinalProfilePoint(chainageM, groundElevationM, designElevationM);
     }
 

@@ -86,6 +86,30 @@ class MidasCivilNxAnalysisEngineTest {
     }
 
     @Test
+    void submit_whenMidasRejectsACall_logsTheFailureWithTheException() {
+        java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MidasCivilNxAnalysisEngine.class.getName());
+        var records = new ArrayList<java.util.logging.LogRecord>();
+        java.util.logging.Handler handler = new java.util.logging.Handler() {
+            @Override public void publish(java.util.logging.LogRecord record) { records.add(record); }
+            @Override public void flush() { }
+            @Override public void close() { }
+        };
+        logger.addHandler(handler);
+        try {
+            MidasHttpClient failingClient = (method, path, body) -> {
+                throw new MidasApiException("MIDAS API rejected " + path);
+            };
+            new MidasCivilNxAnalysisEngine(failingClient).submit(SIMPLE_BEAM);
+
+            assertEquals(1, records.size());
+            assertEquals(java.util.logging.Level.WARNING, records.get(0).getLevel());
+            assertTrue(records.get(0).getThrown() instanceof MidasApiException);
+        } finally {
+            logger.removeHandler(handler);
+        }
+    }
+
+    @Test
     void getResults_beforeSubmit_throwsRatherThanReturningNull() {
         var engine = new MidasCivilNxAnalysisEngine(fakeSuccessfulClient(new ArrayList<>()));
 
@@ -97,10 +121,10 @@ class MidasCivilNxAnalysisEngineTest {
             try {
                 String json = tableType.equals("REACTIONG")
                         ? """
-                        {"Reactions":{"DATA":[["1","1","SelfWeight","0.000000","0.000000","490.000000","0.000000","0.000000","0.000000"],\
+                        {"Reactions":{"HEAD":["Index","Node","Load","FX","FY","FZ","MX","MY","MZ"],"DATA":[["1","1","SelfWeight","0.000000","0.000000","490.000000","0.000000","0.000000","0.000000"],\
                         ["2","2","SelfWeight","0.000000","0.000000","490.000000","0.000000","0.000000","0.000000"]]}}"""
                         : """
-                        {"Displacements":{"DATA":[["1","1","SelfWeight","0.000000","0.000000","0.000000","0.000000","0.000817","0.000000"],\
+                        {"Displacements":{"HEAD":["Index","Node","Load","DX","DY","DZ","RX","RY","RZ"],"DATA":[["1","1","SelfWeight","0.000000","0.000000","0.000000","0.000000","0.000817","0.000000"],\
                         ["2","2","SelfWeight","0.000000","0.000000","0.000000","0.000000","-0.000817","0.000000"]]}}""";
                 return MAPPER.readTree(json);
             } catch (Exception e) {

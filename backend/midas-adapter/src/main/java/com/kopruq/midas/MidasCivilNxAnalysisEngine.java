@@ -31,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class MidasCivilNxAnalysisEngine implements AnalysisEngine {
 
+    private static final System.Logger LOG = System.getLogger(MidasCivilNxAnalysisEngine.class.getName());
+
     private final MidasHttpClient client;
     private final MidasModelBuilder modelBuilder;
     private final MidasResultExtractor resultExtractor;
@@ -46,8 +48,13 @@ public final class MidasCivilNxAnalysisEngine implements AnalysisEngine {
         this.resultExtractor = resultExtractor;
     }
 
+    /**
+     * {@code synchronized}: MIDAS holds ONE open document per session ({@code /doc/new} replaces it), so two
+     * concurrent submits would interleave their model-building calls and read each other's results. Concurrent
+     * callers are therefore queued.
+     */
     @Override
-    public AnalysisJobId submit(AnalysisRequest request) {
+    public synchronized AnalysisJobId submit(AnalysisRequest request) {
         var jobId = new AnalysisJobId(UUID.randomUUID());
         jobs.put(jobId, new AnalysisJob(jobId, AnalysisStatus.RUNNING, null));
 
@@ -73,7 +80,8 @@ public final class MidasCivilNxAnalysisEngine implements AnalysisEngine {
             var result = new AnalysisResult(AnalysisStatus.COMPLETED, reactions, displacements, null);
             jobs.put(jobId, new AnalysisJob(jobId, AnalysisStatus.COMPLETED, result));
         } catch (RuntimeException e) {
-            var result = new AnalysisResult(AnalysisStatus.FAILED, List.of(), List.of(), e.getMessage());
+            LOG.log(System.Logger.Level.WARNING, "Analysis job " + jobId + " failed", e);
+            var result = new AnalysisResult(AnalysisStatus.FAILED, List.of(), List.of(), failureMessage(e));
             jobs.put(jobId, new AnalysisJob(jobId, AnalysisStatus.FAILED, result));
         }
 
@@ -91,6 +99,8 @@ public final class MidasCivilNxAnalysisEngine implements AnalysisEngine {
         if (job.status() == AnalysisStatus.RUNNING) {
             throw new IllegalStateException("Job " + jobId + " has not finished yet");
         }
+        // The result is handed over exactly once; keeping every finished job forever would leak memory.
+        jobs.remove(jobId);
         return job.result();
     }
 
@@ -98,6 +108,10 @@ public final class MidasCivilNxAnalysisEngine implements AnalysisEngine {
     public void cancel(AnalysisJobId jobId) {
         throw new UnsupportedOperationException(
                 "MIDAS-P01: submit() already runs /doc/anal synchronously to completion - there is nothing to cancel yet");
+    }
+
+    private static String failureMessage(RuntimeException e) {
+        return e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
     }
 
     private AnalysisJob job(AnalysisJobId jobId) {

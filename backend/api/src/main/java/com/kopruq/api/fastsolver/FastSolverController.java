@@ -11,7 +11,6 @@ import com.kopruq.analysis.ReactionResult;
 import com.kopruq.analysis.UniformElementLoad;
 import com.kopruq.analysisengine.KopruqAnalysisEngine;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,11 +30,15 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/fast-solver")
-@CrossOrigin(origins = "http://localhost:5173")
 public class FastSolverController {
 
-    private final FastSolverModelBuilder modelBuilder = new FastSolverModelBuilder();
-    private final KopruqAnalysisEngine engine = new KopruqAnalysisEngine();
+    private final FastSolverModelBuilder modelBuilder;
+    private final KopruqAnalysisEngine engine;
+
+    public FastSolverController(FastSolverModelBuilder modelBuilder, KopruqAnalysisEngine engine) {
+        this.modelBuilder = modelBuilder;
+        this.engine = engine;
+    }
 
     @PostMapping("/solve")
     public FastSolverResponse solve(@RequestBody FastSolverRequest request) {
@@ -57,6 +60,18 @@ public class FastSolverController {
             displacementsByNode.put(d.nodeId(), d);
         }
 
+        // Defensive: a node the solver returned nothing for must fail the request, not throw an NPE.
+        for (NamedNode named : model.supportNodes()) {
+            if (!reactionsByNode.containsKey(named.nodeId())) {
+                return failed("The solver returned no reaction for support " + named.label());
+            }
+        }
+        for (NamedNode named : model.deckNodes()) {
+            if (!displacementsByNode.containsKey(named.nodeId())) {
+                return failed("The solver returned no displacement for deck node " + named.label());
+            }
+        }
+
         var reactionRows = model.supportNodes().stream()
                 .map(named -> {
                     ReactionResult r = reactionsByNode.get(named.nodeId());
@@ -75,6 +90,10 @@ public class FastSolverController {
         double totalAppliedLoadKn = totalAppliedLoad(model);
 
         return new FastSolverResponse("COMPLETED", null, reactionRows, displacementRows, totalAppliedLoadKn, totalReactionKn);
+    }
+
+    private static FastSolverResponse failed(String message) {
+        return new FastSolverResponse(AnalysisStatus.FAILED.name(), message, List.of(), List.of(), 0, 0);
     }
 
     /** Independent equilibrium check: total self-weight + SDL, computed directly from the model's own geometry. */

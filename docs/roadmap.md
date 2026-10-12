@@ -1688,3 +1688,61 @@ code itself is not reused.
 - [x] Calculate symmetric girder axes and clear edge cantilever from flange outside edge.
 - [x] Reject e <= 0 with the exact `e yeterli degil !!!` validation message and preserve invalid counts/messages.
 - [x] Add live adapter preview and List/Watch typed connection compatibility.
+
+## BACKEND-REMEDIATION track (2026-10-12)
+
+Separate remediation track (approved plan U7: the /feature-implement approval stands in for the per-milestone approval). Scope: Faz 0a-10 only; blocked packages B1-B4, Faz 11, U6 (actuator) and U8 (sampling merge) are NOT part of this track. Details: docs/features/backend-remediation/plan.md.
+
+### BACKEND-REMEDIATION Faz 0a+0b - Build hygiene and characterization tests
+
+- [x] Faz 0a: plugin versions pinned (compiler 3.16.0, surefire 3.5.4, resources 3.4.0).
+- [x] Faz 0b: contract/characterization test suite in backend/api (32 tests); no production code changed.
+
+### BACKEND-REMEDIATION Faz 1 - Fail-closed load services
+
+- [x] Faz 1: seismic/wind/temperature input guards (INVALID instead of silent VALID or 500); no engineering value changed.
+
+### BACKEND-REMEDIATION Faz 2 - Single error contract
+
+- [x] Faz 2: one JSON error contract; 500 bodies carry no internal text; malformed LandXML is 400 on both /inspect and /import.
+
+### BACKEND-REMEDIATION Faz 3 - Observability
+
+- [x] Faz 3: correlation id + error logging with stack traces; failed analysis jobs are logged. Actuator exposure untouched.
+
+### BACKEND-REMEDIATION Faz 4 - Fast Solver input safety
+
+- [x] Faz 4: fast-solver requests are validated (400 with field list); non-finite solutions are FAILED.
+
+### BACKEND-REMEDIATION Faz 5 - Traffic / LM1 validation
+
+- [x] Faz 5: LM1/carriageway validation (no 500, no vacuous resolution).
+
+### BACKEND-REMEDIATION Faz 6 - Loop termination and domain invariants
+
+- [x] Faz 6: generator and layout engine always terminate; non-finite/missing numeric request fields are rejected with a field list.
+
+### BACKEND-REMEDIATION Faz 7a - LandXML numeric robustness, no placeholders, interior-gap refusal
+
+- [x] Faz 7a: LandXML numeric guards, no origin placeholders, ALIGNMENT_INCOMPLETE for interior gaps.
+
+### BACKEND-REMEDIATION Faz 7b - Vertical profile fails closed
+
+- [x] Faz 7b: ambiguous/unsupported/short vertical profiles are not imported; no extrapolated design elevation is reported.
+
+### BACKEND-REMEDIATION Faz 7c - XYZ / terrain data integrity
+
+- [x] Faz 7c: XYZ data-integrity diagnostics, REVIEW_REQUIRED status, safe elevation query.
+
+### BACKEND-REMEDIATION Faz 8 - Analysis port and adapter contract
+
+- [x] Faz 8: solver input validation, one-time result delivery, serialized MIDAS submit, no silently dropped links/loads, HEAD verification.
+
+### BACKEND-REMEDIATION Faz 9 - Architecture guard and dependency cleanup
+
+- [x] Faz 9: module boundaries enforced by the build; three unused module edges removed.
+- NOTE for P07 (MIDAS): api -> midas-adapter (and midas-adapter -> bridge-core for BridgeAlternative -> MIDAS import) must be re-added to the poms when the first use case that calls MIDAS is built; ModuleBoundaryTest will then require that the dependency is actually used.
+
+### BACKEND-REMEDIATION Faz 10 - Layering: constructor injection, central CORS, atomic import
+
+- [x] Faz 10: controllers use constructor injection, CORS is configured once, the LandXML import is all-or-nothing, the sampling loops always terminate.

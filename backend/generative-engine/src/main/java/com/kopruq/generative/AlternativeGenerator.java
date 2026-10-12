@@ -45,6 +45,7 @@ public final class AlternativeGenerator {
 
         var results = new ArrayList<BridgeAlternative>();
 
+        List<Double> girderDepths = feasibleGirderDepths(designSpace);
         for (int spanCount : feasibleSpanCounts(bridge.totalLengthM(), designSpace)) {
             double uniformSpanLengthM = bridge.totalLengthM() / spanCount;
             var spans = new ArrayList<Span>(spanCount);
@@ -53,9 +54,10 @@ public final class AlternativeGenerator {
             }
             var spanLayout = new SpanLayout(spans);
 
-            for (int girderCount = designSpace.minGirderCount(); girderCount <= designSpace.maxGirderCount(); girderCount++) {
-                for (double girderDepthM : feasibleGirderDepths(designSpace)) {
-                    var girder = new Girder(girderCount, girderDepthM, 0);
+            // long counter: an int counter would wrap around (and never end) when maxGirderCount == Integer.MAX_VALUE
+            for (long girderCount = designSpace.minGirderCount(); girderCount <= designSpace.maxGirderCount(); girderCount++) {
+                for (double girderDepthM : girderDepths) {
+                    var girder = new Girder((int) girderCount, girderDepthM, 0);
                     results.add(BridgeAlternative.of(spanLayout, girder));
                 }
             }
@@ -72,31 +74,53 @@ public final class AlternativeGenerator {
     private static List<Integer> feasibleSpanCounts(double totalLengthM, DesignSpace designSpace) {
         final double tolerance = 1e-6;
 
-        int minSpanCount = Math.max(1, (int) Math.floor(totalLengthM / designSpace.maxSpanM()));
-        int maxSpanCount = Math.max(1, (int) Math.ceil(totalLengthM / designSpace.minSpanM()));
+        // Compute the bounds as doubles first: a (int) cast would saturate at Integer.MAX_VALUE and an
+        // int loop up to it would never terminate. A count that cannot be represented is rejected.
+        double minSpanCountExact = Math.max(1, Math.floor(totalLengthM / designSpace.maxSpanM()));
+        double maxSpanCountExact = Math.max(1, Math.ceil(totalLengthM / designSpace.minSpanM()));
+        if (!(maxSpanCountExact <= Integer.MAX_VALUE) || !(minSpanCountExact <= Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException(
+                    "The span count range for this bridge length and span range cannot be represented (more than "
+                            + Integer.MAX_VALUE + " spans).");
+        }
+        long minSpanCount = (long) minSpanCountExact;
+        long maxSpanCount = (long) maxSpanCountExact;
 
         var counts = new ArrayList<Integer>();
-        for (int n = minSpanCount; n <= maxSpanCount; n++) {
+        for (long n = minSpanCount; n <= maxSpanCount; n++) {
             double uniformSpan = totalLengthM / n;
             if (uniformSpan >= designSpace.minSpanM() - tolerance && uniformSpan <= designSpace.maxSpanM() + tolerance) {
-                counts.add(n);
+                counts.add((int) n);
             }
         }
         return counts;
     }
 
     private static List<Double> feasibleGirderDepths(DesignSpace designSpace) {
+        double min = designSpace.minGirderDepthM();
+        double max = designSpace.maxGirderDepthM();
+        double step = designSpace.girderDepthStepM();
+        // A step that cannot move the value (below its ULP) would loop forever with "depth += step".
+        if (!(min + step > min)) {
+            throw new IllegalArgumentException("girderDepthStepM is too small to advance from minGirderDepthM.");
+        }
+        if (!((max - min) / step <= Integer.MAX_VALUE)) {
+            throw new IllegalArgumentException("The girder depth range / step produces more depths than can be represented.");
+        }
         var depths = new ArrayList<Double>();
-        for (double depth = designSpace.minGirderDepthM();
-             depth <= designSpace.maxGirderDepthM() + 1e-9;
-             depth += designSpace.girderDepthStepM()) {
+        // Index-based: depth = min + i * step (no accumulated rounding), same 1e-9 inclusion tolerance and 1e-6 rounding as before.
+        for (long i = 0; ; i++) {
+            double depth = min + i * step;
+            if (depth > max + 1e-9) {
+                break;
+            }
             depths.add(Math.round(depth * 1_000_000d) / 1_000_000d);
         }
         return depths;
     }
 
     private static void validateRange(double min, double max, String name) {
-        if (min <= 0 || max <= 0 || min > max) {
+        if (!(min > 0) || !(max > 0) || min > max) {
             throw new IllegalArgumentException(name + " min/max range is invalid.");
         }
     }

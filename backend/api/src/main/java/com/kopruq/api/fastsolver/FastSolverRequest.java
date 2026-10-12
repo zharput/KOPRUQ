@@ -12,22 +12,26 @@ import java.util.List;
  * @param pierHeightsM one entry per intermediate pier - length must be
  *        {@code spanLengthsM.size() - 1}; each pier's column height from
  *        its fixed base up to the cap beam/bearing level
+ * <p>Every numeric field is a boxed {@link Double} so a missing JSON field is
+ * {@code null} and is rejected by {@link FastSolverModelBuilder#build} with the
+ * list of offending fields - it must never silently become {@code 0}.
+ *
  * @param concreteFckMpa characteristic cylinder compressive strength,
  *        MPa (e.g. 30 for C30/37) - drives Ecm via {@link com.kopruq.analysis.EurocodeConcrete}
  *        (EN 1992-1-1 Table 3.1); never invented, always engineer-supplied
  */
 public record FastSolverRequest(
         List<Double> spanLengthsM,
-        double deckWidthM,
-        double deckThicknessM,
-        double sdlKnPerM,
+        Double deckWidthM,
+        Double deckThicknessM,
+        Double sdlKnPerM,
         List<Double> pierHeightsM,
-        double columnLongitudinalM,
-        double columnTransverseM,
-        double columnSpacingTransverseM,
-        double capBeamWidthM,
-        double capBeamDepthM,
-        double concreteFckMpa,
-        double bearingKx, double bearingKy, double bearingKz,
-        double bearingKrx, double bearingKry, double bearingKrz) {
+        Double columnLongitudinalM,
+        Double columnTransverseM,
+        Double columnSpacingTransverseM,
+        Double capBeamWidthM,
+        Double capBeamDepthM,
+        Double concreteFckMpa,
+        Double bearingKx, Double bearingKy, Double bearingKz,
+        Double bearingKrx, Double bearingKry, Double bearingKrz) {
 }

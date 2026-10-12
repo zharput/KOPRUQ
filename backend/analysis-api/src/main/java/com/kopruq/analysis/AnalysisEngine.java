@@ -19,7 +19,15 @@ public interface AnalysisEngine {
 
     AnalysisStatus getStatus(AnalysisJobId jobId);
 
-    /** @throws IllegalStateException if the job has not reached a terminal status yet */
+    /**
+     * Delivers a finished job's result ONCE and then forgets the job, so an engine does not accumulate
+     * every result it ever computed. Call it exactly once per job; after it returns, {@link #getStatus}
+     * and a second {@code getResults} for the same id throw {@link IllegalArgumentException} (unknown job).
+     * Read {@link #getStatus} first if the status is needed.
+     *
+     * @throws IllegalStateException if the job has not reached a terminal status yet (the job is kept)
+     * @throws IllegalArgumentException if the job is unknown or its result was already delivered
+     */
     AnalysisResult getResults(AnalysisJobId jobId);
 
     void cancel(AnalysisJobId jobId);

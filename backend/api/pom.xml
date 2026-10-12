@@ -40,11 +40,8 @@
       <artifactId>analysis-api</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.kopruq</groupId>
-      <artifactId>midas-adapter</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+    <!-- BACKEND-REMEDIATION Faz 9: the unused midas-adapter dependency was removed; add it back when the first
+         use case that calls MIDAS is built (milestone P07). -->
     <dependency>
       <groupId>com.kopruq</groupId>
       <artifactId>spatial-core</artifactId>

@@ -268,21 +268,43 @@ public final class LandXmlParser {
             List<LandXmlAlignment> alignments, List<LandXmlProfile> profiles) throws XMLStreamException {
         String name = attr(reader, "name");
         List<LandXmlGeometryElement> elements = new ArrayList<>();
-        List<LandXmlPvi> pvis = new ArrayList<>();
-        String profileName = null;
+        List<LandXmlAlignment.SkippedGeometry> skipped = new ArrayList<>();
+        List<LandXmlProfile> alignmentProfiles = new ArrayList<>();
+        Double staStart = readStaStart(attr(reader, "staStart"));
+        int position = 0;
 
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 switch (reader.getLocalName()) {
-                    case "Line" -> elements.add(readLine(reader, warnings));
-                    case "Curve" -> elements.add(readCurve(reader, warnings));
-                    case "Spiral" -> warnings.add(
-                            "Alignment \"" + name + "\": a <Spiral> element was skipped - transition curves need "
-                                    + "the engineer's own clothoid convention before they're supported.");
+                    case "Line" -> {
+                        position++;
+                        LandXmlLine line = readLine(reader, name, warnings);
+                        // A Line with missing data is NOT replaced by a placeholder at the origin: it is recorded as skipped.
+                        if (line != null) elements.add(line);
+                        else skipped.add(new LandXmlAlignment.SkippedGeometry("Line", position, elements.size()));
+                    }
+                    case "Curve" -> {
+                        position++;
+                        LandXmlCurve curve = readCurve(reader, name, warnings);
+                        if (curve != null) elements.add(curve);
+                        else skipped.add(new LandXmlAlignment.SkippedGeometry("Curve", position, elements.size()));
+                    }
+                    case "Spiral" -> {
+                        position++;
+                        skipped.add(new LandXmlAlignment.SkippedGeometry("Spiral", position, elements.size()));
+                        warnings.add(
+                                "Alignment \"" + name + "\": a <Spiral> element was skipped - transition curves need "
+                                        + "the engineer's own clothoid convention before they're supported.");
+                    }
                     case "ProfAlign" -> {
-                        profileName = attr(reader, "name");
-                        pvis.addAll(readProfAlign(reader, warnings));
+                        // Every <ProfAlign> is its OWN profile: PVIs of different profiles must never be concatenated.
+                        String profAlignName = attr(reader, "name");
+                        ProfAlignRead read = readProfAlign(reader, name, warnings);
+                        if (!read.pvis().isEmpty() || !read.unsupportedReasons().isEmpty()) {
+                            alignmentProfiles.add(new LandXmlProfile(profAlignName != null ? profAlignName : name, name,
+                                    read.pvis(), read.unsupportedReasons()));
+                        }
                     }
                     default -> { }
                 }
@@ -291,22 +313,37 @@ public final class LandXmlParser {
             }
         }
 
-        alignments.add(new LandXmlAlignment(name, elements));
-        if (!pvis.isEmpty()) {
-            profiles.add(new LandXmlProfile(profileName != null ? profileName : name, name, pvis));
+        alignments.add(new LandXmlAlignment(name, elements, skipped, staStart));
+        profiles.addAll(alignmentProfiles);
+    }
+
+    /** {@code staStart} attribute: absent -> null; unreadable -> NaN (reported as an unconfirmed offset, never as 0). */
+    private static Double readStaStart(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            return Double.NaN;
         }
     }
 
-    private static LandXmlLine readLine(XMLStreamReader reader, List<String> warnings) throws XMLStreamException {
+    private record ProfAlignRead(List<LandXmlPvi> pvis, List<String> unsupportedReasons) {
+    }
+
+    /** @return the line, or {@code null} (with a warning) when Start or End is missing */
+    private static LandXmlLine readLine(XMLStreamReader reader, String alignmentName, List<String> warnings) throws XMLStreamException {
+        String where = "Alignment \"" + alignmentName + "\" <Line>";
         double[] start = null;
         double[] end = null;
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 if (reader.getLocalName().equals("Start")) {
-                    start = parseNe(reader.getElementText());
+                    start = parseNe(reader.getElementText(), where + "<Start>");
                 } else if (reader.getLocalName().equals("End")) {
-                    end = parseNe(reader.getElementText());
+                    end = parseNe(reader.getElementText(), where + "<End>");
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("Line")) {
                 break;
@@ -314,12 +351,14 @@ public final class LandXmlParser {
         }
         if (start == null || end == null) {
             warnings.add("Skipped a <Line> missing Start/End");
-            return new LandXmlLine(0, 0, 0, 0);
+            return null;
         }
         return new LandXmlLine(start[0], start[1], end[0], end[1]);
     }
 
-    private static LandXmlCurve readCurve(XMLStreamReader reader, List<String> warnings) throws XMLStreamException {
+    /** @return the curve, or {@code null} (with a warning) when Start, End, Center or radius is missing */
+    private static LandXmlCurve readCurve(XMLStreamReader reader, String alignmentName, List<String> warnings) throws XMLStreamException {
+        String where = "Alignment \"" + alignmentName + "\" <Curve>";
         String rot = attr(reader, "rot");
         String radiusAttr = attr(reader, "radius");
         double[] start = null;
@@ -329,9 +368,9 @@ public final class LandXmlParser {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 switch (reader.getLocalName()) {
-                    case "Start" -> start = parseNe(reader.getElementText());
-                    case "End" -> end = parseNe(reader.getElementText());
-                    case "Center" -> center = parseNe(reader.getElementText());
+                    case "Start" -> start = parseNe(reader.getElementText(), where + "<Start>");
+                    case "End" -> end = parseNe(reader.getElementText(), where + "<End>");
+                    case "Center" -> center = parseNe(reader.getElementText(), where + "<Center>");
                     default -> { }
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("Curve")) {
@@ -340,40 +379,74 @@ public final class LandXmlParser {
         }
         if (start == null || end == null || center == null || radiusAttr == null) {
             warnings.add("Skipped a <Curve> missing Start/End/Center/radius");
-            return new LandXmlCurve(0, 0, 0, 0, 0, 0, 0, true);
+            return null;
+        }
+        double radius = parseFinite(radiusAttr, where + " radius");
+        if (radius <= 0) {
+            throw new LandXmlParseException(where + " radius must be greater than 0, got \"" + radiusAttr + "\"");
         }
         return new LandXmlCurve(start[0], start[1], end[0], end[1], center[0], center[1],
-                Double.parseDouble(radiusAttr), "cw".equalsIgnoreCase(rot));
+                radius, "cw".equalsIgnoreCase(rot));
     }
 
     /** Same Northing-Easting convention as {@link #parsePoint} - returns {x, y} = {Easting, Northing}. */
-    private static double[] parseNe(String text) {
+    private static double[] parseNe(String text, String where) {
         String[] tokens = text.trim().split("\\s+");
-        double northing = Double.parseDouble(tokens[0]);
-        double easting = Double.parseDouble(tokens[1]);
+        if (tokens.length < 2 || tokens[0].isEmpty()) {
+            throw new LandXmlParseException(where + ": expected \"Northing Easting\", got \"" + text.trim() + "\"");
+        }
+        double northing = parseFinite(tokens[0], where);
+        double easting = parseFinite(tokens[1], where);
         return new double[] {easting, northing};
     }
 
-    private static List<LandXmlPvi> readProfAlign(XMLStreamReader reader, List<String> warnings) throws XMLStreamException {
+    /** A number that must be a finite double; anything else is a parse error that names where it was found. */
+    private static double parseFinite(String token, String where) {
+        double value;
+        try {
+            value = Double.parseDouble(token.trim());
+        } catch (NumberFormatException e) {
+            throw new LandXmlParseException(where + ": \"" + token + "\" is not a number", e);
+        }
+        if (!Double.isFinite(value)) {
+            throw new LandXmlParseException(where + ": \"" + token + "\" is not a finite number");
+        }
+        return value;
+    }
+
+    private static ProfAlignRead readProfAlign(XMLStreamReader reader, String alignmentName, List<String> warnings) throws XMLStreamException {
+        String where = "Alignment \"" + alignmentName + "\" <ProfAlign>";
         List<LandXmlPvi> pvis = new ArrayList<>();
+        List<String> unsupported = new ArrayList<>();
         while (reader.hasNext()) {
             int event = reader.next();
             if (event == XMLStreamConstants.START_ELEMENT) {
                 switch (reader.getLocalName()) {
+                    case "ParaCurve", "UnsymParaCurve" -> {
+                        unsupported.add("<" + reader.getLocalName() + "> (parabolic curve element)");
+                        skipElement(reader);
+                    }
                     case "PVI" -> {
                         String text = reader.getElementText();
                         String[] tokens = text.trim().split("\\s+");
                         if (tokens.length < 2) {
                             warnings.add("Skipped a malformed <PVI>: \"" + text + "\"");
                         } else {
-                            pvis.add(new LandXmlPvi(Double.parseDouble(tokens[0]), Double.parseDouble(tokens[1]), 0));
+                            pvis.add(new LandXmlPvi(parseFinite(tokens[0], where + "<PVI> chainage"),
+                                    parseFinite(tokens[1], where + "<PVI> elevation"), 0));
                         }
                     }
                     case "CircCurve" -> {
                         String lengthAttr = attr(reader, "length");
-                        if (lengthAttr != null && !pvis.isEmpty()) {
+                        // A CircCurve that CARRIES coordinates is a full vertical-curve definition (not the bare
+                        // "length applies to the previous PVI" marker of the fixture) - not interpreted, never guessed.
+                        String curveText = reader.getElementText();
+                        if (!curveText.isBlank()) {
+                            unsupported.add("<CircCurve> with coordinates \"" + curveText.trim() + "\"");
+                        } else if (lengthAttr != null && !pvis.isEmpty()) {
                             LandXmlPvi last = pvis.remove(pvis.size() - 1);
-                            pvis.add(new LandXmlPvi(last.chainageM(), last.elevationM(), Double.parseDouble(lengthAttr)));
+                            pvis.add(new LandXmlPvi(last.chainageM(), last.elevationM(),
+                                    parseFinite(lengthAttr, where + "<CircCurve> length")));
                         }
                     }
                     default -> { }
@@ -382,7 +455,7 @@ public final class LandXmlParser {
                 break;
             }
         }
-        return pvis;
+        return new ProfAlignRead(pvis, unsupported);
     }
 
     private static String attr(XMLStreamReader reader, String name) {

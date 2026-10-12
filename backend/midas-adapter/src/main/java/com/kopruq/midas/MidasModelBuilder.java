@@ -38,6 +38,16 @@ public final class MidasModelBuilder {
     private final ObjectMapper mapper = new ObjectMapper();
 
     public List<MidasApiCall> buildCalls(AnalysisRequest request) {
+        // Elastic links and element loads are part of the solver-independent request but this builder cannot
+        // translate them yet. Dropping them silently would analyse a different structure than the one requested.
+        if (!request.elasticLinks().isEmpty()) {
+            throw new UnsupportedOperationException(
+                    "The MIDAS model builder does not translate elastic links yet (" + request.elasticLinks().size() + " given).");
+        }
+        if (!request.uniformLoads().isEmpty()) {
+            throw new UnsupportedOperationException(
+                    "The MIDAS model builder does not translate uniform element loads yet (" + request.uniformLoads().size() + " given).");
+        }
         var calls = new ArrayList<MidasApiCall>();
         calls.add(newProject());
         if (!request.loadCases().isEmpty()) {

@@ -18,6 +18,9 @@ import java.util.Optional;
 public final class TerrainQueryService {
 
     public Optional<Double> getElevation(TerrainModel terrain, double x, double y) {
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return Optional.empty(); // NaN would otherwise slip through every comparison and yield a NaN "elevation"
+        }
         List<Point3D> vertices = terrain.vertices();
         for (TerrainTriangle triangle : terrain.triangles()) {
             Point3D a = vertices.get(triangle.a());

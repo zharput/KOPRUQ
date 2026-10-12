@@ -9,6 +9,9 @@ package com.kopruq.trafficloads;
 public record LaneFactor(String label, ParameterValue<Double> characteristicValue, ParameterValue<Double> adjustmentFactor) {
 
     public Double effectiveValue() {
+        if (characteristicValue == null || adjustmentFactor == null) {
+            return null;
+        }
         Double characteristic = characteristicValue.value();
         Double factor = adjustmentFactor.value();
         if (characteristic == null || factor == null) {

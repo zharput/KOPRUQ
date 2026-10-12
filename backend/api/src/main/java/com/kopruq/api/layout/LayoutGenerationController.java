@@ -1,7 +1,6 @@
 package com.kopruq.api.layout;
 
 import com.kopruq.bridgelayout.BridgeLayoutEngine;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +17,13 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/layout")
-@CrossOrigin(origins = "http://localhost:5173")
 public class LayoutGenerationController {
 
-    private final BridgeLayoutEngine engine = new BridgeLayoutEngine();
+    private final BridgeLayoutEngine engine;
+
+    public LayoutGenerationController(BridgeLayoutEngine engine) {
+        this.engine = engine;
+    }
 
     @PostMapping("/generate")
     public List<LayoutAlternativeRow> generate(@RequestBody LayoutGenerationRequest request) {

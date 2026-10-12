@@ -1,6 +1,7 @@
 package com.kopruq.api.terrain;
 
 import com.kopruq.spatialcore.Point3D;
+import com.kopruq.terrain.TerrainImportResult;
 import com.kopruq.terrain.TerrainModel;
 
 import java.util.List;
@@ -20,11 +21,21 @@ public record TerrainImportResponse(
         double minXM, double maxXM,
         double minYM, double maxYM,
         double minElevationM, double maxElevationM,
-        List<Point3D> previewPoints) {
+        List<Point3D> previewPoints,
+        String status,
+        List<String> warnings) {
 
     private static final int PREVIEW_LIMIT = 10;
 
+    public static TerrainImportResponse from(TerrainImportResult result) {
+        return from(result.terrain(), result.warnings());
+    }
+
     public static TerrainImportResponse from(TerrainModel terrain) {
+        return from(terrain, List.of());
+    }
+
+    private static TerrainImportResponse from(TerrainModel terrain, List<String> warnings) {
         List<Point3D> vertices = terrain.vertices();
         return new TerrainImportResponse(
                 terrain.id(),
@@ -33,6 +44,8 @@ public record TerrainImportResponse(
                 terrain.boundsMin().x(), terrain.boundsMax().x(),
                 terrain.boundsMin().y(), terrain.boundsMax().y(),
                 terrain.minElevationM(), terrain.maxElevationM(),
-                vertices.subList(0, Math.min(PREVIEW_LIMIT, vertices.size())));
+                vertices.subList(0, Math.min(PREVIEW_LIMIT, vertices.size())),
+                terrain.status().name(),
+                warnings);
     }
 }

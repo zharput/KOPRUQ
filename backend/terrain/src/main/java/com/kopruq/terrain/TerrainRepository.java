@@ -15,4 +15,7 @@ public interface TerrainRepository {
     TerrainModel save(TerrainModel terrain);
 
     Optional<TerrainModel> findById(String id);
+
+    /** Removes a terrain; used internally to undo a partially completed import (no endpoint exposes it). */
+    void deleteById(String id);
 }

@@ -4,7 +4,6 @@ import com.kopruq.analysis.EurocodeConcrete;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +13,6 @@ import org.springframework.web.server.ResponseStatusException;
 /** Exposes the existing canonical EN concrete calculations to typed Graph material references. */
 @RestController
 @RequestMapping("/api/materials/concrete")
-@CrossOrigin(origins = "http://localhost:5173")
 public final class ConcreteMaterialController {
     private static final Set<String> SUPPORTED_MATERIAL_IDS = Set.of("C12/15", "C16/20", "C20/25", "C25/30", "C30/37", "C35/45", "C40/50", "C45/55", "C50/60", "C55/67", "C60/75", "C70/85", "C80/95", "C90/105");
 

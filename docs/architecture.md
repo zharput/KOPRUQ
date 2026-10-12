@@ -69,9 +69,9 @@ KOPRUQ/
 â”‚   â”œâ”€â”€ bridge-core/                 solver-independent domain model - no deps
 â”‚   â”œâ”€â”€ rules-engine/                deterministic feasibility - depends on bridge-core
 â”‚   â”œâ”€â”€ generative-engine/           alternative generation - depends on bridge-core, rules-engine
-â”‚   â”œâ”€â”€ analysis-api/                job/status/result ports - depends on bridge-core
-â”‚   â”œâ”€â”€ midas-adapter/               MIDAS-specific code - depends on bridge-core, analysis-api
-â”‚   â””â”€â”€ api/                         Spring Boot app - depends on all of the above
+â”‚   â”œâ”€â”€ analysis-api/                job/status/result ports - no module dependencies
+â”‚   â”œâ”€â”€ midas-adapter/               MIDAS-specific code - depends on analysis-api
+â”‚   â””â”€â”€ api/                         Spring Boot app - see the dependency graph below (midas-adapter returns with P07)
 â”œâ”€â”€ services/                       Python, deferred to after P01
 â”‚   â”œâ”€â”€ optimization-service/        placeholder only
 â”‚   â””â”€â”€ ai-service/                  placeholder only
@@ -85,36 +85,43 @@ KOPRUQ/
 
 ## Dependency graph (Maven)
 
+Actual module dependencies as declared in the poms
+(BACKEND-REMEDIATION Faz 9 rewrote this block - the earlier graph was out of date):
+
 ```
-spatial-core                             (no dependencies)
-alignment           -> spatial-core
-constraints                              (no dependencies)
-bridge-layout       -> alignment, constraints
-bridge-core                              (no dependencies)
-rules-engine        -> bridge-core
-generative-engine   -> bridge-core, rules-engine
-analysis-api        -> bridge-core
-midas-adapter       -> bridge-core, analysis-api
-api                 -> bridge-core, rules-engine, generative-engine, analysis-api, midas-adapter
-                    -> spring-boot-starter-web, spring-boot-starter-actuator
+spatial-core                              (no dependencies)
+alignment            -> spatial-core
+terrain              -> spatial-core          (+ JTS, external)
+landxml-import       -> spatial-core, alignment, terrain
+traffic-loads                             (no dependencies)
+constraints                               (no dependencies)
+bridge-layout        -> alignment, constraints
+bridge-core                               (no dependencies)
+rules-engine         -> bridge-core
+generative-engine    -> bridge-core, rules-engine   (rules-engine edge is declared but unused - see below)
+analysis-api                              (no dependencies - pure port layer)
+analysis-engine      -> analysis-api              (native KOPRUQ solver)
+midas-adapter        -> analysis-api              (+ jackson-databind, external)
+api                  -> bridge-core, rules-engine, generative-engine, analysis-api, analysis-engine,
+                        spatial-core, alignment, terrain, landxml-import, traffic-loads,
+                        constraints, bridge-layout
+                     -> spring-boot-starter-web, spring-boot-starter-actuator
 ```
 
-`spatial-core`/`alignment`/`constraints`/`bridge-layout` are not yet
-wired into `api` - no REST endpoint exists for them (SITE-P01/LAYOUT-P01
-built and unit-tested this geometry/combinatorial logic in isolation
-only, per `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md`'s own "don't add a
-dependency ahead of the milestone that needs it" rule, carried over from
-this file's rule below). `bridge-layout` does not depend on
-`bridge-core` and vice versa yet - the seam between them
-(`StructuralAlternativeBuilder`, per the analysis document's section C)
-is a later milestone; `bridge-core`'s existing P01 domain model is
-unchanged.
+Only `api` depends on Spring (R3); every other module is plain Java. This is
+checked by the build: `backend/api/src/test/java/com/kopruq/api/architecture/ModuleBoundaryTest`
+(plain JUnit over the real source/pom tree, no extra dependency) fails if a module other than `api`
+imports Spring/Jakarta/Lombok or depends on a Spring artifact, if `bridge-core`/`rules-engine`/
+`generative-engine` reference `com.kopruq.midas`, if a module imports a `com.kopruq` package that its
+poms do not (transitively) depend on, or if a module declares an internal dependency it never uses.
+The checker is itself tested with synthetic violations.
 
-Every module currently contains **only a `package-info.java`**
-documenting its future purpose (P00's own success criterion is just
-"complete solution builds successfully" - spec section 20). `frontend/`
-is the unmodified Vite `react-ts` template. `api` exposes only
-`/actuator/health` today (verified: returns `{"status":"UP"}`).
+Removed in Faz 9 because no source used them: `api -> midas-adapter` (to be re-added with the first use
+case that calls MIDAS, milestone P07), `midas-adapter -> bridge-core` and `analysis-api -> bridge-core`.
+`generative-engine -> rules-engine` is also unused; it is on a documented allow-list in
+`ModuleBoundaryTest.KNOWN_UNUSED_EDGES` because it was not part of the approved removals.
+`bridge-layout` does not depend on `bridge-core` and vice versa yet - the seam between them
+(`StructuralAlternativeBuilder`, per the analysis document's section C) is a later milestone.
 
 **Do not add a dependency ahead of the milestone that needs it.** If you
 find yourself wiring a new module edge or a new frontend->backend call
@@ -2792,3 +2799,98 @@ When a structural node's `material` input is connected, its shared selector now 
 ## Superstructure Node Foundation, Phase 3G (2026-09-19)
 
 `structural.superstructure` consumes existing `girderCandidate[]` references and never creates a second girder geometry source. Its domain generator computes x-axis positions, flange-based clear edge cantilevers and total structural depth for deterministic Cartesian alternatives. Invalid e <= 0 alternatives are filtered from the valid output while retaining the exact validation message and invalid count.
+
+## BACKEND-REMEDIATION track (backend-remediation feature, 2026-10-12)
+
+Separate remediation track approved by the engineer (plan U7); not a product milestone. Plan: docs/features/backend-remediation/plan.md. No engineering value is added or changed in this track.
+
+### BACKEND-REMEDIATION Faz 0a+0b - Build hygiene and characterization tests
+
+- Pinned maven-compiler-plugin 3.16.0, maven-surefire-plugin 3.5.4 and maven-resources-plugin 3.4.0 in backend/pom.xml pluginManagement (versions taken from the baseline Maven log, no dependency change).
+- Added api/src/test/java/com/kopruq/api/contract/*ContractTest: endpoint inventory (21 endpoints) and happy-path snapshots (fast-solver 5-span example, seismic, wind, temperature, LM1, LandXML, terrain, alignment, layout, kernel-state, CORS preflight) plus current_* tests that pin known defects.
+
+### BACKEND-REMEDIATION Faz 1 - Fail-closed load services
+
+- SeismicSpectrumService rewritten readable with the SAME parameter tables; spectrumType must be exactly "Type 1"/"Type 2", groundType a single letter A-E, agR/importanceFactor finite and > 0, otherwise INVALID with no points (no silent Type 1 fallback).
+- WindLoadsService: null/unknown terrain category, non-finite inputs, ze < 0 and deck width <= 0 now return INVALID (no NPE/500). Constants unchanged.
+- UniformTemperatureService: non-finite values are reported in missingParameters and treated as absent.
+- Tests: SeismicSpectrumServiceTest, WindLoadsServiceTest, additions to UniformTemperatureServiceTest and LoadsContractTest.
+
+### BACKEND-REMEDIATION Faz 2 - Single error contract
+
+- New backend/api com.kopruq.api.error: ApiExceptionHandler (@RestControllerAdvice), ApiErrorResponse {timestamp,status,error,code,message,path,correlationId,errors[]}, FieldViolation, InvalidRequestException.
+- Mapping: Spring web exceptions keep their status (ResponseStatusException reason verbatim); IllegalArgumentException -> 400 INVALID_INPUT; LandXmlParseException -> 400 INVALID_LANDXML; unreadable body -> 400 MALFORMED_REQUEST_BODY; upload too large -> 413; anything else -> 500 INTERNAL_ERROR with a generic message.
+- server.error.include-message=always removed (internal messages no longer leak); management.endpoints.web.exposure.include unchanged (U6 not in scope).
+- LandXmlController.inspect no longer maps every RuntimeException to 400; both LandXML endpoints and TerrainController.importTerrain leave errors to the handler. Intentional changes: IAE on alternatives/layout/fast-solver 500 -> 400, malformed LandXML on /import 500 -> 400.
+- Tests: ApiExceptionHandlerTest (17); the current_landxmlImportMalformed test was replaced by the fixed-behavior assertions.
+
+### BACKEND-REMEDIATION Faz 3 - Observability
+
+- New api CorrelationIdFilter: safe incoming X-Correlation-ID (1-64 letters, digits, hyphens) is reused, otherwise a UUID is generated; put into the SLF4J MDC, echoed as a response header and copied into ApiErrorResponse.correlationId. logging.pattern.level now prints [correlationId].
+- ApiExceptionHandler logs 5xx at ERROR with the stack trace and 4xx at INFO (detail at DEBUG).
+- KopruqAnalysisEngine and MidasCivilNxAnalysisEngine log a FAILED job at WARNING through System.Logger with the exception (framework-free); the FAILED message falls back to the exception class name when the exception has no message.
+- Tests: CorrelationIdFilterTest (6), KopruqAnalysisEngineTest (2), a log test in MidasCivilNxAnalysisEngineTest.
+
+### BACKEND-REMEDIATION Faz 4 - Fast Solver input safety
+
+- FastSolverRequest numeric fields are now boxed Double (JSON names unchanged). FastSolverModelBuilder.validate collects every violation into an InvalidRequestException (400 INVALID_REQUEST with errors[].field): all fields required and finite; spans, pier heights (each element), dimensions and fck > 0; pierHeightsM size = spans - 1. sdlKnPerM and bearing stiffnesses: required + finite only, no sign/range rule.
+- EurocodeConcrete rejects non-finite or fck <= 0 (IllegalArgumentException); Table 3.1 class range is NOT enforced (open engineer question).
+- KopruqAnalysisEngine reports a non-finite displacement/reaction as FAILED; FastSolverController returns FAILED (not an NPE) when a node has no result.
+- Tests: FastSolverModelBuilderTest, EurocodeConcreteTest additions, KopruqAnalysisEngineTest, FastSolverContractTest additions.
+
+### BACKEND-REMEDIATION Faz 5 - Traffic / LM1 validation
+
+- TrafficLoadsService: an empty or null tandemSystem/udl list, a null row/parameter or a null remaining-area row is NOT resolved (lm1Resolved=false + the LM1 warning) instead of vacuously true or an NPE; a CODE_DEFAULT parameter whose value differs from its codeDefaultValue adds a warning only; the narrow-carriageway (< 6 m, existing constant) warning is also given for zero generated lanes.
+- LaneFactor.effectiveValue handles null ParameterValue; CarriagewayInput rejects non-finite values; TrafficLoadsController rejects a null carriageway (400). No LM1 value touched.
+- Tests: TrafficLoadsServiceValidationTest (10), LoadsContractTest additions; the original four TrafficLoadsServiceTest tests are unchanged.
+
+### BACKEND-REMEDIATION Faz 6 - Loop termination and domain invariants
+
+- AlternativeGenerator: span/girder counters are long, span-count bounds are computed as doubles and rejected (IllegalArgumentException "cannot be represented") beyond the int range; girder depths are index-based (min + i*step, same 1e-9 inclusion and 1e-6 rounding) and a step that cannot advance (below the ULP) is rejected.
+- BridgeLayoutEngine: C1 walk and span-length walk are index-based with the same advance/representable guards; span-count counter is long (no int wrap at Integer.MAX_VALUE).
+- Constructors: Bridge (finite, >= 0; zero stays allowed), DesignSpace / LayoutDesignSpace / BridgeSite / NoPierZone (finite only; range rules stay where they were).
+- API DTOs KernelStateRequest, LayoutGenerationRequest, NoPierZoneRequest, AlignmentSampleRequest use boxed types + FieldChecks (new, hand-written, no dependency): a missing/non-finite numeric field is a 400 INVALID_REQUEST with errors[].field instead of silently becoming 0.
+- Tests: AlternativeGeneratorTerminationTest, BridgeLayoutEngineTerminationTest, BridgeInvariantTest, contract additions. Existing controller tests only had their int literals changed to double literals (assertions untouched).
+
+### BACKEND-REMEDIATION Faz 7a - LandXML numeric robustness, no placeholders, interior-gap refusal
+
+- LandXmlParser: alignment coordinates need >= 2 finite numbers; curve radius must be finite and > 0; PVI chainage/elevation and CircCurve length must be finite - otherwise a LandXmlParseException naming the alignment and element (HTTP 400 INVALID_LANDXML).
+- A <Line>/<Curve> with missing data no longer becomes a placeholder at the origin; it is recorded in LandXmlAlignment.skipped() together with Spiral elements (position + number of kept elements before it).
+- LandXmlImportService.commit refuses an alignment whose skipped element is followed by further geometry (IllegalArgumentException ALIGNMENT_INCOMPLETE: names the alignment and the position -> 400); a skipped element at the END (e.g. the trailing Spiral of the fixture) stays accepted with the existing warning.
+- Tests: LandXmlParserRobustnessTest, LandXmlImportServiceGapTest, contract additions; fixture results unchanged.
+
+### BACKEND-REMEDIATION Faz 7b - Vertical profile fails closed
+
+- LandXmlParser: every <ProfAlign> is its own LandXmlProfile (PVIs of several profiles are never concatenated); a <CircCurve> that carries coordinates and any <ParaCurve>/<UnsymParaCurve> mark the profile unsupported; the alignment's staStart is read. The fixture shape (self-closing <CircCurve length=.../>) behaves exactly as before.
+- LandXmlImportService attaches a profile only if it is single, fully understood, has no non-zero/unreadable staStart and satisfies the VerticalProfile invariants; otherwise hasProfile=false plus a coded warning (MULTIPLE_PROFILES, VERTICAL_CURVE_UNSUPPORTED, STATION_OFFSET_UNCONFIRMED, VERTICAL_PROFILE_INVALID). Terrain status is not affected by these warnings.
+- VerticalProfile: PVI chainages must be finite and strictly increasing; covers(chainage) added (elevationAt unchanged). The /api/landxml/{id}/profile endpoint returns designElevationM = null outside the PVI range.
+- Tests: LandXmlProfileFailClosedTest, VerticalProfileInvariantTest, contract additions.
+
+### BACKEND-REMEDIATION Faz 7c - XYZ / terrain data integrity
+
+- XyzTerrainParser.parseWithDiagnostics (new XyzParseResult): strips a leading BOM, skips and counts rows whose X/Y/Z is NaN or infinite (a NaN point is no longer returned), counts rows with more than three numeric columns. parse(String) keeps its signature.
+- TerrainImportService.importXyzWithDiagnostics (new, returns TerrainImportResult{terrain, warnings}); importXyz keeps its signature. Status REVIEW_REQUIRED (+ warning) when the same (x,y) appears with a different z (exact comparison; first value kept, policy unchanged), when fewer than 3 distinct points or no triangle exist, or when rows have > 3 numeric columns; skipped non-finite rows are counted in the warnings.
+- TerrainQueryService.getElevation returns empty for a non-finite x/y (previously NaN could be returned as an elevation).
+- POST /api/terrain/import response gains status and warnings (additive); TerrainController uses the new method.
+- Tests: TerrainDataIntegrityTest, contract additions.
+
+### BACKEND-REMEDIATION Faz 8 - Analysis port and adapter contract
+
+- FrameSolver.validate: unknown support node, duplicate node/element/material/section/elastic-link id, more than one load case and a self-weight/uniform load naming an undefined load case now throw IllegalArgumentException with a clear message (engine result: FAILED + that message). SolidRectangleSection (finite, > 0) and ElasticLinkElement (finite) validate in their constructors.
+- AnalysisEngine port javadoc: getResults delivers a finished job's result once and forgets the job (KopruqAnalysisEngine and MidasCivilNxAnalysisEngine remove it); a second getResults/getStatus is an unknown-job IllegalArgumentException. MidasCivilNxAnalysisEngine.submit is synchronized (one MIDAS session).
+- MidasModelBuilder refuses requests with elastic links or uniform element loads (UnsupportedOperationException -> FAILED) instead of silently dropping them; MidasResultExtractor verifies the table HEAD against the documented column list (missing/different -> MidasApiException -> FAILED). Unit verification of MIDAS tables remains open; the port vocabulary / unit question (F-06, F-14) stays deferred to P07.
+- Tests: FrameSolverValidationTest, MidasAdapterContractTest; MidasCivilNxAnalysisEngineTest canned responses gained the live HEAD (fixture only, assertions unchanged).
+
+### BACKEND-REMEDIATION Faz 9 - Architecture guard and dependency cleanup
+
+- New api test com.kopruq.api.architecture.ModuleBoundaryTest (+ ModuleBoundaryRules): plain JUnit over the real backend/ poms and sources; only api may depend on Spring/Jakarta/Lombok, bridge-core/rules-engine/generative-engine may not reference com.kopruq.midas, a module may import only com.kopruq packages its poms (transitively) depend on, and no module may declare an unused internal dependency. The rules are tested with synthetic violations. Known allow-list: generative-engine -> rules-engine (unused, not part of the approved removals).
+- Removed the three unused module dependencies: api -> midas-adapter, midas-adapter -> bridge-core, analysis-api -> bridge-core (no source referenced them). No dependency was added.
+- docs/architecture.md dependency graph and module tree text rewritten to the real state.
+
+### BACKEND-REMEDIATION Faz 10 - Layering: constructor injection, central CORS, atomic import
+
+- New api config CoreConfiguration: the framework-free domain services (generators, engines, parsers, load services, FastSolverModelBuilder, KopruqAnalysisEngine ...) become @Bean singletons; the domain modules get no @Component. The 12 controllers receive their collaborators through the constructor (no new-built fields).
+- New WebCorsConfiguration replaces the 12 identical @CrossOrigin annotations: /api/** from kopruq.cors.allowed-origins (default http://localhost:5173), methods GET/POST/HEAD, exposed header X-Correlation-ID. The preflight Access-Control-Allow-Methods header now lists GET,POST,HEAD (previously it echoed the asked method) - intentional.
+- New LandXmlImportUseCase (api/landxml/application): runs the import and stores the terrain then the import record; if the second write fails the terrain is deleted again (TerrainRepository.deleteById, internal only - no endpoint) and the original failure rethrown.
+- New ChainageSampler (api/alignment/application): the two existing sampling rules (overlay: strict <, default L/20; profile: inclusive <=, default L/50 + conditional end point) are moved unchanged (bit-identical, verified against copies of the old loops); the rules were NOT merged. New guard: a step that cannot advance or would need more points than an int is rejected instead of looping.
+- Tests: LandXmlImportUseCaseTest, ChainageSamplerTest, ControllerLayeringTest, contract additions; AlternativeGenerationControllerTest and LayoutGenerationControllerTest only had their construction lines updated.

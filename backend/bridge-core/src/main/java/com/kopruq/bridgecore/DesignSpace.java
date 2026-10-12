@@ -36,4 +36,27 @@ public record DesignSpace(
         double girderDepthStepM) {
 
     public static final double DEFAULT_GIRDER_DEPTH_STEP_M = 0.10;
+
+    /** Only finiteness is enforced here (NaN/infinity make every comparison and loop bound meaningless). */
+    public DesignSpace {
+        requireFinite("minSpanM", minSpanM);
+        requireFinite("maxSpanM", maxSpanM);
+        requireFinite("minGirderSpacingM", minGirderSpacingM);
+        requireFinite("maxGirderSpacingM", maxGirderSpacingM);
+        requireFinite("minGirderDepthM", minGirderDepthM);
+        requireFinite("maxGirderDepthM", maxGirderDepthM);
+        requireFinite("minSlabThicknessM", minSlabThicknessM);
+        requireFinite("maxSlabThicknessM", maxSlabThicknessM);
+        requireFinite("minPierDiameterM", minPierDiameterM);
+        requireFinite("maxPierDiameterM", maxPierDiameterM);
+        requireFinite("minPierHeightM", minPierHeightM);
+        requireFinite("maxPierHeightM", maxPierHeightM);
+        requireFinite("girderDepthStepM", girderDepthStepM);
+    }
+
+    private static void requireFinite(String name, double value) {
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException(name + " must be a finite number, got " + value);
+        }
+    }
 }

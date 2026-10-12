@@ -1,0 +1,1 @@
+frontend-data-integrity C-012-02, C-012-03, C-005-01, C-005-02, C-005-03, C-016-01, C-001-05, C-013-02 bulgularını docs/reviews/2026-10-11T19-46-40Z altındaki rapordan doğrulayıp düzelt. Mühendislik sabiti, birim veya kural uydurma; karar gerektiren maddeyi NEEDS_INPUT olarak bildir.

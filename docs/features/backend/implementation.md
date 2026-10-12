@@ -67,3 +67,7 @@ Yerinde başarısız `package`, `backend/target/kopruq-backend-0.1.0-SNAPSHOT.ja
 - Mühendislik notu: PILE/SPREAD ↔ kazık alanı tutarlılık kuralı modelde/DB'de yok; mühendis tanımlamalı.
 - Yerel Docker'da `kopruq-backend:latest` imajı kaldı.
 - Hiçbir şey commit edilmedi.
+
+## Güncelleme (2026-10-12, koordinatör)
+AC17 kullanıcı tarafından elle doğrulandı: `start-dev.bat` `.env` ile çalıştırıldı, backend ve frontend açıldı (kullanıcı beyanı; koordinatör bağımsız olarak çalıştırmadı). Koordinatör ayrıca `.env` ile compose postgres + backend jar ile `/actuator/health` UP ve Flyway 2 migration doğrulamasını gördü. `.env.example`'daki parola temizlendi (AC18), değer yerel `.env`'de.
+Sonuç: tüm AC'ler karşılandı; durum `implemented`.

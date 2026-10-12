@@ -7,38 +7,15 @@
   <groupId>com.kopruq</groupId>
   <artifactId>kopruq-backend</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <!--
-    Modular monolith (spec/architecture amendment v2, see
-    docs/ARCHITECTURE_AMENDMENT_V2.md). Every module below except `api`
-    is plain Java with NO Spring dependency, so Bridge Core / Rules
-    Engine / Generative Engine / Analysis API stay solver- and
-    framework-independent (spec section 3, 21) and are individually
-    testable without a Spring context. `api` is the only Spring Boot
-    application module - it depends on all the others and exposes them
-    as REST/JSON to the frontend.
+    Single-module Spring Boot modular monolith (docs/architecture/backend-reference.md,
+    CLAUDE.md "Backend architecture"). Domain packages live under
+    com.kopruq.<domain>/{api,application,domain,model,enums,infra}; shared code under
+    com.kopruq.shared. Package boundaries are enforced by
+    com.kopruq.architecture.ArchitectureTests, not by Maven modules.
   -->
-  <modules>
-    <module>spatial-core</module>
-    <module>alignment</module>
-    <module>terrain</module>
-    <module>landxml-import</module>
-    <module>traffic-loads</module>
-    <module>materials</module>
-    <module>environmental-loads</module>
-    <module>constraints</module>
-    <module>bridge-layout</module>
-    <module>bridge-core</module>
-    <module>rules-engine</module>
-    <module>generative-engine</module>
-    <module>analysis-api</module>
-    <module>analysis-engine</module>
-    <module>model-builder</module>
-    <module>midas-adapter</module>
-    <module>api</module>
-  </modules>
-
   <properties>
     <java.version>21</java.version>
     <maven.compiler.source>21</maven.compiler.source>
@@ -68,6 +45,28 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.locationtech.jts</groupId>
+      <artifactId>jts-core</artifactId>
+      <version>1.20.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
@@ -101,5 +100,19 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>${spring-boot.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

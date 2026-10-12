@@ -1,0 +1,40 @@
+package com.kopruq.analysis.application;
+
+import com.kopruq.analysis.enums.AnalysisStatus;
+import com.kopruq.analysis.model.AnalysisJobId;
+import com.kopruq.analysis.model.AnalysisRequest;
+import com.kopruq.analysis.model.AnalysisResult;
+
+/**
+ * The solver-independent port (the "IAnalysisEngine" from the master
+ * spec/the engineer's MIDAS integration prompt, section 22). Code that
+ * needs an analysis depends on this interface only, never on a specific
+ * solver adapter; the domain modules (bridge-core, rules-engine,
+ * generative-engine) do not depend on it at all.
+ *
+ * <p>The MIDAS adapter's {@code MidasCivilNxAnalysisEngine} implementation
+ * happens to run {@code submit} synchronously to completion (MIDAS's own
+ * {@code /doc/anal} call was verified to block until done), but callers
+ * must not assume that - a future solver, or a later MIDAS milestone
+ * with real batching, may make {@code submit} return before the job
+ * finishes.
+ */
+public interface AnalysisEngine {
+
+    AnalysisJobId submit(AnalysisRequest request);
+
+    AnalysisStatus getStatus(AnalysisJobId jobId);
+
+    /**
+     * Delivers a finished job's result ONCE and then forgets the job, so an engine does not accumulate
+     * every result it ever computed. Call it exactly once per job; after it returns, {@link #getStatus}
+     * and a second {@code getResults} for the same id throw {@link IllegalArgumentException} (unknown job).
+     * Read {@link #getStatus} first if the status is needed.
+     *
+     * @throws IllegalStateException if the job has not reached a terminal status yet (the job is kept)
+     * @throws IllegalArgumentException if the job is unknown or its result was already delivered
+     */
+    AnalysisResult getResults(AnalysisJobId jobId);
+
+    void cancel(AnalysisJobId jobId);
+}

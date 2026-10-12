@@ -1,0 +1,28 @@
+package com.kopruq.terrain.infra;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import com.kopruq.terrain.application.TerrainRepository;
+import com.kopruq.terrain.model.TerrainModel;
+
+public final class InMemoryTerrainRepository implements TerrainRepository {
+
+    private final Map<String, TerrainModel> byId = new ConcurrentHashMap<>();
+
+    @Override
+    public TerrainModel save(TerrainModel terrain) {
+        byId.put(terrain.id(), terrain);
+        return terrain;
+    }
+
+    @Override
+    public Optional<TerrainModel> findById(String id) {
+        return Optional.ofNullable(byId.get(id));
+    }
+
+    @Override
+    public void deleteById(String id) {
+        byId.remove(id);
+    }
+}

@@ -1,0 +1,6 @@
+package com.kopruq.loads.model;
+
+import java.util.List;
+
+public record TrafficValidationResult(boolean carriagewayDefined, boolean notionalLanesGenerated, boolean lm1Resolved, List<String> warnings) {
+}

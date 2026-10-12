@@ -49,6 +49,32 @@ section 20):
   Analysis API) still exists specifically so MIDAS is not hard-wired
   into Bridge Core/Rules/Generative Engine.
 
+## Revision 2026-10-12 - backend structure
+
+Decided by the engineer/owner on 2026-10-12. This revision replaces the
+Backend API and Bridge Core rows above and the earlier rule that "only
+the API depends on Spring; every other backend module stays
+framework-free":
+
+| Component | Responsibility | Technology |
+|---|---|---|
+| Backend | Use-case orchestration, domain models and rules, adapters | Spring Boot modular monolith in **one Maven module**; domains are packages |
+| Bridge / Rules / Generative / Analysis domains | Same responsibilities as above | Packages `com.kopruq.<domain>` inside the backend |
+
+- The package layout follows `docs/architecture/backend-reference.md`
+  (spanova-backend): per domain `api`, `application`, `domain`, `model`,
+  `enums`, `infra`; shared code in `com.kopruq.shared`.
+- Spring Boot may be used in `api`, `application`, `infra` and shared
+  configuration. `model` and `domain` packages stay free of Spring and of
+  `application`/`api` imports (the reference's own rule); domain
+  business rules live in the models.
+- Boundaries are enforced by architecture tests instead of separate
+  Maven modules.
+- Unchanged by this revision: Bridge Kernel solver independence (the
+  bridge domain must not depend on MIDAS/ALLPLAN/SCIA; MIDAS-specific
+  code lives only in its adapter, now an `infra` package behind the
+  analysis port), engineering safety rules, milestone discipline.
+
 ## What did NOT change
 
 - The P00-P12 milestone *sequence and gating discipline* (spec section

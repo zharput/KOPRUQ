@@ -23,19 +23,37 @@ engineer decided to move to this stack.
 | Component | Path | Technology |
 |---|---|---|
 | Frontend | `frontend/` | React + TypeScript (Vite), a web app (browser-based). REST/JSON to backend. A Tauri desktop-shell attempt was tried and reverted 2026-09-09 - see `docs/architecture.md`. |
-| Backend API | `backend/api` | Spring Boot 3.5.x modular monolith |
-| Bridge Core | `backend/bridge-core` | Plain Java, no framework dependency |
-| Rules Engine | `backend/rules-engine` | Plain Java |
-| Generative Engine | `backend/generative-engine` | Plain Java |
-| Analysis API | `backend/analysis-api` | Plain Java - port/interface only |
-| MIDAS NX Adapter | `backend/midas-adapter` | Plain Java - all MIDAS-specific code lives here |
+| Backend | `backend/` | Spring Boot 3.5.x modular monolith - ONE Maven module, domains as packages (decided 2026-10-12, see below) |
+| Bridge domain | `com.kopruq.bridge` (package) | Solver-independent bridge model and invariants |
+| Rules domain | `com.kopruq.rules` (package) | Deterministic feasibility, explainable results |
+| Generative domain | `com.kopruq.generative` (package) | Design-space combination, alternative identity |
+| Analysis port | `com.kopruq.analysis` (package) | Port/interface; solver adapters in its `infra` |
+| MIDAS NX Adapter | an `infra` package (e.g. `com.kopruq.analysis.infra.midas`) | All MIDAS-specific code lives only here |
 | Optimization Service | `services/optimization-service` | Python/FastAPI - not implemented until after P01 |
 | AI Service | `services/ai-service` | Python/FastAPI - not implemented until after P01 |
 
-Backend build: Maven multi-module (`backend/pom.xml` is the parent).
-Java 21. Only `backend/api` depends on Spring; every other backend
-module must stay framework-free so it is testable and portable in
-isolation. Local toolchain: JDK 21 (Microsoft build), Node.js LTS,
+**Backend structure (decision 2026-10-12, supersedes the earlier
+"framework-free multi-module" rule):** the backend is a single Spring
+Boot modular monolith in one Maven module, organised exactly like the
+architectural reference `docs/architecture/backend-reference.md`
+(spanova-backend). Every domain is a top-level package
+`com.kopruq.<domain>` with the reference's sub-packages, created only
+when needed: `api` (controllers, request/response DTOs, mappers),
+`application` (use-case services, transactions, ports/repositories),
+`domain` (framework-free domain services/algorithms spanning several
+models), `model` (domain models that own their business rules and
+invariants), `enums`, `infra` (adapters: files, solvers, persistence).
+Cross-cutting code lives in `com.kopruq.shared` (`config`, `exception`,
+`quantity`, `validation`). Spring Boot is used freely in `api`,
+`application`, `infra` and `shared.config`; `model` and `domain`
+packages do not import Spring, `..application..` or `..api..` (the
+reference's own `ArchitectureTests` rule). Domain boundaries are
+enforced by architecture tests, not by Maven modules. The migration
+from the old 17-module layout is tracked as a feature
+(`docs/features/`); until it is implemented the old layout still exists.
+
+Backend build: Maven (`backend/pom.xml`). Java 21.
+Local toolchain: JDK 21 (Microsoft build), Node.js LTS,
 Apache Maven 3.9.16 (installed to `C:\Users\harput\tools\` - not on the
 system installer registry, added to `~/.bashrc` PATH for Git Bash).
 Rust + VS Build Tools were installed for a Tauri desktop-shell attempt
@@ -79,15 +97,17 @@ the ALLPLAN Tcl/API which was never verified.
 
 ## Architectural rules (spec sections 3, 21; amendment v2)
 
-- `bridge-core` must never reference Spring, MIDAS, ALLPLAN, SCIA, or
-  any solver/BIM-specific type. External systems are reached only
-  through adapter modules (`midas-adapter`, future `scia-adapter`).
+- The bridge domain (and rules/generative domains) must never reference
+  MIDAS, ALLPLAN, SCIA, or any solver/BIM-specific type. External
+  systems are reached only through adapters in `infra` packages behind a
+  port (MIDAS today, future SCIA).
 - All internal engineering lengths/quantities use SI units,
   unambiguously.
-- Keep domain logic out of the frontend and out of `api`'s controllers.
-  Keep MIDAS-specific logic out of `bridge-core`/`rules-engine`/
-  `generative-engine`. Keep optimization logic independent of the UI.
-- Do not add a Maven module dependency, a new REST endpoint, or a
+- Business rules live in the owning domain `model` (or a `domain`
+  service when they span several models); `application` services only
+  coordinate. Keep domain logic out of the frontend and out of
+  controllers. Keep optimization logic independent of the UI.
+- Do not add a Maven dependency, a new REST endpoint, or a
   frontend feature ahead of the milestone that needs it (see
   `docs/roadmap.md`'s per-module dependency notes) - this project builds
   forward, one approved gate at a time, not by scaffolding capability

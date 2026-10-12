@@ -121,40 +121,51 @@ Her katmanın görevi:
 - test için `h2` ve `*-test` starter'ları
 - `springdoc-openapi`
 
-## KOPRUQ'a uyarlama
+## KOPRUQ'a uyarlama (revizyon 2026-10-12)
 
-Referans teknolojisi KOPRUQ'tan farklı:
+**Karar (2026-10-12):** Eski "api dışındaki her modül framework'süz, ayrı Maven modülü" kuralı kaldırıldı (CLAUDE.md ve `docs/ARCHITECTURE_AMENDMENT_V2.md` "Revision 2026-10-12"). KOPRUQ backend'i, referans gibi **tek Maven modülünden oluşan bir Spring Boot modüler monolith** olur. Klasör ve paket yapısı referansla aynıdır.
 
-| | SPANOVA (referans) | KOPRUQ |
+| | SPANOVA (referans) | KOPRUQ (hedef) |
 |---|---|---|
-| Java | 26 | 21 |
-| Spring Boot | 4.1.1 | 3.5.16 |
-| Yapı | Tek Maven modülü | Maven çok modüllü (14 modül) |
+| Java | 26 | 21 (değişmez) |
+| Spring Boot | 4.1.1 | 3.5.x (değişmez) |
+| Yapı | Tek Maven modülü, domain'ler paket | Tek Maven modülü, domain'ler paket |
 
-Hedef teknoloji değiştirmek değil. Hedef, modül organizasyonunu, sorumluluk ayrımını ve bağımlılık ilkelerini KOPRUQ'un mevcut yapısında uygulamak. Referanstaki iş alanları (project, workflow, generation-job vb.) KOPRUQ'a birebir kopyalanmaz.
+Java ve Spring Boot sürümü yükseltilmez. Referanstaki iş alanları (project, workflow, generation-job vb.) birebir kopyalanmaz. KOPRUQ'un kendi domain'leri (bridge, rules, generative, analysis, terrain, alignment, landxml, loads, materials…) aynı klasör düzeniyle kurulur.
+
+**Hedef klasör yapısı:**
+```
+backend/src/main/java/com/kopruq/
+  KopruqApplication.java
+  <domain>/
+    api/          controller, request/response DTO, mapper
+    application/  use-case servisleri, transaction, port/repository arayüzleri
+    domain/       birden fazla modeli kullanan framework'süz domain servisleri/algoritmalar
+    model/        iş kurallarını ve invariant'ları taşıyan domain modelleri
+    enums/        domain enum'ları
+    infra/        adapter'lar (dosya, solver/MIDAS, ileride kalıcılık)
+  shared/
+    config/  exception/  quantity/  validation/
+```
+Bir domain'de ihtiyaç olmayan alt paket açılmaz.
 
 | Referans kuralı | KOPRUQ karşılığı |
 |---|---|
-| R1 feature + katman paketleri | Feature sınırları KOPRUQ'ta Maven modülleriyle zaten çizili (`bridge-core`, `rules-engine`, `generative-engine`, `terrain`, `alignment`, `traffic-loads`…). `api` modülü içinde de her feature için `api` (controller, DTO, mapper), `application` (use-case servis, port) ve `infra` alt paketleri kullanılmalı. |
-| R2 controller ince, servis koordinasyon | `backend/api` controller'larında iş kuralı veya model kurma kodu olmamalı. Bunlar application servisine ya da framework'süz bir modüle ait. |
-| R3/R4 domain framework'süz (Test) | **Daha sıkı uygulanır.** CLAUDE.md gereği `api` dışındaki tüm modüller Spring'den bağımsız kalır. `bridge-core` MIDAS, SCIA veya ALLPLAN'a da bağımlı olamaz. Referanstaki `ArchitectureTests` deseni (import izin listesi) KOPRUQ'ta modül başına mimari test olarak uyarlanmalı. Pom düzeyindeki bağımlılıklar da kontrol edilmeli. |
-| R5 iş kuralı modelde/domain'de | Mühendislik ve iş kuralları ilgili framework'süz modülde (`rules-engine`, `generative-engine`, `bridge-core`…) yer alır, `api`'de değil. |
-| R6 port application'da, uygulama infra'da | KOPRUQ'ta da `analysis-api` (port) ile `midas-adapter` (uygulama) aynı ilkeyi izliyor. Port tipleri solver'a özgü kavram taşımamalı. |
-| R7 framework'süz hata sözleşmesi + tek handler | KOPRUQ'ta karşılığı yok. Önerilen: framework'süz modüllerde kodlu bir istisna, `api`'de tek bir `@RestControllerAdvice` ve tutarlı `ErrorResponse`. |
-| R8 Bean Validation + domain Checks | `spring-boot-starter-validation` yalnızca `api`'ye eklenir. Domain invariant'ları modüllerde düz Java kontrolleriyle kalır. |
-| R9 SI birimler | CLAUDE.md ile aynı. Uzunluk tipi gibi bir değer nesnesi ortak framework'süz bir modülde tutulabilir. |
-| R10 mühendislik varsayılanı yok | CLAUDE.md "Engineering safety rules" ile aynı ve bağlayıcı. Hesaplama limitleri ile mühendislik eşikleri ayrı tutulmalı. |
-| R11 record yalnızca DTO | **Opsiyonel.** KOPRUQ'ta değer nesneleri için record kullanımı yasak değil. Benimsenmesi mühendis/kullanıcı kararıdır. Review'da ihlal sayılmaz, yalnızca not edilir. |
-| R12 `@Configuration` ile framework'süz bean kurma | `api` modülünde framework'süz modül sınıfları `@Configuration` ile bean yapılır. Framework'süz modüllere `@Component` eklenmez. |
-| R13 revizyon / atomik dosya | Kalıcılık eklendiğinde uygulanır (aşağıya bakın). |
-| R14 correlation ID, yalnızca health | `management.endpoints.web.exposure.include` daraltılabilir. Correlation filtresi `api`'de olur. |
-| R15/R16 JPA + PostgreSQL + Compose | Aşağıdaki "Bağımlılıklar" bölümüne bakın. |
-
-### KOPRUQ'un referanstan bilinçli olarak ayrıldığı nokta: JPA eşlemesinin yeri
-- **Referansta:** domain modelleri doğrudan `@Entity` ve `@Embeddable` ile işaretli. `ArchitectureTests.persistentModelsAreDirectJpaModels` bunu zorunlu tutuyor.
-- **KOPRUQ'ta:** CLAUDE.md, `api` dışındaki modüllerin framework'süz ve tek başına test edilebilir kalmasını istiyor. `bridge-core`, `rules-engine` ve `generative-engine` sınıflarına `jakarta.persistence` eklemek bu ilkeyle çelişir.
-- **Uyarlama:** Kalıcılık eklendiğinde JPA entity'leri ve repository'leri `api` modülünde ya da ileride onaylanacak ayrı bir kalıcılık modülünde (`infra`) tutulmalı. Framework'süz model ile entity arasındaki dönüşüm mapper ile yapılmalı.
-- Bu, referanstaki "ayrı persistence modeli yok" tercihinden bilinçli bir sapmadır. Kararı mühendis ve kullanıcı verir.
+| R1 feature + katman paketleri | **Aynen.** `com.kopruq.<domain>/{api,application,domain,model,enums,infra}`. |
+| R2 controller ince, servis koordinasyon | Aynen. Controller yalnızca mapper + application servisi çağırır. |
+| R3 model/domain → application/api/Spring yok (Test) | **Aynen.** Spring `api`, `application`, `infra`, `shared.config` paketlerinde serbest. `model` ve `domain` paketleri `org.springframework.`, `..application..`, `..api..` import etmez. Ayrıca bridge/rules/generative domain'leri MIDAS/SCIA/ALLPLAN tiplerine bağımlı olamaz (CLAUDE.md). |
+| R4 algoritma izin listesi (Test) | Aynen; referanstaki `ArchitectureTests` deseniyle paket bazlı import izin listesi. Domain sınırları Maven modülleriyle değil, bu testlerle korunur. |
+| R5 iş kuralı modelde/domain'de | Aynen. |
+| R6 port application'da, uygulama infra'da | Aynen. Analiz portu `analysis` domain'inde, MIDAS adapter'ı `analysis/infra/...` altında. Port tipleri solver'a özgü kavram taşımaz. |
+| R7 framework'süz hata sözleşmesi + tek handler | Aynen: `shared/exception` (kodlu istisna + `ApiExceptionHandler`). |
+| R8 Bean Validation + domain Checks | `spring-boot-starter-validation` eklenmesi milestone onayı ister (CLAUDE.md). Domain invariant'ları modellerde kalır. |
+| R9 SI birimler | Aynen; `shared/quantity` uygun yer. |
+| R10 mühendislik varsayılanı yok | CLAUDE.md ile aynı ve bağlayıcı. |
+| R11 record yalnızca DTO | **Opsiyonel** (mühendis/kullanıcı kararı); review'da ihlal sayılmaz. |
+| R12 `@Configuration` ile bean kurma | Aynen: framework'süz domain servisleri `shared/config` (veya domain `infra`/config) içinde `@Bean` olur; Spring bileşenleri (`@Service`, `@RestController`) `application`/`api` paketlerinde. |
+| R13 revizyon / atomik dosya | Kalıcılık eklendiğinde uygulanır. |
+| R14 correlation ID, yalnızca health | Aynen; `shared/config`. |
+| R15/R16 JPA + PostgreSQL + Compose | Hâlâ kapsam dışı (milestone onayı gerekir). Eklendiğinde referanstaki gibi JPA eşlemesi doğrudan `model` sınıflarına yapılabilir (framework'süzlük kuralı artık yok; `jakarta.persistence` referansın R3 testinde de serbest). |
 
 ## Bağımlılıklar (kullanıcının belirttiği aday set)
 

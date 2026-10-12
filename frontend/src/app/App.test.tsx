@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
+import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../features/graph/state/graphStore'
 vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div className="spn-workspace-layout"><aside aria-label="Node Library"><label htmlFor="search-nodes">Search nodes</label><input id="search-nodes" /></aside><main><h1>Graph Workspace</h1><input aria-label="Graph name" defaultValue="Untitled Graph" /><div className="spn-graph-flow" /></main><aside aria-label="Node Inspector">Node Inspector</aside></div> }))
 
 beforeEach(() => {
@@ -370,5 +371,44 @@ describe('App workspace shell', () => {
     await waitFor(() => expect(localStorage.getItem('kopruq.seismic')).toBeNull())
     expect(localStorage.getItem('kopruq.superstructure.cross-section.v1')).toBeNull()
     expect(nav.getByRole('button', { name: /File/ })).not.toHaveTextContent('*')
+  })
+
+  const makeDirtyProject = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+    const properties = within(screen.getByRole('complementary', { name: 'Project Properties' }))
+    await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), name); await user.click(properties.getByRole('button', { name: 'Save' }))
+  }
+  it('keeps the project and its dirty mark when New Project reset fails after Dont Save', async () => {
+    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined)
+    const before = createEmptyGraph('Keep Graph'); importGraphDocuments({ activeGraphId: before.id, graphs: [before] })
+    render(<App />); await makeDirtyProject(user, 'Dirty Project')
+    const original = localStorage.setItem.bind(localStorage); let failOnce = true
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { if (key.includes('pier-cap') && failOnce) { failOnce = false; throw new Error('quota') } original(key, value) })
+    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
+    spy.mockRestore()
+    await waitFor(() => expect(alert).toHaveBeenCalled())
+    expect(document.querySelector('.spn-project-name')).toHaveTextContent('Dirty Project'); expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*')
+    expect(exportGraphDocuments().graphs.some((g) => g.name === 'Keep Graph')).toBe(true); alert.mockRestore()
+  })
+  it('detaches the file reference when the New Project rollback also fails, so Save opens the picker', async () => {
+    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined)
+    const handle = { name: 'a.kopruq', createWritable: vi.fn().mockResolvedValue({ write: vi.fn(), close: vi.fn() }) }; const picker = vi.fn().mockResolvedValue(handle)
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker })
+    render(<App />); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' })); await waitFor(() => expect(picker).toHaveBeenCalledTimes(1))
+    await makeDirtyProject(user, 'Dirty Project')
+    const original = localStorage.setItem.bind(localStorage)
+    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { if (key.includes('pier-cap')) throw new Error('quota'); original(key, value) })
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
+    await waitFor(() => expect(alert).toHaveBeenCalled()); spy.mockRestore()
+    expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*')
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' })); await waitFor(() => expect(picker).toHaveBeenCalledTimes(2)); alert.mockRestore()
+  })
+  it('keeps the project dirty after Dont Save when opening a broken file fails', async () => {
+    const user = userEvent.setup(); vi.spyOn(window, 'alert').mockImplementation(() => undefined)
+    render(<App />); await makeDirtyProject(user, 'Dirty Project')
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement; const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
+    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); await user.upload(input, new File(['not json'], 'broken.kopruq', { type: 'application/json' })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
+    expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*'); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Dirty Project')
   })
 })

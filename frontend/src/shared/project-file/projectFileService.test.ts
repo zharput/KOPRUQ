@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyProjectFile, buildProjectFile, projectFileText, validateProjectFile, writeProjectFile } from './projectFileService'
+import { applyProjectFile, buildProjectFile, projectFileText, ProjectStorageRollbackError, resetProjectStorage, validateProjectFile, writeProjectFile } from './projectFileService'
 import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'
 import { INITIAL_BRIDGES } from '../../features/project/model/types'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../../features/graph/state/graphStore'
@@ -79,5 +79,27 @@ describe('KOPRUQ project file', () => {
     expect(() => applyProjectFile(bad)).toThrow()
     expect(JSON.stringify(exportGraphDocuments())).toBe(before)
     expect(() => validateProjectFile({ ...file, modules: 'x' })).toThrow()
+  })
+  it('resetProjectStorage restores graph, families and modules when a later reset step fails', () => {
+    const graph = createEmptyGraph('Before'); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] }); saveFamilyRecords('PIER', [{ id: 'before', name: 'Before' }])
+    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.3', g: 'A', t: 'Type 2', i: '1' }))
+    const original = localStorage.setItem.bind(localStorage); const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { if (key.includes('pier-cap') && value === '[]') throw new Error('quota'); original(key, value) })
+    expect(() => resetProjectStorage()).toThrow('Unable to reset family catalog: PIER_CAP'); spy.mockRestore()
+    expect(exportGraphDocuments().graphs[0].name).toBe('Before'); expect(getFamilyRecords('PIER')).toEqual([{ id: 'before', name: 'Before' }])
+    expect(JSON.parse(localStorage.getItem('kopruq.seismic') ?? 'null')).toEqual({ a: '0.3', g: 'A', t: 'Type 2', i: '1' })
+  })
+  it('resetProjectStorage throws and rolls back when a module reset silently fails', () => {
+    const graph = createEmptyGraph('Before'); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] })
+    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.3', g: 'A', t: 'Type 2', i: '1' }))
+    const original = localStorage.removeItem.bind(localStorage); const spy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key) => { if (key === 'kopruq.seismic') throw new Error('blocked'); original(key) })
+    expect(() => resetProjectStorage()).toThrow(/seismicInputs/); spy.mockRestore()
+    expect(exportGraphDocuments().graphs[0].name).toBe('Before'); expect(localStorage.getItem('kopruq.seismic')).not.toBeNull()
+  })
+  it('resetProjectStorage throws ProjectStorageRollbackError when the rollback also fails', () => {
+    const graph = createEmptyGraph('Before'); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] }); localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.3', g: 'A', t: 'Type 2', i: '1' }))
+    const original = localStorage.setItem.bind(localStorage); const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { if (key.includes('pier-cap') || key === 'kopruq.seismic') throw new Error('quota'); original(key, value) })
+    const originalRemove = localStorage.removeItem.bind(localStorage); const removeSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key) => { if (key === 'kopruq.seismic') throw new Error('blocked'); originalRemove(key) })
+    let error: unknown; try { resetProjectStorage() } catch (e) { error = e } finally { spy.mockRestore(); removeSpy.mockRestore() }
+    expect(error).toBeInstanceOf(ProjectStorageRollbackError)
   })
 })

@@ -144,9 +144,11 @@ function SectionRoute({
   if (active === 'terrain-dtm') {
     return (
       <TerrainDtmPanel
-        onImported={(newTerrainId) => {
-          setTerrainId(newTerrainId)
-          setLandXmlImportId(null)
+        projectId={project.id || 'default'}
+        coordinateSystemLabel={project.coordinateSystem || project.coordinate.name || 'Local / Unknown'}
+        onImported={(value) => {
+          setTerrainId(value.terrainId)
+          setLandXmlImportId(value.landXmlImportId)
         }}
       />
     )

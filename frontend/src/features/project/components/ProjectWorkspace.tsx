@@ -52,10 +52,12 @@ export default function ProjectWorkspace({ path, project, setProject, bridges, s
   const [editing, setEditing] = useState(false)
   const [tab, setTab] = useState<'General' | 'Additional Info'>('General')
   const [draft, setDraft] = useState(project)
+  const [editedPaths, setEditedPaths] = useState<string[]>([])
   const select = (entry: typeof NAV[number]) => navigate(entry.slug === 'overview' ? '/project' : `/project/${entry.slug}`)
-  const startEdit = () => { setDraft(project); setEditing(true); setTab('General') }
-  const save = () => { setProject({ ...draft, lastModified: new Date().toISOString().slice(0, 10) }); setEditing(false) }
-  const update = (field: string, value: string) => setDraft((previous) => writePath(previous, field, value))
+  const startEdit = () => { setDraft(project); setEditedPaths([]); setEditing(true); setTab('General') }
+  const cancelEdit = () => { setDraft(project); setEditedPaths([]); setEditing(false) }
+  const save = () => { const next = editedPaths.reduce((acc, field) => writePath(acc, field, getPath(draft, field)), project); setProject({ ...next, lastModified: new Date().toISOString().slice(0, 10) }); setEditedPaths([]); setEditing(false) }
+  const update = (field: string, value: string) => { setDraft((previous) => writePath(previous, field, value)); setEditedPaths((previous) => previous.includes(field) ? previous : [...previous, field]) }
   const setField = (path: string, label: string) => {
     const unitKey = path.startsWith('units.') ? path.slice('units.'.length) as keyof ProjectWorkspaceData['units'] : undefined
     if (unitKey) {
@@ -96,8 +98,8 @@ export default function ProjectWorkspace({ path, project, setProject, bridges, s
     content = <div className="spn-project-settings"><div className="spn-project-settings-heading"><div><h1>{selectedTitle}</h1><p>Project-level information and selections</p></div>{selectedTitle === 'General' && <button className="spn-button-secondary" onClick={startEdit}>Edit Project</button>}</div>
       {selectedTitle === 'General' ? <div className="spn-project-read-grid">{fields.map(({ path: fieldPath, label }) => <div key={fieldPath}><span>{label}</span><strong>{display(getPath(project, fieldPath))}</strong></div>)}</div> : <div className="spn-field-grid">{fields.map(({ path: fieldPath, label }) => setField(fieldPath, label))}</div>}
       {selectedTitle === 'Design Codes' && <p className="spn-card-subtitle">Selections are stored at project level; code behavior and engineering rules are not implemented here.</p>}
-      {selectedTitle === 'Units & Preferences' && <p className="spn-card-subtitle">Unit selections only. No unit conversion behavior is changed in this phase.</p>}
-      {editing && <div className="spn-project-edit-actions"><button className="spn-button-primary" onClick={save}>Save</button><button className="spn-button-secondary" onClick={() => { setDraft(project); setEditing(false) }}>Cancel</button></div>}
+      {selectedTitle === 'Units & Preferences' && <p className="spn-card-subtitle">Unit selections are applied immediately and are not part of Edit Project / Save / Cancel.</p>}
+      {editing && <div className="spn-project-edit-actions"><button className="spn-button-primary" onClick={save}>Save</button><button className="spn-button-secondary" onClick={cancelEdit}>Cancel</button></div>}
     </div>
   } else content = <ProjectDashboardPanel bridges={bridges} designCode={designCode} project={project} />
 
@@ -107,7 +109,7 @@ export default function ProjectWorkspace({ path, project, setProject, bridges, s
     <aside className="spn-project-navigation" aria-label="Project sections">{grouped.map(({ group, entries }) => <div key={group} className="spn-project-nav-group"><div>{group}</div>{entries.map((entry) => <button key={entry.slug} type="button" className={entry.slug === slug ? 'active' : ''} onClick={() => select(entry)}>{entry.label}</button>)}</div>)}</aside>
     <main className="spn-project-center">{content}</main>
     <aside className="spn-project-properties" aria-label="Project Properties"><header><strong>Project Properties</strong></header><div className="spn-project-tabs"><button className={tab === 'General' ? 'active' : ''} onClick={() => setTab('General')}>General</button><button className={tab === 'Additional Info' ? 'active' : ''} onClick={() => setTab('Additional Info')}>Additional Info</button></div>
-      {editing ? <div className="spn-project-property-fields">{(tab === 'General' ? generalFields : additionalFields).map(({ path: fieldPath, label }) => setField(fieldPath, label))}<div className="spn-project-edit-actions"><button className="spn-button-primary" onClick={save}>Save</button><button className="spn-button-secondary" onClick={() => { setDraft(project); setEditing(false) }}>Cancel</button></div></div> : <div className="spn-project-property-fields">{(tab === 'General' ? generalFields : additionalFields).map(({ path: fieldPath, label }) => <div className="spn-project-property" key={fieldPath}><span>{label}</span><strong>{display(getPath(project, fieldPath))}</strong></div>)}<button className="spn-button-secondary" onClick={startEdit}>Edit Project</button></div>}
+      {editing ? <div className="spn-project-property-fields">{(tab === 'General' ? generalFields : additionalFields).map(({ path: fieldPath, label }) => setField(fieldPath, label))}<div className="spn-project-edit-actions"><button className="spn-button-primary" onClick={save}>Save</button><button className="spn-button-secondary" onClick={cancelEdit}>Cancel</button></div></div> : <div className="spn-project-property-fields">{(tab === 'General' ? generalFields : additionalFields).map(({ path: fieldPath, label }) => <div className="spn-project-property" key={fieldPath}><span>{label}</span><strong>{display(getPath(project, fieldPath))}</strong></div>)}<button className="spn-button-secondary" onClick={startEdit}>Edit Project</button></div>}
     </aside>
   </div>
 }

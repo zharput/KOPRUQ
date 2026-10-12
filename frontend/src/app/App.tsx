@@ -12,13 +12,12 @@ import type { GenerationSummary } from '../features/bridge-alternatives'
 import type { LayoutSeed } from '../features/layout-generator'
 import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../features/superstructure-families'
 import { useProjectModule } from '../shared/project-file/useProjectModule'
-import { PROJECT_MODULES, PROJECT_MODULE_IDS } from '../shared/project-file/projectModules'
 import { ensureBridgeIds, INITIAL_PROJECT, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
 import { useProjectFile } from '../shared/project-file/useProjectFile'
 import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
 import RecentFileAccessModal from '../shared/ui/RecentFileAccessModal'
 import { getRecentProjectFile, repairRecentProject, type RecentProject } from '../shared/project-file/recentProjects'
-import { KOPRUQ_FILE_PICKER_OPTIONS, missingModulesMessage, type ApplyProjectFileResult, type FileRef } from '../shared/project-file/projectFileService'
+import { KOPRUQ_FILE_PICKER_OPTIONS, missingModulesMessage, ProjectStorageRollbackError, resetProjectStorage, type ApplyProjectFileResult, type FileRef } from '../shared/project-file/projectFileService'
 import type { WindCalculationSnapshot } from '../shared/project-file/projectFileTypes'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
@@ -36,8 +35,6 @@ const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
 }
 import { ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore } from '../features/bridge-definition/model/store'
 import type { BridgeDefinitionStore } from '../features/bridge-definition/model/types'
-import { resetGraphDocuments } from '../features/graph/state/graphStore'
-import { saveFamilyRecords, savePrecastGirderDefinition, type FamilyRepositoryCategory } from '../features/family-registry/model/familyRepository'
 
 function WelcomeScreen({ onNew, onOpen }: { onNew: () => void; onOpen: () => void }) {
   return <main className="spn-welcome-screen" aria-label="KOPRUQ Welcome"><section className="spn-welcome-card"><div className="spn-welcome-heading"><span /><h1>WELCOME</h1><span /></div><img className="spn-welcome-logo" src="/kopruq-logo.png" alt="KOPRUQ Computational & Generative Bridge Design" /><p>Start a bridge design project or open a recent project from the File menu.</p><div className="spn-welcome-actions"><button className="spn-button-primary" onClick={onNew}><FilePlus2 size={18} aria-hidden="true" />New Project</button><button className="spn-button-secondary" onClick={onOpen}><FolderOpen size={18} aria-hidden="true" />Open Project</button></div></section></main>
@@ -75,19 +72,16 @@ function App() {
   const [showWelcome, setShowWelcome] = useState(false)
   const [pending, setPending] = useState<(() => void) | null>(null); const [modalBusy, setModalBusy] = useState(false)
   const runAfterUnsavedDecision = (action: () => void) => { if (!file.dirty) { action(); return }; setPending(() => action) }
-  const discardAndContinue = () => { const action = pending; setPending(null); file.setDirty(false); action?.() }
+  const discardAndContinue = () => { const action = pending; setPending(null); action?.() }
   const reportSaveError = (error: unknown) => { if ((error as DOMException)?.name === 'AbortError') return; window.alert(error instanceof Error ? error.message : 'Save failed.') }
   const saveAndContinue = async () => { if (!pending) return; setModalBusy(true); try { await file.save(); const action = pending; setPending(null); action?.() } catch (error) { reportSaveError(error) } finally { setModalBusy(false) } }
   const newProject = () => runAfterUnsavedDecision(() => { setShowWelcome(false)
     const nextProjectState = { project: structuredClone(INITIAL_PROJECT), bridges: [] }
     const nextBridgeDefinitions = readBridgeDefinitionStore([])
     try {
-      resetGraphDocuments()
-      ;(['PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'MATERIAL'] as FamilyRepositoryCategory[]).forEach((category) => { if (!saveFamilyRecords(category, [])) throw new Error(`Unable to reset family catalog: ${category}`) })
-      if (!savePrecastGirderDefinition([])) throw new Error('Unable to reset girder catalog.')
-      PROJECT_MODULE_IDS.filter((id) => id !== 'girderLibrary').forEach((id) => PROJECT_MODULES[id].reset())
+      resetProjectStorage()
       setProjectState(nextProjectState); setBridgeDefinitions(nextBridgeDefinitions); file.resetForNewProject(nextProjectState, nextBridgeDefinitions)
-    } catch (error) { window.alert(error instanceof Error ? error.message : 'Unable to create a new project.') }
+    } catch (error) { if (error instanceof ProjectStorageRollbackError) file.detachFile(); window.alert(error instanceof Error ? error.message : 'Unable to create a new project.') }
   })
   const [recentAccessEntry, setRecentAccessEntry] = useState<RecentProject | null>(null)
   const [recentAccessError, setRecentAccessError] = useState<string>()

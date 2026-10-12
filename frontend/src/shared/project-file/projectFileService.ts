@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import type { BridgeDefinitionStore } from '../../features/bridge-definition/model/types'
 import { INITIAL_PROJECT, normalizeProjectUnits, type PersistedProjectState } from '../../features/project/model/projectWorkspace'
-import { exportGraphDocuments, importGraphDocuments, validateGraphDocuments } from '../../features/graph/state/graphStore'
-import { getFamilyRecords, saveFamilyRecords, type FamilyRepositoryCategory } from '../../features/family-registry/model/familyRepository'
+import { exportGraphDocuments, importGraphDocuments, resetGraphDocuments, validateGraphDocuments } from '../../features/graph/state/graphStore'
+import { getFamilyRecords, saveFamilyRecords, savePrecastGirderDefinition, type FamilyRepositoryCategory } from '../../features/family-registry/model/familyRepository'
 import { PROJECT_MODULES, PROJECT_MODULE_IDS, PROJECT_MODULE_LABELS, restoreModuleStorage, snapshotModuleStorage } from './projectModules'
 import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile, type WindCalculationSnapshot } from './projectFileTypes'
 
@@ -63,9 +63,38 @@ export function missingModulesMessage(result: ApplyProjectFileResult): string | 
   const backup = result.backedUpModules.length ? ` Previous local values were backed up in browser storage (keys starting with "kopruq.backup.") for: ${result.backedUpModules.map(label).join(', ')}.` : ''
   return `This file did not contain the following project data, so it was reset to defaults: ${result.missingModules.map(label).join(', ')}.${backup}`
 }
+export class ProjectStorageRollbackError extends Error {
+  constructor(message: string, options?: { cause?: unknown }) { super(message, options); this.name = 'ProjectStorageRollbackError' }
+}
+export type ProjectStorageSnapshot = { graph: ReturnType<typeof exportGraphDocuments>; families: Record<string, unknown[]>; modules: Record<string, string | null> }
+export function snapshotProjectStorage(): ProjectStorageSnapshot {
+  return { graph: exportGraphDocuments(), families: Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)])), modules: snapshotModuleStorage() }
+}
+export function restoreProjectStorage(snapshot: ProjectStorageSnapshot): void {
+  importGraphDocuments(snapshot.graph)
+  for (const category of CATEGORIES) if (!saveFamilyRecords(category, snapshot.families[category] as never[])) throw new Error(`Unable to restore family data: ${category}`)
+  restoreModuleStorage(snapshot.modules)
+}
+const rollbackMessage = (error: unknown) => `Project storage rollback failed: ${error instanceof Error ? error.message : String(error)}`
+/** Clears graph, family catalogs and project modules for New Project. On any failure the previous storage is restored; if that also fails a ProjectStorageRollbackError is thrown. */
+export function resetProjectStorage(): void {
+  const snapshot = snapshotProjectStorage()
+  try {
+    resetGraphDocuments()
+    CATEGORIES.forEach((category) => { if (!saveFamilyRecords(category, [])) throw new Error(`Unable to reset family catalog: ${category}`) })
+    if (!savePrecastGirderDefinition([])) throw new Error('Unable to reset girder catalog.')
+    PROJECT_MODULE_IDS.filter((id) => id !== 'girderLibrary').forEach((id) => {
+      PROJECT_MODULES[id].reset()
+      if (localStorage.getItem(PROJECT_MODULES[id].key) != null) throw new Error(`Unable to reset project data: ${id}`)
+    })
+  } catch (error) {
+    try { restoreProjectStorage(snapshot) } catch (rollbackError) { throw new ProjectStorageRollbackError(`${error instanceof Error ? error.message : String(error)} ${rollbackMessage(rollbackError)}`, { cause: error }) }
+    throw error
+  }
+}
 export function applyProjectFile(input: ProjectFile): ApplyProjectFileResult {
   const file = validateProjectFile(input)
-  const previousGraph = exportGraphDocuments(); const previousFamilies = Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)])); const previousModules = snapshotModuleStorage()
+  const previous = snapshotProjectStorage()
   const missingModules: string[] = [], backedUpModules: string[] = [], backupTimestamp = new Date().toISOString()
   try {
     importGraphDocuments(file.graph)
@@ -77,9 +106,7 @@ export function applyProjectFile(input: ProjectFile): ApplyProjectFileResult {
     }
   } catch (error) {
     try {
-      importGraphDocuments(previousGraph)
-      for (const category of CATEGORIES) if (!saveFamilyRecords(category, previousFamilies[category] as never[])) throw new Error(`Unable to restore family data: ${category}`)
-      restoreModuleStorage(previousModules)
+      restoreProjectStorage(previous)
     } catch (rollbackError) { throw new Error(`Project import failed and rollback failed: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`, { cause: error }) }
     throw error
   }

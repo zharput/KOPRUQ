@@ -1837,3 +1837,14 @@ PostgreSQL + JPA persistence and Docker for the backend (details in `docs/archit
 - [x] Persistence tests (codec, three adapters, import transaction, `PersistenceContractTest`) and the `postgres-test` run against real PostgreSQL 17.
 - [x] `backend/Dockerfile`, `compose.yaml`, `.env.example`, `start-dev.bat`.
 - [ ] Not done (future milestones): use case/endpoint that saves a bridge `Project`; linking terrains to a `Project`; persisting computed results; domain-level revision control (`expectedRevision`); frontend localStorage migration.
+
+## FRONTEND-DATA-INTEGRITY track (2026-10-12)
+
+Frontend-only data-integrity fixes (details in `docs/architecture.md`, "FRONTEND-DATA-INTEGRITY track"; plan and evidence in `docs/features/frontend-data-integrity/`). No backend change, no new dependency.
+
+- [x] T1/T2/T3 Atomic New Project and Open (storage snapshot/restore, `resetProjectStorage`, file reference detach, dirty kept after a failed DON'T SAVE action) - C-013-02, C-001-05.
+- [x] T4 ProjectWorkspace Save keeps unit and external changes - C-012-02.
+- [x] T5 DTM to LandXML import keeps project id, CRS label and alignment import id - C-012-03.
+- [x] T6 Precast candidate finiteness check and `INCOMPLETE` status - C-005-02.
+- [x] T7 Assembly status propagation and no A2 fallback - C-005-03.
+- [ ] Deferred, waiting for the engineer: C-005-01 (precast `Wy`), C-016-01 (sweep rounding), A-05 (Graph precast name mapping). Not planned: C-009-01, C-005-04.

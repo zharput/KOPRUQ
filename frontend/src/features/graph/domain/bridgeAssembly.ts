@@ -19,7 +19,19 @@ export function resolveBridgeAssembly(lengths: readonly (number | EngineeringQua
   if (values.some(value => !Number.isFinite(value) || value <= 0)) messages.push('All span lengths must be positive finite lengths.')
   if (!superstructureCandidateId) messages.push('A Superstructure candidate is required.')
   const superstructureId = superstructureCandidateId ?? families.superstructure?.id
-  if (families.superstructure && families.superstructure.validationStatus !== 'VALID') messages.push('Superstructure family assignment is invalid.')
+  let invalid = false
+  let incomplete = messages.length > 0
+  if (families.superstructure && families.superstructure.validationStatus !== 'VALID') { messages.push('Superstructure family assignment is invalid.'); if (families.superstructure.validationStatus === 'INVALID') invalid = true; else incomplete = true }
+  const abutmentIssues = (name: 'A1' | 'A2', abutment?: AbutmentCandidate) => {
+    if (!abutment || abutment.validationStatus === 'VALID') return
+    const texts = abutment.validationMessages.length ? abutment.validationMessages.map(text => `${name}: ${text}`) : [`${name}: abutment status is ${abutment.validationStatus}.`]
+    for (const text of texts) if (!messages.includes(text)) messages.push(text)
+    if (abutment.validationStatus === 'ERROR') invalid = true
+    else if (abutment.validationStatus === 'INCOMPLETE') incomplete = true
+  }
+  abutmentIssues('A1', families.abutmentA1); abutmentIssues('A2', families.abutmentA2)
+  if (families.abutmentA1 && !families.abutmentA2) { messages.push('A2 abutment is not connected.'); incomplete = true }
+  if (!families.abutmentA1 && families.abutmentA2) { messages.push('A1 abutment is not connected.'); incomplete = true }
   const alignmentPoint = (stationM: number) => { const point = alignment?.getPointAtChainage?.(stationM); return point && Object.values(point).every(Number.isFinite) ? point : undefined }
   const supports: AssemblySupport[] = [{ id: 'support-a1', name: 'A1', role: 'abutment', axisIndex: 0, stationM: 0, coordinate: alignmentPoint(0), familyId: families.abutmentFamilyId, abutment: families.abutmentA1, direction: 'FORWARD' }]
   const spans: AssemblySpan[] = []
@@ -31,7 +43,7 @@ export function resolveBridgeAssembly(lengths: readonly (number | EngineeringQua
     if (index < values.length - 1) supports.push({ ...end, axisIndex: index + 1, stationM: station, coordinate: alignmentPoint(station), familyId: families.pier?.id, pierCapFamilyId: families.pierCap?.id, bearingFamilyId: families.bearing?.id, foundationFamilyId: families.foundation?.id, direction: 'FORWARD' })
     spans.push({ id: `span-${index + 1}`, name: `S${index + 1}`, startSupportId: start.id, endSupportId: end.id, startStationM: start.stationM, endStationM: station, lengthM, familyId: superstructureId ?? families.superstructure?.girderCandidateId })
   })
-  supports.push({ id: 'support-a2', name: 'A2', role: 'abutment', axisIndex: values.length, stationM: station, coordinate: alignmentPoint(station), familyId: families.abutmentFamilyId, abutment: families.abutmentA2 ?? families.abutmentA1, direction: 'REVERSE' })
+  supports.push({ id: 'support-a2', name: 'A2', role: 'abutment', axisIndex: values.length, stationM: station, coordinate: alignmentPoint(station), familyId: families.abutmentFamilyId, abutment: families.abutmentA2, direction: 'REVERSE' })
   const totalLengthM = values.reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0)
-  return { id: `assembly-${values.length}-${values.map(value => Number.isFinite(value) ? value.toFixed(6) : 'invalid').join('-')}`, status: messages.length ? 'INCOMPLETE' : 'VALID', messages, totalLengthM, supports, spans, superstructureCandidateId: superstructureId, familyAssignments: { abutmentFamilyId: families.abutmentFamilyId, pierFamilyId: families.pier?.id, pierCapFamilyId: families.pierCap?.id, bearingFamilyId: families.bearing?.id, foundationFamilyId: families.foundation?.id, girderFamilyId: families.superstructure?.girderCandidateId }, alignmentResolved: Boolean(alignment?.getPointAtChainage) }
+  return { id: `assembly-${values.length}-${values.map(value => Number.isFinite(value) ? value.toFixed(6) : 'invalid').join('-')}`, status: invalid ? 'INVALID' : incomplete ? 'INCOMPLETE' : 'VALID', messages, totalLengthM, supports, spans, superstructureCandidateId: superstructureId, familyAssignments: { abutmentFamilyId: families.abutmentFamilyId, pierFamilyId: families.pier?.id, pierCapFamilyId: families.pierCap?.id, bearingFamilyId: families.bearing?.id, foundationFamilyId: families.foundation?.id, girderFamilyId: families.superstructure?.girderCandidateId }, alignmentResolved: Boolean(alignment?.getPointAtChainage) }
 }

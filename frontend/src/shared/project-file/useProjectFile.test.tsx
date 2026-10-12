@@ -4,6 +4,8 @@ import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'
 import type { PersistedProjectState } from '../../features/project/model/projectWorkspace'
 import { useProjectFile } from './useProjectFile'
 import { buildProjectFile, projectFileText } from './projectFileService'
+import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../../features/graph/state/graphStore'
+import { getFamilyRecords, saveFamilyRecords } from '../../features/family-registry/model/familyRepository'
 import { getFamilySnapshots, publishFamilySnapshots } from '../../features/graph/family/familySnapshotStore'
 import type { BridgeDefinitionStore } from '../../features/bridge-definition/model/types'
 
@@ -64,6 +66,26 @@ describe('useProjectFile safety', () => {
     const hook = renderHook(() => useProjectFile(current, setProject, definitions, vi.fn()))
     await act(async () => { await hook.result.current.open(new File([projectFileText(buildProjectFile(state('Other'), definitions))], 'other.kopruq')) })
     expect(getFamilySnapshots('b', 'g')).toHaveLength(0); expect(localStorage.getItem('kopruq.graph.successful-runs.v1')).toBeNull()
+    hook.unmount()
+  })
+  it('restores graph, family and module storage when a step after applyProjectFile fails, and the next Save writes the pre-open data', async () => {
+    const before = createEmptyGraph('Before'); importGraphDocuments({ activeGraphId: before.id, graphs: [before] }); saveFamilyRecords('PIER', [{ id: 'before', name: 'Before' }])
+    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.1', g: 'A', t: 'Type 2', i: '1' }))
+    const incomingFile = buildProjectFile(state('Incoming'), definitions)
+    const after = createEmptyGraph('After'); incomingFile.graph = { activeGraphId: after.id, graphs: [after] }; incomingFile.families.PIER = [{ id: 'after', name: 'After' }]; incomingFile.modules.seismicInputs = { a: '0.9', g: 'B', t: 'Type 1', i: '2' }
+    const written: string[] = []
+    const picker = vi.fn().mockResolvedValue({ name: 'n.kopruq', createWritable: vi.fn().mockResolvedValue({ write: vi.fn((v: unknown) => { written.push(String(v)) }), close: vi.fn() }) })
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker })
+    let current = state('Initial'); let failState = true
+    const setProject = (next: typeof current | ((previous: typeof current) => typeof current)) => { if (failState) throw new Error('state failure'); current = typeof next === 'function' ? next(current) : next }
+    const hook = renderHook(() => useProjectFile(current, setProject, definitions, vi.fn()))
+    await act(async () => { await expect(hook.result.current.open(new File([projectFileText(incomingFile)], 'incoming.kopruq'))).rejects.toThrow('state failure') })
+    expect(exportGraphDocuments().graphs[0].name).toBe('Before'); expect(getFamilyRecords('PIER')).toEqual([{ id: 'before', name: 'Before' }])
+    expect(JSON.parse(localStorage.getItem('kopruq.seismic') ?? 'null').a).toBe('0.1')
+    expect(hook.result.current.ref).toBeUndefined(); expect(hook.result.current.dirty).toBe(true)
+    failState = false
+    await act(async () => { await hook.result.current.save() })
+    const saved = JSON.parse(written[0]); expect(saved.graph.graphs[0].name).toBe('Before'); expect(saved.projectState.project.name).toBe('Initial')
     hook.unmount()
   })
 })

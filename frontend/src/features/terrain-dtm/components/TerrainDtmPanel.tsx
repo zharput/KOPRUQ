@@ -41,7 +41,7 @@ import LandXmlImportPanel from '../../landxml-import/components/LandXmlImportPan
  * `App.tsx` (`onImported`) - the same pattern already used for
  * `crossSectionValues` - so the full viewer can find this terrain too.
  */
-export default function TerrainDtmPanel({ onImported, projectId = 'default', coordinateSystemLabel: initialCoordinateSystemLabel = 'Local / Unknown' }: { onImported: (terrainId: string) => void; projectId?: string; coordinateSystemLabel?: string }) {
+export default function TerrainDtmPanel({ onImported, projectId = 'default', coordinateSystemLabel: initialCoordinateSystemLabel = 'Local / Unknown' }: { onImported: (result: { terrainId: string; landXmlImportId: string | null }) => void; projectId?: string; coordinateSystemLabel?: string }) {
   const [landXmlFile, setLandXmlFile] = useState<File | null>(null)
   const [sourceFileName, setSourceFileName] = useState<string | null>(null)
   const [coordinateSystemLabel, setCoordinateSystemLabel] = useState(initialCoordinateSystemLabel)
@@ -58,13 +58,13 @@ export default function TerrainDtmPanel({ onImported, projectId = 'default', coo
     setSourceFileName(file.name)
     importMutation.mutate(
       { file, projectId, coordinateSystemLabel },
-      { onSuccess: (result) => onImported(result.id) },
+      { onSuccess: (result) => onImported({ terrainId: result.id, landXmlImportId: null }) },
     )
   }
 
   const result = importMutation.data
 
-  if (landXmlFile) return <LandXmlImportPanel initialFile={landXmlFile} title="3D Terrain / DTM" onImported={(value) => onImported(value.terrainId)} />
+  if (landXmlFile) return <LandXmlImportPanel initialFile={landXmlFile} title="3D Terrain / DTM" projectId={projectId} coordinateSystemLabel={coordinateSystemLabel} onImported={(value) => onImported({ terrainId: value.terrainId, landXmlImportId: value.hasAlignment ? value.landXmlImportId : null })} />
 
   return (
     <div className="spn-home">

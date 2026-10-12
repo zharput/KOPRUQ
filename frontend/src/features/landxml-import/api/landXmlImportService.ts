@@ -21,9 +21,9 @@ export interface LandXmlInspectResult {
 
 /**
  * LANDXML-P01 (docs/roadmap.md): parses the file and reports what it
- * contains - no persistence yet. A LandXML file can hold several
+ * contains without saving it. A LandXML file can hold several
  * surfaces/alignments, so the engineer picks which to import next
- * (`importLandXml`), never auto-imported.
+ * (`importLandXml` persists that selection), never auto-imported.
  */
 export async function inspectLandXml(file: File): Promise<LandXmlInspectResult> {
   const formData = new FormData()

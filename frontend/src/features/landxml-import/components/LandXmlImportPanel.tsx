@@ -109,7 +109,7 @@ export default function LandXmlImportPanel({ onImported, initialFile, title = 'A
         <p>X [{result.boundsMin.x}, {result.boundsMax.x}] | Y [{result.boundsMin.y}, {result.boundsMax.y}] | Z [{result.boundsMin.z}, {result.boundsMax.z}] m</p>
         <p>Invalid points: {result.source.invalidPoints} | Duplicate point IDs: {result.source.duplicatePointIds} | Invalid faces: {result.source.invalidFaces} | Missing references: {result.source.missingPointReferences} | Degenerate faces: {result.source.degenerateFaces}</p>
         {result.warnings.map((warning,i) => <p className="spn-card-subtitle" key={i}>{warning}</p>)}
-        <p className="spn-card-subtitle">Imported terrain is held in server memory; restarting the backend clears it.</p>
+        <p className="spn-card-subtitle">Imported terrain and any selected alignment are stored in the server database and persist across backend restarts.</p>
       </div>
       <div className="spn-card"><Link to="/3d-visualization">Open full viewer</Link><TerrainPreview key={result.terrainId} terrainId={result.terrainId} /></div>
       {result.hasProfile && <LongitudinalProfileChart importId={result.id} />}

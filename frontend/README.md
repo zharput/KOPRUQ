@@ -46,6 +46,23 @@ npm run preview      # serve the production build locally
 On Windows PowerShell, use `npm.cmd` if execution policy blocks the
 `npm.ps1` shim.
 
+## Local backend and database
+
+The backend requires PostgreSQL. From the repository root, copy
+`.env.example` to `.env` and set `DB_PASSWORD`. Then run `start-dev.bat`
+on Windows to start PostgreSQL, build and launch the backend, and start
+the frontend. Alternatively, start only PostgreSQL with
+`docker compose up -d --wait postgres` and run the backend and frontend
+separately. When launching the backend directly, pass `DB_PASSWORD` in
+its environment; Compose and `start-dev.bat` read the root `.env` file,
+but a direct backend launch does not.
+
+Frontend API requests use `http://localhost:8080` by default. If the
+backend is exposed on another port (for example, by setting
+`BACKEND_PORT` for the Compose backend), set `VITE_API_BASE` to its URL
+in `frontend/.env.local`, such as `VITE_API_BASE=http://localhost:8081`.
+`start-dev.bat` launches the backend directly on port 8080.
+
 ## Notable dependencies
 
 - **React Router** - URL-based navigation (`/:section`), replacing an

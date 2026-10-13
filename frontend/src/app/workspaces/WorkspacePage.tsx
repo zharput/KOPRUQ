@@ -8,7 +8,7 @@ import type { BridgeRow } from '../../features/project/model/types'
 import BridgeDefinitionWorkspace from '../../features/bridge-definition/components/BridgeDefinitionWorkspace'
 import GraphWorkspace from '../../features/graph/ui/GraphWorkspace'
 import type { BridgeDefinitionStore } from '../../features/bridge-definition/model/types'
-import WorkspaceLayout from '../layout/WorkspaceLayout'
+import WorkspaceLayout from '../../shared/ui/WorkspaceLayout'
 import type { WorkspaceDefinition } from './registry'
 import type { WindCalculationSnapshot } from '../../shared/project-file/projectFileTypes'
 
@@ -21,9 +21,9 @@ export default function WorkspacePage({ workspace, initialSelectedItem, mainCont
   if (workspace.id === 'family-tables' && !mainContentOverride) return <FamilyResultsViewer bridges={bridges} projectUnits={project.units} />
   const workspaceMain = workspace.id === 'loads'
     ? <div className="spn-workspace-feature"><LoadsPanel crossSectionValues={crossSectionValues} windLoads={windLoads} setWindLoads={setWindLoads} /></div>
-    : <div className="spn-workspace-placeholder"><h1>{workspace.centerHeading}</h1><p>{workspace.id === 'graph' ? 'Node-based bridge workflow editor will be available in Phase 3A.' : selectedItem ? `${selectedItem} â€” workspace placeholder` : 'Workspace placeholder'}</p></div>
+    : <div className="spn-workspace-placeholder"><h1>{workspace.centerHeading}</h1><p>{workspace.id === 'graph' ? 'Node-based bridge workflow editor will be available in Phase 3A.' : selectedItem ? `${selectedItem} — workspace placeholder` : 'Workspace placeholder'}</p></div>
   const mainContent = mainContentOverride ?? workspaceMain
   const leftPanel = workspace.items.length > 0 ? <nav className="spn-workspace-tree" aria-label={`${workspace.leftHeading} sections`}>{workspace.items.map((item) => <button key={item} type="button" className={selectedItem === item ? 'active' : ''} onClick={() => setSelectedItem(item)}>{item}</button>)}</nav> : <p className="spn-workspace-muted">No nodes available yet.</p>
-  const rightPanel = <div className="spn-workspace-inspector">{workspace.rightDetails.map((detail) => <div className="spn-workspace-inspector-row" key={detail}><span>{detail}</span><strong>â€”</strong></div>)}</div>
+  const rightPanel = <div className="spn-workspace-inspector">{workspace.rightDetails.map((detail) => <div className="spn-workspace-inspector-row" key={detail}><span>{detail}</span><strong>—</strong></div>)}</div>
   return <WorkspaceLayout leftTitle={workspace.leftHeading} leftPanel={leftPanel} mainContent={mainContent} rightTitle={workspace.rightHeading} rightPanel={rightPanel} />
 }

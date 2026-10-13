@@ -1,4 +1,4 @@
-import { generateValues, type Dimension } from '../../../shared/ui/ParamSweepCard'
+import { generateValues, type Dimension } from '../../../shared/lib/parameterSweep'
 import type { HeightApplicability, PierFamily, PierStatus, PierVariant } from './types'
 
 export function generatePierVariants(family: PierFamily): PierVariant[] {

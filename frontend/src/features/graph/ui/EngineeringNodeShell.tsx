@@ -83,7 +83,7 @@ function AbutmentCompactNodeShell({ data, selected, definition }: { data: FlowGr
 function FoundationDerivedCanvas({data}:{data:FlowGraphNode['data']}){
   const candidates=data.isDirty?data.previewFoundationCandidates:data.outputs?.candidates??data.previewFoundationCandidates
   const list=Array.isArray(candidates)?candidates.filter((item):item is import('../domain/types').FoundationCandidate=>typeof item==='object'&&item!==null&&'foundationType'in item):[]
-  const derived=(axis:'Lx'|'Ly')=>{const values=list.map(item=>item.foundationType==='PILED'?Number((item.geometry.derived as Readonly<Record<string,number>>)[axis]):Number(item.geometry[axis])).filter(Number.isFinite);if(!values.length)return 'Ã¢â‚¬â€';const min=Math.min(...values),max=Math.max(...values);return min===max?`${min.toFixed(2)} m`:`${min.toFixed(2)}Ã¢â‚¬Â¦${max.toFixed(2)} m`}
+  const derived=(axis:'Lx'|'Ly')=>{const values=list.map(item=>item.foundationType==='PILED'?Number((item.geometry.derived as Readonly<Record<string,number>>)[axis]):Number(item.geometry[axis])).filter(Number.isFinite);if(!values.length)return '—';const min=Math.min(...values),max=Math.max(...values);return min===max?`${min.toFixed(2)} m`:`${min.toFixed(2)}…${max.toFixed(2)} m`}
   return <div className="spn-engineering-derived"><strong>Derived Geometry</strong><span>Lx <b>{derived('Lx')}</b></span><span>Ly <b>{derived('Ly')}</b></span></div>
 }
 
@@ -152,7 +152,7 @@ function formatValue(value: GraphValue, port: NodePortDefinition, projectUnits?:
       if (!unit) return `${value.length} values`
       const values = quantities.map(item => item.value), min = Math.min(...values), max = Math.max(...values), label = getUnit(unit)?.label ?? unit
       const shown = (number: number) => quantityFromCanonical(number, kind, unit).toFixed(2)
-      return min === max ? `${shown(min)} ${label}` : `${shown(min)}Ã¢â‚¬Â¦${shown(max)} ${label}`
+      return min === max ? `${shown(min)} ${label}` : `${shown(min)}…${shown(max)} ${label}`
     }
     const first = value[0]
     return `${formatValue(first as GraphValue, port, projectUnits)}${value.length > 1 ? ` ... (${value.length} values)` : ''}`

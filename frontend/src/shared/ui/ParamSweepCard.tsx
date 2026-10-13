@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { GenerationTable } from './DesignSystemUi'
-import type { Dimension } from './generation'
+import type { Dimension } from '../lib/parameterSweep'
 
 /**
  * Shared "checkbox + cross-section diagram + min/max/delta parameter
@@ -18,8 +18,8 @@ import type { Dimension } from './generation'
  * range) and is shown as exactly that one number, regardless of delta.
  * Only when min &lt; max does delta produce a real stepped sweep.
  */
-export type { Dimension } from './generation'
-export { generateValues } from './generation'
+export type { Dimension } from '../lib/parameterSweep'
+export { generateValues } from '../lib/parameterSweep'
 
 /** Horizontal dimension line with arrowheads, for cross-section SVG diagrams. */
 export function HDim({ x1, x2, y, label }: { x1: number; x2: number; y: number; label: string }) {

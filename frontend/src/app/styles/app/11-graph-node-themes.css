@@ -1,0 +1,657 @@
+/* Phase 3B.2E: category identity stays separate from execution status and edge data type. */
+:root {
+  --node-input-accent:var(--sp-node-input);--node-input-border:var(--sp-node-border);--node-input-header:var(--sp-node-input);--node-input-text:var(--sp-node-header-text-dark);
+  --node-math-accent:var(--sp-node-math);--node-math-border:var(--sp-node-border);--node-math-header:var(--sp-node-math);--node-math-text:var(--sp-node-header-text-dark);
+  --node-material-accent:var(--sp-node-materials);--node-material-border:var(--sp-node-border);--node-material-header:var(--sp-node-materials);--node-material-text:var(--sp-node-header-text-dark);
+  --node-geometry-accent:var(--sp-node-geometry);--node-geometry-border:var(--sp-node-border);--node-geometry-header:var(--sp-node-geometry);--node-geometry-text:var(--sp-node-header-text-light);
+  --node-superstructure-accent:var(--sp-node-superstructure);--node-superstructure-border:var(--sp-node-border);--node-superstructure-header:var(--sp-node-superstructure);--node-superstructure-text:var(--sp-node-header-text-light);
+  --node-substructure-accent:var(--sp-node-substructure);--node-substructure-border:var(--sp-node-border);--node-substructure-header:var(--sp-node-substructure);--node-substructure-text:var(--sp-node-header-text-dark);
+  --node-load-accent:var(--sp-node-loads);--node-load-border:var(--sp-node-border);--node-load-header:var(--sp-node-loads);--node-load-text:var(--sp-node-header-text-dark);
+  --node-analysis-accent:var(--sp-node-analysis);--node-analysis-border:var(--sp-node-border);--node-analysis-header:var(--sp-node-analysis);--node-analysis-text:var(--sp-node-header-text-light);
+  --node-design-accent:var(--sp-node-design);--node-design-border:var(--sp-node-border);--node-design-header:var(--sp-node-design);--node-design-text:var(--sp-node-header-text-dark);
+  --node-optimization-accent:var(--sp-node-optimization);--node-optimization-border:var(--sp-node-border);--node-optimization-header:var(--sp-node-optimization);--node-optimization-text:var(--sp-node-header-text-light);
+  --node-output-accent:var(--sp-node-output);--node-output-border:var(--sp-node-border);--node-output-header:var(--sp-node-output);--node-output-text:var(--sp-node-header-text-dark);
+  --node-structural-family-accent:var(--sp-node-structural-family);--node-structural-family-border:var(--sp-node-border);--node-structural-family-header:var(--sp-node-structural-family);--node-structural-family-text:var(--sp-node-header-text-dark);
+}
+.spn-graph-node.category-input,.spn-graph-library-group.category-input{--node-accent:var(--node-input-accent);--node-border:var(--node-input-border);--node-header:var(--node-input-header);--node-text:var(--node-input-text)}
+.spn-graph-node.category-math,.spn-graph-library-group.category-math{--node-accent:var(--node-math-accent);--node-border:var(--node-math-border);--node-header:var(--node-math-header);--node-text:var(--node-math-text)}
+.spn-graph-node.category-materials,.spn-graph-library-group.category-materials{--node-accent:var(--node-material-accent);--node-border:var(--node-material-border);--node-header:var(--node-material-header);--node-text:var(--node-material-text)}
+.spn-graph-node.category-geometry,.spn-graph-library-group.category-geometry{--node-accent:var(--node-geometry-accent);--node-border:var(--node-geometry-border);--node-header:var(--node-geometry-header);--node-text:var(--node-geometry-text)}
+.spn-graph-node.category-superstructure,.spn-graph-library-group.category-superstructure{--node-accent:var(--node-superstructure-accent);--node-border:var(--node-superstructure-border);--node-header:var(--node-superstructure-header);--node-text:var(--node-superstructure-text)}
+.spn-graph-node.category-substructure,.spn-graph-library-group.category-substructure{--node-accent:var(--node-substructure-accent);--node-border:var(--node-substructure-border);--node-header:var(--node-substructure-header);--node-text:var(--node-substructure-text)}
+.spn-graph-node.category-loads,.spn-graph-library-group.category-loads{--node-accent:var(--node-load-accent);--node-border:var(--node-load-border);--node-header:var(--node-load-header);--node-text:var(--node-load-text)}
+.spn-graph-node.category-analysis,.spn-graph-library-group.category-analysis{--node-accent:var(--node-analysis-accent);--node-border:var(--node-analysis-border);--node-header:var(--node-analysis-header);--node-text:var(--node-analysis-text)}
+.spn-graph-node.category-design,.spn-graph-library-group.category-design{--node-accent:var(--node-design-accent);--node-border:var(--node-design-border);--node-header:var(--node-design-header);--node-text:var(--node-design-text)}
+.spn-graph-node.category-optimization,.spn-graph-library-group.category-optimization{--node-accent:var(--node-optimization-accent);--node-border:var(--node-optimization-border);--node-header:var(--node-optimization-header);--node-text:var(--node-optimization-text)}
+.spn-graph-node.category-output,.spn-graph-library-group.category-output{--node-accent:var(--node-output-accent);--node-border:var(--node-output-border);--node-header:var(--node-output-header);--node-text:var(--node-output-text)}
+.spn-graph-node[class*="category-"]{border-color:var(--spn-graph-node-border)}
+.spn-graph-node[class*="category-"] .spn-graph-node-title{border-top:0;border-bottom-color:var(--node-header)}
+.spn-graph-node[class*="category-"] .spn-graph-node-title small{color:var(--node-text)}
+.spn-graph-library-group[class*="category-"] h3{color:var(--node-text)}
+.spn-graph-node.is-selected{border-color:var(--sp-selection-border);box-shadow:0 0 0 1px var(--sp-selection-border),0 5px 18px rgba(0,0,0,.3)}
+.spn-graph-node.has-success .spn-graph-node-state{color:#81c999}
+.spn-graph-node.is-running .spn-graph-node-state{color:#84b7f4}
+.spn-graph-node.has-error .spn-graph-node-state{color:#e39498}
+.spn-graph-node.is-dirty .spn-graph-node-state{color:#e0b766}
+.spn-graph-library-group[class*="category-"] .spn-graph-library-item:hover{border-color:var(--node-accent);background:color-mix(in srgb,var(--node-accent) 8%,var(--surface-2))}
+
+/* Structural family identity is shared by all structural family nodes; port edges keep their data-type colors. */
+.spn-graph-node.category-structural-family,.spn-graph-library-group.category-structural-family { --node-accent:var(--node-structural-family-accent);--node-border:var(--node-structural-family-border);--node-header:var(--node-structural-family-header);--node-text:var(--node-structural-family-text); }
+.spn-graph-node.category-structural-family.category-abutment { --node-accent:var(--node-abutment-accent);--node-border:var(--node-abutment-border);--node-header:var(--node-abutment-header);--node-text:var(--node-abutment-text); }
+.spn-graph-log { flex: none; border-top: 1px solid var(--border); background: var(--surface-1); }
+.spn-graph-log > button { display: flex; align-items: center; gap: 10px; width: 100%; height: 32px; padding: 0 10px; border: 0; background: transparent; color: var(--text-secondary); cursor: pointer; text-align: left; font: inherit; font-size: 9px; font-weight: 700; letter-spacing: .08em; }
+.spn-graph-log > button small { flex: 1; color: var(--text-muted); font-size: 9px; font-weight: 400; letter-spacing: 0; }
+.spn-graph-log-body { max-height: 150px; overflow: auto; padding: 5px 10px 10px; border-top: 1px solid var(--border); color: var(--text-muted); font: 9px/1.7 var(--mono); }
+.spn-graph-log-body strong { color: #76a8ec; font-size: 8px; }
+.spn-graph-log-body .error, .spn-graph-log-body .error strong { color: #e39498; }
+.spn-graph-inspector { display: grid; gap: 18px; color: var(--text-secondary); font-size: 10px; }
+.spn-graph-inspector section { display: grid; gap: 8px; }
+.spn-graph-inspector h3 { margin: 0 0 2px; padding-bottom: 6px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 9px; letter-spacing: .1em; }
+.spn-graph-inspector label { display: grid; gap: 4px; color: var(--text-secondary); }
+.spn-graph-inspector .spn-input { width: 100%; min-width: 0; padding: 5px 7px; font-size: 10px; }
+.spn-graph-inspector-row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.spn-graph-inspector-row code { max-width: 165px; overflow: hidden; color: #9ab1d1; text-overflow: ellipsis; font: 9px var(--mono); }
+.spn-graph-inspector-row strong { font-size: 8px; }
+.spn-graph-inspector-row .state-error, .spn-graph-inspector-error { color: #e39498; }
+.spn-graph-inspector-row .state-success { color: #8bcaa2; }
+.spn-graph-inspector-error { margin: 0; font-size: 9px; }
+.spn-graph-port-heading { padding-top: 6px; color: #8c9ab0; font-size: 8px; letter-spacing: .08em; }
+.spn-graph-inspector-empty { padding: 4px; color: var(--text-muted); font-size: 10px; line-height: 1.6; }
+.spn-graph-inspector-empty { display: grid; gap: 8px; font-size: 12px; }
+.spn-graph-inspector-empty strong { color: var(--text-primary); font-size: 14px; letter-spacing: .07em; }
+.spn-graph-selection-box { position: absolute; z-index: 20; pointer-events: none; }
+.spn-graph-selection-box.is-window { border: 1px solid var(--graph-window-selection, #4c91ff); background: var(--graph-window-selection-fill, rgba(76,145,255,.08)); }
+.spn-graph-selection-box.is-crossing { border: 1px dashed var(--graph-crossing-selection, #49c6a7); background: var(--graph-crossing-selection-fill, rgba(73,198,167,.08)); }
+.spn-graph-inspector { --graph-inspector-title-size: 14px; --graph-inspector-section-size: 12px; --graph-inspector-value-size: 12px; }
+.spn-graph-inspector > section { gap: 10px; }
+.spn-graph-inspector h3 { font-size: var(--graph-inspector-section-size); }
+.spn-graph-inspector-row strong { font-size: var(--graph-inspector-value-size); font-weight: 500; }
+.spn-engineering-inspector { gap: 16px; font-size: 12px; }
+.spn-engineering-inspector h3 { font-size: var(--graph-inspector-section-size); }
+.spn-engineering-general > label { display: grid; gap: 5px; color: var(--text-secondary); font-size: 12px; }
+.spn-engineering-general .spn-input { width: 100%; min-width: 0; padding: 6px 8px; font-size: 12px; }
+.spn-engineering-type, .spn-engineering-family { display: grid; gap: 9px; }
+.spn-engineering-parameters { display: grid; gap: 0; }
+.spn-engineering-schematic { display: grid; justify-items: center; gap: 3px; padding: 8px; border: 1px solid var(--border-subtle, #334155); border-radius: 4px; }
+.spn-engineering-schematic svg { width: 100%; max-width: 250px; height: 132px; overflow: visible; fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2.2; }
+.spn-engineering-schematic text { fill: var(--text-secondary); stroke: none; font: 10px var(--mono); }
+.spn-engineering-schematic > span { color: var(--text-muted); font-size: 11px; }
+.spn-engineering-parameter { display: grid; grid-template-columns: minmax(0, 1fr) minmax(140px, 1.15fr); align-items: center; gap: 12px; min-width: 0; padding-bottom: 0; border-bottom: 1px solid var(--border-subtle, #334155); }
+.spn-engineering-parameter-label { min-width: 0; color: var(--spn-node-body-text); font-size: var(--graph-panel-body-font-size); line-height: 1.25; overflow-wrap: anywhere; }
+.spn-engineering-controls { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
+.spn-engineering-controls > * { min-width: 0; }
+.spn-engineering-controls .spn-input { flex: 1; font-size: 12px; }
+.spn-engineering-connected { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.spn-engineering-connected strong { color: var(--text-primary); font-size: 13px; font-weight: 500; }
+.spn-engineering-connected small { color: var(--text-muted); font-size: 11px; }
+.spn-engineering-family .spn-graph-inspector-row { font-size: 12px; }
+.spn-engineering-family .spn-graph-inspector-row strong { color: var(--text-primary); font-size: 13px; }
+.spn-graph-multi-inspector h4 { margin: 6px 0 0; color: var(--text-muted); font-size: 12px; }
+:root { --graph-structural-accent: var(--sp-node-structural-family); --graph-window-selection: var(--sp-selection-border); --graph-window-selection-fill: rgba(104,117,134,.08); --graph-crossing-selection: var(--sp-selection-hover); --graph-crossing-selection-fill: rgba(70,80,93,.08); --graph-panel-title-font-size: 14px; --graph-panel-section-font-size: 11px; --graph-panel-body-font-size: 13px; --graph-panel-secondary-font-size: 11px; --graph-dimension-color: var(--sp-drawing-dimension); --graph-axis-color: var(--sp-drawing-axis); --kopruq-edge-color:var(--sp-link-default); --kopruq-node-body-bg:var(--sp-node-body); --node-header-text:var(--sp-text-inverse); }
+.spn-graph-node[class*="category-"] .spn-graph-node-title { background:var(--node-header); }
+.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--kopruq-edge-color) !important; }
+/* Graph Interaction System V1: interaction state is independent of category identity. */
+.spn-graph-node { background: var(--sp-node-body); box-shadow: var(--sp-node-shadow); transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease; }
+.spn-graph-node:hover { border-color: var(--sp-hover-border) !important; background: var(--sp-hover-surface); }
+.spn-graph-node.is-selected, .spn-graph-node[class*="category-"].is-selected { border-color: var(--sp-selection-border) !important; background: var(--sp-node-body); box-shadow: var(--sp-node-shadow-selected); }
+.spn-graph-node > .react-flow__handle, .spn-graph-node .react-flow__handle { border-color: var(--sp-socket-default); background: var(--sp-node-body); }
+.spn-graph-node .react-flow__handle:hover { border-color: var(--sp-socket-hover); background: var(--sp-socket-hover); }
+.spn-graph-flow .react-flow__edge-path { stroke: var(--sp-edge-default); transition: stroke 120ms ease, stroke-width 120ms ease; }
+.spn-graph-flow .react-flow__edge:hover .react-flow__edge-path { stroke: var(--sp-edge-hover); stroke-width: 2.1; }
+.spn-graph-flow .react-flow__edge.selected .react-flow__edge-path { stroke: var(--sp-edge-selected); stroke-width: 2.1; }
+.spn-graph-flow .react-flow__connection-path, .spn-graph-flow .react-flow__connectionline path { stroke: var(--sp-edge-preview) !important; stroke-dasharray: 5 4; }
+.spn-graph-selection-box.is-window { border-color: var(--sp-marquee-window-border); background: var(--sp-marquee-window-fill); }
+.spn-graph-selection-box.is-crossing { border-color: var(--sp-marquee-crossing-border); background: var(--sp-marquee-crossing-fill); }
+.spn-graph-node,
+.spn-graph-node .spn-graph-node-content,
+.spn-graph-node .spn-graph-port-row,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item,
+.spn-graph-node .spn-graph-node-range { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); }
+.spn-graph-node .spn-graph-node-title { font-family: var(--spn-ui-font-family); font-size: 11px; }
+.spn-graph-node .spn-graph-node-title small { font-family: var(--spn-ui-font-family); }
+:root { --node-math-header: var(--sp-node-math); --node-math-accent: var(--sp-node-math); }
+.spn-graph-library-group.category-input .spn-graph-library-category-heading { background:var(--node-input-header); }
+.spn-graph-library-group.category-math .spn-graph-library-category-heading { background:var(--node-math-header); }
+.spn-graph-library-group.category-materials .spn-graph-library-category-heading { background:var(--node-material-header); }
+.spn-graph-library-group.category-pier .spn-graph-library-category-heading { background:var(--node-pier-header); }
+.spn-graph-library-group.category-abutment .spn-graph-library-category-heading { background:var(--node-abutment-header); }
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background:var(--node-cap-header); }
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background:var(--node-foundation-header); }
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background:var(--node-bearing-header); }
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background:var(--node-girder-header); }
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background:var(--node-superstructure-header); }
+.spn-graph-library-group.category-bridge .spn-graph-library-category-heading { background:var(--node-bridge-header); }
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background:var(--node-output-header); }
+.spn-graph-node[class*="category-"] .spn-graph-node-title > span, .spn-graph-node[class*="category-"] .spn-graph-node-title small { color:var(--node-header-text); }
+.spn-engineering-input-row { --node-socket-center-x: calc(-14px - (var(--spn-node-handle-size) / 2) - 1px); }
+.spn-engineering-input-row .react-flow__handle { left:var(--node-socket-center-x); }
+.spn-graph-node.category-superstructure .spn-graph-node-title > span, .spn-graph-node.category-superstructure .spn-graph-node-title small { color:#ffffff; }
+.spn-graph-library { --graph-library-title-size: var(--graph-panel-title-font-size); --graph-library-category-size: var(--kp-node-library-heading-font-size); --graph-library-node-size: var(--kp-node-library-item-font-size); --graph-library-description-size: var(--graph-panel-secondary-font-size); }
+.spn-graph-inspector { --graph-inspector-title-size: var(--graph-panel-title-font-size); --graph-inspector-section-size: var(--graph-panel-section-font-size); --graph-inspector-value-size: var(--graph-panel-body-font-size); font-size: var(--graph-panel-body-font-size); }
+.spn-graph-inspector h3 { font-size: var(--graph-panel-section-font-size); }
+.spn-graph-inspector-row, .spn-graph-inspector-row strong, .spn-graph-inspector label, .spn-graph-inspector label > input, .spn-graph-inspector label > select { font-size: var(--graph-panel-body-font-size); }
+.spn-graph-inspector-row strong { font-weight: 500; }
+.spn-engineering-general > label, .spn-engineering-parameter-label, .spn-general-parameter label { font-size: var(--graph-panel-body-font-size); }
+.spn-engineering-general .spn-input, .spn-engineering-controls .spn-input, .spn-general-parameter .spn-input, .spn-general-parameter .spn-graph-editable-number { font-size: var(--graph-panel-body-font-size); }
+.spn-engineering-connected strong, .spn-engineering-family .spn-graph-inspector-row strong { font-size: var(--graph-panel-body-font-size); }
+.spn-engineering-connected small, .spn-general-parameter small { font-size: var(--graph-panel-secondary-font-size); }
+.spn-engineering-schematic { width: 100%; padding: 4px; }
+.spn-engineering-schematic svg { display: block; width: 100%; max-width: 100%; height: auto; overflow: visible; fill: none; stroke: none; font-family: var(--sans, system-ui, sans-serif); }
+.spn-engineering-schematic-single svg { max-height: 230px; }
+.spn-engineering-schematic-foundation svg { max-height: 410px; }
+.engineering-outline { fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: .9; vector-effect: non-scaling-stroke; }
+.engineering-void { fill: var(--surface-1); stroke: var(--graph-structural-accent); stroke-width: .9; }
+.engineering-deck { stroke: var(--graph-structural-accent); stroke-width: .9; }
+.engineering-girder-axes { fill: none; stroke: var(--graph-axis-color); stroke-width: .8; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.engineering-pile { fill: color-mix(in srgb, var(--graph-structural-accent) 26%, var(--surface-1)); stroke: var(--graph-structural-accent); stroke-width: 1.5; }
+.engineering-pile-section { fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 1.5; }
+.engineering-dimension-line { fill: none; stroke: var(--graph-dimension-color); stroke-width: .8; vector-effect: non-scaling-stroke; }
+.engineering-dimension { fill: var(--text-primary); stroke: none; font: 12px/1 var(--sans, system-ui, sans-serif); }
+.engineering-view-title { fill: var(--text-secondary); stroke: none; font: 700 12px/1 var(--sans, system-ui, sans-serif); letter-spacing: .08em; }
+.engineering-axis { fill: none; stroke: var(--graph-axis-color); stroke-width: 1; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; }
+.engineering-axis text { fill: var(--graph-axis-color); stroke: none; font: 10px/1 var(--sans, system-ui, sans-serif); }
+.engineering-centerline { fill: none; stroke: var(--graph-axis-color); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.engineering-schematic-single .engineering-dimension { font-size: 11px; }
+.engineering-dimension.is-compact { font-size: 10px; }
+:root { --graph-schematic-fill: #A6A6A6; --graph-schematic-stroke: #d8e0ec; --graph-schematic-text: #d8e0ec; }
+.spn-engineering-schematic .engineering-outline,
+.spn-engineering-schematic .engineering-pile,
+.spn-engineering-schematic .engineering-pile-section { fill: var(--graph-schematic-fill); stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-void { fill: var(--surface-1); stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-deck { stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-dimension-line,
+.spn-engineering-schematic .engineering-axis,
+.spn-engineering-schematic .engineering-centerline { stroke: var(--graph-schematic-stroke); }
+.spn-engineering-schematic .engineering-dimension,
+.spn-engineering-schematic .engineering-view-title,
+.spn-engineering-schematic .engineering-axis text { fill: var(--graph-schematic-text); }
+.engineering-schematic-foundation svg { max-height: 430px; }
+/* Selection remains a distinct signal; title colors come from the shared
+   nodeVisualThemes resolver applied by the renderers. */
+.spn-graph-node.is-selected, .spn-graph-node[class*="category-"].is-selected { border-color: #2f7bf6; box-shadow: 0 0 0 2px #2f7bf6, 0 0 14px rgba(47,123,246,.28), 0 5px 18px rgba(0,0,0,.24); }
+.spn-general-node-inspector { gap: 16px; }
+.spn-general-parameter { padding: 2px 0 6px; border-bottom: 1px solid var(--border-subtle, #334155); }
+.spn-general-parameter label { display: grid; gap: 5px; color: var(--text-secondary); }
+.spn-general-parameter label > input[type="checkbox"] { justify-self: start; }
+.spn-general-parameter small { color: var(--text-muted); }
+.spn-graph-result-preview { display: grid; gap: 5px; min-width: 0; }
+.spn-assembly-table-wrap { overflow-x: auto; border: 1px solid var(--border); }
+.spn-assembly-table { width: 100%; border-collapse: collapse; font-size: 11px; white-space: nowrap; }
+.spn-assembly-table th, .spn-assembly-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: left; }
+.spn-assembly-table th { color: var(--text-muted); font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.spn-assembly-table td { color: var(--text-secondary); }
+.spn-assembly-schematic { display: block; width: 100%; height: auto; min-height: 120px; border: 1px solid var(--border); background: var(--surface-1); }
+.spn-assembly-schematic text { fill: var(--text-secondary); font: 10px var(--mono); }
+.spn-assembly-schematic .spn-assembly-length { fill: var(--text-muted); font-size: 8px; }
+.spn-assembly-deck { stroke: var(--accent-strong); stroke-width: 4; }
+.spn-assembly-pier { stroke: var(--node-structural-family-accent, #e69a45); stroke-width: 3; }
+.spn-assembly-abutment { stroke: var(--text-primary); stroke-width: 5; }
+@media (max-width: 1050px) { .spn-workspace-layout:has(.spn-graph-workspace) { --workspace-left: 210px; --workspace-right: 270px; } .spn-graph-save-state { display: none; } }
+@media (max-width: 760px) { .spn-workspace-layout:has(.spn-graph-workspace) { --workspace-left: 42px; --workspace-right: 42px; } .spn-graph-workspace { min-width: 450px; } .spn-graph-toolbar { gap: 4px; } .spn-graph-name select { display: none; } }
+@media (max-width: 1050px) { .spn-engineering-workspace { grid-template-columns: 200px minmax(420px, 1fr); } .spn-workspace-right { grid-column: 1 / -1; } }
+@media (max-width: 720px) { .spn-engineering-workspace { grid-template-columns: 1fr; min-height: auto; } .spn-workspace-center { min-height: 620px; } }
+.spn-graph-cap-preview { display: grid; justify-items: center; gap: 4px; margin: 8px 0; padding: 6px; border: 1px solid var(--border-subtle, #334155); border-radius: 4px; }
+.spn-graph-cap-preview svg { width: 100%; max-width: 240px; height: 112px; overflow: visible; }
+.spn-graph-cap-preview path { fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2; }
+.spn-graph-cap-preview text { fill: var(--text-secondary, #aeb8c5); font-size: 7px; }
+.spn-graph-cap-preview small { color: var(--text-muted, #8b97a7); }
+.spn-graph-foundation-preview { display: grid; justify-items: center; gap: 4px; margin: 8px 0; padding: 6px; border: 1px solid var(--border-subtle, #334155); border-radius: 4px; }
+.spn-graph-foundation-preview svg { width: 100%; max-width: 240px; height: 126px; overflow: visible; fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2; }
+.spn-graph-bearing-preview { display: grid; justify-items: center; gap: 4px; margin: 8px 0; color: #aebbd0; font-size: 9px; }
+.spn-graph-bearing-preview svg { width: 100%; max-width: 240px; height: 126px; overflow: visible; fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2; }
+.spn-graph-pier-preview { width: 120px; height: 84px; fill: color-mix(in srgb, var(--graph-structural-accent) 18%, transparent); stroke: var(--graph-structural-accent); stroke-width: 2; }
+.spn-graph-bearing-preview text { fill: #b8c5d8; stroke: none; font: 8px var(--mono); }
+.spn-graph-foundation-preview text { fill: var(--text-secondary, #aeb8c5); stroke: none; font-size: 7px; }
+.spn-graph-foundation-preview small { color: var(--text-muted, #8b97a7); text-align: center; }
+.spn-graph-library-subgroup { margin: 8px 0 4px; padding-left: 8px; border-left: 1px solid var(--node-structural-family-border, #8e5b35); }
+.spn-graph-library-subgroup h4 { margin: 4px 0; color: var(--node-structural-family-text, #dc8b47); font-size: 11px; }
+.spn-graph-node[class*="category-"] .spn-graph-node-title { background:var(--node-header); opacity:1; filter:none; }
+/* All graph sockets share the Assembly reference geometry. The 9px value is
+   the existing engineering/Assembly handle size; only positioning differs by
+   row wrapper so vertical centers remain untouched. */
+:root { --spn-node-handle-size: 9px; --spn-node-handle-border: 1px solid #b2c2da; --spn-node-handle-background: #28364b; }
+.spn-assembly-node .spn-engineering-input-label { padding-left: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spn-assembly-node .spn-engineering-input-row { grid-template-columns: minmax(0, 48%) minmax(0, 1fr); gap: 6px; }
+.spn-assembly-node .spn-engineering-input-value, .spn-assembly-node .spn-engineering-local-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spn-assembly-node .spn-engineering-output-row { position: static; }
+.spn-assembly-node .spn-engineering-output-row .react-flow__handle { position: absolute; top: 50%; right: calc(-1 * (var(--spn-node-handle-size) / 2)); left: auto; transform: translateY(-50%); }
+.spn-graph-node[class*="category-"] { border-color: var(--spn-node-border); }
+:root { --spn-node-body-text: #F2F2F2; --spn-graph-node-border: #A6A6A6; }
+.spn-graph-node .spn-graph-node-content, .spn-graph-node .spn-engineering-inputs, .spn-graph-node .spn-engineering-outputs, .spn-graph-node .spn-engineering-input-row, .spn-graph-node .spn-engineering-input-label, .spn-graph-node .spn-engineering-input-value, .spn-graph-node .spn-engineering-output-label, .spn-graph-node .spn-engineering-output-value, .spn-graph-node .spn-graph-port-row, .spn-graph-node .spn-graph-list-heading, .spn-graph-node .spn-graph-list-item, .spn-graph-node .spn-graph-node-range, .spn-graph-node .spn-engineering-derived { color: var(--spn-node-body-text); }
+.spn-graph-node .spn-graph-port-row small, .spn-graph-node .spn-graph-list-item small { color: var(--spn-node-body-text); }
+.spn-assembly-graph-node .spn-assembly-inputs { padding-left: 14px; }
+.spn-assembly-graph-node .spn-engineering-input-row { grid-template-columns: minmax(0, 1fr) minmax(110px, 42%); gap: 6px; }
+.spn-assembly-graph-node .spn-engineering-input-label, .spn-assembly-graph-node .spn-engineering-input-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spn-assembly-graph-node .spn-engineering-input-value { text-align: right; }
+.spn-assembly-centered-output { position: absolute; top: 50%; right: 0; display: flex; align-items: center; gap: 6px; max-width: 52%; transform: translateY(-50%); }
+.spn-assembly-centered-output .spn-engineering-output-label, .spn-assembly-centered-output .spn-engineering-output-value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spn-assembly-centered-output .react-flow__handle { position: absolute; top: 50%; right: calc(-1 * (var(--spn-node-handle-size) / 2)); left: auto; transform: translateY(-50%); }
+.spn-graph-node > .react-flow__handle { width:var(--spn-node-handle-size); height:var(--spn-node-handle-size); box-sizing:border-box; border:var(--spn-node-handle-border); background:var(--spn-node-handle-background); }
+.spn-graph-list-node > .react-flow__handle { left: calc(-1 * (var(--spn-node-handle-size) / 2)); }
+.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path { stroke:var(--kopruq-edge-color) !important; }
+.spn-graph-node .spn-engineering-input-label,
+.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node .spn-engineering-local-value,
+.spn-graph-node .spn-engineering-output-label,
+.spn-graph-node .spn-engineering-output-value,
+.spn-graph-node .spn-graph-port-row,
+.spn-graph-node .spn-graph-editable-number,
+.spn-graph-node .spn-graph-inline-input,
+.spn-graph-node .spn-engineering-local-value input,
+.spn-graph-node .spn-canvas-select-trigger { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); }
+.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node .spn-engineering-output-value { font-weight: 400; }
+.spn-graph-inspector .spn-engineering-parameter-label,
+.spn-graph-inspector .spn-engineering-controls,
+.spn-graph-inspector .spn-engineering-controls .spn-input,
+.spn-graph-inspector .spn-engineering-connected strong,
+.spn-graph-inspector .spn-engineering-family .spn-graph-inspector-row,
+.spn-graph-inspector .spn-engineering-family .spn-graph-inspector-row strong,
+.spn-graph-inspector .spn-graph-editable-number { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); }
+.spn-graph-inspector,
+.spn-graph-inspector * { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); }
+.spn-graph-inspector h3,
+.spn-graph-inspector .spn-graph-inspector-section-title { font-size: 12px; }
+.spn-graph-library-category-heading,
+.spn-graph-library-category-heading span,
+.spn-graph-library-group h3 { font-family: var(--spn-ui-font-family); font-size: var(--kp-node-library-heading-font-size); line-height: var(--spn-parameter-line-height); }
+.spn-graph-library-category-heading { justify-content: space-between; cursor: pointer; }
+.spn-graph-library-collapse-icon { margin-left: auto; font-size: 16px !important; font-weight: 700; line-height: 1; letter-spacing: 0; }
+.spn-graph-library-item,
+.spn-graph-library-item span { font-family: var(--spn-ui-font-family); font-size: var(--kp-node-library-item-font-size); line-height: var(--spn-parameter-line-height); font-weight: 400; }
+.spn-graph-inspector,
+.spn-graph-inspector * { font-size: 12px; }
+.spn-graph-inspector h3,
+.spn-graph-inspector .spn-graph-inspector-section-title { font-size: 12px; }
+.spn-graph-inspector .spn-engineering-controls .spn-input,
+.spn-graph-inspector .spn-engineering-controls input,
+.spn-graph-inspector .spn-engineering-controls select { font-weight: 400; }
+.spn-graph-inspector .spn-engineering-general > label,
+.spn-graph-inspector .spn-engineering-general > label > input,
+.spn-graph-inspector .spn-engineering-general .spn-input,
+.spn-graph-inspector .spn-graph-inspector-row,
+.spn-graph-inspector .spn-graph-inspector-row strong { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); font-weight: 400; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-input-label,
+.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node .spn-engineering-output-label,
+.spn-graph-node .spn-engineering-output-value,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-local-value,
+.spn-graph-node .spn-graph-editable-number,
+.spn-graph-node .spn-graph-inline-input,
+.spn-graph-node .spn-canvas-select-trigger,
+.spn-graph-inspector,
+.spn-graph-inspector label,
+.spn-graph-inspector label > input,
+.spn-graph-inspector label > select,
+.spn-graph-inspector .spn-graph-inspector-row,
+.spn-graph-inspector .spn-engineering-parameter-label,
+.spn-graph-inspector .spn-engineering-controls,
+.spn-graph-inspector .spn-engineering-controls .spn-input,
+.spn-graph-inspector .spn-graph-editable-number { font-family: var(--spn-ui-font-family); font-size: var(--spn-parameter-font-size); line-height: var(--spn-parameter-line-height); }
+.spn-candidate-table-section{margin-top:12px}.spn-candidate-table-scroll{max-height:320px;overflow:auto;border:1px solid var(--spn-border,#39414d)}.spn-candidate-table{border-collapse:collapse;min-width:100%;font-size:11px;white-space:nowrap}.spn-candidate-table th,.spn-candidate-table td{padding:4px 6px;border-right:1px solid var(--spn-border,#39414d);border-bottom:1px solid var(--spn-border,#39414d)}.spn-candidate-table th{position:sticky;top:0;background:var(--spn-panel,#20252d);text-align:left;z-index:1}.spn-candidate-table td.is-numeric{text-align:right}.spn-candidate-table tbody tr{cursor:pointer}.spn-candidate-table tbody tr.is-selected{background:rgba(76,145,255,.2)}.spn-candidate-selection{display:block;margin-top:4px}.spn-graph-inspector-muted{color:var(--spn-muted,#9aa4b2);font-size:12px}
+.spn-graph-inspector,
+.spn-graph-inspector * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; }
+.spn-card,
+.spn-card input,
+.spn-card select,
+.spn-card option,
+.spn-card button,
+.spn-card label,
+.spn-card span,
+.spn-card p,
+.spn-card td,
+.spn-card th,
+.spn-card li,
+.spn-card .spn-pre,
+.spn-card .spn-formula-row,
+.spn-card .spn-formula-row * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; color: var(--text-secondary); }
+.spn-card:has(.spn-formula-rows) { width: min(1150px, 100%); max-width: min(1150px, 100%); }
+.spn-card:has(.spn-formula-rows) .spn-formula-rows { display: grid; gap: 10px; padding: 15px; border: 1px solid #303B48; border-radius: 6px; background: #1C242E; }
+.spn-card:has(.spn-formula-rows) .spn-formula-row { display: flex; flex-direction: row; align-items: center; flex-wrap: nowrap; gap: 8px; width: 100%; height: 48px; min-height: 48px; padding: 6px 15px; border-bottom: 1px solid #34404E; white-space: nowrap; }
+.spn-card:has(.spn-formula-rows) .spn-formula-input { height: 34px; min-height: 34px; padding-top: 3px; padding-bottom: 3px; }
+.spn-card:has(.spn-formula-rows) .spn-formula-label { flex: 0 0 150px; color: #C7CBD1 !important; font-weight: 500; }
+.spn-card:has(.spn-formula-rows) .spn-formula-eq { display: inline-flex; flex: 0 0 auto; }
+.spn-card:has(.spn-formula-rows) .spn-formula-term { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 4px; }
+.spn-card:has(.spn-formula-rows) .spn-formula-result { margin-left: auto; flex: 0 0 auto; text-align: right; color: #E0E7EF !important; font-variant-numeric: tabular-nums; }
+.spn-card:has(.spn-formula-rows) .spn-formula-total { height: 44px; min-height: 44px; border: 1px solid #638FB3; border-radius: 6px; }
+.spn-card:has(.spn-formula-rows) .spn-formula-total .spn-formula-label, .spn-card:has(.spn-formula-rows) .spn-formula-total .spn-formula-result { color: #85B9E8 !important; font-weight: 600; }
+@media (max-width: 800px) { .spn-card:has(.spn-formula-rows) .spn-formula-row { min-width: 1000px; } .spn-card:has(.spn-formula-rows) .spn-formula-rows { overflow-x: auto; } }
+.spn-card input,
+.spn-card select,
+.spn-card option { color: var(--text-primary); }
+.spn-card,
+.spn-card * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; color: var(--text-secondary) !important; }
+.spn-card input,
+.spn-card select,
+.spn-card option { color: var(--text-primary) !important; }
+.spn-graph-inspector .spn-engineering-parameter { border-bottom: 0; }
+.spn-workspace-nav,
+.spn-workspace-nav *,
+.spn-workspace-side-left,
+.spn-workspace-side-left *,
+.spn-workspace-side-right,
+.spn-workspace-side-right * { font-family: var(--spn-ui-font-family) !important; }
+.spn-workspace-nav-item { font-size: var(--kq-sidebar-heading-font-size) !important; color: #aab6c9; }
+.spn-workspace-side-left:has(.spn-graph-library) .spn-workspace-side-heading,
+.spn-workspace-side-left:has(.spn-graph-library) .spn-workspace-side-heading span { font-size: 16px; }
+.spn-workspace-side-right .spn-graph-inspector,
+.spn-workspace-side-right .spn-graph-inspector * { color: inherit; }
+.spn-graph-node,
+.spn-graph-node * { font-family: var(--spn-ui-font-family) !important; font-size: 12px !important; }
+.spn-node-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; margin-right: 7px; border-radius: 5px; vertical-align: middle; overflow: hidden; pointer-events: none; user-select: none; }
+.spn-node-icon img { display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; user-select: none; }
+.spn-node-icon-input { background: #f0f3f7; color: #174a91; box-shadow: inset 0 0 0 1px rgba(23,74,145,.12); }
+.spn-node-more { margin-left: auto; color: #173f78; font-size: 16px !important; font-weight: 700; line-height: 1; letter-spacing: 1px; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) { background: #f7fbff; border-color: #b9d8f5; color: #19324f; box-shadow: 0 2px 8px rgba(47,123,246,.12); }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .spn-graph-node-title { background: #e8f4ff !important; border-bottom-color: #c6e1fa; color: #173f78; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .spn-graph-node-content { background: #f7fbff; color: #19324f; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .spn-graph-port-row { color: #294664; }
+.spn-graph-node.category-input:not(.spn-graph-notes-node) > .react-flow__handle,
+.spn-graph-node.category-input:not(.spn-graph-notes-node) .react-flow__handle { border-color: #4b8edb; background: #f7fbff; }
+.spn-graph-node.category-materials { background: #f7fff9; border-color: #acd9bd; color: #245b38; box-shadow: 0 2px 8px rgba(47,145,82,.12); }
+.spn-graph-node.category-materials .spn-graph-node-title { background: #e4f7e9 !important; border-bottom-color: #c2e8cc; color: #287644; }
+.spn-graph-node.category-materials .spn-graph-node-content { background: #f7fff9; color: #245b38; }
+.spn-graph-node.category-materials .spn-graph-port-row { color: #326e49; }
+.spn-graph-node.category-materials > .react-flow__handle,
+.spn-graph-node.category-materials .react-flow__handle { border-color: #4a9b68; background: #f7fff9; }
+.spn-graph-node.category-materials .spn-node-icon { color: #2f8b4f; }
+.spn-graph-library-group.category-materials .spn-graph-library-category-heading { background: #dff4e5 ; color: #2f8b4f !important; }
+.spn-graph-library-group.category-materials .spn-graph-library-item { background: #f7fff9; border-color: #c5e5ce; color: #245b38; }
+.spn-graph-library-group.category-materials .spn-node-icon { color: #2f8b4f; }
+.spn-graph-node.category-materials,
+.spn-graph-node.category-materials[class*="category-"] { border-color: #acd9bd !important; }
+.spn-graph-library-group.category-input .spn-graph-library-category-heading { background: #e8f4ff ; color: #173f78 !important; border-color: #c6e1fa; }
+.spn-graph-library-group.category-input .spn-graph-library-item { background: #f7fbff; border-color: #b9d8f5; color: #294664; }
+.spn-graph-node.category-output,
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 ; border-color: #e1cc72 !important; color: #5f511d; }
+.spn-graph-node.category-output .spn-graph-node-title,
+.spn-graph-library-group.category-output .spn-graph-library-category-heading { background: #fff2b2 ; }
+.spn-graph-node.category-output .spn-graph-node-content,
+.spn-graph-library-group.category-output .spn-graph-library-item { background: #fff8d7; border-color: #e1cc72; color: #5f511d; }
+.spn-graph-node.category-output .react-flow__handle { border-color: #b99f32; background: #fff8d7; }
+.spn-graph-node.category-girder,
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 ; border-color: #a9a9a9 !important; color: #3f4650; }
+.spn-graph-node.category-girder .spn-graph-node-title,
+.spn-graph-library-group.category-girder .spn-graph-library-category-heading { background: #d9d9d9 ; }
+.spn-graph-node.category-girder .spn-graph-node-content,
+.spn-graph-library-group.category-girder .spn-graph-library-item { background: #eeeeee; border-color: #a9a9a9; color: #3f4650; }
+.spn-graph-node.category-girder .react-flow__handle { border-color: #858585; background: #eeeeee; }
+.spn-graph-node.category-bearing,
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa ; border-color: #d9a9d9 !important; color: #633d63; }
+.spn-graph-node.category-bearing .spn-graph-node-title,
+.spn-graph-library-group.category-bearing .spn-graph-library-category-heading { background: #fae6fa ; }
+.spn-graph-node.category-bearing .spn-graph-node-content,
+.spn-graph-library-group.category-bearing .spn-graph-library-item { background: #fff7ff; border-color: #d9a9d9; color: #633d63; }
+.spn-graph-node.category-bearing .react-flow__handle { border-color: #b979b9; background: #fff7ff; }
+.spn-graph-node.category-cap,
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed ; border-color: #9dcdd2 !important; color: #2e5d62; }
+.spn-graph-node.category-cap .spn-graph-node-title,
+.spn-graph-library-group.category-cap .spn-graph-library-category-heading { background: #d3eaed ; }
+.spn-graph-node.category-cap .spn-graph-node-content,
+.spn-graph-library-group.category-cap .spn-graph-library-item { background: #f2fbfc; border-color: #9dcdd2; color: #2e5d62; }
+.spn-graph-node.category-cap .react-flow__handle { border-color: #68aeb6; background: #f2fbfc; }
+.spn-graph-node.category-foundation,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 ; border-color: #a8a8a8 !important; color: #464646; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #d7d7d7 ; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #eeeeee; border-color: #a8a8a8; color: #464646; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #858585; background: #eeeeee; }
+.spn-graph-node.category-superstructure,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e ; border-color: #d58a73 !important; color: #683326; }
+.spn-graph-node.category-superstructure .spn-graph-node-title,
+.spn-graph-library-group.category-superstructure .spn-graph-library-category-heading { background: #f4b29e ; }
+.spn-graph-node.category-superstructure .spn-graph-node-content,
+.spn-graph-library-group.category-superstructure .spn-graph-library-item { background: #fff1eb; border-color: #d58a73; color: #683326; }
+.spn-graph-node.category-superstructure .react-flow__handle { border-color: #b8664c; background: #fff1eb; }
+.spn-graph-node.category-foundation .spn-graph-node-title { background: #d9b38c !important; border-bottom-color: #bd8b5d !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived { background: #f8eadc !important; }
+.spn-graph-node.category-foundation .spn-engineering-derived { background: #f3e1cf !important; border-color: #bd8b5d !important; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-output-row,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item { border-color: var(--node-border, var(--spn-graph-node-border)) !important; }
+.spn-graph-node.category-input { --spn-divider-color: #b9d8f5; }
+.spn-graph-node.category-math { --spn-divider-color: #f0c98f; }
+.spn-graph-node.category-materials { --spn-divider-color: #acd9bd; }
+.spn-graph-node.category-pier { --spn-divider-color: #c3a5dc; }
+.spn-graph-node.category-cap { --spn-divider-color: #9dcdd2; }
+.spn-graph-node.category-abutment { --spn-divider-color: #58b858; }
+.spn-graph-node.category-foundation { --spn-divider-color: #bd8b5d; }
+.spn-graph-node.category-bearing { --spn-divider-color: #afc34e; }
+.spn-graph-node.category-girder { --spn-divider-color: #a9a9a9; }
+.spn-graph-node.category-superstructure { --spn-divider-color: #d58a73; }
+.spn-graph-node.category-bridge { --spn-divider-color: #a8a8a8; }
+.spn-graph-node.category-output { --spn-divider-color: #e2df9a; }
+.spn-graph-node .spn-engineering-input-row,
+.spn-graph-node .spn-engineering-output-row,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-item { border-color: var(--spn-divider-color) !important; }
+.spn-graph-node.category-bearing .spn-engineering-input-row,
+.spn-graph-node.category-bearing .spn-engineering-output-row,
+.spn-graph-node.category-bearing .spn-engineering-derived,
+.spn-graph-node.category-bearing .spn-engineering-outputs { border-color: #afc34e !important; }
+.spn-graph-node.category-abutment .spn-engineering-input-row,
+.spn-graph-node.category-abutment .spn-engineering-output-row,
+.spn-graph-node.category-abutment .spn-engineering-derived,
+.spn-graph-node.category-abutment .spn-engineering-outputs,
+.spn-graph-node.category-abutment .spn-abutment-section { border-color: #58b858 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 ; border-color: #e9d5c1 !important; color: #60452d; }
+.spn-graph-node.category-foundation .spn-graph-node-title { background: #e9d5c1 !important; border-bottom-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f4eae0 !important; border-color: #e9d5c1 !important; color: #60452d; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1; background: #f4eae0; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-node.category-foundation .spn-engineering-outputs { border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation,
+.spn-graph-node.category-foundation[class*="category-"] { background: #f4eae0 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-title,
+.spn-graph-library-group.category-foundation .spn-graph-library-category-heading { background: #e9d5c1 ; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-graph-node-content,
+.spn-graph-node.category-foundation .spn-engineering-inputs,
+.spn-graph-node.category-foundation .spn-engineering-outputs,
+.spn-graph-node.category-foundation .spn-engineering-derived,
+.spn-graph-library-group.category-foundation .spn-graph-library-item { background: #f4eae0 !important; border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .spn-engineering-input-row,
+.spn-graph-node.category-foundation .spn-engineering-output-row,
+.spn-graph-node.category-foundation .spn-engineering-derived { border-color: #e9d5c1 !important; }
+.spn-graph-node.category-foundation .react-flow__handle { border-color: #e9d5c1 !important; background: #f4eae0 !important; }
+
+/* Final central surface contract: execution state changes text/border only. */
+.spn-graph-node.category-input { --spn-node-body-bg: #f7fbff; }
+.spn-graph-node.category-math { --spn-node-body-bg: #fffaf2; }
+.spn-graph-node.category-materials { --spn-node-body-bg: #f7fff9; }
+.spn-graph-node.category-output { --spn-node-body-bg: #ffffcc; }
+.spn-graph-node.category-girder { --spn-node-body-bg: #eeeeee; }
+.spn-graph-node.category-bearing { --spn-node-body-bg: #fff7ff; }
+.spn-graph-node.category-pier { --spn-node-body-bg: #fcf9ff; }
+.spn-graph-node.category-cap { --spn-node-body-bg: #f2fbfc; }
+.spn-graph-node.category-foundation { --spn-node-body-bg: #f4eae0; }
+.spn-graph-node.category-superstructure { --spn-node-body-bg: #fff1eb; }
+.spn-graph-node.category-bridge,
+.spn-graph-node.category-abutment { --spn-node-body-bg: #eaffea; }
+.spn-graph-node.spn-assembly-graph-node { --spn-node-body-bg: #f2f2f2; }
+.spn-graph-node.spn-graph-notes-node { --spn-node-body-bg: #ffffcc; }
+.spn-graph-node,
+.spn-graph-node .spn-graph-node-content,
+.spn-graph-node .spn-engineering-inputs,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-node-footer,
+.spn-graph-node .spn-graph-node-state,
+.spn-graph-node .spn-graph-node-error-message,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-items,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-assembly-inputs,
+.spn-graph-node .spn-assembly-centered-output {
+  background: var(--spn-node-body-bg) !important;
+  background-color: var(--spn-node-body-bg) !important;
+}
+
+/* Final central surface contract: execution state changes text/border only. */
+.spn-graph-node.category-input { --spn-node-body-bg: #f7fbff; }
+.spn-graph-node.category-math { --spn-node-body-bg: #fffaf2; }
+.spn-graph-node.category-materials { --spn-node-body-bg: #f7fff9; }
+.spn-graph-node.category-output { --spn-node-body-bg: #ffffcc; }
+.spn-graph-node.category-girder { --spn-node-body-bg: #eeeeee; }
+.spn-graph-node.category-bearing { --spn-node-body-bg: #fff7ff; }
+.spn-graph-node.category-pier { --spn-node-body-bg: #fcf9ff; }
+.spn-graph-node.category-cap { --spn-node-body-bg: #f2fbfc; }
+.spn-graph-node.category-foundation { --spn-node-body-bg: #f4eae0; }
+.spn-graph-node.category-superstructure { --spn-node-body-bg: #fff1eb; }
+.spn-graph-node.category-bridge,
+.spn-graph-node.category-abutment { --spn-node-body-bg: #eaffea; }
+.spn-graph-node.spn-assembly-graph-node { --spn-node-body-bg: #f2f2f2; }
+.spn-graph-node.spn-graph-notes-node { --spn-node-body-bg: #ffffcc; }
+.spn-graph-node,
+.spn-graph-node .spn-graph-node-content,
+.spn-graph-node .spn-engineering-inputs,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-node-footer,
+.spn-graph-node .spn-graph-node-state,
+.spn-graph-node .spn-graph-node-error-message,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-items,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-assembly-inputs,
+.spn-graph-node .spn-assembly-centered-output {
+  background: var(--spn-node-body-bg) !important;
+  background-color: var(--spn-node-body-bg) !important;
+}
+
+/* Central node surface contract: execution state changes text/border only. */
+.spn-graph-node.category-input { --spn-node-body-bg: #f7fbff; }
+.spn-graph-node.category-math { --spn-node-body-bg: #fffaf2; }
+.spn-graph-node.category-materials { --spn-node-body-bg: #f7fff9; }
+.spn-graph-node.category-output { --spn-node-body-bg: #ffffcc; }
+.spn-graph-node.category-girder { --spn-node-body-bg: #eeeeee; }
+.spn-graph-node.category-bearing { --spn-node-body-bg: #fff7ff; }
+.spn-graph-node.category-pier { --spn-node-body-bg: #fcf9ff; }
+.spn-graph-node.category-cap { --spn-node-body-bg: #f2fbfc; }
+.spn-graph-node.category-foundation { --spn-node-body-bg: #f4eae0; }
+.spn-graph-node.category-superstructure { --spn-node-body-bg: #fff1eb; }
+.spn-graph-node.category-bridge,
+.spn-graph-node.category-abutment { --spn-node-body-bg: #eaffea; }
+.spn-graph-node.spn-assembly-graph-node { --spn-node-body-bg: #f2f2f2; }
+.spn-graph-node.spn-graph-notes-node { --spn-node-body-bg: #ffffcc; }
+
+.spn-graph-node,
+.spn-graph-node .spn-graph-node-content,
+.spn-graph-node .spn-engineering-inputs,
+.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-node-footer,
+.spn-graph-node .spn-graph-node-state,
+.spn-graph-node .spn-graph-node-error-message,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-items,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-assembly-inputs,
+.spn-graph-node .spn-assembly-centered-output {
+  background: var(--spn-node-body-bg) !important;
+  background-color: var(--spn-node-body-bg) !important;
+}
+
+/* Girder error rows must use the same white body as the input area. */
+.spn-engineering-node .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+.spn-engineering-node.category-superstructure .spn-graph-node-error-message,
+.spn-engineering-node.superstructure-error-palette .spn-graph-node-error-message {
+  background: #fff1eb !important;
+  background-color: #fff1eb !important;
+}
+
+/* Final girder error-row override: match the visible node body. */
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+/* Final girder error-row override: match the visible node body. */
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.spn-graph-node.girder-error-palette.girder-error-palette .spn-graph-node-error-message {
+  background: #ffffff !important;
+  color: #7f1d2d !important;
+}
+.spn-graph-node.superstructure-error-palette.superstructure-error-palette .spn-graph-node-error-message {
+  background: #fff1eb !important;
+  color: #7f1d2d !important;
+}
+
+.spn-graph-node.category-girder .spn-graph-node-error-message { background: #ffffff !important; background-color: #ffffff !important; }
+.spn-graph-node.category-superstructure .spn-graph-node-error-message { background: #fff1eb !important; }
+.spn-assembly-graph-node .spn-assembly-error-row { background: var(--sp-node-readonly-bg) !important; color: var(--sp-status-error) !important; border-color: var(--sp-node-divider) !important; }
+
+/* Execution errors use the node body color for their row; keep the warning readable in burgundy. */
+.spn-graph-node.category-girder .spn-graph-node-error-message,
+.spn-graph-node.category-superstructure .spn-graph-node-error-message {
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 12px;
+  background: #ffffff !important;
+  color: #7f1d2d !important;
+  font-size: 10px;
+  line-height: 1.35;
+}
+.spn-graph-node.category-superstructure .spn-graph-node-error-message,
+.spn-graph-node.superstructure-error-palette .spn-graph-node-error-message {
+  background: #fff1eb !important;
+  background-color: #fff1eb !important;
+}
+.spn-assembly-graph-node {
+  padding-bottom: 0 !important;
+}
+.spn-assembly-error-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  box-sizing: border-box;
+  margin-top: 2px;
+  padding: 7px 14px;
+  background: inherit;
+  color: #7f1d2d;
+  font-size: 10px;
+  line-height: 1.3;
+}
+.spn-assembly-error-row span {
+  flex: 0 0 auto;
+  color: #7f1d2d;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+

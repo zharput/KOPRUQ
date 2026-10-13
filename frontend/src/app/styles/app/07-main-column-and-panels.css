@@ -1,0 +1,212 @@
+/* Main column */
+
+.spn-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.spn-topbar {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-1);
+}
+
+.spn-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px;
+}
+
+.spn-topbar-spacer {
+  flex: 1;
+}
+
+.spn-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.spn-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.spn-icon-button:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.spn-user {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.spn-steps-row {
+  display: flex;
+  gap: 4px;
+  padding: 0 20px;
+  overflow-x: auto;
+  /* Still scrollable (wheel/trackpad/touch/drag) when tabs overflow -
+     just hides the visible scrollbar track/thumb (2026-09-13, engineer's
+     own instruction: "en altta slider olmasın"). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.spn-steps-row::-webkit-scrollbar {
+  display: none;
+}
+
+.spn-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.spn-step-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.spn-step:hover {
+  color: var(--text-primary);
+}
+
+.spn-step-active {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-color: var(--accent);
+  box-shadow: 0 2px 8px -1px rgba(47, 123, 246, 0.55);
+}
+
+.spn-step-active .spn-step-index {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.spn-step-disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.spn-step-disabled:hover {
+  color: var(--text-muted);
+}
+
+.spn-steps-row-sub {
+  background: var(--surface-1);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+
+.spn-step-sub {
+  padding: 7px 14px;
+  font-size: 12.5px;
+}
+
+/* Traffic keeps all ten engineering subsections visible on one line. The
+   compact, content-sized triggers use the full Loads workspace; shared
+   workflow/submenu behavior remains unchanged elsewhere. */
+.spn-workflow.spn-traffic-workspace {
+  width: 1100px;
+  max-width: none;
+  min-width: 0;
+  margin-left: 6px;
+  box-sizing: border-box;
+}
+.spn-traffic-workspace > .spn-steps-row-sub {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible;
+  white-space: nowrap;
+}
+.spn-traffic-workspace > .spn-steps-row-sub > .spn-step {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 7px 8px;
+}
+
+.spn-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+}
+
+/* Design System editors share one controlled wide workspace. The :has()
+   scope keeps ordinary workflow screens on their existing layout while all
+   reusable family editors expand together on desktop. */
+.spn-content:has(.ds-generation-table) .spn-workflow,
+.spn-content:has(.ds-design-system-content) .ds-design-system-content,
+.spn-content:has(.spn-workspace-page) .spn-workspace-page {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+}
+.spn-content:has(.spn-workspace-page) .spn-workspace-page { max-width: none; }
+
+/* Placeholder panel */
+
+.spn-placeholder {
+  max-width: 480px;
+  margin: 48px auto 0;
+  text-align: center;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.spn-placeholder h1 {
+  font-size: 16px;
+}
+
+.spn-placeholder p {
+  font-size: 13px;
+}
+

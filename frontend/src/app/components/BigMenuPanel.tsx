@@ -8,7 +8,7 @@ import DisabledItemGrid from '../../shared/ui/DisabledItemGrid'
  * çıkacak" - never a nested sidebar tree). Reused for every leaf listed
  * in {@code BIG_MENU_ITEMS} (app/navigation/sections.ts) - Alignment,
  * GIS & Satellite, Geotechnical, Hydrology & Hydraulic, Constraints.
- * Same honest-placeholder discipline as HomePanel's old Quick Actions -
+ * Same honest-placeholder discipline as the old HomePanel Quick Actions (removed in G4) -
  * none of these sub-items have real functionality yet, each card just
  * names itself.
  *

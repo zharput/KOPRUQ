@@ -1,4 +1,4 @@
-import { generateValues, type Dimension } from '../../../shared/ui/ParamSweepCard'
+import { generateValues, type Dimension } from '../../../shared/lib/parameterSweep'
 
 export interface GirderVariant {
   id: string

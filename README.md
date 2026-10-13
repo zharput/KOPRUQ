@@ -1,165 +1,239 @@
 # KOPRUQ
 
-**Computational & Generative Bridge Design platform.** KOPRUQ turns a
-bridge site (alignment, constraints, span search ranges) and a design
-space (superstructure/pier/girder families, materials, loads) into
-generated, analyzed, and eventually optimized structural alternatives -
-built incrementally, milestone by milestone, with a senior bridge/
-structural engineer.
+**Köprü tasarımı için hesaplamalı ve üretken mühendislik platformu.** KOPRUQ; proje ve saha verilerini, köprü yerleşimi seçeneklerini, taşıyıcı sistem ailelerini, yükleri ve ön analiz sonuçlarını tek bir mühendislik iş akışında birleştirir. Amaç, mühendisin izlenebilir alternatifler üretip değerlendirmesidir. Harici çözücüler ve BIM araçları, KOPRUQ'nun kendi köprü modeline bağlanan adaptörlerdir.
 
-This is the **second** build generation, on a polyglot stack (Java
-backend + React frontend). An earlier C#/.NET/Avalonia build reached its
-own P05 before the engineer moved the whole platform to this stack; it's
-kept under `archive/` for reference only, not a completed prerequisite.
+> **Durum (Ekim 2026):** Bu depo etkin Java/React uygulamasıdır. `archive/` altındaki C#/.NET/Avalonia nesilleri yalnızca referanstır. Çalışan özellikler ile hedeflenen ancak henüz tamamlanmamış adımlar aşağıda ayrı gösterilir. Güncel kilometre taşı kaydı için [roadmap](docs/roadmap.md), uygulama geçmişi için [architecture](docs/architecture.md) dosyasına bakın.
 
-## Where to start reading
+## İçindekiler
 
-| Document | What it's for |
+- [Ürün ve mühendislik akışı](#ürün-ve-mühendislik-akışı)
+- [Bugün neler çalışıyor?](#bugün-neler-çalışıyor)
+- [Sistem mimarisi](#sistem-mimarisi)
+- [Uçtan uca veri akışları](#uçtan-uca-veri-akışları)
+- [Depo yapısı](#depo-yapısı)
+- [Yerel çalıştırma](#yerel-çalıştırma)
+- [Testler ve kalite kapıları](#testler-ve-kalite-kapıları)
+- [Belgeler ve sınırlar](#belgeler-ve-sınırlar)
+
+## Ürün ve mühendislik akışı
+
+KOPRUQ'nun hedef iş sırası **Proje → Saha → Köprü yerleşimi → Taşıyıcı sistem → Analiz → Tasarım → Optimizasyon → Doğrulama → Teslim** şeklindedir. Aşağıdaki şemada kesintisiz oklar mevcut işlevleri, kesik oklar ise henüz tamamlanmamış bağlantıları veya gelecek aşamaları gösterir.
+
+```mermaid
+flowchart LR
+    P[Proje ve köprü envanteri] --> S[Saha verisi: arazi ve güzergâh]
+    S -. saha verisinden otomatik türetme bekliyor .-> L[Aday köprü yerleşimleri]
+    L --> A[Yapısal alternatif üretimi]
+    P --> F[Malzeme, yük ve yapı ailesi tanımları]
+    F --> G[Graph ve Family adayları]
+    A -. otomatik aktarım bekliyor .-> M[Ön analiz modeli]
+    G -. mühendislik entegrasyonu bekliyor .-> M
+    M --> N[KOPRUQ Fast Solver]
+    N -. planlanan aşamalar .-> O[Optimizasyon ve Pareto]
+    O -. planlanan aşamalar .-> V[MIDAS NX ile yüksek doğruluklu doğrulama]
+    V -. planlanan aşamalar .-> D[BIM ve teslim çıktıları]
+```
+
+Bu şema bir tam otomasyon iddiası değildir: yerleşim sonucundan yapısal alternatif formuna bir seçim aktarımı vardır; arazi verisi henüz yerleşim motorunu sürmez. Fast Solver ayrı bir giriş/model kurma ve çözüm akışı olarak çalışır. Graph/Family adayları da bugün doğrulanmış analiz veya tasarım sonucu sayılmaz.
+
+## Bugün neler çalışıyor?
+
+| Alan | Mevcut kapsam | Sınır |
+| --- | --- | --- |
+| Proje çalışma alanı | Proje bilgileri, köprü envanteri, köprü tanımı; yerel `.kopruq` dosyasını açma/kaydetme, Graph ve aile verilerinin dosyaya alınması | Tarayıcıdaki proje dosyası akışı, backend `ProjectRepository` için bir REST kayıt akışı değildir |
+| Saha ve güzergâh | XYZ/DTM ve LandXML içe aktarma, TIN arazi sorgusu, güzergâh/profil örnekleme ve 3B arazi görüntüleme | Araziye bağlı ayak/kenar ayak yerleşimi, uydu görüntüsü ve koridor ölçekli LOD yok |
+| Yerleşim ve alternatifler | Düz güzergâh, saha aralığı ve `NoPierZone` için uygun/reddedilen yerleşimler; seçilen yerleşimle yapısal alternatif formunun doldurulması | Yerleşim araması henüz genel 3B saha/jeoteknik problemi çözmüyor |
+| Yapı aileleri | Üstyapı, kiriş, ayak, başlık, temel, mesnet ve malzeme çalışma alanları; Graph düğümleri, aday listeleri ve teknik kesit önizlemeleri | Aday önizlemesi ve Graph hesapları nihai tasarım kontrolü veya backend solver doğrulaması değildir |
+| Yükler | LM1 ve trafik yük grupları, rüzgâr, sıcaklık ve deprem servisleri; giriş doğrulama ve kaynak/override izleri | LM2 görünür fakat `NOT_IMPLEMENTED`; onaysız mühendislik katsayıları veya kuralları üretilemez |
+| Analiz | Doğrusal elastik 3B çerçeve Fast Solver, model kurma, mesnet tepkileri ve deplasmanlar; MIDAS model/sonuç alışverişi adaptöründe test edilmiş round trip | MIDAS NX'te canlı analiz yürütüp sonucu `BridgeAlternative` ile ilişkilendiren P07 tamamlanmadı |
+| Kalıcılık | Backend'de PostgreSQL + JPA + Flyway; arazi, LandXML içe aktarma ve `Project` agregası için depo adaptörleri | Köprü projesini kaydeden bir API/use case, hesap sonuçlarının kalıcılığı ve tarayıcı dosyasından sunucuya geçiş yok |
+
+**Henüz tamamlanmayan ana aşamalar:** miktar/maliyet/karbon hesabı, çok amaçlı optimizasyon ve Pareto, üretim AI servisi, MIDAS NX analiz entegrasyonu ve BIM teslim akışı. Optimizasyon/AI servis dizinleri şu anda yer tutucudur. Arayüzdeki boş çalışma alanları bu kabiliyetlerin var olduğu anlamına gelmez.
+
+## Sistem mimarisi
+
+```mermaid
+flowchart TB
+    E[Mühendis] --> UI[React + TypeScript + Vite]
+    UI -->|REST / JSON ve arazi verisi| API[Spring Boot REST API]
+    UI -->|Aç / Kaydet| FILE[.kopruq proje dosyası]
+    UI -->|Graph adayları ve önizleme| LOCAL[Tarayıcıdaki özellik modelleri]
+    API --> APP[Uygulama servisleri ve portlar]
+    APP --> DOMAIN[Mühendislik domain modelleri ve kurallar]
+    APP --> SOLVER[KOPRUQ Fast Solver]
+    APP --> IMPORT[LandXML / XYZ adaptörleri]
+    APP --> DB[(PostgreSQL)]
+    IMPORT --> DB
+    APP -. doğrulama entegrasyonu bekliyor .-> MIDAS[MIDAS Civil NX adaptörü]
+```
+
+Backend **Java 21 / Spring Boot 3.5 ile tek Maven modüllü bir modular monolith** yapısındadır. Domain sınırları `com.kopruq.<domain>` paketleriyle ve [ArchitectureTests](backend/src/test/java/com/kopruq/architecture/ArchitectureTests.java) ile korunur. Her domain ihtiyaç duyduğu `api`, `application`, `domain`, `model`, `enums` ve `infra` alt paketlerini kullanır. `model` ve `domain` katmanları Spring/JPA veya REST tiplerine bağlı değildir. MIDAS kodları yalnızca analiz adaptöründedir.
+
+Frontend; `app` (kabuk ve yönlendirme), `features` (özellik ekranları ve modelleri) ve `shared` (ortak UI, HTTP ve proje dosyası) katmanlarından oluşur. Ana gezinmede Project, Graph, Family, Loads ve diğer çalışma alanları vardır. Graph düğümleri ile Family sonuçları tarayıcı tarafındaki aday/önizleme akışını oluşturur; backend Fast Solver farklı bir mühendislik hizmetidir. [Frontend README](frontend/README.md) katman kurallarını ve istisnalarını açıklar.
+
+Temel ilke: **mühendislik verisi → onaylı kurallar → hesap/çözücü → sonuç → görselleştirme → AI açıklaması**. Görsel önizleme veya AI çıktısı, mühendislik verisinin kaynağına dönüşmez. İç hesaplarda açık SI birimleri kullanılır; proje dosyasındaki görüntüleme birimleri bundan ayrıdır.
+
+## Uçtan uca veri akışları
+
+### 1. Saha verisi ve yerleşim
+
+```mermaid
+flowchart LR
+    XYZ[XYZ / DTM] --> TERRAIN[TerrainModel: TIN]
+    XML[LandXML] --> INSPECT[İnceleme ve içe aktarma]
+    INSPECT --> TERRAIN
+    INSPECT --> ALIGN[Güzergâh ve düşey profil]
+    TERRAIN --> QUERY[Üçgen içinde yükseklik sorgusu]
+    TERRAIN --> VIEW[3B arazi / profil görüntüsü]
+    ALIGN --> VIEW
+    SITE[Düz güzergâh + saha aralığı + NoPierZone] --> LAYOUT[BridgeLayoutEngine]
+    LAYOUT --> CHOICE[Uygun / reddedilen aday ve gerekçe]
+    CHOICE -->|Yerleşimi kullan| FORM[Yapısal alternatif formu]
+    TERRAIN -. gelecekteki entegrasyon .-> LAYOUT
+```
+
+LandXML, KOPRUQ'nun arazi modeli değil, içe aktarma biçimidir. Geçerli `Pnts` + `Faces` varsa kaynak TIN topolojisi korunur. Backend koordinatları esas alınır; 3B gösterim yerel render başlangıcı kullanır. Yerleşim motorunun mevcut düz güzergâh girdisi LandXML/DTM'den otomatik türetilmez.
+
+### 2. Alternatifler, yükler ve analiz
+
+```mermaid
+flowchart LR
+    DESIGN[Tasarım aralıkları] --> GEN[AlternativeGenerator + RuleEngine]
+    GEN --> ALT[Yapısal alternatif tablosu ve yükselti önizlemesi]
+    LOAD[Proje yük girdileri] --> RESOLVE[Trafik ve çevresel yük servisleri]
+    FRAME[Fast Solver giriş modeli] --> BUILDER[FrameBridgeModelBuilder]
+    BUILDER --> ENGINE[Native linear-elastic solver]
+    ENGINE --> RESULT[Tepkiler / deplasmanlar / durum]
+    ALT -. otomatik model indirgeme bekliyor .-> FRAME
+    RESOLVE -. yük aktarımı ayrı kapsam .-> FRAME
+    RESULT -. P07 bekliyor .-> VERIFY[MIDAS NX doğrulaması]
+```
+
+Kural motorunun altyapısı ve deterministik alternatif üretimi vardır; onaylanmış kapsamlı tasarım kuralları henüz eklenmemiştir. Trafik yük grupları, EN 1990 yük birleşimlerinden ayrı tutulur. Fast Solver sonuçları, alternatif üretim ekranındaki satırlar için otomatik hesaplanmış değerler değildir.
+
+### 3. Proje dosyası ve backend veritabanı
+
+```mermaid
+flowchart LR
+    UI[Project / Bridge Definition / Graph / Family] --> STATE[Tarayıcı proje durumu]
+    STATE --> FILE[.kopruq v1 dosyası]
+    FILE --> STATE
+    IMPORT[Terrain / LandXML API] --> REPO[Uygulama repository portları]
+    REPO --> JPA[JPA adaptörleri]
+    JPA --> PG[(PostgreSQL + Flyway)]
+    PROJECT[Backend Project modeli] --> REPO
+    FILE -. senkronizasyon API'si yok .-> PG
+```
+
+`.kopruq` dosyası proje durumu, köprü tanımları, Graph belgeleri, aile kayıtları ve proje modüllerini taşır. Backend'in JPA `ProjectRepository` adaptörü mevcut olsa da bu dosya onunla senkronize edilmez. Arazi ve LandXML içe aktarma backend üzerinden kalıcıdır; analiz ve diğer hesap sonuçları veritabanında saklanmaz.
+
+### REST yüzeyi
+
+| Amaç | Başlıca yollar |
 | --- | --- |
-| `docs/KOPRUQ_MASTER_SPEC.md` | The authoritative specification - domain model, milestone plan (P00-P12), the hard engineering-safety and milestone-gating rules. Read this first. |
-| `docs/ARCHITECTURE_AMENDMENT_V2.md` | Replaces the original C#/.NET/Avalonia stack with the polyglot architecture - amends the master spec, doesn't replace it. Its "Revision 2026-10-12" section defines the current backend structure. |
-| `docs/architecture/backend-reference.md` | The backend's architectural target: rules R1-R16 taken from the reference project ([spanova-backend](https://github.com/CemHarput/spanova-backend) @ `6beb984`) and how KOPRUQ applies them. |
-| `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` | Bridge length and abutment/pier positions become *generated* design variables (`BridgeLayoutEngine`); KOPRUQ gets its own native analysis engine, with MIDAS NX kept as a post-selection verification tier. |
-| `docs/architecture.md` | Dated log of what has actually been built and verified, and how - the implementation record. |
-| `docs/roadmap.md` | Milestone-by-milestone status table, including the BACKEND-REMEDIATION, BACKEND-ARCHITECTURE and BACKEND-MODULAR-MONOLITH tracks. |
-| `docs/reviews/` | Project review reports (architecture, code quality, findings) for the frontend and backend. |
-| `docs/features/<slug>/` | Per-feature request, approved plan and implementation report. |
-| `CLAUDE.md` | Working rules for AI-assisted development in this repo (milestone gating, "never invent engineering content", backend structure). |
+| Çekirdek ve üretim | `/api/kernel-state`, `/api/alternatives`, `/api/layout/generate` |
+| Saha | `/api/terrain/import`, `/api/terrain/{id}/mesh`, `/api/terrain/{id}/mesh.bin`, `/api/terrain/{id}/elevation`, `/api/landxml/inspect`, `/api/landxml/import`, `/api/landxml/{id}/profile`, `/api/alignment/...` |
+| Yük ve malzeme | `/api/traffic-loads/...`, `/api/wind-loads/resolve`, `/api/seismic/spectrum`, `/api/temperature/uniform/resolve`, `/api/materials/concrete` |
+| Analiz ve sağlık | `/api/fast-solver/solve`, `/actuator/health` |
 
-## Repository layout
+Tam istek/yanıt sözleşmesi için ilgili `backend/src/main/java/com/kopruq/<domain>/api/` controller ve DTO dosyalarına bakın. `/api/**` hatalarında ortak hata gövdesi ve `X-Correlation-ID` kullanılır.
 
-```
-backend/                     one Maven module (kopruq-backend), Spring Boot 3.5, Java 21
-  pom.xml
-  src/main/java/com/kopruq/
-    KopruqApplication.java   application entry point
-    shared/                  cross-cutting: config (bean wiring, CORS, correlation id),
-                             exception (one API error contract), validation
-    <domain>/                one package per domain, sub-packages only where needed:
-      api/                     controllers, request/response DTOs, mappers
-      application/             use-case services, ports and repository interfaces
-      domain/                  framework-free domain services and algorithms
-      model/                   domain models that own their business rules/invariants
-      enums/                   domain enums
-      infra/                   adapters (in-memory repositories, solver adapters)
-    domains:
-      geometry               CoordinateSystem, Point3D
-      alignment              chainage <-> XYZ, vertical profile, chainage sampling
-      terrain                terrain TIN import (XYZ), elevation queries
-      landxml                LandXML parsing and import (surfaces, alignments, profiles)
-      loads                  EN 1991-2 traffic (LM1, notional lanes) + wind, seismic, temperature
-      materials              EN 1992-1-1 concrete properties and strength classes
-      layout                 BridgeLayoutEngine, NoPierZone constraints
-      bridge                 bridge domain model (Bridge, DesignSpace, Span, Girder, Pier, ...)
-      rules                  rule-engine infrastructure (only engineer-approved rules)
-      generative             alternative generation + rule evaluation
-      analysis               solver-agnostic port, frame model builder, native solver
-                             (infra/nativeengine), MIDAS Civil NX adapter (infra/midas)
-  src/main/resources/application.properties
-  src/test/java/com/kopruq/  tests beside their subject; contract/ pins the REST API,
-                             architecture/ enforces the package boundaries
+## Depo yapısı
 
-frontend/
-  src/app/                app shell: routing, workspace layout, providers, global styles
-  src/pages/              screens that compose more than one feature
-  src/features/<domain>/  one folder per domain screen (project, materials, loads,
-                           pier-families, girder-library, graph, layout-generator, ...),
-                           each with components/, and model/ or api/ as needed
-  src/shared/             UI primitives, project-file handling and helpers reused across features
-
-docs/                    specs, architecture log, roadmap, reviews, feature plans
-archive/                 two earlier, superseded build generations - reference only
+```text
+KOPRUQ/
+├── backend/                  Java 21, tek Maven modülü
+│   └── src/main/java/com/kopruq/
+│       ├── bridge/           Köprü çekirdeği
+│       ├── geometry/         Koordinatlar
+│       ├── alignment/        Güzergâh ve profil
+│       ├── terrain/          TIN ve arazi sorguları
+│       ├── landxml/          İçe aktarma adaptörü
+│       ├── layout/           Yerleşim ve kısıtlar
+│       ├── generative/       Alternatif üretimi
+│       ├── rules/            Kural altyapısı
+│       ├── loads/            Trafik ve çevresel yükler
+│       ├── materials/        Malzeme servisleri
+│       ├── analysis/         Port, model kurucu, native solver, MIDAS adaptörü
+│       └── shared/           Yapılandırma, hata ve doğrulama
+├── frontend/src/
+│   ├── app/                  Kabuk, yönlendirme, çalışma alanları ve stiller
+│   ├── features/             Domain ekranları, Graph, Family, proje ve saha
+│   ├── shared/               Ortak UI, HTTP, teknik çizim ve .kopruq dosyası
+│   └── test/                 Test kurulumu ve mimari korumalar
+├── services/                Optimizasyon ve AI için yer tutucular
+├── docs/                    Spesifikasyon, mimari, yol haritası ve özellik kayıtları
+├── archive/                 Önceki nesiller; etkin uygulama bağımlılığı değil
+├── compose.yaml             PostgreSQL ve backend konteynerleri
+└── start-dev.bat             Windows yerel geliştirme başlatıcısı
 ```
 
-## Backend architecture
+## Yerel çalıştırma
 
-The backend is a **Spring Boot modular monolith in a single Maven
-module**, laid out like the reference project (decision of 2026-10-12;
-see `CLAUDE.md` and `docs/architecture/backend-reference.md`):
+**Gereksinimler:** JDK 21, Maven, Node.js, npm ve PostgreSQL 17. Aşağıdaki kolay kurulum PostgreSQL için Docker Compose kullanır. Backend açılırken erişilebilir veritabanı ve `DB_PASSWORD` gerekir; boş parola varsayılanı yoktur.
 
-- **Domains are packages**, not Maven modules. Boundaries are enforced by
-  `com.kopruq.architecture.ArchitectureTests` (package/import allow-lists,
-  run with every build).
-- **Spring** is used in `api`, `application`, `infra` and `shared.config`.
-  `model` and `domain` packages import no Spring and no
-  `application`/`api` code.
-- **Business rules live in the domain models** (or a `domain` service when
-  they span several models); controllers only map requests/responses and
-  call an application service.
-- **Solver independence:** bridge/rules/generative never reference
-  MIDAS, SCIA or ALLPLAN. MIDAS-specific code lives only in
-  `analysis/infra/midas`, behind the analysis port; the port uses SI units
-  (m, kN, kN/m², kN/m³, t/m³, rad).
-- **One error contract** for `/api/**`: `{timestamp, status, error, code,
-  message, path, correlationId, errors[]}`; 5xx responses never leak
-  internal messages.
-- **Correlation id:** every response carries `X-Correlation-ID`, also
-  written to each log line.
-- **CORS** is configured once (`kopruq.cors.allowed-origins`, default
-  `http://localhost:5173`).
-- **No persistence yet:** imports are kept in in-memory repositories and
-  are lost on restart. JPA/PostgreSQL is a future, separately approved
-  milestone.
+### Windows: tek komutla geliştirme ortamı
 
-REST endpoints (all under `/api`): `kernel-state`, `alternatives`,
-`layout`, `alignment`, `terrain`, `landxml`, `fast-solver`,
-`materials/concrete`, `traffic-loads`, `wind-loads`, `seismic`,
-`temperature`; plus `/actuator/health`.
+Depo kökünde `.env.example` dosyasını `.env` olarak kopyalayın, `DB_PASSWORD` değerini doldurun ve `start-dev.bat` çalıştırın:
 
-## Quick start
-
-Requires JDK 21, Node.js LTS, and Apache Maven on `PATH`. From the repo
-root:
-
-```bash
-start-dev.bat
+```powershell
+Copy-Item .env.example .env
+# .env dosyasındaki DB_PASSWORD değerini düzenleyin.
+.\start-dev.bat
 ```
 
-Builds the backend, then opens the backend (`http://localhost:8080`)
-and frontend dev server (`http://localhost:5173`) each in their own
-window. Or run them separately, from the repo root:
+Betik PostgreSQL'i Docker Compose ile açar, backend'i `mvn package` ile derler ve backend ile Vite sunucusunu ayrı pencerelerde başlatır. Frontend: <http://localhost:5173>; backend sağlık kontrolü: <http://localhost:8080/actuator/health>. Frontend bağımlılıkları kurulu değilse önce `cd frontend; npm.cmd install` çalıştırın. PostgreSQL verisi `kopruq-pgdata` Docker volume'unda kalır.
 
-```bash
-# Backend
-mvn -B -f backend/pom.xml package        # compile + all backend tests (incl. architecture and contract tests)
-java -jar backend/target/kopruq-backend-*.jar   # then curl http://localhost:8080/actuator/health
+### Ayrı süreçler
 
-# Frontend
-cd frontend && npm install
-npm run dev        # dev server at http://localhost:5173
-npm run build      # typecheck + production build
-npm test           # Vitest
-npm run lint       # oxlint
+Kök `.env` dosyasını hazırladıktan sonra PostgreSQL'i başlatın:
+
+```powershell
+docker compose up -d --wait postgres
 ```
 
-On Windows PowerShell, use `npm.cmd` instead of `npm` if execution
-policy blocks the `npm.ps1` shim.
+Backend'i aynı PowerShell oturumunda çalıştırırken `.env` kendiliğinden yüklenmez. Parolayı ortam değişkenine verin; gerekirse `DB_URL` ve `DB_USERNAME` da ayarlayın:
 
-## Status
+```powershell
+$env:DB_PASSWORD = '<yerel-veritabani-parolaniz>'
+mvn -B -f backend/pom.xml spring-boot:run
+```
 
-Frontend: navigation shell, real screens for Project Information/
-Dashboard, Materials, Loads (traffic, wind, seismic, temperature, self
-weight), Cost Database, Pier/Girder/Foundation/Bearing families,
-Layout Generator, Bridge Alternatives, terrain/LandXML import and
-viewer, a node-based design graph, and the KOPRUQ Fast Solver - built on
-React Router, TanStack Query, React Hook Form + Zod.
+Başka bir terminalde frontend'i başlatın:
 
-Backend: bridge domain model, layout generator (LAYOUT-P01), alternative
-generation with rule-engine infrastructure (no real rules yet), terrain
-and LandXML import, traffic/wind/seismic/temperature load services, a
-native linear-elastic 3D frame analysis engine (validated against
-closed-form results and a worked example) behind the Fast Solver, and a
-MIDAS NX adapter with a verified round trip (not yet wired to REST).
-Inputs are validated fail-closed (missing or non-finite values are
-rejected, invalid load inputs come back as `INVALID`), and the REST
-contract is pinned by contract tests. See `docs/roadmap.md` for the
-exact milestone table and what's still not started (MIDAS analysis
-integration, persistence, quantities/cost/carbon, optimization, AI
-service).
+```powershell
+cd frontend
+npm.cmd install
+npm.cmd run dev
+```
 
-Several engineering values (seismic spectrum tables, LM1 values, wind
-and temperature constants) still await documented engineer approval -
-see the open questions in `docs/features/backend-remediation/plan.md`.
-No real MIDAS NX analysis integration or optimization exists yet -
-screens for those areas say so explicitly rather than showing invented
-data (spec section 22: never invent engineering content).
+Frontend varsayılan olarak `http://localhost:8080` API adresini kullanır. Farklı backend adresi için `frontend/.env.local` içine `VITE_API_BASE=http://localhost:8081` gibi bir değer koyun. Alternatif olarak `.env` hazırken `docker compose up -d --build --wait postgres backend` ile backend'i de konteynerde çalıştırabilirsiniz.
+
+## Testler ve kalite kapıları
+
+```powershell
+mvn -B -f backend/pom.xml test
+cd frontend
+npm.cmd test
+npm.cmd run build
+npm.cmd run lint
+```
+
+Backend testleri varsayılan olarak PostgreSQL uyumlu H2 test yapılandırmasını kullanır; gerçek PostgreSQL testi için Compose `postgres-test` profili ve `KOPRUQ_TEST_DB_*` değişkenleri [roadmap](docs/roadmap.md) ile [backend özellik kaydında](docs/features/backend/) açıklanır. Frontend Vitest kapsamı proje dosyası, özellik modelleri, Graph, bileşenler ve katman kurallarını içerir. Kod değişikliği yaparken ilgili testleri ve üretim derlemesini yeniden çalıştırın; geçmişteki “geçti” kayıtları güncel çalıştırmanın yerini tutmaz.
+
+Frontend'den API ve veritabanına ilerleyen manuel kabul adımları için [uçtan uca test rehberine](docs/e2e/README.md) bakın. Her dosya bir senaryo içerir; mühendislik doğrulaması gereken sonuçlar ayrıca işaretlenmiştir.
+
+## Belgeler ve sınırlar
+
+| Belge | Konu |
+| --- | --- |
+| [Ana spesifikasyon](docs/KOPRUQ_MASTER_SPEC.md) | Domain ve mühendislik hedefleri; teknoloji kararları mimari ekle birlikte okunmalı |
+| [Mimari ek v2](docs/ARCHITECTURE_AMENDMENT_V2.md) | Java/React yığını ve harici sistem kararları |
+| [Saha ve yerleşim analizi](docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md) | Yerleşim değişkenleri, saha akışı ve native solver yönü |
+| [Mimari kayıt](docs/architecture.md) | Gerçekleşen geliştirmelerin tarihli açıklaması |
+| [Yol haritası](docs/roadmap.md) | Tamamlanan, ertelenen ve açık kilometre taşları |
+| [Backend referansı](docs/architecture/backend-reference.md) | Paket/layer kuralları ve hedef mimari |
+| [Frontend README](frontend/README.md) | Frontend dizinleri, katman testi ve geliştirme komutları |
+| [CLAUDE.md](CLAUDE.md) ve [AGENTS.md](AGENTS.md) | Depoda çalışırken izlenen kurallar |
+
+Mühendislik katsayıları, güvenlik sınırları, yük faktörleri ve jeoteknik kabuller yalnızca doğrulanmış kaynak veya mühendis onayıyla eklenir. Eksik işlevler arayüzde sahte sonuçlarla doldurulmaz; `NOT_IMPLEMENTED`, eksik veya güncelliğini yitirmiş durumlar açıkça gösterilir.

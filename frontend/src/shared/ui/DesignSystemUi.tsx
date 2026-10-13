@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { generateValues, type Dimension } from './generation'
+import { generateValues, type Dimension } from '../lib/parameterSweep'
 
 export function EngineeringInput({ value, onChange, ariaLabel }: { value: number | string; onChange: (value: number) => void; ariaLabel?: string }) {
   return <input aria-label={ariaLabel} className="spn-input spn-input-number ds-engineering-input" type="number" value={value} onChange={(event) => onChange(Number(event.target.value))} />

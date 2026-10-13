@@ -1,4 +1,4 @@
-import { generateValues } from '../../../shared/ui/ParamSweepCard'
+import { generateValues } from '../../../shared/lib/parameterSweep'
 import type { BearingFamily, BearingVariant, BearingRule } from './types'
 
 export function candidates(rule: BearingRule): number[] {

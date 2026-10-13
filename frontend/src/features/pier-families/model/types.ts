@@ -1,4 +1,4 @@
-import type { Dimension } from '../../../shared/ui/ParamSweepCard'
+import type { Dimension } from '../../../shared/lib/parameterSweep'
 
 export type PierType = 'RECTANGULAR' | 'CIRCULAR' | 'OVAL' | 'BOX' | 'H_SECTION'
 export type PierStatus = 'VALID' | 'INVALID' | 'INCOMPLETE'

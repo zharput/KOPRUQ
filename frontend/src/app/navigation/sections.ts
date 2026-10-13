@@ -9,7 +9,7 @@
  * çeşitleri çıkacak") - never a nested sidebar tree. See
  * {@link BIG_MENU_ITEMS}.
  *
- * <p>Real functionality: 'home' (HomePanel), 'project-information'
+ * <p>Real functionality: 'home' (HomePanel, removed in G4), 'project-information'
  * (ProjectPanel), 'loads' (LoadsPanel), 'layout-generator'
  * (SiteLayoutPanel, LAYOUT-P01), 'bridge-alternatives' (GenerateWorkflow,
  * P02-P05 - re-attached here from the retired 'bridge-design' leaf, since
@@ -23,9 +23,7 @@
  * <p>Retired this revision (present in an earlier menu screenshot, not in
  * this one): 'design-space', 'layout-design-space', 'bridge-design'.
  * {@code LayoutDesignSpacePanel.tsx} (built for 'layout-design-space')
- * has no route into it anymore - kept in the tree, not deleted, since it
- * was real, working, engineer-requested functionality; flag to the
- * engineer rather than silently discarding it.
+ * had no route into it anymore and was removed in G4.
  *
  * <p>Also retired (2026-09-10): 'design-codes'/'units'/'design-criteria'
  * as standalone leaves - folded into `ProjectPanel` itself as three
@@ -56,9 +54,8 @@
  * instruction - "BU MENÜDE material ve loads en sonda olsun"):
  * Materials/Loads moved from first to LAST in this group (after
  * Standardization Rules), reversing the "first two leaves" ordering
- * from the note above. `TopBar.tsx` reads this same array, so both the
- * sidebar and the top tab row picked up the new order automatically -
- * no separate ordering to keep in sync.
+ * from the note above. The former `TopBar.tsx` (removed in G4) read
+ * this same array, so the sidebar and the top tab row shared one ordering.
  */
 export type SectionId =
   | 'home'
@@ -130,7 +127,8 @@ export const BIG_MENU_ITEMS: Partial<Record<SectionId, string[]>> = {
  * Sections with real functionality behind them - drives both App.tsx's
  * GenerateWorkflow fallback (only 'bridge-alternatives' actually reaches
  * it; the others below are routed to their own components by an earlier,
- * more specific check) and TopBar's dimming of not-yet-real step tabs.
+ * more specific check) and the former TopBar's (removed in G4) dimming of
+ * not-yet-real step tabs.
  * BIG_MENU_ITEMS keys are real too but tracked separately (App.tsx checks
  * that map directly).
  */

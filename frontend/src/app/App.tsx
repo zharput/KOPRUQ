@@ -44,7 +44,7 @@ function WelcomeScreen({ onNew, onOpen }: { onNew: () => void; onOpen: () => voi
  * Single KOPRUQ shell: app-wide project state/providers stay above the
  * URL-selected workspace, while old one-segment feature routes render
  * their existing screens in the workspace center. The legacy Sidebar
- * and TopBar sources remain available but are no longer mounted here.
+ * and TopBar components were removed in G4.
  */
 function App() {
   const [summary, setSummary] = useState<GenerationSummary | null>(null)

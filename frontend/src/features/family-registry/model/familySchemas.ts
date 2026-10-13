@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { parseWithSchema, ProjectFileValidationError } from '../../../shared/project-file/projectFileValidation'
 import type { FamilyRepositoryCategory } from './familyRepository'
-import type { Dimension } from '../../../shared/ui/generation'
+import type { Dimension } from '../../../shared/lib/parameterSweep'
 import type { PierFamily } from '../../pier-families/model/types'
 import type { PierCapFamily } from '../../pier-cap-families/model/types'
 import type { FoundationFamily } from '../../foundation-families/model/types'

@@ -15,7 +15,7 @@ import type { LayoutSeed } from '../../layout-generator'
  * 9-field form + GENERATE flow, same backend calls, same results table
  * and elevation preview - only the layout changed (card sections,
  * min/max pairs on one row) to match the target mockup, plus an
- * onGenerated callback so App.tsx can feed real numbers to HomePanel.
+ * onGenerated callback so App.tsx can feed real numbers to the former HomePanel (removed in G4).
  * No new functionality, no invented data.
  *
  * <p>Optional {@code layoutSeed} (see the layout-generator feature's

@@ -9,7 +9,7 @@ import { EN_CONCRETE_CLASS_IDS } from '../model/materialCatalog'
  * and the bilingual RO names from the previous version, dropped the
  * illegible "Foundation levelling" row entirely rather than guessing its
  * value). Each element's concrete class is now a **dropdown**, not a
- * fixed value - "malzeme EN'dan alÄ±nacak" (material comes from EN): the
+ * fixed value - "malzeme EN'dan alınacak" (material comes from EN): the
  * option list is the full EN 1992-1-1 Table 3.1 strength-class set, not
  * invented (same table `backend/analysis-api`'s `EurocodeConcrete`
  * already computes Ecm/fcm from). Defaults to the engineer's own given

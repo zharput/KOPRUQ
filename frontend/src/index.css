@@ -103,9 +103,9 @@
   --sp-output-node-header: #C7B9AE; --sp-output-node-header-text: #382F2A; --sp-output-node-category-text: #5D5048;
 }
 
-/* Light theme (2026-09-12) - toggled via [data-theme] on <html>, set by
-   shared/ui/ThemeToggle.tsx and persisted in localStorage
-   ("kopruq.theme"). Same variable names as the dark palette above, so
+/* Light theme (2026-09-12) - applied via [data-theme='light'] on <html>.
+   No theme toggle is mounted in the current UI (ThemeToggle.tsx was removed),
+   so nothing sets the attribute today. Same variable names as the dark palette above, so
    every component that already uses var(--...) needs no change. */
 * {
   box-sizing: border-box;

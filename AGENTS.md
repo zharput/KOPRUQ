@@ -813,8 +813,8 @@ rules above; it does not replace the specifications in `docs/`.
   module's `src/test/java`.
 - Frontend Vitest coverage exists for app behavior, project-file persistence,
   terrain binary/coordinate helpers, shared parameter controls, and section
-  geometry. `frontend/vitest-errors.txt` is a diagnostic artifact and must be
-  checked before trusting a frontend result.
+  geometry. `frontend/vitest-errors.txt` is a stale local diagnostic artifact (not a
+  baseline); run a fresh `npm test` instead of trusting it.
 - The documented baseline is that Maven reactor tests/build and frontend
   production build have passed at relevant milestones. Do not report a fresh
   pass without running the command in the current environment. For a normal

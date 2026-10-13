@@ -1,0 +1,142 @@
+/* Sidebar */
+
+.spn-sidebar {
+  width: 248px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  padding: 18px 14px;
+}
+
+/* The sidebar now follows the app's own dark/light theme (2026-09-13,
+   engineer's own correction - "açık moda aldığın zaman yandaki menüde
+   açık olsun, o koyu kalıyor" - a deliberate fixed-dark-sidebar choice
+   from the previous round, reversed here per direct instruction). The
+   logo PNG still has a dark navy background baked into the image
+   itself, so it gets its own small fixed-dark badge behind it
+   (`--sidebar-bg`, still a non-themed constant, now used only for this
+   one spot) - otherwise it would show as a mismatched dark rectangle
+   sitting on a light sidebar. */
+.spn-sidebar-logo {
+  padding: 10px;
+  background: var(--sidebar-bg);
+  border-radius: 8px;
+}
+
+/* Crops the logo image to its bridge-graphic + wordmark portion only,
+   hiding the tagline underneath ("COMPUTATIONAL & GENERATIVE BRIDGE
+   DESIGN") - it renders too small to read clearly at sidebar width, and
+   the engineer asked to either fix its legibility or drop it (2026-09-12).
+   The source PNG is 1536x1024; its bridge+wordmark content ends around
+   74% of the height, so the crop keeps a 1536:758 window and relies on
+   overflow:hidden to clip the rest - no image re-export needed. */
+.spn-sidebar-logo-crop {
+  width: 100%;
+  max-width: 160px;
+  aspect-ratio: 1536 / 758;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.spn-sidebar-logo-crop img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.spn-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.spn-nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.spn-nav-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.spn-nav-group-header svg {
+  transition: transform 0.15s ease;
+}
+
+.spn-nav-group-header svg.spn-chevron-collapsed {
+  transform: rotate(-90deg);
+}
+
+.spn-nav-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spn-nav-standalone {
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.spn-sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.spn-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--spn-ui-font-family);
+  font-size: 10px;
+  line-height: var(--spn-parameter-line-height);
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.spn-nav-item:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+.spn-nav-item-active {
+  background: rgba(47, 123, 246, 0.12);
+  border-color: rgba(47, 123, 246, 0.4);
+  color: var(--text-primary);
+}
+
+.spn-sidebar-tagline {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 14px 12px 4px;
+}
+

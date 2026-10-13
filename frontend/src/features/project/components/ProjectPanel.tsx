@@ -25,7 +25,7 @@ import { parseImportedBridges } from '../api/excelImport'
  * caption underneath so no data is silently lost by collapsing to just
  * two numbers. **Presentation/local state only** - not wired into any
  * backend generation or analysis yet (same discipline as
- * LayoutDesignSpacePanel).
+ * the former LayoutDesignSpacePanel, removed in G4).
  *
  * <p>Superseded VIA-35/VIA-24 (the previous, smaller example table) -
  * this real 12-bridge dataset replaces it. VIA-35's own detailed facts

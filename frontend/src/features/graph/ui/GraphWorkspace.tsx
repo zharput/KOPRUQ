@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MutableRefObject } from 'react'
 import { ReactFlow, ReactFlowProvider, Background, BackgroundVariant, ConnectionMode, useReactFlow, useStoreApi, type Connection, type EdgeChange, type NodeChange, type NodeProps } from '@xyflow/react'
 import { Activity, Maximize2, Minus, Plus, Redo2, Undo2 } from 'lucide-react'
-import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
+import WorkspaceLayout from '../../../shared/ui/WorkspaceLayout'
 import type { GraphExecutionState, GraphValue, MaterialValue, KopruqGraph } from '../domain/types'
 import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'

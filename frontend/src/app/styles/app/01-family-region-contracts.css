@@ -1,0 +1,149 @@
+.spn-shell {
+  display: flex;
+  min-height: 100svh;
+}
+
+/* F2B final authority: three real root regions, with nested center/results. */
+@media (min-width:1101px) {
+  .family-workspace-shell { display:grid !important; grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,4fr) !important; grid-template-rows:minmax(0,1fr) !important; width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; }
+  .family-structural-library { grid-column:1; grid-row:1; display:flex; flex-direction:column; min-width:0; min-height:0; width:auto; height:auto; overflow:hidden; }
+  .family-workspace-main { grid-column:2 !important; grid-row:1 !important; display:flex !important; flex-direction:column; min-width:0; min-height:0; padding:14px; overflow:hidden; }
+  .family-workspace-columns { display:grid !important; grid-template-columns:minmax(0,1fr) !important; grid-template-rows:auto minmax(0,1fr) !important; flex:1 1 auto; min-width:0; min-height:0; gap:12px; overflow:hidden; }
+  .family-parameters-panel { min-width:0; min-height:0; overflow:auto; }
+  .family-section-preview { min-width:0; min-height:0; height:auto; overflow:hidden; }
+  .family-section-preview .spn-girder-drawing-viewport { min-width:0; height:auto; min-height:0; flex:1 1 auto; }
+  .family-results-workspace { grid-column:3 !important; grid-row:1 !important; display:grid !important; grid-template-columns:minmax(0,1fr) !important; grid-template-rows:minmax(0,1fr) auto !important; min-width:0; min-height:0; padding:14px; overflow:hidden; }
+  .family-results-workspace .family-candidate-table { min-width:0; min-height:0; padding:0; border:var(--family-panel-border-width) solid var(--family-panel-border-color); overflow:hidden; }
+  .family-results-workspace .family-candidate-table .spn-family-table-scroll { height:auto; max-height:none; min-height:0; overflow:auto; }
+  .family-results-workspace .family-properties-panel { min-width:0; min-height:0; margin-top:12px; overflow:hidden; }
+}
+
+/* F2 central Family Workspace: three reusable regions, 1 / 3 / 4. */
+@media (min-width:1280px) {
+  .family-workspace-shell { grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,4fr); }
+  .family-structural-library { grid-column:1; grid-row:1; }
+  .family-workspace-main { grid-column:2; grid-row:1; display:flex; flex-direction:column; min-width:0; min-height:0; overflow:hidden; padding:14px; }
+  .family-workspace-header { flex:0 0 auto; }
+  .family-workspace-columns { flex:1 1 auto; min-height:0; display:grid; grid-template-rows:auto minmax(0,1fr); gap:12px; overflow:hidden; }
+  .family-parameters-panel { min-height:0; overflow:hidden; }
+  .family-section-preview { min-height:0; height:auto; overflow:hidden; }
+  .family-results-workspace { grid-column:3; grid-row:1; display:grid; grid-template-rows:minmax(0,1fr) auto; min-width:0; min-height:0; overflow:hidden; padding:14px; border-left:1px solid var(--border); background:var(--surface-1); }
+  .family-results-workspace .family-candidate-table { min-height:0; overflow:hidden; padding:0; border:var(--family-panel-border-width) solid var(--family-panel-border-color); }
+  .family-results-workspace .family-candidate-table .spn-family-table-scroll { max-height:none; height:calc(100% - 80px); overflow:auto; }
+  .family-results-workspace .family-properties-panel { min-height:0; overflow:hidden; margin-top:12px; }
+  .family-results-workspace .spn-girder-preview-properties { overflow:hidden; }
+}
+
+/* F7.2K Parameters table: one panel title, one full-width six-column table,
+   and one separator source per data row. */
+.family-workspace-shell .family-parameters-panel {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  grid-template-columns:none !important;
+}
+.family-workspace-shell .family-parameters-panel > .family-panel-title {
+  display:block;
+  width:100%;
+  margin:0 0 10px;
+  align-self:stretch;
+  text-align:left;
+  white-space:nowrap;
+  font-family:var(--family-font-family);
+  font-size:16px !important;
+  font-weight:var(--family-panel-title-font-weight);
+  letter-spacing:.06em;
+}
+.family-workspace-shell .family-parameters-table-wrap {
+  display:block;
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  min-width:0;
+}
+.family-workspace-shell .family-parameters-panel > h2 {
+  white-space:nowrap;
+  overflow:visible;
+  font-size:16px !important;
+}
+.family-workspace-shell .family-parameters-panel > .spn-family-parameters {
+  display:table;
+  width:100% !important;
+  margin:0 !important;
+  padding:0 !important;
+  transform:none !important;
+  left:auto !important;
+  table-layout:fixed !important;
+  border-collapse:collapse;
+}
+.family-workspace-shell .spn-family-parameters th,
+.family-workspace-shell .spn-family-parameters td {
+  height:36px;
+  padding:7px 6px !important;
+  vertical-align:middle;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  border-bottom:0 !important;
+}
+.family-workspace-shell .spn-family-parameters thead tr {
+  border-bottom:1px solid var(--border) !important;
+}
+.family-workspace-shell .spn-family-parameters tbody tr {
+  height:36px;
+  border-bottom:1px solid var(--border) !important;
+}
+.family-workspace-shell .spn-family-parameters th { font-size:14px !important; font-weight:600; text-align:left; }
+.family-workspace-shell .spn-family-parameters th:nth-child(n+3),
+.family-workspace-shell .spn-family-parameters td:nth-child(n+3) { text-align:center !important; }
+.family-workspace-shell .spn-family-parameters th:first-child,
+.family-workspace-shell .spn-family-parameters td:first-child { width:8% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(2),
+.family-workspace-shell .spn-family-parameters td:nth-child(2) { width:42% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(3),
+.family-workspace-shell .spn-family-parameters td:nth-child(3) { width:12% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(4),
+.family-workspace-shell .spn-family-parameters td:nth-child(4) { width:12% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(5),
+.family-workspace-shell .spn-family-parameters td:nth-child(5) { width:14% !important; }
+.family-workspace-shell .spn-family-parameters th:nth-child(6),
+.family-workspace-shell .spn-family-parameters td:nth-child(6) { width:12% !important; }
+.family-workspace-shell .spn-family-parameters .family-param-symbol { display:table-cell !important; border:0 !important; color:var(--text-primary); }
+.family-workspace-shell .spn-family-parameters .family-param-description { display:table-cell !important; border:0 !important; color:var(--text-secondary); }
+
+/* F2B final authority: this must remain the last Family desktop layout. */
+@media (min-width:1101px) {
+  .family-workspace-shell { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,4fr); grid-template-rows:minmax(0,1fr); width:100%; height:100%; min-width:0; min-height:0; overflow:hidden; }
+  .family-structural-library { grid-column:1; grid-row:1; display:flex; flex-direction:column; min-width:0; min-height:0; width:auto; height:auto; overflow:hidden; }
+  .family-workspace-main { grid-column:2; grid-row:1; display:flex !important; flex-direction:column; min-width:0; min-height:0; padding:14px; overflow:hidden; }
+  .family-workspace-columns { display:grid !important; grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); flex:1 1 auto; min-width:0; min-height:0; gap:12px; overflow:hidden; }
+  .family-parameters-panel { min-width:0; min-height:0; overflow:auto; }
+  .family-section-preview { min-width:0; min-height:0; height:auto; overflow:hidden; }
+  .family-section-preview .spn-girder-drawing-viewport { min-width:0; height:auto; min-height:0; flex:1 1 auto; }
+  .family-results-workspace { grid-column:3; grid-row:1; display:grid; grid-template-rows:minmax(0,1fr) auto; min-width:0; min-height:0; padding:14px; overflow:hidden; }
+  .family-results-workspace .family-candidate-table { min-width:0; min-height:0; padding:0; border:var(--family-panel-border-width) solid var(--family-panel-border-color); overflow:hidden; }
+  .family-results-workspace .family-candidate-table .spn-family-table-scroll { height:auto; max-height:none; min-height:0; overflow:auto; }
+  .family-results-workspace .family-properties-panel { min-width:0; min-height:0; margin-top:12px; overflow:hidden; }
+}
+
+/* F2B authoritative desktop contract. The root has exactly three layout
+   regions; the center and results wrappers remain real boxes. */
+@media (min-width:1101px) {
+  .family-workspace-shell {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(0,3fr) minmax(0,4fr);
+    grid-template-rows:minmax(0,1fr);
+    width:100%; height:100%; min-width:0; min-height:0; overflow:hidden;
+  }
+  .family-structural-library { grid-column:1; grid-row:1; display:flex; flex-direction:column; min-width:0; min-height:0; width:auto; height:auto; overflow:hidden; }
+  .family-workspace-main { grid-column:2; grid-row:1; display:flex !important; flex-direction:column; min-width:0; min-height:0; padding:14px; overflow:hidden; }
+  .family-workspace-columns { display:grid !important; grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); flex:1 1 auto; min-width:0; min-height:0; gap:12px; overflow:hidden; }
+  .family-parameters-panel { min-width:0; min-height:0; overflow:auto; }
+  .family-section-preview { min-width:0; min-height:0; height:auto; overflow:hidden; }
+  .family-section-preview .spn-girder-drawing-viewport { min-width:0; height:auto; min-height:0; flex:1 1 auto; }
+  .family-results-workspace { grid-column:3; grid-row:1; display:grid; grid-template-rows:minmax(0,1fr) auto; min-width:0; min-height:0; padding:14px; overflow:hidden; }
+  .family-results-workspace .family-candidate-table { min-width:0; min-height:0; padding:0; border:var(--family-panel-border-width) solid var(--family-panel-border-color); overflow:hidden; }
+  .family-results-workspace .family-candidate-table .spn-family-table-scroll { height:auto; max-height:none; min-height:0; overflow:auto; }
+  .family-results-workspace .family-properties-panel { min-width:0; min-height:0; margin-top:12px; overflow:hidden; }
+}
+

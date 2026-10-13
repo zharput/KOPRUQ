@@ -1,0 +1,462 @@
+/* Shared form controls (GenerateWorkflow) */
+
+.spn-input {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 13.5px;
+}
+
+.ds-engineering-input { width: min(100%, var(--ds-input-width)) !important; height: var(--ds-input-height); box-sizing: border-box; font-weight: 400; }
+.ds-section { margin-top: var(--ds-section-gap); }
+.ds-section-title { margin-bottom: 10px; font-weight: 500; }
+.ds-generation-table { width: 100%; }
+.ds-generation-table { table-layout: fixed; }
+.ds-generation-table th, .ds-generation-table td { border-color: var(--border); border-left: 1px solid var(--border); border-right: 1px solid var(--border); font-weight: 400; vertical-align: middle; overflow-wrap: anywhere; }
+.ds-generation-table th { font-weight: 500; }
+.ds-generation-table .spn-col-label { width: 28%; }
+.ds-generation-table .spn-col-value { width: 13%; }
+.ds-generation-table .spn-col-result { width: 33%; }
+.ds-generation-table .ds-engineering-input { max-width: 100%; }
+.ds-generation-table td:nth-child(2), .ds-generation-table td:nth-child(3), .ds-generation-table td:nth-child(4) { padding-right: 12px; }
+.ds-generation-table td:nth-child(2) .spn-input, .ds-generation-table td:nth-child(3) .spn-input, .ds-generation-table td:nth-child(4) .spn-input { display: block; width: calc(100% - 8px) !important; min-width: 0; margin-right: 8px; }
+.ds-preferred-table { width: 100%; margin-top: 18px; overflow: hidden; }
+.ds-preferred-table table { table-layout: auto; margin-top: 0; }
+.ds-preferred-table th, .ds-preferred-table td { font-weight: 400; vertical-align: middle; overflow-wrap: anywhere; }
+.ds-preferred-table th { font-weight: 500; }
+.ds-preferred-table col:nth-child(1) { width: 12%; }
+.ds-preferred-table col:nth-child(2), .ds-preferred-table col:nth-child(3), .ds-preferred-table col:nth-child(4) { width: 12%; }
+.ds-preferred-table col:nth-child(5) { width: 28%; }
+.ds-preferred-table col:nth-child(6) { width: 14%; }
+.ds-preferred-table col:nth-child(7) { width: 10%; }
+.ds-preferred-table .spn-input { width: 100% !important; }
+.spn-table[style*="min-width"] { min-width: 0 !important; }
+.spn-table td[style*="min-width"] { min-width: 0 !important; white-space: normal !important; }
+.ds-generation-table th { height: var(--ds-table-header-height); font-weight: 500; }
+.ds-generation-table td { min-height: var(--ds-row-height); }
+.ds-status-bar { margin-top: var(--ds-section-gap); }
+.ds-status-bar p { margin: 4px 0; }
+.ds-schematic-panel { min-height: 180px; }
+
+.spn-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Plain, wide number edit boxes (no native spin-button UI) - used for
+   Pier Families' min/max/delta inputs, per the engineer's own
+   instruction ("direkt edit_box olsun ve daha geniş olsun, slider'a
+   gerek yok"). */
+.spn-input-number {
+  width: 100%;
+  min-width: 84px;
+  -moz-appearance: textfield;
+}
+
+.spn-input-number::-webkit-inner-spin-button,
+.spn-input-number::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Passive/computed read-only fields (2026-09-13, engineer's own
+   instruction - "mavi işaretli sayıların edit box'ını gri görünümlü
+   yap, orada bir değer girilemiyeceğini anlasın kullanıcı"): visibly
+   grayed out so it reads as "computed, not enterable" at a glance,
+   distinct from the live edit boxes around it. Used for Loads' Self
+   Weight & Permanent passive terms and Superstructure's computed
+   Carriageway/Overhang fields. */
+.spn-input-passive {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.spn-button-primary {
+  padding: 9px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 500;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+
+.spn-button-primary:hover {
+  background: var(--accent-strong);
+}
+
+.spn-button-secondary {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 12.5px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+.spn-button-secondary:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
+/* GenerateWorkflow layout */
+
+.spn-workflow {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spn-hero {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  padding: 20px 22px;
+  overflow: hidden;
+}
+
+.spn-hero-graphic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.spn-hero-text {
+  position: relative;
+}
+
+.spn-hero-text h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.spn-hero-text p {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.spn-hero-stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.spn-hero-stats .spn-stat {
+  background: var(--surface-2);
+}
+
+.spn-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-1);
+  padding: 18px 20px;
+}
+
+.spn-card-title {
+  font-size: 14px;
+  margin: 0;
+}
+
+.spn-card-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.spn-card-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.spn-card-header-row .spn-card-title {
+  flex: 1;
+}
+
+.spn-field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.spn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+
+/* Compact numeric engineering inputs: keep the unit on the same row. */
+.spn-field:has(input[type='number']) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 140px auto;
+  align-items: center;
+  column-gap: 6px;
+}
+
+.spn-field:has(input[type='number']) > input[type='number'] {
+  width: 140px;
+  margin-top: 0;
+}
+
+.spn-range-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.spn-range-field:first-of-type {
+  border-top: none;
+}
+
+.spn-range-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.spn-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spn-range-inputs .spn-input {
+  width: 88px;
+  margin-top: 0;
+}
+
+.spn-range-dash {
+  color: var(--text-muted);
+}
+
+.spn-error {
+  color: #f87171;
+  font-size: 13px;
+}
+
+/* Loads > Self Weight & Permanent formula rows (SelfWeightPermanent.tsx,
+   2026-09-13) - a label, a row of "x"-separated terms (each an edit box
+   or a passive/computed readOnly box), then "= result". */
+.spn-formula-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.spn-formula-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-1);
+  font-size: 13px;
+}
+
+.spn-formula-label {
+  min-width: 150px;
+  color: var(--text-secondary);
+}
+
+.spn-formula-eq {
+  color: var(--text-muted);
+}
+
+.spn-formula-term {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spn-formula-op {
+  color: var(--text-muted);
+}
+
+.spn-formula-input {
+  width: 76px;
+  min-width: 0;
+  margin-top: 0;
+  text-align: center;
+}
+
+.spn-formula-unit {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.spn-formula-result {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.spn-formula-total {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.spn-formula-total .spn-formula-label {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.spn-formula-total .spn-formula-result {
+  font-size: 15px;
+  color: var(--accent);
+}
+
+.spn-hint {
+  color: var(--accent);
+  font-size: 12.5px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(47, 123, 246, 0.08);
+}
+
+.spn-pre {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-secondary);
+  background: var(--surface-0);
+}
+
+.spn-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.spn-table th,
+.spn-table td {
+  border: 1px solid var(--border);
+  padding: 7px 8px;
+  text-align: left;
+}
+
+.spn-table th {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.spn-table tbody tr {
+  cursor: pointer;
+}
+
+.spn-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+/* Fixed-width columns for the min/max/delta parameter tables (Pier
+   Families, Girder Library) - table-layout:auto let each shape/card's
+   own table pick its own column widths from its own content (label
+   text length, "Not configured yet" vs a long value list), so the
+   Min/Max/Delta edit boxes landed at different X positions from card
+   to card ("kayıklık", reported 2026-09-11). A fixed colgroup keeps
+   Dimension/Min/Max/Delta the same width in every card; only the
+   trailing "Values" column absorbs the remaining space.
+
+   The table also gets a min-width and lives inside a horizontally
+   scrollable wrapper (.spn-param-table-wrap): on a narrower window the
+   Dimension/Min/Max/Delta columns' fixed widths could out-squeeze the
+   last "Values" column to almost nothing, wrapping short text like
+   "Not configured yet" into 2-3 cramped lines (reported 2026-09-11,
+   still visible on the Oval card). Scrolling the table instead of
+   crushing its last column keeps every column readable regardless of
+   how narrow the surrounding card gets. */
+.spn-param-table-wrap {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.spn-param-table {
+  table-layout: fixed;
+  min-width: 0;
+}
+
+.spn-param-table col.spn-col-label {
+  width: 100px;
+}
+
+.spn-param-table col.spn-col-value {
+  width: 84px;
+}
+
+.spn-param-table col.spn-col-result {
+  width: auto;
+}
+
+.spn-param-table td.spn-col-result-cell { white-space: normal; }
+
+/* No vertical grid lines (2026-09-13, engineer's own instruction:
+   "düşey çizgileri kaldır") - only horizontal row separators remain
+   (from the base .spn-table th/td border). A cell's own left/right
+   border used to visually clash with the edit box's own rounded border
+   sitting right against it, especially at narrow column widths (e.g.
+   the bf/tf rows in Girder Library) - dropping the vertical lines
+   removes that overlap instead of trying to align two separate borders
+   pixel-perfectly. */
+.spn-param-table th,
+.spn-param-table td {
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.ds-unit-input { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ds-unit-input .spn-input { min-width: 0; margin-top: 0; }
+.ds-preferred-table col:nth-child(1) { width: 14%; }
+.ds-preferred-table col:nth-child(2), .ds-preferred-table col:nth-child(3), .ds-preferred-table col:nth-child(4) { width: 13%; }
+.ds-preferred-table col:nth-child(5) { width: 25%; }
+.ds-preferred-table col:nth-child(6) { width: 14%; }
+.ds-preferred-table col:nth-child(7) { width: 8%; }
+.ds-preferred-table .ds-unit-input .spn-input { width: min(100%, 96px); }
+.ds-preferred-table .ds-preferred-number-cell { gap: 6px; }
+.ds-preferred-table .ds-preferred-number-input { flex: 0 0 80px; width: 80px !important; min-width: 80px; max-width: 80px; margin-right: 0; padding-left: 10px; padding-right: 10px; font-variant-numeric: tabular-nums; appearance: textfield; }
+.ds-preferred-table .ds-preferred-number-input::-webkit-inner-spin-button, .ds-preferred-table .ds-preferred-number-input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+
+.spn-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+}
+

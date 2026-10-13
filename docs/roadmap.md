@@ -1374,7 +1374,7 @@ code itself is not reused.
 - [x] Preserved the shared piled Foundation Lx/Ly domain calculation. No Graph nodes, generation engine, FEM, optimization or family data migration was introduced.
 - [ ] Before Phase 3A, define stable-ID domain models for Girder and Superstructure, an Abutment family model, and a true material catalog. Alignment/constraint ownership migration also remains to be designed.
 
-## Phase 3A � Graph Foundation (2026-09-17)
+## Phase 3A - Graph Foundation (2026-09-17)
 
 - [x] Add independent graph domain, registry, execution/validation engine, persisted multi-document store, undo/redo and XYFlow adapter.
 - [x] Mount the searchable node library, canvas toolbar, Watch/log and inspector in the existing workspace shell.
@@ -1866,3 +1866,18 @@ Frontend-only (plan and evidence in `docs/features/g3/`). No backend change, no 
 - [x] C-013-01 Record-level validation of `projectState`, bridge rows, `bridgeDefinitions`, family records and graph nodes/connections; the whole file is rejected with a path message; older files keep opening through the existing normalizations.
 - [x] C-013-03 Recent identity is a UUID plus `isSameEntry`/`recentId`; same-named files no longer collapse; File menu shows project name and "Erişim yok".
 - [ ] Flagged, not part of G3: A-02, C-012-09, A-08, `windLoads` outside localStorage, remaining raw reads, other `*-catalog-changed` events, normal Open without a file handle. Manual Chromium checks (real `isSameEntry`, IndexedDB handles, two same-named files in different folders, real old `.kopruq` files) are still to be done by the engineer.
+
+## G4 frontend architecture track (2026-10-13)
+
+Frontend-only (plan and evidence in `docs/features/g4/`). No backend change, no new dependency, no new localStorage key, `schemaVersion` 1.
+
+- [x] A-04 Graph preview and Run share one compute core; the preview-capable type list comes from the registry; girder preview span units and the abutment preview fixed (D1, D2). Intended preview/Run differences: no material resolution, and the superstructure preview returns an empty candidates list when no girder is connected while Run still validates the length inputs.
+- [x] A-08 Layer rules enforced by `layerRules.test.ts` (R1, R2, R4); `WorkspaceLayout` and `generateValues` moved; `shared/project-file` edges allow-listed until g5.
+- [x] A-11 README, `index.css` comment, `docs/architecture.md`, `docs/roadmap.md` updated.
+- [x] A-12 `strict: true` in both tsconfig files (TypeScript 6.0 already defaults to strict; 0 errors for every flag).
+- [x] A-13 Five dead items deleted after per-file reference search.
+- [x] A-14 `App.css` split into 17 ordered `@import` parts; byte-identical, built CSS hash unchanged.
+- [x] A-15 Mojibake repaired; `.editorconfig` and `sourceEncoding.test.ts` added; roadmap U+FFFD removed.
+- [x] A-16 `vitest-errors*.txt` ignored; AGENTS.md updated.
+- [ ] Open engineering items E1-E4 (A-03, A-05, A-06, A-10) are not planned; they need engineer decisions. See `docs/architecture.md` G4 track.
+- [ ] Not part of G4: A-02, `shared/project-file` split (proposed g5), `!important` reduction and CSS distribution, `nodeRegistry.ts` split, remaining raw storage reads. `frontend/vitest-errors.txt` already untracked by the engineer (staged `git rm --cached`). Manual Chromium checks listed in `docs/features/g4/plan.md` section 7.

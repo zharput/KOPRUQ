@@ -1,0 +1,291 @@
+/* Inspector Structural Drawing System V1. Geometry remains component-owned;
+   visual language is shared through the central drawing tokens. */
+.spn-engineering-schematic { gap: 3px; padding: var(--sp-drawing-padding); border-color: var(--sp-border-subtle); border-radius: 4px; background: var(--sp-surface-02); }
+.spn-engineering-schematic svg { font-family: var(--spn-ui-font-family); }
+.spn-engineering-schematic .engineering-outline { fill: #77838F !important; stroke: var(--sp-drawing-primary) !important; stroke-width: var(--sp-drawing-primary-width) !important; vector-effect: non-scaling-stroke; }
+.spn-schematic-detail-dialog .engineering-outline { fill: #77838F !important; stroke: var(--sp-drawing-primary) !important; stroke-width: var(--sp-drawing-primary-width) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-dimension,
+.spn-schematic-detail-dialog .engineering-dimension { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-dimension-size) var(--spn-ui-font-family) !important; }
+.spn-engineering-schematic .engineering-dimension-line,
+.spn-schematic-detail-dialog .engineering-dimension-line { fill: none !important; stroke: var(--sp-drawing-dimension) !important; stroke-width: var(--sp-drawing-dimension-width) !important; stroke-dasharray: none; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-axis,
+.spn-engineering-schematic .engineering-centerline,
+.spn-schematic-detail-dialog .engineering-axis,
+.spn-schematic-detail-dialog .engineering-centerline { fill: none !important; stroke: var(--sp-drawing-axis) !important; stroke-width: var(--sp-drawing-axis-width) !important; stroke-dasharray: var(--sp-drawing-dash) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-axis text,
+.spn-engineering-schematic .engineering-axis-label,
+.spn-schematic-detail-dialog .engineering-axis text,
+.spn-schematic-detail-dialog .engineering-axis-label { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-axis-size) var(--spn-ui-font-family) !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-outline { fill: #77838F !important; stroke: #C7CBD1 !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-dimension,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis text,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis-label { fill: #C7CBD1 !important; color: #C7CBD1 !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-dimension-line { stroke: #9299A3 !important; }
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-axis path,
+.spn-schematic-detail-dialog.spn-schematic-detail-dialog svg .engineering-centerline { stroke: #626A75 !important; }
+.spn-engineering-schematic > .spn-schematic-card-toolbar { justify-content: center; gap: 4px; }
+.spn-engineering-schematic .engineering-axis,
+.spn-engineering-schematic .engineering-dimension,
+.spn-engineering-schematic .engineering-view-title,
+.spn-engineering-schematic .engineering-axis-label,
+.spn-engineering-schematic .spn-schematic-preview-note { display: none !important; }
+.spn-engineering-schematic { min-width: 144px; }
+.spn-engineering-schematic-logo { display: grid; width: 128px; height: 128px; place-items: center; }
+.spn-engineering-schematic-logo .spn-node-icon { width: 128px !important; height: 128px !important; margin: 0; }
+.spn-engineering-schematic-logo .spn-node-icon img { object-fit: contain; }
+.spn-assembly-schematic-stage { display: grid; justify-items: center; gap: 10px; }
+.spn-assembly-schematic-stage .spn-schematic-card-toolbar { width: 100%; justify-content: center; gap: 4px; }
+.spn-engineering-schematic > svg { display: none !important; }
+.spn-engineering-schematic > .spn-schematic-detail-backdrop { display: contents; }
+.spn-engineering-schematic .engineering-void { fill: var(--sp-surface-02) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
+.spn-engineering-schematic .engineering-pile, .spn-engineering-schematic .engineering-pile-section { fill: var(--sp-drawing-fill-secondary) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
+.spn-engineering-schematic .engineering-deck { fill: var(--sp-drawing-fill-secondary) !important; stroke: var(--sp-drawing-secondary) !important; stroke-width: var(--sp-drawing-secondary-width) !important; }
+.spn-engineering-schematic .engineering-dimension-line { fill: none !important; stroke: var(--sp-drawing-dimension) !important; stroke-width: var(--sp-drawing-dimension-width) !important; stroke-dasharray: none; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-dimension { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-dimension-size) var(--spn-ui-font-family) !important; }
+.spn-engineering-schematic .engineering-view-title { fill: var(--sp-drawing-text) !important; stroke: none !important; font: 600 var(--sp-drawing-label-size) var(--spn-ui-font-family) !important; letter-spacing: .08em; }
+.spn-engineering-schematic .engineering-axis, .spn-engineering-schematic .engineering-centerline { fill: none !important; stroke: var(--sp-drawing-axis) !important; stroke-width: var(--sp-drawing-axis-width) !important; stroke-dasharray: var(--sp-drawing-dash) !important; vector-effect: non-scaling-stroke; }
+.spn-engineering-schematic .engineering-axis text, .spn-engineering-schematic .engineering-axis-label { fill: var(--sp-drawing-text) !important; stroke: none !important; font: var(--sp-drawing-axis-size) var(--spn-ui-font-family) !important; }
+.spn-engineering-schematic text { font-family: var(--spn-ui-font-family) !important; }
+.spn-assembly-schematic { background: var(--sp-surface-02); border-color: var(--sp-border-subtle); }
+.spn-assembly-schematic text { fill: var(--sp-drawing-text); font-family: var(--spn-ui-font-family); }
+
+.spn-family-candidate-toolbar { display: flex; align-items: end; flex-wrap: wrap; gap: 10px 18px; margin: 12px 0 8px; padding: 8px 10px; border: 1px solid var(--sp-border-primary); background: var(--sp-surface-01); color: var(--sp-text-secondary); font-size: 11px; }
+.spn-family-candidate-toolbar label { display: grid; gap: 4px; color: var(--sp-text-muted); font-size: 10px; }
+.spn-family-candidate-toolbar input { min-width: 220px; height: 29px; padding: 4px 8px; border: 1px solid var(--sp-control-border); background: var(--sp-control-bg); color: var(--sp-control-text); font: inherit; }
+.spn-family-candidate-toolbar input:focus { outline: 1px solid var(--sp-focus-ring); outline-offset: 1px; }
+.spn-family-graph-view .spn-table-wrap { overflow: auto; max-width: 100%; }
+.spn-family-graph-view .spn-table { min-width: max-content; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.spn-family-graph-view .spn-table thead th { position: sticky; top: 0; z-index: 1; padding: 0; background: var(--sp-surface-03); color: var(--sp-text-secondary); border-color: var(--sp-border-primary); white-space: nowrap; }
+.spn-sortable-header button { width: 100%; padding: 8px 9px; border: 0; background: transparent; color: inherit; cursor: pointer; font: inherit; text-align: left; }
+.spn-sortable-header button:hover { background: var(--sp-surface-hover); color: var(--sp-text-primary); }
+.spn-family-graph-view .spn-table tbody tr { cursor: pointer; }
+.spn-family-graph-view .spn-table tbody tr:hover { background: var(--sp-surface-hover); }
+.spn-family-graph-view .spn-table tbody tr.spn-row-selected { background: var(--sp-surface-selected); }
+.spn-family-empty { padding: 28px 12px; border: 1px solid var(--sp-border-primary); border-top: 0; color: var(--sp-text-muted); text-align: center; }
+
+/* Final interaction contract: overrides legacy specificity guards without changing geometry. */
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node { background: var(--sp-node-body) !important; border-color: var(--sp-node-border) !important; color: var(--sp-text-primary) !important; box-shadow: var(--sp-node-shadow); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node:hover { border-color: var(--sp-hover-border) !important; background: var(--sp-hover-surface) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.is-selected { border-color: var(--sp-selection-border) !important; background: var(--sp-node-body) !important; box-shadow: var(--sp-node-shadow-selected) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node > .react-flow__handle,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .react-flow__handle { border-color: var(--sp-socket-default) !important; background: var(--sp-node-body) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .react-flow__handle:hover { border-color: var(--sp-socket-hover) !important; background: var(--sp-socket-hover) !important; }
+.spn-graph-flow { background: var(--sp-graph-canvas); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node { border-radius: 7px; background: var(--sp-node-body) !important; border-color: var(--sp-node-border) !important; box-shadow: var(--sp-node-shadow); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-content,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-inputs,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-outputs,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-node-footer { background: var(--sp-node-body) !important; color: var(--sp-node-text-primary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title { min-height: 45px; border-radius: 6px 6px 0 0; border-bottom: 1px solid color-mix(in srgb, var(--sp-node-divider) 70%, transparent); }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title { font-size: 15px !important; line-height: 1.1; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title > span { font-size: 16px !important; font-weight: 700 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title { font-size: 16px !important; font-weight: 700 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title > span,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-node-title > small { color: #252a30 !important; }
+.spn-graph-node .spn-graph-node-content *,
+.spn-graph-node .spn-engineering-inputs *,
+.spn-graph-node .spn-engineering-outputs *,
+.spn-graph-node .spn-graph-node-state,
+.spn-graph-node .spn-graph-node-error-message { font-size: 14px !important; }
+.spn-graph-node .spn-graph-node-title { min-height: 62px; }
+.spn-graph-node .spn-node-header-main { display: flex; align-items: center; min-width: 0; gap: 8px; }
+.spn-graph-node .spn-node-header-main > .spn-node-icon { flex: 0 0 48px; width: 48px; height: 48px; }
+.spn-graph-node .spn-node-header-copy { display: flex; min-width: 0; flex-direction: column; justify-content: center; gap: 2px; }
+.spn-graph-node .spn-node-header-label { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spn-graph-node .spn-node-header-category { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spn-graph-node.category-structural-family.category-structural-family.category-structural-family .spn-graph-node-title {
+  background: var(--sp-structural-node-header) !important;
+  background-color: var(--sp-structural-node-header) !important;
+  border-bottom-color: color-mix(in srgb, var(--sp-structural-node-header-text) 18%, transparent) !important;
+}
+.spn-graph-node.category-structural-family.category-structural-family.category-structural-family .spn-graph-node-title .spn-node-header-label { color: var(--sp-structural-node-header-text) !important; }
+.spn-graph-node.category-structural-family.category-structural-family.category-structural-family .spn-graph-node-title .spn-node-header-category { color: var(--sp-structural-node-category-text) !important; }
+.spn-graph-node.category-structural-family.category-structural-family.category-structural-family { border-color: #A6A6A6 !important; }
+.spn-graph-node.category-input.category-input.category-input .spn-graph-node-title {
+  background: var(--sp-input-node-header) !important;
+  background-color: var(--sp-input-node-header) !important;
+  border-bottom-color: color-mix(in srgb, var(--sp-input-node-header-text) 18%, transparent) !important;
+}
+.spn-graph-node.category-input.category-input.category-input .spn-graph-node-title .spn-node-header-label { color: var(--sp-input-node-header-text) !important; }
+.spn-graph-node.category-input.category-input.category-input .spn-graph-node-title .spn-node-header-category { color: var(--sp-input-node-category-text) !important; }
+.spn-graph-node.category-materials.category-materials.category-materials .spn-graph-node-title {
+  background: var(--sp-materials-node-header) !important;
+  background-color: var(--sp-materials-node-header) !important;
+  border-bottom-color: color-mix(in srgb, var(--sp-materials-node-header-text) 18%, transparent) !important;
+}
+.spn-graph-node.category-materials.category-materials.category-materials .spn-graph-node-title .spn-node-header-label { color: var(--sp-materials-node-header-text) !important; }
+.spn-graph-node.category-materials.category-materials.category-materials .spn-graph-node-title .spn-node-header-category { color: var(--sp-materials-node-category-text) !important; letter-spacing: .12em; }
+.spn-graph-node.category-math.category-math.category-math .spn-graph-node-title {
+  background: var(--sp-math-node-header) !important;
+  background-color: var(--sp-math-node-header) !important;
+  border-bottom-color: color-mix(in srgb, var(--sp-math-node-header-text) 18%, transparent) !important;
+}
+.spn-graph-node.category-math.category-math.category-math .spn-graph-node-title .spn-node-header-label { color: var(--sp-math-node-header-text) !important; }
+.spn-graph-node.category-math.category-math.category-math .spn-graph-node-title .spn-node-header-category { color: var(--sp-math-node-category-text) !important; letter-spacing: .12em; }
+.spn-graph-node.category-output.category-output.category-output .spn-graph-node-title {
+  background: var(--sp-output-node-header) !important;
+  background-color: var(--sp-output-node-header) !important;
+  border-bottom-color: color-mix(in srgb, var(--sp-output-node-header-text) 18%, transparent) !important;
+}
+.spn-graph-node.category-output.category-output.category-output .spn-graph-node-title .spn-node-header-label { color: var(--sp-output-node-header-text) !important; }
+.spn-graph-node.category-output.category-output.category-output .spn-graph-node-title .spn-node-header-category { color: var(--sp-output-node-category-text) !important; letter-spacing: .12em; }
+.spn-graph-node.category-superstructure.category-superstructure.category-superstructure .spn-graph-node-title { background: var(--sp-superstructure-family-header) !important; background-color: var(--sp-superstructure-family-header) !important; }
+.spn-graph-node.category-bridge.category-bridge.category-bridge .spn-graph-node-title { background: var(--sp-bridge-family-header) !important; background-color: var(--sp-bridge-family-header) !important; }
+.spn-graph-node.category-superstructure.category-superstructure.category-superstructure .spn-graph-node-title .spn-node-header-label,
+.spn-graph-node.category-bridge.category-bridge.category-bridge .spn-graph-node-title .spn-node-header-label { color: #F2F2F2 !important; }
+.spn-graph-node.category-superstructure.category-superstructure.category-superstructure .spn-graph-node-title .spn-node-header-category,
+.spn-graph-node.category-bridge.category-bridge.category-bridge .spn-graph-node-title .spn-node-header-category { color: #BFC8D4 !important; }
+.spn-graph-node .spn-graph-node-title .spn-node-header-label { font-weight: 400 !important; }
+.spn-graph-node .spn-graph-node-title .spn-node-header-label { font-size: 14px !important; }
+.spn-graph-node .spn-graph-node-title .spn-node-header-category { font-size: 12px !important; line-height: 1.1 !important; font-weight: 500 !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-input-label,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-output-label,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-port-row > span { color: var(--sp-node-text-secondary) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-input-value,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-engineering-output-value,
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node .spn-graph-watch-value { color: var(--sp-node-value-text) !important; }
+.spn-graph-node input:not([type="checkbox"]), .spn-graph-node select, .spn-graph-node textarea, .spn-graph-node .spn-graph-editable-number, .spn-graph-node .spn-graph-inline-input, .spn-graph-node .spn-input { background: var(--sp-node-field-bg) !important; color: var(--sp-node-value-text) !important; border: 1px solid var(--sp-node-field-border) !important; border-radius: 4px; }
+.spn-graph-node input:not([type="checkbox"]):hover, .spn-graph-node select:hover, .spn-graph-node textarea:hover { background: var(--sp-node-field-hover) !important; }
+.spn-graph-node input:not([type="checkbox"]):focus, .spn-graph-node select:focus, .spn-graph-node textarea:focus { background: var(--sp-node-field-focus) !important; border-color: var(--sp-focus-ring) !important; outline: none; box-shadow: 0 0 0 1px var(--sp-focus-ring); }
+.spn-graph-node .spn-engineering-input-row, .spn-graph-node .spn-engineering-output-row, .spn-graph-node .spn-graph-port-row { border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.spn-graph-node.is-selected { border-color: var(--sp-node-border-selected) !important; box-shadow: var(--sp-node-shadow-selected) !important; }
+.spn-graph-library { background: #171E25; border-right-color: #2D3841; }
+.spn-graph-search { background: var(--sp-node-body-alt) !important; border-color: var(--sp-node-border) !important; color: var(--sp-node-text-muted); }
+.spn-graph-search input { background: transparent !important; color: var(--sp-node-text-primary) !important; border: 0 !important; }
+.spn-graph-library-category-heading { justify-content: flex-start; gap: 7px; min-height: 28px; padding: 5px 8px; background-color: var(--node-group-color); color: var(--node-group-text); border-bottom: 1px solid var(--sp-node-divider); font-size: var(--kp-node-library-heading-font-size); font-weight: 600; letter-spacing: .08em; }
+.spn-graph-library-category-heading span { color: #3f4650 !important; }
+.spn-graph-library-category-heading::before { content: ''; width: 3px; height: 14px; background: var(--sp-node-accent, var(--sp-node-border)); border-radius: 2px; }
+.spn-graph-library-item { min-height: 40px; padding: 4px 8px; gap: 15px; background: transparent !important; color: var(--sp-node-text-primary) !important; border-color: transparent !important; }
+.spn-graph-library-item,
+.spn-graph-library-item > span { font-size: var(--kp-node-library-item-font-size) !important; font-weight: 400; }
+.spn-graph-library-item:hover { background: #26323B !important; border-color: var(--sp-node-border) !important; }
+
+.spn-graph-library-item .spn-node-icon { width: 30px; height: 30px; color: var(--sp-node-accent, var(--sp-node-text-secondary)); background: transparent !important; box-shadow: none !important; }
+.spn-graph-node .spn-graph-node-state,
+.spn-graph-node .spn-graph-node-error-message,
+.spn-graph-node .spn-graph-watch-value,
+.spn-graph-node .spn-graph-list-heading,
+.spn-graph-node .spn-graph-list-items,
+.spn-graph-node .spn-graph-list-item,
+.spn-graph-node .spn-graph-node-range,
+.spn-graph-node .spn-graph-range-summary,
+.spn-graph-node .spn-engineering-derived,
+.spn-graph-node .spn-engineering-node-footer,
+.spn-graph-node .spn-assembly-inputs,
+.spn-graph-node .spn-assembly-centered-output,
+.spn-graph-node .spn-abutment-section,
+.spn-graph-node .spn-graph-empty-state { background: var(--sp-node-readonly-bg) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node .spn-graph-node-error-message { color: #7f1d2d !important; }
+.spn-graph-node .spn-assembly-error-row,
+.spn-graph-node .spn-assembly-error-row span { color: #7f1d2d !important; }
+.spn-graph-node .sp-status--error { color: var(--sp-status-error); }
+.spn-graph-node .sp-status--warning { color: var(--sp-status-warning); }
+.spn-graph-node .sp-status--success { color: var(--sp-status-success); }
+.spn-graph-node .sp-status--info { color: var(--sp-status-info); }
+.spn-graph-node.has-error .spn-graph-node-state,
+.spn-graph-node .status-error { color: var(--sp-status-error); }
+.spn-graph-node.has-success .spn-graph-node-state,
+.spn-graph-node .status-valid,
+.spn-graph-node .status-success { color: var(--sp-status-success); }
+.spn-graph-node.is-running .spn-graph-node-state { color: var(--sp-status-info); }
+.spn-graph-node.is-dirty .spn-graph-node-state,
+.spn-graph-node .status-warning { color: var(--sp-status-warning); }
+.spn-graph-node .spn-graph-node-state.has-success, .spn-graph-node .spn-graph-node-state.has-success * { color: var(--sp-status-success); }
+.spn-graph-node .spn-graph-node-state.has-error, .spn-graph-node .spn-graph-node-state.has-error * { color: var(--sp-status-error); }
+.spn-graph-node .spn-graph-node-state.is-running, .spn-graph-node .spn-graph-node-state.is-running * { color: var(--sp-status-info); }
+.spn-graph-node .spn-graph-node-state.is-dirty, .spn-graph-node .spn-graph-node-state.is-dirty * { color: var(--sp-status-warning); }
+.spn-graph-node.has-success .spn-graph-node-state,
+.spn-graph-node .sp-status--success { border-top-color: rgba(111, 173, 138, .35) !important; }
+.spn-graph-node.has-error .spn-graph-node-state,
+.spn-graph-node .sp-status--error { border-top-color: rgba(217, 120, 120, .35) !important; }
+.spn-graph-node.is-dirty .spn-graph-node-state,
+.spn-graph-node .sp-status--warning { border-top-color: rgba(210, 168, 92, .35) !important; }
+.spn-graph-node.is-running .spn-graph-node-state,
+.spn-graph-node .sp-status--info { border-top-color: rgba(120, 153, 184, .35) !important; }
+.spn-graph-node .spn-engineering-node-footer, .spn-graph-node .spn-assembly-centered-output { background: var(--sp-node-footer-bg) !important; }
+.spn-graph-node button:disabled, .spn-graph-node input:disabled, .spn-graph-node select:disabled, .spn-graph-node textarea:disabled { background: var(--sp-node-body-alt) !important; color: var(--sp-node-text-muted) !important; border-color: var(--sp-node-divider) !important; opacity: .9; }
+.spn-graph-node.spn-graph-list-node,
+.spn-graph-node.spn-graph-list-node .spn-graph-list-heading,
+.spn-graph-node.spn-graph-list-node .spn-graph-list-items,
+.spn-graph-node.spn-graph-list-node .spn-graph-list-footer { background-color: var(--sp-node-body) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-engineering-node .spn-engineering-derived,
+.spn-graph-node.spn-engineering-node .spn-abutment-section { background-color: var(--sp-node-readonly-bg) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-engineering-node .spn-graph-node-state { background-color: var(--sp-node-readonly-bg) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-node.spn-engineering-node .spn-superstructure-edge,
+.spn-graph-node.spn-engineering-node .spn-graph-inspector-error,
+.spn-graph-node.spn-engineering-node .spn-graph-inspector-warning { background-color: var(--sp-node-readonly-bg) !important; color: var(--sp-node-text-secondary) !important; }
+.spn-graph-node.spn-engineering-node .spn-engineering-node-footer,
+.spn-graph-node.spn-engineering-node .spn-assembly-centered-output { background-color: var(--sp-node-footer-bg) !important; color: var(--sp-node-text-secondary) !important; border-color: var(--sp-node-divider) !important; }
+.spn-graph-flow .react-flow__edge-path, .spn-graph-flow .react-flow__connection-path, .spn-graph-flow .react-flow__connectionline path { stroke: var(--sp-edge-default) !important; }
+.spn-graph-flow .react-flow__edge:hover .react-flow__edge-path { stroke: var(--sp-edge-hover) !important; stroke-width: 2.1; }
+.spn-graph-flow .react-flow__edge.selected .react-flow__edge-path { stroke: var(--sp-edge-selected) !important; stroke-width: 2.1; }
+.spn-graph-selection-box.is-window { border-color: var(--sp-marquee-window-border) !important; background: var(--sp-marquee-window-fill) !important; }
+.spn-graph-selection-box.is-crossing { border-color: var(--sp-marquee-crossing-border) !important; background: var(--sp-marquee-crossing-fill) !important; }
+.spn-graph-node .spn-graph-node-title { background: var(--node-group-color) !important; background-color: var(--node-group-color) !important; }
+.spn-graph-library-category-heading { background-color: var(--node-group-color); color: var(--node-group-text); }
+.spn-graph-library-category-heading span { color: var(--node-group-text) !important; }
+
+/* Final cascade guard: library headers use the runtime theme supplied by
+   NodeLibrary, never the legacy per-category pastel tokens. */
+.spn-graph-library-group.library-family-input .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-output .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-math .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-materials .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-structural .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-superstructure-family .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-bridge-family .spn-graph-library-category-heading {
+  background: var(--node-group-color) !important;
+  background-color: var(--node-group-color) !important;
+  color: var(--node-group-text) !important;
+}
+
+/* Legacy stylesheet layers contain highly-specific pastel library rules.
+   Keep those rules available for legacy node chrome, but make the actual
+   library header rectangle authoritative through NODE_GROUP_THEME. */
+.spn-graph-library-group.library-family-input.library-family-input.library-family-input.library-family-input.library-family-input .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-output.library-family-output.library-family-output.library-family-output.library-family-output .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-math.library-family-math.library-family-math.library-family-math.library-family-math .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-materials.library-family-materials.library-family-materials.library-family-materials.library-family-materials .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-structural.library-family-structural.library-family-structural.library-family-structural.library-family-structural .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family .spn-graph-library-category-heading,
+.spn-graph-library-group.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family .spn-graph-library-category-heading {
+  background: var(--node-group-color) !important;
+  background-color: var(--node-group-color) !important;
+  color: var(--node-group-text) !important;
+}
+.spn-graph-library-group.library-family-input.library-family-input.library-family-input.library-family-input.library-family-input .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-output.library-family-output.library-family-output.library-family-output.library-family-output .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-math.library-family-math.library-family-math.library-family-math.library-family-math .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-materials.library-family-materials.library-family-materials.library-family-materials.library-family-materials .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-structural.library-family-structural.library-family-structural.library-family-structural.library-family-structural .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family.library-family-superstructure-family .spn-graph-library-category-heading span,
+.spn-graph-library-group.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family.library-family-bridge-family .spn-graph-library-category-heading span {
+  color: var(--node-group-text) !important;
+}
+.spn-file-menu{position:relative;z-index:1001}.spn-file-dropdown{position:absolute;top:calc(100% + 4px);left:0;z-index:1000;min-width:220px;padding:5px;background:var(--spn-panel,#1b2028);border:1px solid var(--spn-border,#39424e);box-shadow:0 10px 24px #0008}.spn-file-dropdown button{display:grid;width:100%;grid-template-columns:24px 1fr auto;align-items:center;gap:10px;border:0;background:transparent;color:inherit;padding:7px 9px;font-size:12px;text-align:left}.spn-file-dropdown button:hover,.spn-file-dropdown button:focus-visible{background:var(--sp-surface-hover);outline:none}.spn-file-dropdown button svg,.spn-file-submenu-label svg{color:#d9e2ef;flex:none}.spn-file-submenu-label{display:grid;grid-template-columns:24px 1fr auto;gap:10px;padding:7px 9px;font-size:12px}.spn-file-dropdown kbd{opacity:.65;font-size:11px}.spn-file-dropdown hr{border:0;border-top:1px solid var(--spn-border,#39424e);margin:4px 0}
+.spn-recent-submenu{position:relative;padding-right:5px;margin-right:-5px}.spn-recent-submenu>.spn-file-submenu-label{display:grid}.spn-recent-list{display:none;position:absolute;left:100%;top:0;min-width:230px;padding:5px;background:var(--spn-panel,#1b2028);border:1px solid var(--spn-border,#39424e);box-shadow:0 10px 24px #0008}.spn-recent-submenu:hover .spn-recent-list,.spn-recent-submenu:focus-within .spn-recent-list{display:block}.spn-recent-list button{display:grid;grid-template-columns:1fr;gap:2px}.spn-recent-list button small{opacity:.65;font-size:10px}
+.spn-modal-backdrop{position:fixed;inset:0;z-index:2000;display:grid;place-items:center;background:#0008}.spn-modal{width:min(420px,calc(100vw - 32px));padding:22px;background:var(--spn-panel,#1b2028);border:1px solid var(--spn-border,#39424e);box-shadow:0 18px 50px #0009}.spn-modal h2{margin:0 0 10px;font-size:16px}.spn-modal p{font-size:13px;color:var(--spn-muted,#aab3bf)}.spn-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.spn-recent-list button{grid-template-columns:1fr auto;align-items:center;gap:10px}.spn-recent-list button small{white-space:nowrap}
+.spn-welcome-screen{min-height:calc(100vh - 72px);display:grid;place-items:center;padding:32px;background:var(--sp-bg,#0b1118)}
+.spn-welcome-card{width:min(760px,calc(100vw - 32px));box-sizing:border-box;text-align:center;padding:42px 56px 48px;border:1px solid var(--sp-border,#344252);background:var(--sp-surface,#121c27)}
+.spn-welcome-heading{display:flex;align-items:center;gap:18px;justify-content:center;margin-bottom:28px}.spn-welcome-heading span{height:1px;flex:1;background:#3b8edb;opacity:.8}.spn-welcome-heading h1{margin:0;color:#69b7f5;font-size:22px;letter-spacing:.42em;font-weight:500;padding-left:.42em}
+.spn-welcome-logo{display:block;width:min(100%,620px);height:auto;max-height:250px;object-fit:contain;margin:0 auto 26px}.spn-welcome-card p{margin:0 auto 28px;color:var(--sp-text-muted,#aab7c5);font-size:14px;max-width:520px}.spn-welcome-actions{display:flex;justify-content:center;gap:14px}.spn-welcome-actions button{min-width:160px;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 18px}
+@media (max-width:560px){.spn-welcome-card{padding:30px 20px 34px}.spn-welcome-heading{gap:10px}.spn-welcome-heading h1{font-size:18px}.spn-welcome-actions{flex-direction:column}.spn-welcome-actions button{width:100%}}
+
+/* Graph runtime status is deliberately last: later node-theme layers must not
+   override the status text or its separator, while node borders remain intact. */
+.spn-graph-workspace .spn-graph-node .spn-graph-node-state.sp-status--success,
+.spn-graph-workspace .spn-graph-node.has-success .spn-graph-node-state { color: #6FAD8A; opacity: 1 !important; border-top-color: rgba(111, 173, 138, .35) !important; }
+.spn-graph-workspace .spn-graph-node .spn-graph-node-state.sp-status--error,
+.spn-graph-workspace .spn-graph-node.has-error .spn-graph-node-state { color: #D97878; opacity: 1 !important; border-top-color: rgba(217, 120, 120, .35) !important; }
+.spn-graph-workspace .spn-graph-node .spn-graph-node-state.sp-status--warning,
+.spn-graph-workspace .spn-graph-node.is-dirty .spn-graph-node-state { color: #D2A85C !important; opacity: 1 !important; border-top-color: rgba(210, 168, 92, .35) !important; }
+.spn-graph-workspace .spn-graph-node .spn-graph-node-state.sp-status--info,
+.spn-graph-workspace .spn-graph-node.is-running .spn-graph-node-state { color: #7899B8 !important; opacity: 1 !important; border-top-color: rgba(120, 153, 184, .35) !important; }
+.spn-graph-node-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
+.spn-graph-node .spn-graph-node-title > .spn-node-runtime-status { flex: 0 0 auto; min-height: 0; padding: 8px 0 0; background: transparent !important; background-color: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; outline: 0 !important; font-size: 11px; font-weight: 400; letter-spacing: .4px; line-height: 1; white-space: nowrap; }
+.spn-graph-workspace .spn-assembly-error-row { color: #D97878 !important; }
+.spn-graph-workspace .spn-assembly-error-row > span { display: none; }
+.spn-graph-node > .spn-graph-node-state { display: none; }

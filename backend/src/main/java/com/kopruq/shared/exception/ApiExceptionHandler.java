@@ -32,6 +32,8 @@ import java.util.List;
  *       {@code message}.</li>
  *   <li>{@link IllegalArgumentException} (including {@code NumberFormatException})
  *       is 400 {@code INVALID_INPUT}, message verbatim.</li>
+ *   <li>{@link ResourceNotFoundException} is 404 with the code the thrower chose;
+ *       {@link RevisionConflictException} is 409 {@code PROJECT_REVISION_CONFLICT}.</li>
  *   <li>Anything unexpected is 500 {@code INTERNAL_ERROR} with a generic
  *       message; the exception text never reaches the client.</li>
  * </ul>
@@ -46,6 +48,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<ApiErrorResponse> handleInvalidRequest(InvalidRequestException ex, HttpServletRequest request) {
         return build(ex, HttpStatus.BAD_REQUEST, "INVALID_REQUEST", ex.getMessage(), request, ex.violations());
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
+        return build(ex, HttpStatus.NOT_FOUND, ex.code(), ex.getMessage(), request, List.of());
+    }
+
+    @ExceptionHandler(RevisionConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleRevisionConflict(RevisionConflictException ex, HttpServletRequest request) {
+        return build(ex, HttpStatus.CONFLICT, "PROJECT_REVISION_CONFLICT", ex.getMessage(), request, List.of());
     }
 
     @ExceptionHandler(LandXmlParseException.class)

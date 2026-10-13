@@ -1,10 +1,12 @@
 package com.kopruq.bridge.infra.persistence;
 
 import com.kopruq.bridge.application.ProjectRepository;
+import com.kopruq.bridge.application.ProjectSummary;
 import com.kopruq.bridge.model.Project;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,5 +33,16 @@ public class JpaProjectRepository implements ProjectRepository {
     @Transactional(readOnly = true)
     public Optional<Project> findById(UUID id) {
         return jpa.findById(id).map(ProjectEntity::toDomain);
+    }
+
+    @Override
+    public Optional<Project> findByIdForUpdate(UUID id) {
+        return jpa.findByIdForUpdate(id).map(ProjectEntity::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProjectSummary> findSummaries() {
+        return jpa.findSummaries();
     }
 }

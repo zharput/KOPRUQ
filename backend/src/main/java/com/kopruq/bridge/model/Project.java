@@ -1,5 +1,7 @@
 package com.kopruq.bridge.model;
 
+import com.kopruq.shared.exception.RevisionConflictException;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +23,19 @@ public final class Project {
 
     private UUID id = UUID.randomUUID();
     private String projectName = "";
-    private Instant createdUtc = Instant.now();
+    private Instant createdUtc;
+    private long revision = 0;
+    private Instant updatedUtc;
     private Bridge bridge;
     private DesignSpace designSpace;
     private final List<BridgeAlternative> generatedAlternatives = new ArrayList<>();
     private UUID selectedAlternativeId;
+
+    public Project() {
+        Instant now = Instant.now();
+        this.createdUtc = now;
+        this.updatedUtc = now;
+    }
 
     /** Stable identity of the project (assigned at construction; persistence restores a stored one with {@link #setId}). */
     public UUID getId() {
@@ -50,6 +60,40 @@ public final class Project {
 
     public void setCreatedUtc(Instant createdUtc) {
         this.createdUtc = createdUtc;
+    }
+
+    /** Domain revision: the number of recorded changes (0 for a new project). Not the technical row version. */
+    public long getRevision() {
+        return revision;
+    }
+
+    public Instant getUpdatedUtc() {
+        return updatedUtc;
+    }
+
+    /** Restores a stored revision and last-change time (persistence), or sets the initial ones (creation). */
+    public void restoreRevision(long revision, Instant updatedUtc) {
+        if (revision < 0) {
+            throw new IllegalArgumentException("revision must not be negative");
+        }
+        if (updatedUtc == null) {
+            throw new IllegalArgumentException("updatedUtc is required");
+        }
+        this.revision = revision;
+        this.updatedUtc = updatedUtc;
+    }
+
+    /** The write is only allowed against the current revision; otherwise the client holds a stale copy. */
+    public void requireRevision(long expected) {
+        if (expected != revision) {
+            throw new RevisionConflictException(expected, revision);
+        }
+    }
+
+    /** Records one accepted change: the revision grows by one and the last-change time is {@code now}. */
+    public void recordChange(Instant now) {
+        this.updatedUtc = Objects.requireNonNull(now, "now");
+        this.revision++;
     }
 
     public Bridge getBridge() {

@@ -5,6 +5,9 @@ import com.kopruq.alignment.domain.ChainageSampler;
 import com.kopruq.analysis.api.FastSolverModelBuilder;
 import com.kopruq.analysis.application.FastSolverService;
 import com.kopruq.analysis.infra.nativeengine.KopruqAnalysisEngine;
+import com.kopruq.bridge.application.ProjectContentRepository;
+import com.kopruq.bridge.application.ProjectRepository;
+import com.kopruq.bridge.application.ProjectService;
 import com.kopruq.generative.domain.AlternativeGenerator;
 import com.kopruq.generative.domain.EvaluatedAlternativeGenerator;
 import com.kopruq.landxml.application.LandXmlImportQueries;
@@ -31,6 +34,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionOperations;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.Clock;
 
 /**
  * Composition root for the framework-free domain services.
@@ -108,6 +113,19 @@ public class CoreConfiguration {
             TransactionOperations transactionOperations) {
         return new LandXmlImportUseCase(importService, terrainRepository, landXmlImportRepository,
                 transactionOperations);
+    }
+
+    /** The wall clock; a bean so that services take it as a collaborator and tests can supply a fixed one. */
+    @Bean
+    public Clock clock() {
+        return Clock.systemUTC();
+    }
+
+    @Bean
+    public ProjectService projectService(ProjectRepository projectRepository,
+            ProjectContentRepository projectContentRepository, TransactionOperations transactionOperations,
+            Clock clock) {
+        return new ProjectService(projectRepository, projectContentRepository, transactionOperations, clock);
     }
 
     @Bean

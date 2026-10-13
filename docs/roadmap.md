@@ -1836,7 +1836,7 @@ PostgreSQL + JPA persistence and Docker for the backend (details in `docs/archit
 - [x] Transactional LandXML import.
 - [x] Persistence tests (codec, three adapters, import transaction, `PersistenceContractTest`) and the `postgres-test` run against real PostgreSQL 17.
 - [x] `backend/Dockerfile`, `compose.yaml`, `.env.example`, `start-dev.bat`.
-- [ ] Not done (future milestones): use case/endpoint that saves a bridge `Project`; linking terrains to a `Project`; persisting computed results; domain-level revision control (`expectedRevision`); frontend localStorage migration.
+- [ ] Not done (future milestones): use case/endpoint that saves a bridge `Project`; linking terrains to a `Project`; persisting computed results; domain-level revision control (`expectedRevision`); frontend localStorage migration. (Project endpoints, domain revision control and the workspace store: see the BACKEND-DB-PERSISTENCE track below.)
 
 ## FRONTEND-DATA-INTEGRITY track (2026-10-12)
 
@@ -1898,3 +1898,13 @@ Frontend-only (plan and evidence in `docs/features/g4/`). No backend change, no 
 
 - [x] Graph `tf/bf/w` inputs convert once to canonical Precast candidate `Btf/Bbf/tw`; preview and Run publish finite section properties. Existing Graph nodes and older candidate snapshots remain readable; candidate IDs from unchanged inputs remain stable.
 - [x] Superstructure, abutment, Graph schematic and Family views consume the same geometry keys. `Wy` formula approval (C-005-01) remains open.
+
+## BACKEND-DB-PERSISTENCE track (2026-10-13)
+
+Stored projects with revision-checked writes (details in `docs/architecture.md`, "BACKEND-DB-PERSISTENCE M1"; plan in `docs/features/backend-db-persistence/` and `docs/features/backend-db-persistence-m1/`).
+
+- [x] M1 Backend project + workspace: Flyway V3 (`project.revision`/`updated_utc`, `project_info`, `project_bridge_row` and its span/girder-depth tables), `Project` revision rule (`requireRevision`/`recordChange`), `ProjectService`, JPA adapters, `ProjectController` with `GET /api/projects`, `POST /api/projects`, `GET /api/projects/{projectId}`, `PUT /api/projects/{projectId}/workspace`, 404 `PROJECT_NOT_FOUND` / 409 `PROJECT_REVISION_CONFLICT`, CORS `PUT`. No frontend change.
+- [ ] M2 Bridge definitions, families, girder library, preferred span, cross section, loads and graph sections.
+- [ ] M3 Remaining project sections and the section-level endpoints.
+- [ ] M4 Frontend API client and project open/save against the backend.
+- [ ] M5 Frontend migration of localStorage / `.kopruq` data.

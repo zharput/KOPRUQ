@@ -38,6 +38,13 @@ class ProjectEntity {
     @Column(name = "created_utc", nullable = false)
     private Instant createdUtc;
 
+    /** Domain revision (see Project.getRevision); distinct from the technical {@code row_version}. */
+    @Column(name = "revision", nullable = false)
+    private long revision;
+
+    @Column(name = "updated_utc", nullable = false)
+    private Instant updatedUtc;
+
     /** Not a foreign key: it is an id into the alternatives of this project, kept as the model keeps it. */
     @Column(name = "selected_alternative_id")
     private UUID selectedAlternativeId;
@@ -73,6 +80,8 @@ class ProjectEntity {
         this.projectName = p.getProjectName();
         // the column keeps microseconds: truncate here so the stored value is deterministic (not DB-dependent rounding)
         this.createdUtc = p.getCreatedUtc().truncatedTo(ChronoUnit.MICROS);
+        this.revision = p.getRevision();
+        this.updatedUtc = p.getUpdatedUtc().truncatedTo(ChronoUnit.MICROS);
         this.selectedAlternativeId = p.getSelectedAlternativeId();
 
         if (p.getBridge() == null) {
@@ -112,11 +121,16 @@ class ProjectEntity {
         alternatives.addAll(merged);
     }
 
+    String getProjectName() {
+        return projectName;
+    }
+
     Project toDomain() {
         Project project = new Project();
         project.setId(id);
         project.setProjectName(projectName);
         project.setCreatedUtc(createdUtc);
+        project.restoreRevision(revision, updatedUtc);
         project.setBridge(bridge == null ? null : bridge.toDomain());
         project.setDesignSpace(designSpace == null ? null : designSpace.toDomain());
         project.setGeneratedAlternatives(alternatives.stream().map(BridgeAlternativeEntity::toDomain).toList());

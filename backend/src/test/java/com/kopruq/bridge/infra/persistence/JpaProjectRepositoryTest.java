@@ -70,6 +70,8 @@ class JpaProjectRepositoryTest {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getProjectName(), actual.getProjectName());
         assertEquals(expected.getCreatedUtc().truncatedTo(ChronoUnit.MICROS), actual.getCreatedUtc().truncatedTo(ChronoUnit.MICROS));
+        assertEquals(expected.getRevision(), actual.getRevision());
+        assertEquals(expected.getUpdatedUtc().truncatedTo(ChronoUnit.MICROS), actual.getUpdatedUtc().truncatedTo(ChronoUnit.MICROS));
         assertEquals(expected.getBridge(), actual.getBridge());
         assertEquals(expected.getDesignSpace(), actual.getDesignSpace());
         assertEquals(expected.getGeneratedAlternatives(), actual.getGeneratedAlternatives());
@@ -169,5 +171,48 @@ class JpaProjectRepositoryTest {
         saveAndReload(project);
         Project loaded = saveAndReload(project);
         assertSameProject(project, loaded);
+    }
+
+    @Test
+    void revisionAndUpdatedTime_roundTrip() {
+        Project project = new Project();
+        project.setProjectName("rev");
+        project.restoreRevision(7, Instant.parse("2031-02-03T04:05:06.123456789Z"));
+
+        Project loaded = saveAndReload(project);
+
+        assertEquals(7, loaded.getRevision());
+        assertEquals(Instant.parse("2031-02-03T04:05:06.123456Z"), loaded.getUpdatedUtc());
+        assertSameProject(project, loaded);
+    }
+
+    @Test
+    void findByIdForUpdate_returnsTheStoredProject_orEmpty() {
+        Project project = new Project();
+        project.setProjectName("lock");
+        repository.save(project);
+        em.flush();
+        em.clear();
+
+        assertEquals(project.getId(), repository.findByIdForUpdate(project.getId()).orElseThrow().getId());
+        assertTrue(repository.findByIdForUpdate(UUID.randomUUID()).isEmpty());
+    }
+
+    @Test
+    void findSummaries_listsNameRevisionAndTimes() {
+        Project project = new Project();
+        project.setProjectName("summary");
+        project.restoreRevision(2, Instant.parse("2031-01-01T00:00:00Z"));
+        repository.save(project);
+        em.flush();
+        em.clear();
+
+        var summary = repository.findSummaries().stream()
+                .filter(s -> s.projectId().equals(project.getId())).findFirst().orElseThrow();
+
+        assertEquals("summary", summary.name());
+        assertEquals(2, summary.revision());
+        assertEquals(Instant.parse("2031-01-01T00:00:00Z"), summary.updatedUtc());
+        assertEquals(project.getCreatedUtc().truncatedTo(ChronoUnit.MICROS), summary.createdUtc());
     }
 }

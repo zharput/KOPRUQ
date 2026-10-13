@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 /**
  * The one CORS policy of the API (it replaces the identical {@code @CrossOrigin(origins = "http://localhost:5173")}
  * that every controller used to carry): browsers may call {@code /api/**} from the configured origins with GET,
- * POST and HEAD, and may read the {@value CorrelationIdFilter#HEADER} response header.
+ * POST, PUT and HEAD, and may read the {@value CorrelationIdFilter#HEADER} response header.
  *
  * <p>The allowed origins come from {@code kopruq.cors.allowed-origins} (comma separated; the default in
  * {@code application.properties} is the Vite dev server, the value the controllers had).
@@ -26,7 +26,7 @@ public class WebCorsConfiguration implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(allowedOrigins)
-                .allowedMethods("GET", "POST", "HEAD")
+                .allowedMethods("GET", "POST", "PUT", "HEAD")
                 .allowedHeaders("*")
                 .exposedHeaders(CorrelationIdFilter.HEADER)
                 .maxAge(1800);

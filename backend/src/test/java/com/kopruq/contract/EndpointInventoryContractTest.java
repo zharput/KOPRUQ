@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * BACKEND-REMEDIATION Faz 0b: pins the exact set of application REST
- * endpoints. This remediation must neither add nor remove an endpoint.
+ * endpoints. The 21 original ones plus the 4 project endpoints approved for backend-db-persistence M1.
  */
 class EndpointInventoryContractTest extends ContractTestSupport {
 
@@ -23,7 +23,7 @@ class EndpointInventoryContractTest extends ContractTestSupport {
     private RequestMappingHandlerMapping handlerMapping;
 
     @Test
-    void applicationEndpointSet_isExactlyTheExistingOne() {
+    void applicationEndpointSet_isExactlyTheApprovedOne() {
         Set<String> actual = new TreeSet<>();
         for (var entry : handlerMapping.getHandlerMethods().entrySet()) {
             if (!entry.getValue().getBeanType().getName().startsWith("com.kopruq.")) {
@@ -59,7 +59,12 @@ class EndpointInventoryContractTest extends ContractTestSupport {
                 "GET /api/traffic-loads/load-groups",
                 "POST /api/traffic-loads/resolve",
                 "POST /api/wind-loads/resolve",
-                "POST /api/temperature/uniform/resolve"));
+                "POST /api/temperature/uniform/resolve",
+                // backend-db-persistence M1
+                "GET /api/projects",
+                "POST /api/projects",
+                "GET /api/projects/{projectId}",
+                "PUT /api/projects/{projectId}/workspace"));
 
         assertEquals(expected, actual);
     }

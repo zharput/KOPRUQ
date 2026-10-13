@@ -54,6 +54,8 @@ class ApiExceptionHandlerTest {
                 case "invalid": throw new InvalidRequestException(List.of(
                         new FieldViolation("deckWidthM", "must be greater than 0"),
                         new FieldViolation("spanLengthsM[1]", "is required")));
+                case "notfound": throw new ResourceNotFoundException("PROJECT_NOT_FOUND", "No project with id 7");
+                case "conflict": throw new RevisionConflictException(3, 5);
                 case "rse404": throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No thing with id 7");
                 case "rse409": throw new ResponseStatusException(HttpStatus.CONFLICT);
                 case "upload": throw new MaxUploadSizeExceededException(1);
@@ -123,6 +125,21 @@ class ApiExceptionHandlerTest {
         assertEquals("No thing with id 7", body.get("message").asText());
         JsonNode conflict = assertErrorBody(call("rse409"), 409, "CONFLICT");
         assertEquals("Conflict", conflict.get("message").asText());
+    }
+
+    @Test
+    void resourceNotFound_is404_withTheCodeOfTheException() throws Exception {
+        JsonNode body = assertErrorBody(call("notfound"), 404, "PROJECT_NOT_FOUND");
+        assertEquals("No project with id 7", body.get("message").asText());
+        assertEquals(0, body.get("errors").size());
+    }
+
+    @Test
+    void revisionConflict_is409_withBothRevisionsInTheMessage() throws Exception {
+        JsonNode body = assertErrorBody(call("conflict"), 409, "PROJECT_REVISION_CONFLICT");
+        assertTrue(body.get("message").asText().contains("3"));
+        assertTrue(body.get("message").asText().contains("5"));
+        assertEquals("Expected revision 3 but the project is at revision 5.", body.get("message").asText());
     }
 
     @Test

@@ -122,7 +122,7 @@ class LayoutKernelCorsContractTest extends ContractTestSupport {
         assertEquals(200, ok.getResponse().getStatus());
         assertEquals("http://localhost:5173", ok.getResponse().getHeader("Access-Control-Allow-Origin"));
         // Faz 10: the central policy lists the configured methods (the per-controller annotation echoed only the asked one).
-        assertEquals("GET,POST,HEAD", ok.getResponse().getHeader("Access-Control-Allow-Methods"));
+        assertEquals("GET,POST,PUT,HEAD", ok.getResponse().getHeader("Access-Control-Allow-Methods"));
 
         MvcResult bad = mvc.perform(MockMvcRequestBuilders.options("/api/kernel-state")
                 .header("Origin", "http://evil.example").header("Access-Control-Request-Method", "POST")).andReturn();
@@ -145,7 +145,7 @@ class LayoutKernelCorsContractTest extends ContractTestSupport {
     }
 
     @Test
-    void corsPreflight_forAMethodOutsideGetPostHead_isRejected() throws Exception {
+    void corsPreflight_forAMethodOutsideGetPostPutHead_isRejected() throws Exception {
         MvcResult r = mvc.perform(MockMvcRequestBuilders.options("/api/kernel-state")
                 .header("Origin", "http://localhost:5173").header("Access-Control-Request-Method", "DELETE")).andReturn();
         assertEquals(403, r.getResponse().getStatus());
@@ -159,7 +159,9 @@ class LayoutKernelCorsContractTest extends ContractTestSupport {
                 {"/api/temperature/uniform/resolve", "POST"}, {"/api/traffic-loads/resolve", "POST"},
                 {"/api/traffic-loads/lm1-defaults", "GET"}, {"/api/materials/concrete", "GET"},
                 {"/api/terrain/import", "POST"}, {"/api/terrain/x/mesh", "GET"},
-                {"/api/landxml/import", "POST"}, {"/api/alignment/sample", "POST"}};
+                {"/api/landxml/import", "POST"}, {"/api/alignment/sample", "POST"},
+                {"/api/projects", "GET"}, {"/api/projects", "POST"},
+                {"/api/projects/00000000-0000-0000-0000-000000000001/workspace", "PUT"}};
         for (String[] c : cases) {
             MvcResult r = mvc.perform(MockMvcRequestBuilders.options(c[0])
                     .header("Origin", "http://localhost:5173").header("Access-Control-Request-Method", c[1])).andReturn();

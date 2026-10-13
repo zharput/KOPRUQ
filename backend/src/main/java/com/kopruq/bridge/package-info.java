@@ -21,5 +21,9 @@
  * <p>Persistence: the {@code Project} aggregate is stored by the JPA adapter in {@code bridge.infra.persistence}
  * behind the {@code bridge.application.ProjectRepository} port; the model types stay framework-free. Computed results
  * (rule results, layouts, loads, analysis) are deliberately not persisted.
+ *
+ * <p>Stored projects (backend-db-persistence M1): the project revision rule lives in {@code Project}; the workspace
+ * ({@code ProjectWorkspace}, a {@code ProjectSection}) is stored through the {@code ProjectContentRepository} port and
+ * served by {@code ProjectController}; see docs/architecture.md.
  */
 package com.kopruq.bridge;

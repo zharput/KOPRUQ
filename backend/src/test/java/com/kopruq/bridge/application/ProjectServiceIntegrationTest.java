@@ -16,6 +16,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 import java.util.UUID;
 
+import static com.kopruq.bridge.DesignSystemFixtures.crossSection;
+import static com.kopruq.bridge.DesignSystemFixtures.pierFamilies;
 import static com.kopruq.bridge.WorkspaceFixtures.row;
 import static com.kopruq.bridge.WorkspaceFixtures.workspace;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,5 +88,47 @@ class ProjectServiceIntegrationTest {
 
         assertEquals("listed", summary.name());
         assertEquals(0, summary.revision());
+    }
+
+    @Test
+    void designSystemPut_keepsWorkspaceBridgeDesignSpaceAndAlternatives_andCountsAsARevision() {
+        var layout = new SpanLayout(List.of(new Span(30), new Span(40)));
+        BridgeAlternative alt = BridgeAlternative.of(layout, new Girder(5, 1.8, 2.5));
+        Project seeded = new Project();
+        seeded.setProjectName("seeded-m2");
+        seeded.setBridge(new Bridge("VIA", 210, 13.8));
+        seeded.setDesignSpace(new DesignSpace(30, 45, 4, 8, 2, 3, 1.5, 2.5, 0.2, 0.3, 1.0, 2.0, 5, 12, 0.1));
+        seeded.setGeneratedAlternatives(List.of(alt));
+        seeded.setSelectedAlternativeId(alt.id());
+        projects.save(seeded);
+        service.replace(seeded.getId(), 0, workspace("seeded-m2", row("a")));
+
+        service.replace(seeded.getId(), 1, pierFamilies());
+        service.replace(seeded.getId(), 2, crossSection());
+        Project after = projects.findById(seeded.getId()).orElseThrow();
+        var document = service.document(seeded.getId());
+
+        assertEquals(3, after.getRevision());
+        assertEquals("seeded-m2", after.getProjectName());
+        assertEquals(seeded.getBridge(), after.getBridge());
+        assertEquals(seeded.getDesignSpace(), after.getDesignSpace());
+        assertEquals(seeded.getGeneratedAlternatives(), after.getGeneratedAlternatives());
+        assertEquals(alt.id(), after.getSelectedAlternativeId());
+        assertEquals(List.of("a"), document.workspace().bridges().stream().map(r -> r.id()).toList());
+        assertEquals(pierFamilies(), document.content().pierFamilies());
+        assertEquals(crossSection().values(), document.content().crossSection());
+        assertEquals(null, document.content().bridgeDefinitions());
+    }
+
+    @Test
+    void designSystemPut_withStaleRevision_isRejectedAndWritesNothing() {
+        var created = service.create(workspace("p", row("a")));
+
+        assertThrows(RevisionConflictException.class, () -> service.replace(created.projectId(), 5, pierFamilies()));
+
+        assertEquals(0, jdbc.queryForObject("select count(*) from family_pier where project_id = ?", Integer.class,
+                created.projectId()));
+        assertEquals(0, jdbc.queryForObject("select count(*) from project_section_presence where project_id = ?",
+                Integer.class, created.projectId()));
     }
 }

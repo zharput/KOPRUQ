@@ -24,10 +24,22 @@ completed prerequisite.
 | P06 | **MIDAS NX Adapter**: `BridgeAlternative` -> MIDAS Civil NX model over MAPI (no GUI automation yet) | **MIDAS-P01 round trip done** (this session) - see notes below. Full `BridgeAlternative` wiring not yet done. |
 | P07 | **MIDAS NX Analysis Integration**: run the analysis, retrieve results, associate with a `BridgeAlternative` | Not started |
 | P08 | Quantities, then cost, then carbon | Not started |
-| P09 | Generative multi-objective optimization (Optimization Service, Python/FastAPI), Pareto front | Not started |
+| P09 | Generative multi-objective optimization (Optimization Service, Python/FastAPI): search over alternatives evaluated by KOPRUQ's engineering calculations, analysis, approved rules, and quantity/cost/carbon pipeline; Pareto front | Not started |
 | P10 | Professional "Design Cockpit" React UI (Project/Geometry/Design Space/Generate/Analyze/Optimize/Results/Report) - see `Kopruq_menü.jpg` / `Kopruq_menü_dark.jpg` in the repo root for the target look | **Shell done** (this session, out of milestone order - see notes below) - dashboard widgets (map, stats, Pareto) not started |
-| P11 | AI Service (Python/FastAPI): natural-language -> deterministic KOPRUQ parameters; never a structural-safety authority | Not started |
+| P11 | AI Service (Python/FastAPI): interpret design-change requests, orchestrate validated KOPRUQ workflows, and explain computed comparisons; never a source of engineering values, formulas, or structural-safety decisions | Not started |
 | P12 | Additional solver adapters: SCIA Engineer, and ALLPLAN Civil if still wanted | Not started |
+
+P09 starts only after the deterministic Generate -> Calculate/Analyze ->
+Check -> Quantity/Cost/Carbon workflow is validated. A material or geometry
+change is a new input scenario: rebuild affected model data, recompute
+dependent properties and analysis results, then run applicable approved
+rules and compare outcomes. These calculations are not individual rules.
+The Python optimization service searches candidate inputs and consumes
+KOPRUQ's evaluated results; it does not duplicate engineering calculations
+or rules. P11 may use an LLM to turn an engineer's request into a proposed
+change and orchestrate this same validated workflow. Backend validation and
+calculation remain authoritative. P04 currently contains rule infrastructure
+but no approved engineering rules.
 
 ## Site/Corridor & Bridge Layout Platform - new track
 
@@ -1904,7 +1916,7 @@ Frontend-only (plan and evidence in `docs/features/g4/`). No backend change, no 
 Stored projects with revision-checked writes (details in `docs/architecture.md`, "BACKEND-DB-PERSISTENCE M1"; plan in `docs/features/backend-db-persistence/` and `docs/features/backend-db-persistence-m1/`).
 
 - [x] M1 Backend project + workspace: Flyway V3 (`project.revision`/`updated_utc`, `project_info`, `project_bridge_row` and its span/girder-depth tables), `Project` revision rule (`requireRevision`/`recordChange`), `ProjectService`, JPA adapters, `ProjectController` with `GET /api/projects`, `POST /api/projects`, `GET /api/projects/{projectId}`, `PUT /api/projects/{projectId}/workspace`, 404 `PROJECT_NOT_FOUND` / 409 `PROJECT_REVISION_CONFLICT`, CORS `PUT`. No frontend change.
-- [ ] M2 Bridge definitions, families, girder library, preferred span, cross section, loads and graph sections.
-- [ ] M3 Remaining project sections and the section-level endpoints.
+- [x] M2 Backend design-system sections (2026-10-13; plan `docs/features/backend-db-persistence-m2/`): Flyway V4 (`project_section_presence`, bridge definitions with span/axis/assignment/constraint tables, pier / pier cap / foundation / bearing / material family tables, girder library, preferred span rules, cross section), nine `PUT` endpoints in `ProjectDesignSystemController` (`/bridge-definitions`, `/families/{piers,pier-caps,foundations,bearings,materials}`, `/girder-library`, `/preferred-span-rules`, `/cross-section`), `GET`/`POST` project document gains `bridgeDefinitions`, `families`, `girderLibrary`, `preferredSpanRules`, `crossSection`. Controllers 14, endpoints 34. Loads and graph move to M3. No frontend change.
+- [ ] M3 Loads, graph and the remaining project sections.
 - [ ] M4 Frontend API client and project open/save against the backend.
 - [ ] M5 Frontend migration of localStorage / `.kopruq` data.

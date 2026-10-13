@@ -25,5 +25,9 @@
  * <p>Stored projects (backend-db-persistence M1): the project revision rule lives in {@code Project}; the workspace
  * ({@code ProjectWorkspace}, a {@code ProjectSection}) is stored through the {@code ProjectContentRepository} port and
  * served by {@code ProjectController}; see docs/architecture.md.
+ *
+ * <p>Design-system sections (backend-db-persistence M2): bridge definitions, family catalogs, girder library, preferred span
+ * rules and cross section are further {@code ProjectSection}s, stored by {@code DesignSystemContentStore} and served by
+ * {@code ProjectDesignSystemController}; see docs/architecture.md.
  */
 package com.kopruq.bridge;

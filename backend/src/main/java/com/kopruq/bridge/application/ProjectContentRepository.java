@@ -4,7 +4,7 @@ import com.kopruq.bridge.model.ProjectSection;
 
 import java.util.UUID;
 
-/** Storage port for the sections of a project's content (M1: the workspace). Joins the caller's transaction. */
+/** Storage port for the sections of a project's content (the workspace and the design-system sections). Joins the caller's transaction. */
 public interface ProjectContentRepository {
 
     /** Loads every stored section of the project. */

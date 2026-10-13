@@ -52,7 +52,7 @@ public class ProjectService {
             projects.save(project);
             contents.replace(project.getId(), workspace);
             return new ProjectDocument(project.getId(), project.getRevision(), project.getCreatedUtc(),
-                    project.getUpdatedUtc(), workspace);
+                    project.getUpdatedUtc(), ProjectContent.ofWorkspace(workspace));
         });
     }
 
@@ -61,7 +61,7 @@ public class ProjectService {
             Project project = projects.findById(projectId).orElseThrow(() -> notFound(projectId));
             ProjectContent content = contents.load(projectId);
             return new ProjectDocument(project.getId(), project.getRevision(), project.getCreatedUtc(),
-                    project.getUpdatedUtc(), content.workspace());
+                    project.getUpdatedUtc(), content);
         });
     }
 

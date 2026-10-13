@@ -1,16 +1,34 @@
 package com.kopruq.bridge.api;
 
+import com.kopruq.bridge.application.ProjectContent;
 import com.kopruq.bridge.application.ProjectDocument;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
-/** Body of {@code POST /api/projects} (201) and {@code GET /api/projects/{projectId}}. {@code workspace} is null only for a project that has none stored yet. */
+/**
+ * Body of {@code POST /api/projects} (201) and {@code GET /api/projects/{projectId}}. The first five keys are the M1
+ * ones; the design-system sections follow. Every section is null until it has been written ({@code families} is
+ * always an object, with each catalog null until written); a written empty list reads back as {@code []}.
+ */
 public record ProjectDocumentResponse(UUID projectId, long revision, Instant createdAt, Instant updatedAt,
-        WorkspaceDto workspace) {
+        WorkspaceDto workspace, BridgeDefinitionsDto bridgeDefinitions, FamiliesDto families,
+        GirderLibraryDto girderLibrary, List<PreferredSpanRuleDto> preferredSpanRules,
+        CrossSectionDto crossSection) {
 
     static ProjectDocumentResponse from(ProjectDocument d) {
+        ProjectContent c = d.content();
+        FamiliesDto families = new FamiliesDto(FamilyCatalogMapper.piersDto(c.pierFamilies()),
+                FamilyCatalogMapper.pierCapsDto(c.pierCapFamilies()),
+                FamilyCatalogMapper.foundationsDto(c.foundationFamilies()),
+                FamilyCatalogMapper.bearingsDto(c.bearingFamilies()),
+                FamilyCatalogMapper.materialsDto(c.materialAssignments()));
         return new ProjectDocumentResponse(d.projectId(), d.revision(), d.createdUtc(), d.updatedUtc(),
-                d.workspace() == null ? null : ProjectWorkspaceMapper.toDto(d.workspace()));
+                c.workspace() == null ? null : ProjectWorkspaceMapper.toDto(c.workspace()),
+                BridgeDefinitionsMapper.toDto(c.bridgeDefinitions()), families,
+                DesignModuleMapper.girderLibraryDto(c.girderLibrary()),
+                DesignModuleMapper.preferredSpanRulesDto(c.preferredSpanRules()),
+                DesignModuleMapper.crossSectionDto(c.crossSection()));
     }
 }

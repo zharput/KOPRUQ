@@ -1880,4 +1880,10 @@ Frontend-only (plan and evidence in `docs/features/g4/`). No backend change, no 
 - [x] A-15 Mojibake repaired; `.editorconfig` and `sourceEncoding.test.ts` added; roadmap U+FFFD removed.
 - [x] A-16 `vitest-errors*.txt` ignored; AGENTS.md updated.
 - [ ] Open engineering items E1-E4 (A-03, A-05, A-06, A-10) are not planned; they need engineer decisions. See `docs/architecture.md` G4 track.
-- [ ] Not part of G4: A-02, `shared/project-file` split (proposed g5), `!important` reduction and CSS distribution, `nodeRegistry.ts` split, remaining raw storage reads. `frontend/vitest-errors.txt` already untracked by the engineer (staged `git rm --cached`). Manual Chromium checks listed in `docs/features/g4/plan.md` section 7.
+- [ ] Not part of G4: A-02, `shared/project-file` split (done with g5), `!important` reduction and CSS distribution, `nodeRegistry.ts` split, remaining raw storage reads. `frontend/vitest-errors.txt` already untracked by the engineer (staged `git rm --cached`). Manual Chromium checks listed in `docs/features/g4/plan.md` section 7.
+
+## G5 frontend architecture track (2026-10-13)
+
+- [x] A-08b `shared/project-file` split. `shared` keeps only events, validation, the generic `projectModuleStore` and the generic `useProjectModule(module, fallback)`; the eight project modules are defined by their owning features; the registry, contract, service, `useProjectFile` and recent projects live in `app/project-file/`; wind types in `features/loads/model/windTypes.ts`.
+- [x] `ALLOWED_VIOLATIONS` is empty (R1 23 -> 0, R2 = R4 = 0, R3 90 -> 90). See `docs/architecture.md` G5 track.
+- [ ] Manual checks: open and save a real `.kopruq` project, Recent list, all load panels persist and restore values, Materials dirty indicator.

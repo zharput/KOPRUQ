@@ -1,13 +1,14 @@
 import { exportGraphDocuments, GRAPH_DOCUMENTS_STORAGE_KEY, importGraphDocuments, resetGraphDocuments, validateGraphDocuments, type GraphDocuments } from '../../features/graph/state/graphStore'
 import { FAMILY_CATEGORIES, familyStorageKey, getFamilyRecords, saveFamilyRecords, savePrecastGirderDefinition, type FamilyRepositoryCategory } from '../../features/family-registry/model/familyRepository'
 import { z } from 'zod'
-import { parseWithSchema } from './projectFileValidation'
+import { parseWithSchema } from '../../shared/project-file/projectFileValidation'
 import { projectStateFileSchema } from '../../features/project/model/projectStateSchema'
 import { bridgeDefinitionStoreFileSchema } from '../../features/bridge-definition/model/schema'
 
-export { ProjectFileValidationError } from './projectFileValidation'
+export { ProjectFileValidationError } from '../../shared/project-file/projectFileValidation'
 import { parseFamilyRecords } from '../../features/family-registry/model/familySchemas'
-import { PROJECT_MODULES, PROJECT_MODULE_CHANGED_EVENT, PROJECT_MODULE_IDS, type ProjectModuleId } from './projectModules'
+import { PROJECT_MODULES, PROJECT_MODULE_IDS, type ProjectModuleId } from './projectModules'
+import { PROJECT_MODULE_CHANGED_EVENT } from '../../shared/project-file/projectModuleStore'
 
 /**
  * One project-scoped dataset that lives in localStorage and travels with the .kopruq file.

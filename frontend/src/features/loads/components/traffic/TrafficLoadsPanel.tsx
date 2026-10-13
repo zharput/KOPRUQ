@@ -1,4 +1,5 @@
 import { useProjectModule } from '../../../../shared/project-file/useProjectModule'
+import { TRAFFIC_LM1_MODULE } from '../../model/loadsProjectModules'
 import type { Dispatch, SetStateAction } from 'react'
 import TabDetailPanel from '../../../../shared/ui/TabDetailPanel'
 import type { DetailCategory } from '../../../../shared/ui/TabDetailPanel'
@@ -30,7 +31,7 @@ const NO_LM1_OVERRIDE = undefined as unknown as Lm1Parameters
 
 export default function TrafficLoadsPanel({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
   const { data: lm1Defaults } = useLm1Defaults(3)
-  const [storedLm1, storeLm1] = useProjectModule('trafficLm1', NO_LM1_OVERRIDE)
+  const [storedLm1, storeLm1] = useProjectModule(TRAFFIC_LM1_MODULE, NO_LM1_OVERRIDE)
   // Project override wins; otherwise the backend's code defaults are shown without being written into the project.
   const lm1: Lm1Parameters | null = storedLm1 ?? lm1Defaults ?? null
   const setLm1: Dispatch<SetStateAction<Lm1Parameters | null>> = (update) => {

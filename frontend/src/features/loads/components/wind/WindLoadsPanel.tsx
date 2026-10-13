@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { useProjectModule } from '../../../../shared/project-file/useProjectModule'
+import { WIND_INPUTS_MODULE } from '../../model/loadsProjectModules'
 import { Loader2, Play } from 'lucide-react'
 import { formatApiError } from '../../../../shared/api/http'
 import { resolveWind } from '../../api/windLoadsService'
-import type { WindCalculationSnapshot } from '../../../../shared/project-file/projectFileTypes'
+import type { WindCalculationSnapshot } from '../../model/windTypes'
 const CATEGORIES = ['0', 'I', 'II', 'III', 'IV']
 const fmt = (v: number | null | undefined, unit = '') => v == null ? '—' : `${v.toFixed(3)} ${unit}`
 function Rows({ items }: { items: Array<[string, ReactNode]> }) { return <div className="spn-seismic-report-rows">{items.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div> }
@@ -13,7 +14,7 @@ function Summary({ result }: { result: any }) { return <><h3 className="spn-card
 const WIND_DEFAULT_INPUTS = { vb: '', terrain: 'II', ze: '' }
 const WIND_DREF_M = 3
 export default function WindLoadsPanel({ deckWidthM, snapshot, onSnapshot }: { deckWidthM: number; snapshot: WindCalculationSnapshot | null; onSnapshot: (snapshot: WindCalculationSnapshot) => void }) {
-  const [saved,setSaved]=useProjectModule('windInputs',WIND_DEFAULT_INPUTS); const {vb,terrain,ze}=saved; const setVb=(v:string)=>setSaved(p=>({...p,vb:v})),setTerrain=(v:string)=>setSaved(p=>({...p,terrain:v})),setZe=(v:string)=>setSaved(p=>({...p,ze:v}))
+  const [saved,setSaved]=useProjectModule(WIND_INPUTS_MODULE,WIND_DEFAULT_INPUTS); const {vb,terrain,ze}=saved; const setVb=(v:string)=>setSaved(p=>({...p,vb:v})),setTerrain=(v:string)=>setSaved(p=>({...p,terrain:v})),setZe=(v:string)=>setSaved(p=>({...p,ze:v}))
   const [details,setDetails]=useState(false),[calculating,setCalculating]=useState(false),[error,setError]=useState<string|null>(null)
   const calculate=async()=>{
     if(calculating)return; setCalculating(true); setError(null)

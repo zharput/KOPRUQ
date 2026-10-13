@@ -3169,3 +3169,26 @@ Feature `g4` (plan and evidence in `docs/features/g4/`; review findings A-04, A-
 **Not changed (listed in the plan):** A-02 (`no` -> `id`), `shared/project-file` split (g5), barrel rule R3, `!important` reduction and distributing CSS to features, the `nodeRegistry.ts` split into `definitions/*`, other hand-maintained visual lists, `app/router.tsx` legacy branches. `AGENTS.md` lines about "working tree changes" are stale but were not edited.
 
 **Manual Chromium checks still to do:** the abutment node is not red before Run; in a `mm` project the girder Inspector shows correct span values; Family, Graph and Project screens look the same after the CSS split; `-`, `middle dot` and `ellipsis` characters render correctly.
+
+## G5 track (2026-10-13)
+
+Feature `g5` (plan and evidence in `docs/features/g5/`; review finding A-08b, the `shared/project-file` split proposed by g4). Frontend only; no backend change, no new dependency, no `package.json` or CSS change. No localStorage key, backup key, event name, `.kopruq` layout, `schemaVersion` or module order changed.
+
+**Ownership after g5**
+
+| Piece | Location |
+|---|---|
+| Events, validation (unchanged files) | `shared/project-file/projectDataEvents.ts`, `projectFileValidation.ts` |
+| Generic localStorage module (`createProjectModule`, `PROJECT_MODULE_CHANGED_EVENT`) | `shared/project-file/projectModuleStore.ts` |
+| Generic hook `useProjectModule(module, fallback)` (takes a module object, not a string id) | `shared/project-file/useProjectModule.ts` |
+| `girderLibrary` (custom write/reset -> `savePrecastGirderDefinition`) | `features/family-registry/model/girderLibraryProjectModule.ts` (barrel `index.ts`) |
+| `preferredSpanRules` | `features/preferred-span/model/preferredSpanRulesProjectModule.ts` (exported from the barrel) |
+| `seismicInputs`, `windInputs`, `temperatureInputs`, `selfWeightInputs`, `trafficLm1` | `features/loads/model/loadsProjectModules.ts` |
+| `WindResult`, `WindCalculationSnapshot` | `features/loads/model/windTypes.ts` |
+| `crossSectionValues` | `features/superstructure-families/model/crossSectionProjectModule.ts` |
+| Central registry (`PROJECT_MODULES`, `PROJECT_MODULE_IDS`, `PROJECT_MODULE_LABELS`) holding the same module instances | `app/project-file/projectModules.ts` |
+| Contract, service, `useProjectFile`, recent projects, fixtures, `ProjectFile` type and their tests | `app/project-file/` |
+
+Old -> new: `shared/project-file/{projectModules, projectFileTypes, projectDataContract, projectFileService, useProjectFile, recentProjects, projectFileFixtures}.ts` and their tests moved to `app/project-file/` (`projectModules.ts` split as above, `projectFileTypes.ts` lost the wind types).
+
+**Layer rules before -> after:** R1 23 -> 0, R2 0 -> 0, R4 0 -> 0, R3 90 -> 90. `ALLOWED_VIOLATIONS` in `layerRules.test.ts` is now empty. Features never import `app/` or the registry.

@@ -12,7 +12,7 @@ import type { CrossSectionValues } from '../../superstructure-families'
 import UniformTemperaturePanel from './temperature/UniformTemperaturePanel'
 import WindLoadsPanel from './wind/WindLoadsPanel'
 import SeismicPanel from './seismic/SeismicPanel'
-import type { WindCalculationSnapshot } from '../../../shared/project-file/projectFileTypes'
+import type { WindCalculationSnapshot } from '../model/windTypes'
 
 /**
  * PROJECT > Loads (revised 2026-09-11): a top row of tabs, one per load

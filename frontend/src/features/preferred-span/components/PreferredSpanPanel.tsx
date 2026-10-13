@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { PROJECT_MODULES } from '../../../shared/project-file/projectModules'
+import { GIRDER_LIBRARY_MODULE } from '../../family-registry'
 import { useProjectModule } from '../../../shared/project-file/useProjectModule'
+import { PREFERRED_SPAN_RULES_MODULE } from '../model/preferredSpanRulesProjectModule'
 import { generatePrecastGirderVariants, PRECAST_DIMENSIONS, type GirderVariant } from '../../girder-library/model/variants'
 import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import type { PreferredSpanRule, PreferredSpanStatus, SuperstructureType } from '../model/types'
 
 const NO_RULES: PreferredSpanRule[] = []
-const GIRDER_KEY = PROJECT_MODULES.girderLibrary.key
+const GIRDER_KEY = GIRDER_LIBRARY_MODULE.key
 
 function candidateSpans(minSpan: number, maxSpan: number, delta: number): number[] {
   if (!Number.isFinite(minSpan) || !Number.isFinite(maxSpan) || !Number.isFinite(delta) || minSpan <= 0 || maxSpan <= minSpan || delta <= 0 || delta > maxSpan - minSpan) return []
@@ -56,7 +57,7 @@ function ensureRules(existing: PreferredSpanRule[], variants: GirderVariant[], t
 export default function PreferredSpanPanel() {
   const [type, setType] = useState<SuperstructureType>('PRECAST_GIRDER')
   const [dimensions, setDimensions] = useState<Dimension[]>(dimensionsFromStorage)
-  const [rules, setRules] = useProjectModule('preferredSpanRules', NO_RULES)
+  const [rules, setRules] = useProjectModule(PREFERRED_SPAN_RULES_MODULE, NO_RULES)
   const variants = useMemo(() => type === 'PRECAST_GIRDER' ? generatePrecastGirderVariants(dimensions) : [], [dimensions, type])
   const visibleRules = useMemo(() => ensureRules(rules, variants, type).filter((rule) => rule.superstructureType === type && variants.some((variant) => variant.id === rule.girderVariantId)), [rules, type, variants])
   const orphanCount = useMemo(() => rules.filter((rule) => rule.superstructureType === type && !variants.some((variant) => variant.id === rule.girderVariantId)).length, [rules, type, variants])

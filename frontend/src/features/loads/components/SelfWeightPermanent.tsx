@@ -1,4 +1,5 @@
 import { useProjectModule } from '../../../shared/project-file/useProjectModule'
+import { SELF_WEIGHT_INPUTS_MODULE } from '../model/loadsProjectModules'
 import DecimalInput from '../../../shared/ui/DecimalInput'
 import type { CrossSectionValues } from '../../superstructure-families'
 import { carriagewayWidthM } from '../../superstructure-families'
@@ -85,7 +86,7 @@ const INITIAL_SELF_WEIGHT_INPUTS: SelfWeightInputs = {
 }
 
 export default function SelfWeightPermanent({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
-  const [inputs, setInputs] = useProjectModule('selfWeightInputs', INITIAL_SELF_WEIGHT_INPUTS)
+  const [inputs, setInputs] = useProjectModule(SELF_WEIGHT_INPUTS_MODULE, INITIAL_SELF_WEIGHT_INPUTS)
 
   function update<K extends keyof SelfWeightInputs>(key: K, value: number) {
     setInputs((prev) => ({ ...prev, [key]: value }))

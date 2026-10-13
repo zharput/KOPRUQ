@@ -13,7 +13,7 @@ import type { BearingFamily } from '../../bearing-families/model/types'
 import { generateFoundationVariants, statusOf as foundationStatus, labelNumber } from '../../foundation-families/model/service'
 import type { FoundationFamily, FoundationType } from '../../foundation-families/model/types'
 import { getFamilyRecords, getPrecastGirderDefinition } from '../../family-registry/model/familyRepository'
-import { PROJECT_MODULES } from '../../../shared/project-file/projectModules'
+import { PREFERRED_SPAN_RULES_MODULE } from '../../preferred-span'
 
 function Assembly({ definition, selectedId, onSelect, foundationType }: { definition: VerticalSystemDefinition; selectedId: string | null; onSelect: (id: string) => void; foundationType?: FoundationType }) {
   const hit = (id: string, _route?: string) => onSelect(id)
@@ -57,7 +57,7 @@ export default function SystemAssemblyPanel() {
 }
 
 function readGirderDimensions() { return getPrecastGirderDefinition<{ dimensions?: typeof PRECAST_DIMENSIONS } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS }
-function readSpanRules(): PreferredSpanRule[] { try { return JSON.parse(localStorage.getItem(PROJECT_MODULES.preferredSpanRules.key) ?? '[]') as PreferredSpanRule[] } catch { return [] } }
+function readSpanRules(): PreferredSpanRule[] { try { return JSON.parse(localStorage.getItem(PREFERRED_SPAN_RULES_MODULE.key) ?? '[]') as PreferredSpanRule[] } catch { return [] } }
 function readPierCapFamilies(): PierCapFamily[] { return getFamilyRecords<PierCapFamily>('PIER_CAP') }
 function readBearingFamilies(): BearingFamily[] { return getFamilyRecords<BearingFamily>('BEARING') }
 function readFoundationFamilies(): FoundationFamily[] { return getFamilyRecords<FoundationFamily>('FOUNDATION') }

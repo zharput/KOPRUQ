@@ -1,0 +1,2 @@
+export type WindResult = { status: 'VALID' | 'INVALID'; z0M: number; zminM: number; kr: number; cr: number; vmMs: number; turbulenceIntensity: number; qpKNm2: number; bOverD: number; cfx: number; transverseKNm: number | null; missing: string | null }
+export type WindCalculationSnapshot = { schemaVersion: 1; status?: string; inputs: { vb: string; terrain: string; ze: string; deckWidthM: number; drefM: number }; result: WindResult | null }

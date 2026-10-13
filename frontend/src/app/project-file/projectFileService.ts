@@ -4,7 +4,8 @@ import { normalizeProjectState, type PersistedProjectState } from '../../feature
 import { exportGraphDocuments } from '../../features/graph/state/graphStore'
 import { PROJECT_MODULE_LABELS } from './projectModules'
 import { entryValueInFile, PROJECT_DATA_ENTRIES, PROJECT_FILE_SESSION_SECTIONS } from './projectDataContract'
-import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile, type WindCalculationSnapshot } from './projectFileTypes'
+import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile } from './projectFileTypes'
+import type { WindCalculationSnapshot } from '../../features/loads/model/windTypes'
 
 /** `recentId` ties the open file to its Recent Projects record (file names are not identities). */
 export type FileRef = { name: string; handle?: FileSystemFileHandle; recentId?: string }

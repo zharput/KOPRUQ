@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PROJECT_DATA_ENTRIES, type ProjectDataEntry } from './projectDataContract'
-import { PROJECT_DATA_CHANGED_EVENT } from './projectDataEvents'
+import { PROJECT_DATA_CHANGED_EVENT } from '../../shared/project-file/projectDataEvents'
 import { buildProjectFile } from './projectFileService'
 import { PROJECT_MODULES, PROJECT_MODULE_IDS } from './projectModules'
 import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'

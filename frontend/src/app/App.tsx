@@ -12,13 +12,14 @@ import type { GenerationSummary } from '../features/bridge-alternatives'
 import type { LayoutSeed } from '../features/layout-generator'
 import { INITIAL_CROSS_SECTION_VALUES, type CrossSectionValues } from '../features/superstructure-families'
 import { useProjectModule } from '../shared/project-file/useProjectModule'
+import { PROJECT_MODULES } from './project-file/projectModules'
 import { ensureBridgeIds, INITIAL_PROJECT, readProjectState, persistProjectState, type ProjectWorkspaceData } from '../features/project/model/projectWorkspace'
-import { useProjectFile } from '../shared/project-file/useProjectFile'
+import { useProjectFile } from './project-file/useProjectFile'
 import UnsavedChangesModal from '../shared/ui/UnsavedChangesModal'
 import RecentFileAccessModal from '../shared/ui/RecentFileAccessModal'
-import { getRecentProjectFile, repairRecentProject, type RecentProject } from '../shared/project-file/recentProjects'
-import { KOPRUQ_FILE_PICKER_OPTIONS, missingModulesMessage, ProjectStorageRollbackError, resetProjectStorage, type ApplyProjectFileResult, type FileRef } from '../shared/project-file/projectFileService'
-import type { WindCalculationSnapshot } from '../shared/project-file/projectFileTypes'
+import { getRecentProjectFile, repairRecentProject, type RecentProject } from './project-file/recentProjects'
+import { KOPRUQ_FILE_PICKER_OPTIONS, missingModulesMessage, ProjectStorageRollbackError, resetProjectStorage, type ApplyProjectFileResult, type FileRef } from './project-file/projectFileService'
+import type { WindCalculationSnapshot } from '../features/loads/model/windTypes'
 
 const LEGACY_MIGRATED_ROUTES: Record<string, string> = {
   '/alignment': '/bridge-definition/alignment/horizontal',
@@ -66,7 +67,7 @@ function App() {
   }
   const designCode = projectState.project.designStandardFamily
   const setDesignCode: Dispatch<SetStateAction<string>> = (update) => setProjectState((previous) => ({ ...previous, project: { ...previous.project, designStandardFamily: typeof update === 'function' ? update(previous.project.designStandardFamily) : update } }))
-  const [crossSectionValues, setCrossSectionValues] = useProjectModule('crossSectionValues', INITIAL_CROSS_SECTION_VALUES)
+  const [crossSectionValues, setCrossSectionValues] = useProjectModule(PROJECT_MODULES.crossSectionValues, INITIAL_CROSS_SECTION_VALUES)
   const [windLoads, setWindLoads] = useState<WindCalculationSnapshot | null>(null)
   const file = useProjectFile(projectState, setProjectState, bridgeDefinitions, setBridgeDefinitions, windLoads, setWindLoads)
   const [showWelcome, setShowWelcome] = useState(false)
@@ -145,7 +146,7 @@ type RoutedApplicationProps = {
   file: ReturnType<typeof useProjectFile>
   onNewProject: () => void
   onOpenProject: (file: File, fileRef?: FileRef) => void
-  onRecentOpen: (entry: import('../shared/project-file/recentProjects').RecentProject) => void
+  onRecentOpen: (entry: import('./project-file/recentProjects').RecentProject) => void
   onExit: () => void
   onSaveError: (error: unknown) => void
   showWelcome: boolean

@@ -10,41 +10,13 @@ import { describe, expect, it } from 'vitest'
  *   R3  features importing another feature below its barrel (index) is only COUNTED, not enforced.
  *
  * Only production files are checked (`*.test.*` and `src/test/**` are exempt).
- * Known violations live in ALLOWED_VIOLATIONS; an unlisted violation fails the
- * test and so does a stale entry. The list is a ratchet: it may only shrink.
+ * Known violations would live in ALLOWED_VIOLATIONS (empty since g5); an unlisted violation
+ * fails the test and so does a stale entry. The list is a ratchet: it may only shrink.
  */
 export type Violation = { rule: 'R1' | 'R2' | 'R4'; from: string; to: string }
 
-/**
- * shared/project-file is the project persistence layer. It composes the stores
- * and schemas of several features and therefore still points "upward" at them.
- * Splitting it is a separate feature (g5); until then these edges are accepted.
- */
-export const ALLOWED_VIOLATIONS: readonly Violation[] = [
-  { rule: 'R1', from: 'shared/project-file/projectDataContract.ts', to: 'features/bridge-definition/model/schema' },
-  { rule: 'R1', from: 'shared/project-file/projectDataContract.ts', to: 'features/family-registry/model/familyRepository' },
-  { rule: 'R1', from: 'shared/project-file/projectDataContract.ts', to: 'features/family-registry/model/familySchemas' },
-  { rule: 'R1', from: 'shared/project-file/projectDataContract.ts', to: 'features/graph/state/graphStore' },
-  { rule: 'R1', from: 'shared/project-file/projectDataContract.ts', to: 'features/project/model/projectStateSchema' },
-  { rule: 'R1', from: 'shared/project-file/projectFileFixtures.ts', to: 'features/bridge-definition/model/store' },
-  { rule: 'R1', from: 'shared/project-file/projectFileFixtures.ts', to: 'features/graph/state/graphStore' },
-  { rule: 'R1', from: 'shared/project-file/projectFileFixtures.ts', to: 'features/project/model/projectWorkspace' },
-  { rule: 'R1', from: 'shared/project-file/projectFileFixtures.ts', to: 'features/project/model/types' },
-  { rule: 'R1', from: 'shared/project-file/projectFileService.ts', to: 'features/bridge-definition/model/store' },
-  { rule: 'R1', from: 'shared/project-file/projectFileService.ts', to: 'features/bridge-definition/model/types' },
-  { rule: 'R1', from: 'shared/project-file/projectFileService.ts', to: 'features/graph/state/graphStore' },
-  { rule: 'R1', from: 'shared/project-file/projectFileService.ts', to: 'features/project/model/projectWorkspace' },
-  { rule: 'R1', from: 'shared/project-file/projectFileTypes.ts', to: 'features/bridge-definition/model/types' },
-  { rule: 'R1', from: 'shared/project-file/projectFileTypes.ts', to: 'features/graph/state/graphStore' },
-  { rule: 'R1', from: 'shared/project-file/projectFileTypes.ts', to: 'features/project/model/projectWorkspace' },
-  { rule: 'R1', from: 'shared/project-file/projectModules.ts', to: 'features/family-registry/model/familyRepository' },
-  { rule: 'R1', from: 'shared/project-file/projectModules.ts', to: 'features/loads/api/trafficLoadsService' },
-  { rule: 'R1', from: 'shared/project-file/projectModules.ts', to: 'features/preferred-span/model/types' },
-  { rule: 'R1', from: 'shared/project-file/useProjectFile.ts', to: 'features/bridge-definition/model/types' },
-  { rule: 'R1', from: 'shared/project-file/useProjectFile.ts', to: 'features/graph/family/familySnapshotStore' },
-  { rule: 'R1', from: 'shared/project-file/useProjectFile.ts', to: 'features/graph/family/graphRunValidity' },
-  { rule: 'R1', from: 'shared/project-file/useProjectFile.ts', to: 'features/project/model/projectWorkspace' },
-]
+/** Known violations; empty since g5 split shared/project-file (the list may only shrink). */
+export const ALLOWED_VIOLATIONS: readonly Violation[] = []
 
 const sources = import.meta.glob('/src/**/*.{ts,tsx}', { query: '?raw', import: 'default', eager: true }) as Record<string, string>
 
@@ -104,6 +76,14 @@ export function analyze(files: Record<string, string>): { violations: Violation[
 
 const keyOf = (violation: Violation) => `${violation.rule} ${violation.from} -> ${violation.to}`
 
+/** Compares found violations with the allow-list: unlisted ones are `unexpected`, listed-but-gone ones are `stale`. */
+export function diffAllowList(found: string[], allowed: string[]): { unexpected: string[]; stale: string[] } {
+  return {
+    unexpected: found.filter(entry => !allowed.includes(entry)),
+    stale: allowed.filter(entry => !found.includes(entry)),
+  }
+}
+
 describe('import parser', () => {
   it('finds static, multi-line, re-export, side-effect, type and dynamic imports and ignores comments', () => {
     const text = [
@@ -139,6 +119,15 @@ describe('analyze', () => {
       'R4 features/graph/domain/d.ts -> shared/ui/G',
     ])
   })
+  it('flags R1 when shared imports app or pages', () => {
+    expect(run({
+      '/src/shared/project-file/x.ts': "import { a } from '../../app/project-file/a'",
+      '/src/shared/project-file/y.ts': "import { b } from '../../pages/p/b'",
+    })).toEqual([
+      'R1 shared/project-file/x.ts -> app/project-file/a',
+      'R1 shared/project-file/y.ts -> pages/p/b',
+    ])
+  })
   it('counts only cross-feature imports that bypass the barrel (R3)', () => {
     expect(analyze({
       '/src/features/a/x.ts': "import { b } from '../b'\nimport { c } from '../c/model/c'\nimport { d } from '../d/index'",
@@ -146,29 +135,38 @@ describe('analyze', () => {
   })
 })
 
+describe('diffAllowList', () => {
+  it('reports a violation that is not in the allow-list as unexpected', () => {
+    expect(diffAllowList(['R1 a -> b'], [])).toEqual({ unexpected: ['R1 a -> b'], stale: [] })
+  })
+  it('reports an allow-list entry that is no longer found as stale', () => {
+    expect(diffAllowList([], ['R1 x -> y'])).toEqual({ unexpected: [], stale: ['R1 x -> y'] })
+  })
+  it('reports nothing when the lists match', () => {
+    expect(diffAllowList(['R1 a -> b'], ['R1 a -> b'])).toEqual({ unexpected: [], stale: [] })
+  })
+})
+
 describe('frontend layer rules (A-08)', () => {
   const { violations, r3 } = analyze(sources)
   const found = violations.map(keyOf).sort()
   const allowed = ALLOWED_VIOLATIONS.map(keyOf).sort()
+  const { unexpected, stale } = diffAllowList(found, allowed)
 
   it('scans the real source tree', () => {
     expect(Object.keys(sources).length).toBeGreaterThan(200)
   })
 
   it('has no layer violation outside the allow-list (R1, R2, R4)', () => {
-    expect(found.filter(entry => !allowed.includes(entry))).toEqual([])
+    expect(unexpected).toEqual([])
   })
 
   it('has no stale allow-list entry (the list may only shrink)', () => {
-    expect(allowed.filter(entry => !found.includes(entry))).toEqual([])
+    expect(stale).toEqual([])
   })
 
-  it('only tolerates shared/project-file -> features edges (g5 will split project-file)', () => {
-    for (const entry of ALLOWED_VIOLATIONS) {
-      expect(entry.rule).toBe('R1')
-      expect(entry.from.startsWith('shared/project-file/')).toBe(true)
-      expect(entry.to.startsWith('features/')).toBe(true)
-    }
+  it('tolerates no violation at all (the allow-list is empty)', () => {
+    expect(ALLOWED_VIOLATIONS).toEqual([])
   })
 
   it('reports (does not enforce) the R3 barrel-bypass count', () => {

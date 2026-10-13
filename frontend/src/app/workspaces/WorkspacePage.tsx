@@ -10,7 +10,7 @@ import GraphWorkspace from '../../features/graph/ui/GraphWorkspace'
 import type { BridgeDefinitionStore } from '../../features/bridge-definition/model/types'
 import WorkspaceLayout from '../../shared/ui/WorkspaceLayout'
 import type { WorkspaceDefinition } from './registry'
-import type { WindCalculationSnapshot } from '../../shared/project-file/projectFileTypes'
+import type { WindCalculationSnapshot } from '../../features/loads/model/windTypes'
 
 export default function WorkspacePage({ workspace, initialSelectedItem, mainContentOverride, crossSectionValues, setCrossSectionValues, windLoads, setWindLoads, project, setProject, bridges, setBridges, designCode, setDesignCode, bridgeDefinitions, setBridgeDefinitions, terrainId, landXmlImportId, setTerrainId, setLandXmlImportId }: { workspace: WorkspaceDefinition; initialSelectedItem?: string; mainContentOverride?: ReactNode; crossSectionValues: CrossSectionValues; setCrossSectionValues: Dispatch<SetStateAction<CrossSectionValues>>; windLoads: WindCalculationSnapshot | null; setWindLoads: (snapshot: WindCalculationSnapshot | null) => void; project: ProjectWorkspaceData; setProject: (project: ProjectWorkspaceData) => void; bridges: BridgeRow[]; setBridges: Dispatch<SetStateAction<BridgeRow[]>>; designCode: string; setDesignCode: Dispatch<SetStateAction<string>>; bridgeDefinitions: BridgeDefinitionStore; setBridgeDefinitions: Dispatch<SetStateAction<BridgeDefinitionStore>>; terrainId: string | null; landXmlImportId: string | null; setTerrainId: Dispatch<SetStateAction<string | null>>; setLandXmlImportId: Dispatch<SetStateAction<string | null>> }) {
   void setCrossSectionValues

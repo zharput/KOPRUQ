@@ -1,16 +1,15 @@
 import { useCallback, useSyncExternalStore } from 'react'
-import { PROJECT_MODULES, PROJECT_MODULE_CHANGED_EVENT, type ProjectModule, type ProjectModuleId, type ProjectModuleValue } from './projectModules'
+import { PROJECT_MODULE_CHANGED_EVENT, type ProjectModule } from './projectModuleStore'
 
 const caches = new Map<string, { raw: string | null; value: unknown }>()
 
-function snapshot(id: ProjectModuleId): unknown {
-  const module = PROJECT_MODULES[id] as ProjectModule<unknown>
+function snapshot<T>(module: ProjectModule<T>): T | undefined {
   let raw: string | null = null
   try { raw = localStorage.getItem(module.key) } catch { return undefined }
-  const cached = caches.get(id)
-  if (cached && cached.raw === raw) return cached.value
+  const cached = caches.get(module.id)
+  if (cached && cached.raw === raw) return cached.value as T | undefined
   const value = module.read()
-  caches.set(id, { raw, value })
+  caches.set(module.id, { raw, value })
   return value
 }
 
@@ -24,14 +23,14 @@ function subscribe(listener: () => void) {
  * Reads and writes a project module (localStorage-backed, saved in the .kopruq file).
  * `fallback` must be a stable reference (module-level constant) so snapshots stay referentially stable.
  */
-export function useProjectModule<K extends ProjectModuleId>(id: K, fallback: ProjectModuleValue<K>) {
-  type T = ProjectModuleValue<K>
-  const stored = useSyncExternalStore(subscribe, () => snapshot(id)) as T | undefined
+export function useProjectModule<T>(module: ProjectModule<T>, fallback: NoInfer<NonNullable<T>>) {
+  type V = NonNullable<T>
+  const stored = useSyncExternalStore(subscribe, () => snapshot(module)) as V | undefined
   const value = stored ?? fallback
-  const set = useCallback((update: T | ((previous: T) => T)) => {
-    const current = (snapshot(id) as T | undefined) ?? fallback
-    const next = typeof update === 'function' ? (update as (previous: T) => T)(current) : update
-    ;(PROJECT_MODULES[id] as ProjectModule<unknown>).write(next)
-  }, [id, fallback])
+  const set = useCallback((update: V | ((previous: V) => V)) => {
+    const current = (snapshot(module) as V | undefined) ?? fallback
+    const next = typeof update === 'function' ? (update as (previous: V) => V)(current) : update
+    module.write(next as T)
+  }, [module, fallback])
   return [value, set] as const
 }

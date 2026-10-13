@@ -3,10 +3,10 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { BridgeDefinitionStore } from '../../features/bridge-definition/model/types'
 import type { PersistedProjectState } from '../../features/project/model/projectWorkspace'
 import { applyProjectFile, buildProjectFile, readProjectFile, restoreProjectStorage, snapshotProjectStorage, writeProjectFile, type FileRef } from './projectFileService'
-import type { WindCalculationSnapshot } from './projectFileTypes'
+import type { WindCalculationSnapshot } from '../../features/loads/model/windTypes'
 import { clearFamilySnapshots } from '../../features/graph/family/familySnapshotStore'
 import { clearSuccessfulGraphRuns } from '../../features/graph/family/graphRunValidity'
-import { PROJECT_DATA_CHANGED_EVENT } from './projectDataEvents'
+import { PROJECT_DATA_CHANGED_EVENT } from '../../shared/project-file/projectDataEvents'
 import { listRecentProjects, recordRecentProject, type RecentProject } from './recentProjects'
 export function useProjectFile(projectState: PersistedProjectState, setProjectState: Dispatch<SetStateAction<PersistedProjectState>>, bridgeDefinitions: BridgeDefinitionStore, setBridgeDefinitions: Dispatch<SetStateAction<BridgeDefinitionStore>>, windLoads: WindCalculationSnapshot | null = null, setWindLoads?: (snapshot: WindCalculationSnapshot | null) => void) {
   const [dirty,setDirty]=useState(false),[ref,setRef]=useState<FileRef>(),[menuOpen,setMenuOpen]=useState(false),[recent,setRecent]=useState<RecentProject[]>([]),[sessionId,setSessionId]=useState(0); const importing=useRef(false),settling=useRef(false)

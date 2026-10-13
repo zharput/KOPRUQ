@@ -18,10 +18,10 @@ Component-based, domain/feature-sliced. Dependency direction is one-way
 - **R3** (a feature reaching into another feature below its `index.ts`
   barrel) is only counted, not enforced.
 
-The one accepted exception is `shared/project-file/*` (the project
-save/open layer, which still composes feature stores); its edges are listed
-explicitly in the test's allow-list and may only shrink. Splitting that
-layer is planned as a separate feature.
+There is no accepted exception: the test's allow-list is empty (g5). The
+project save/open layer lives in `app/project-file/`; each project module
+(id, localStorage key, zod schema) is defined by the owning feature, and
+`shared/project-file/` holds only generic, domain-free parts.
 
 - `src/app/` - app shell: `App.tsx`, `router.tsx` (React Router),
   `providers/` (TanStack Query client), `layout/` (`TopWorkspaceNav`),
@@ -36,7 +36,10 @@ layer is planned as a separate feature.
 - `src/shared/` - domain-free UI primitives (`shared/ui`, including
   `WorkspaceLayout` and `ParamSweepCard`), helpers (`shared/lib`, e.g.
   `parameterSweep.ts`), the HTTP layer (`shared/api/http.ts`), and the
-  project file service (`shared/project-file`).
+  generic project-module mechanism (`shared/project-file`: events,
+  validation, `projectModuleStore`, `useProjectModule`). The project file
+  service, contract, registry and recent projects live in
+  `app/project-file`.
 - `src/test/` - Vitest setup (`jsdom`, `@testing-library/jest-dom`,
   explicit `afterEach(cleanup)`) and `architecture/` tests (layer rules,
   source-encoding guard).

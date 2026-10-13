@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import WindLoadsPanel from './WindLoadsPanel'
-import type { WindCalculationSnapshot } from '../../../../shared/project-file/projectFileTypes'
+import type { WindCalculationSnapshot } from '../../model/windTypes'
 
 const VALID = { status: 'VALID', z0M: 0.05, zminM: 2, kr: 0.19, cr: 1.1, vmMs: 28, turbulenceIntensity: 0.2, qpKNm2: 1.1, bOverD: 4.6, cfx: 1.3, transverseKNm: 12.3, missing: null }
 const INVALID = { status: 'INVALID', z0M: 0, zminM: 0, kr: 0, cr: 0, vmMs: 0, turbulenceIntensity: 0, qpKNm2: 0, bOverD: 0, cfx: 0, transverseKNm: null, missing: 'Reference height ze is required' }

@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
 import { ChevronRight, Clock3, FilePlus2, FileText, FolderOpen, LogOut, Save, SaveAll } from 'lucide-react'
 import { PRIMARY_WORKSPACES, legacyWorkspaceFromPath, workspaceFromPath } from '../workspaces/registry'
-import type { RecentProject } from '../../shared/project-file/recentProjects'
+import type { RecentProject } from '../project-file/recentProjects'
 
 type Props = { dirty?: boolean; projectName?: string; fileName?: string; recent?: RecentProject[]; onNew?: () => void; onOpen?: (file: File) => void; onOpenPicker?: () => void; onRecentOpen?: (entry: RecentProject) => void; onSave?: () => void; onSaveAs?: () => void; onExit?: () => void }
 

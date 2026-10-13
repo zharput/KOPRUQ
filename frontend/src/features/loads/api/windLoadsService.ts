@@ -1,5 +1,5 @@
 import { postJson } from '../../../shared/api/http'
-import type { WindResult } from '../../../shared/project-file/projectFileTypes'
+import type { WindResult } from '../model/windTypes'
 
 export type WindResolveRequest = { vbMs: number; terrainCategory: string; zeM: number; deckWidthM: number; drefM: number }
 

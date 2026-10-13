@@ -43,4 +43,18 @@ describe('TopWorkspaceNav file menu', () => {
     record.focus()
     expect(record).toHaveFocus()
   })
+
+  it('tells same-named Recent records apart by project name and marks records without file access', async () => {
+    const user = userEvent.setup(); const now = new Date().toISOString()
+    render(<MemoryRouter><TopWorkspaceNav recent={[
+      { id: 'a', projectName: 'Alpha Viaduct', fileName: 'Bridge.kopruq', lastUsedAt: now, available: true },
+      { id: 'b', projectName: 'Beta Viaduct', fileName: 'Bridge.kopruq', lastUsedAt: now, available: false },
+    ]} onRecentOpen={vi.fn()} /></MemoryRouter>)
+    await user.click(screen.getByRole('button', { name: /^File/ }))
+    const rows = screen.getAllByRole('button', { name: 'Recent project' })
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toHaveTextContent('Alpha Viaduct'); expect(rows[0]).not.toHaveTextContent(/erişim yok/i)
+    expect(rows[1]).toHaveTextContent('Beta Viaduct'); expect(rows[1]).toHaveTextContent(/erişim yok/i)
+    expect(rows[1]).toHaveAttribute('title', 'Bu dosyanın kayıtlı erişim bilgisi bulunamadı.')
+  })
 })

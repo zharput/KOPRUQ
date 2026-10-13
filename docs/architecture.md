@@ -3114,3 +3114,31 @@ Feature `frontend-data-integrity` (plan and evidence in `docs/features/frontend-
 - C-016-01: sweep rounding and duplicate policy (`shared/ui/generation.ts`).
 - A-05: Graph precast names `tf/bf/w` vs `Btf/Bbf/tw` (no alias added).
 - Not planned: C-009-01 (CRS label overwritten after inspect), C-005-04, `abutmentFamilyId` not passed to Assembly, superstructure generator ignoring girder state.
+
+## G3 track (2026-10-13)
+
+Feature `g3` (plan and evidence in `docs/features/g3/`; review findings A-01, A-07, C-013-01, C-013-03 from `docs/reviews/2026-10-11T14-19-35Z`). Frontend only; no backend change, no new dependency, no new localStorage key, `schemaVersion` stays 1, `.kopruq` layout unchanged. No numeric range, unit or engineering rule was added: numbers are only checked to be numbers.
+
+**One project data contract (A-01 / A-07).** `shared/project-file/projectDataContract.ts` defines `PROJECT_DATA_ENTRIES`, the single list of project-scoped localStorage data. `buildProjectFile`, `validateProjectFile`, `applyProjectFile`, `snapshotProjectStorage`, `restoreProjectStorage` and `resetProjectStorage` iterate it; the old `CATEGORIES` list and the per-section loops are gone. Family category keys exist only in `familyRepository.ts` (`FAMILY_CATEGORIES`, `familyStorageKey`). The event name is `PROJECT_DATA_CHANGED_EVENT` (`projectDataEvents.ts`).
+
+| Entry id | File path | Storage key | Presence |
+|---|---|---|---|
+| `graph` | `graph` | `kopruq.graph.documents.v1` | required |
+| `families.PIER` / `PIER_CAP` / `FOUNDATION` / `BEARING` / `MATERIAL` | `families.<CAT>` | `kopruq.project-design-system.<...>` (see `familyRepository.ts`) | required |
+| `modules.<id>` (8 modules, `PROJECT_MODULES`) | `modules.<id>` | module key | optional, reset and reported when absent (backup `kopruq.backup.*` kept) |
+
+`projectState`, `bridgeDefinitions` and `windLoads` stay React-owned; they are validated through `PROJECT_FILE_SESSION_SECTIONS` in the same file and applied through the `useProjectFile` setters. A parametrized test covers, per entry, the export/parse/apply round trip, the `project-data-changed` event on a changing apply, snapshot/restore and reset.
+
+**Write paths (A-07).** `MaterialsPanel` now writes MATERIAL through `saveFamilyRecords` and only when the stored catalog differs, so a class change marks the project dirty and a remount over an up-to-date store does not. An empty catalog gets the eight default rows on first mount and the project becomes dirty once (K5). Raw key literals in other features were replaced by the owner constants (`familyStorageKey`, `PROJECT_MODULES.<id>.key`, `BRIDGE_DEFINITIONS_STORAGE_KEY`, `GRAPH_DOCUMENTS_STORAGE_KEY`, `PRECAST_GIRDER_STORAGE_KEY`).
+
+**Record validation (C-013-01).** The whole file is rejected if any record is invalid (K1); nothing is imported and storage, React state, the file reference and the dirty flag stay as they were (validation runs in `readProjectFile`, before any snapshot or apply). Error text: `Invalid project file: <path> - <message>` (first three problems listed), e.g. `projectState.bridges[2].spansM[0]`. Schemas live with the owning models: `project/model/projectStateSchema.ts`, `bridge-definition/model/schema.ts`, `family-registry/model/familySchemas.ts`, `graph/state/graphSchema.ts`; `shared/project-file/projectFileValidation.ts` holds `ProjectFileValidationError`. Rules:
+- Project fields may be absent but must have the right type when present; absent ones, `environment`, `criteria`, `coordinate`, definition fields and bridge ids are filled by the existing normalizations (`normalizeProjectState`, `ensureBridgeDefinitions`, `ensureBridgeIds`) in `normalizeProjectFile` (K2a). Bridge rows must have every `BridgeRow` field; `bridgeType` and `pierShape` must be from `BRIDGE_TYPES` / `PIER_SHAPES`.
+- A family record is a non-null object with a string `id`; category fields are typed when present; legacy `pierType` `H_TYPE` / `WALL` are accepted; a repeated `id` in a category rejects the file (K2b, K2c). Unknown fields pass through.
+- Graph nodes (`id`, `type`, `name`, `position`, `parameters` object), connections (five strings) and groups are checked; parameter values are not. `groups` stays optional. `importGraphDocuments` keeps the shallow check on purpose so rollback of an already stored snapshot cannot fail.
+- Existing error texts (`Invalid or unsupported KOPRUQ project file.`, `Missing family data: <CAT>`, `Invalid project data in file: <id>`, `Invalid wind load data in project file.`, import/reset/rollback messages) are unchanged.
+
+**Recent identity (C-013-03).** `recentProjects.ts` `recordRecentProject(projectName, fileName, handle?, recentId?)` returns `{ id, recent }`. New records get `crypto.randomUUID()`; existing ids (= file names) stay as opaque ids, no migration (K3b). Match order: `recentId`; a stored handle for which `handle.isSameEntry` is true (awaited before any IndexedDB transaction); without a handle only a handle-less record with the same file name (a handle record is never taken over, K3a). `FileRef.recentId` is set by `open` and `save`; Save As passes none; repair and Recent open pass the selected entry id. The File menu shows `projectName` and "Erişim yok" next to same-named records (K3c). IndexedDB name/version/keyPath and `kopruq.recent-projects.metadata.v1` are unchanged.
+
+**Decisions K1-K5:** K1 reject the whole file; K2 a/b/c as above; K3 a/b/c as above; K4 `schemaVersion` 1, no reader added; K5 MATERIAL first entry writes once and marks dirty once.
+
+**Flagged, not part of G3:** A-02 (definitions keyed by `no`; `ensureBridgeDefinitions` drops definitions without a bridge and non-positive spans on open, now immediately on Open rather than at next reload), C-012-09 (duplicate/negative `no`), A-08 (`shared/project-file` imports from `features`), `windLoads` only in React state, raw reads (`registry.ts` `readArray`/bridge definitions, `BridgeDefinitionWorkspace.tsx`, `SystemAssemblyPanel.tsx`, `PreferredSpanPanel.tsx`, `FamilyTablesWorkspace.tsx` dead screen, `graphStore.ts` readDocuments), other `kopruq:*-catalog-changed` events, normal Open still without a `showOpenFilePicker` handle, a file opened once with and once without a handle shows two Recent rows.

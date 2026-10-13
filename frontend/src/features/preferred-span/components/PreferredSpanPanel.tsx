@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { PROJECT_MODULES } from '../../../shared/project-file/projectModules'
 import { useProjectModule } from '../../../shared/project-file/useProjectModule'
 import { generatePrecastGirderVariants, PRECAST_DIMENSIONS, type GirderVariant } from '../../girder-library/model/variants'
 import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import type { PreferredSpanRule, PreferredSpanStatus, SuperstructureType } from '../model/types'
 
 const NO_RULES: PreferredSpanRule[] = []
-const GIRDER_KEY = 'kopruq.girder-library.precast'
+const GIRDER_KEY = PROJECT_MODULES.girderLibrary.key
 
 function candidateSpans(minSpan: number, maxSpan: number, delta: number): number[] {
   if (!Number.isFinite(minSpan) || !Number.isFinite(maxSpan) || !Number.isFinite(delta) || minSpan <= 0 || maxSpan <= minSpan || delta <= 0 || delta > maxSpan - minSpan) return []

@@ -1,9 +1,14 @@
+import { z } from 'zod'
+import { parseWithSchema } from '../../../shared/project-file/projectFileValidation'
+import { graphSchema } from './graphSchema'
 import type { GraphGroup, GraphParameterValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 import { validateConnection } from '../engine/graphEngine'
 import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
+import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
 import { readProjectState } from '../../project/model/projectWorkspace'
 
-const STORAGE_KEY = 'kopruq.graph.documents.v1'
+export const GRAPH_DOCUMENTS_STORAGE_KEY = 'kopruq.graph.documents.v1'
+const STORAGE_KEY = GRAPH_DOCUMENTS_STORAGE_KEY
 const EVENT = 'kopruq:graph-store-changed'
 export type GraphDocuments = { activeGraphId: string; graphs: KopruqGraph[] }
 export type GraphStoreSnapshot = GraphDocuments & { canUndo: boolean; canRedo: boolean }
@@ -50,20 +55,26 @@ function persist() {
 }
 export function persistGraphStore() { persist() }
 export function exportGraphDocuments(): GraphDocuments { return structuredClone(getDocuments()) }
-export function validateGraphDocuments(next: unknown): GraphDocuments {
+function assertGraphDocuments(next: unknown): GraphDocuments {
   const value = next as Partial<GraphDocuments>
   if (!value || !Array.isArray(value.graphs) || !value.graphs.length || !value.graphs.every((graph) => graph && graph.schemaVersion === 1 && typeof graph.id === 'string' && typeof graph.name === 'string' && Array.isArray(graph.nodes) && Array.isArray(graph.connections))) throw new Error('Invalid graph data.')
   if (!value.graphs.some((graph) => graph.id === value.activeGraphId)) throw new Error('Active graph is missing.')
   return value as GraphDocuments
 }
+/** Full validation of graph documents coming from a project file: graph level (existing messages) plus every node, connection and group. */
+export function validateGraphDocuments(next: unknown): GraphDocuments {
+  const value = assertGraphDocuments(next)
+  parseWithSchema(z.array(graphSchema), value.graphs, 'graph.graphs')
+  return value
+}
 export function importGraphDocuments(next: GraphDocuments) {
-  validateGraphDocuments(next)
+  assertGraphDocuments(next) // shallow on purpose: rollback re-imports snapshots of what was already in storage
   documents = structuredClone(next); undo.clear(); redo.clear(); notify()
 }
 export function resetGraphDocuments() { const graph = createEmptyGraph(); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] }) }
 function notify() {
   refreshSnapshot(); persist()
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'graph' } }))
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'graph' } }))
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENT))
   subscribers.forEach((listener) => listener())
 }

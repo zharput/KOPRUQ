@@ -1,31 +1,33 @@
-import { z } from 'zod'
 import type { BridgeDefinitionStore } from '../../features/bridge-definition/model/types'
-import { INITIAL_PROJECT, normalizeProjectUnits, type PersistedProjectState } from '../../features/project/model/projectWorkspace'
-import { exportGraphDocuments, importGraphDocuments, resetGraphDocuments, validateGraphDocuments } from '../../features/graph/state/graphStore'
-import { getFamilyRecords, saveFamilyRecords, savePrecastGirderDefinition, type FamilyRepositoryCategory } from '../../features/family-registry/model/familyRepository'
-import { PROJECT_MODULES, PROJECT_MODULE_IDS, PROJECT_MODULE_LABELS, restoreModuleStorage, snapshotModuleStorage } from './projectModules'
+import { ensureBridgeDefinitions } from '../../features/bridge-definition/model/store'
+import { normalizeProjectState, type PersistedProjectState } from '../../features/project/model/projectWorkspace'
+import { exportGraphDocuments } from '../../features/graph/state/graphStore'
+import { PROJECT_MODULE_LABELS } from './projectModules'
+import { entryValueInFile, PROJECT_DATA_ENTRIES, PROJECT_FILE_SESSION_SECTIONS } from './projectDataContract'
 import { PROJECT_FILE_FORMAT, PROJECT_FILE_SCHEMA_VERSION, type ProjectFile, type WindCalculationSnapshot } from './projectFileTypes'
 
-const windLoadsSchema = z.object({ schemaVersion: z.literal(1), status: z.string().optional(), inputs: z.object({ vb: z.string(), terrain: z.string(), ze: z.string(), deckWidthM: z.number(), drefM: z.number() }), result: z.unknown() }).passthrough()
-const CATEGORIES: FamilyRepositoryCategory[] = ['PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'MATERIAL']
-export type FileRef = { name: string; handle?: FileSystemFileHandle }
+/** `recentId` ties the open file to its Recent Projects record (file names are not identities). */
+export type FileRef = { name: string; handle?: FileSystemFileHandle; recentId?: string }
 export const KOPRUQ_FILE_PICKER_OPTIONS = { multiple: false, excludeAcceptAllOption: true, types: [{ description: 'KOPRUQ Project', accept: { 'application/json': ['.kopruq'] } }] } as const
 export function buildProjectFile(projectState: PersistedProjectState, bridgeDefinitions: BridgeDefinitionStore, windLoads?: WindCalculationSnapshot | null): ProjectFile {
-  const families = Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)]))
-  return { format: PROJECT_FILE_FORMAT, schemaVersion: PROJECT_FILE_SCHEMA_VERSION, applicationVersion: '1.0.0', projectState: structuredClone(projectState), bridgeDefinitions: structuredClone(bridgeDefinitions), graph: exportGraphDocuments(), families, modules: { ...Object.fromEntries(PROJECT_MODULE_IDS.map((id) => [id, PROJECT_MODULES[id].read() ?? null])), ...(windLoads ? { windLoads: structuredClone(windLoads) } : {}) } }
+  const sections: Record<string, Record<string, unknown>> = { families: {}, modules: {} }
+  for (const entry of PROJECT_DATA_ENTRIES) if (entry.filePath[0] !== 'graph') sections[entry.filePath[0]][entry.filePath[1]] = entry.exportValue()
+  return { format: PROJECT_FILE_FORMAT, schemaVersion: PROJECT_FILE_SCHEMA_VERSION, applicationVersion: '1.0.0', projectState: structuredClone(projectState), bridgeDefinitions: structuredClone(bridgeDefinitions), graph: exportGraphDocuments(), families: sections.families as ProjectFile['families'], modules: { ...sections.modules, ...(windLoads ? { windLoads: structuredClone(windLoads) } : {}) } }
 }
 export function validateProjectFile(value: unknown): ProjectFile {
   const file = value as Partial<ProjectFile>
   if (!file || file.format !== PROJECT_FILE_FORMAT || file.schemaVersion !== 1 || !file.projectState?.project || !Array.isArray(file.projectState?.bridges) || !file.bridgeDefinitions || !file.graph || !file.families) throw new Error('Invalid or unsupported KOPRUQ project file.')
-  validateGraphDocuments(file.graph)
-  for (const category of CATEGORIES) if (!Array.isArray(file.families[category])) throw new Error(`Missing family data: ${category}`)
   const modules = file.modules ?? {}
   if (typeof modules !== 'object' || Array.isArray(modules)) throw new Error('Invalid project modules.')
-  if ((modules as Record<string, unknown>).windLoads != null && !windLoadsSchema.safeParse((modules as Record<string, unknown>).windLoads).success) throw new Error('Invalid wind load data in project file.')
-  for (const id of PROJECT_MODULE_IDS) {
-    const value = (modules as Record<string, unknown>)[id]
-    if (value == null) continue
-    try { PROJECT_MODULES[id].parse(value) } catch { throw new Error(`Invalid project data in file: ${id}`) }
+  for (const section of PROJECT_FILE_SESSION_SECTIONS) section.parse({ ...file, modules })
+  for (const entry of PROJECT_DATA_ENTRIES) {
+    if (entry.filePath[0] === 'graph') entry.parse(file.graph)
+    else if (entry.filePath[0] === 'families') { if (!Array.isArray(entryValueInFile(entry, file))) throw new Error(`Missing family data: ${entry.filePath[1]}`); entry.parse(entryValueInFile(entry, file)) }
+    else {
+      const moduleValue = (modules as Record<string, unknown>)[entry.filePath[1]]
+      if (moduleValue == null) continue
+      try { entry.parse(moduleValue) } catch { throw new Error(`Invalid project data in file: ${entry.filePath[1]}`) }
+    }
   }
   return { ...file, modules } as ProjectFile
 }
@@ -66,27 +68,24 @@ export function missingModulesMessage(result: ApplyProjectFileResult): string | 
 export class ProjectStorageRollbackError extends Error {
   constructor(message: string, options?: { cause?: unknown }) { super(message, options); this.name = 'ProjectStorageRollbackError' }
 }
-export type ProjectStorageSnapshot = { graph: ReturnType<typeof exportGraphDocuments>; families: Record<string, unknown[]>; modules: Record<string, string | null> }
+/** Opaque per-entry snapshot of every project data entry (entry id -> entry snapshot). */
+export type ProjectStorageSnapshot = Record<string, unknown>
 export function snapshotProjectStorage(): ProjectStorageSnapshot {
-  return { graph: exportGraphDocuments(), families: Object.fromEntries(CATEGORIES.map((category) => [category, getFamilyRecords(category)])), modules: snapshotModuleStorage() }
+  return Object.fromEntries(PROJECT_DATA_ENTRIES.map((entry) => [entry.id, entry.snapshot()]))
 }
 export function restoreProjectStorage(snapshot: ProjectStorageSnapshot): void {
-  importGraphDocuments(snapshot.graph)
-  for (const category of CATEGORIES) if (!saveFamilyRecords(category, snapshot.families[category] as never[])) throw new Error(`Unable to restore family data: ${category}`)
-  restoreModuleStorage(snapshot.modules)
+  const failures: string[] = []
+  for (const entry of PROJECT_DATA_ENTRIES) {
+    try { entry.restore(snapshot[entry.id]) } catch (error) { failures.push(error instanceof Error ? error.message : String(error)) }
+  }
+  if (failures.length) throw new Error(failures.join('; '))
 }
 const rollbackMessage = (error: unknown) => `Project storage rollback failed: ${error instanceof Error ? error.message : String(error)}`
 /** Clears graph, family catalogs and project modules for New Project. On any failure the previous storage is restored; if that also fails a ProjectStorageRollbackError is thrown. */
 export function resetProjectStorage(): void {
   const snapshot = snapshotProjectStorage()
   try {
-    resetGraphDocuments()
-    CATEGORIES.forEach((category) => { if (!saveFamilyRecords(category, [])) throw new Error(`Unable to reset family catalog: ${category}`) })
-    if (!savePrecastGirderDefinition([])) throw new Error('Unable to reset girder catalog.')
-    PROJECT_MODULE_IDS.filter((id) => id !== 'girderLibrary').forEach((id) => {
-      PROJECT_MODULES[id].reset()
-      if (localStorage.getItem(PROJECT_MODULES[id].key) != null) throw new Error(`Unable to reset project data: ${id}`)
-    })
+    for (const entry of PROJECT_DATA_ENTRIES) entry.reset()
   } catch (error) {
     try { restoreProjectStorage(snapshot) } catch (rollbackError) { throw new ProjectStorageRollbackError(`${error instanceof Error ? error.message : String(error)} ${rollbackMessage(rollbackError)}`, { cause: error }) }
     throw error
@@ -97,12 +96,14 @@ export function applyProjectFile(input: ProjectFile): ApplyProjectFileResult {
   const previous = snapshotProjectStorage()
   const missingModules: string[] = [], backedUpModules: string[] = [], backupTimestamp = new Date().toISOString()
   try {
-    importGraphDocuments(file.graph)
-    for (const category of CATEGORIES) { const records = file.families[category]; if (!saveFamilyRecords(category, records as never[])) throw new Error(`Unable to import family data: ${category}`) }
-    for (const id of PROJECT_MODULE_IDS) {
-      const value = file.modules[id]
-      if (value == null) { if (value === undefined) missingModules.push(id); if (backupModuleValue(PROJECT_MODULES[id].key, backupTimestamp)) backedUpModules.push(id); PROJECT_MODULES[id].reset(); continue }
-      if (!(PROJECT_MODULES[id] as { write(v: unknown): boolean }).write(value)) throw new Error(`Unable to import project data: ${id}`)
+    for (const entry of PROJECT_DATA_ENTRIES) {
+      const value = entryValueInFile(entry, file)
+      if (entry.presence === 'optional-reset-and-report' && value == null) {
+        if (value === undefined) missingModules.push(entry.filePath[1])
+        if (backupModuleValue(entry.storageKeys[0], backupTimestamp)) backedUpModules.push(entry.filePath[1])
+        entry.reset(); continue
+      }
+      entry.apply(value)
     }
   } catch (error) {
     try {
@@ -112,10 +113,13 @@ export function applyProjectFile(input: ProjectFile): ApplyProjectFileResult {
   }
   return { missingModules, backedUpModules }
 }
+/** Fills defaults and ids of a validated file with the same normalizations the app applies when it reads its own storage. */
+export function normalizeProjectFile(file: ProjectFile): ProjectFile {
+  const projectState = { ...file.projectState, ...normalizeProjectState(file.projectState, []) }
+  return { ...file, projectState, bridgeDefinitions: ensureBridgeDefinitions(file.bridgeDefinitions, projectState.bridges) }
+}
 export async function readProjectFile(file: File): Promise<ProjectFile> {
-  const migrated = migrateLegacyBoxPierParameters(validateProjectFile(JSON.parse(await file.text())))
-  migrated.projectState.project.units = normalizeProjectUnits({ ...INITIAL_PROJECT.units, ...migrated.projectState.project.units })
-  return migrated
+  return normalizeProjectFile(migrateLegacyBoxPierParameters(validateProjectFile(JSON.parse(await file.text()))))
 }
 export function projectFileText(file: ProjectFile) { return JSON.stringify(file, null, 2) }
 export async function writeProjectFile(file: ProjectFile, ref?: FileRef): Promise<FileRef> {

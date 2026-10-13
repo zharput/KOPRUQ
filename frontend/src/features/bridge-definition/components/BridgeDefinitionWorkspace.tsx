@@ -8,6 +8,7 @@ import type { PierCapFamily } from '../../pier-cap-families/model/types'
 import type { PierFamily } from '../../pier-families/model/types'
 import { PRECAST_DIMENSIONS, generatePrecastGirderVariants, type GirderVariant } from '../../girder-library/model/variants'
 import type { PreferredSpanRule } from '../../preferred-span/model/types'
+import { PROJECT_MODULES } from '../../../shared/project-file/projectModules'
 import { axesFromSpans, assignedAxis } from '../model/store'
 import type { AxisFamilyAssignments, BridgeConstraint, BridgeDefinitionStore, BridgeInstanceDefinition, BridgeViewMode, ConstraintKind } from '../model/types'
 import LandXmlImportPanel from '../../landxml-import/components/LandXmlImportPanel'
@@ -29,7 +30,7 @@ type Props = {
 type FamilyRef = { id: string; name: string }
 type Catalogs = { piers: PierFamily[]; pierCaps: PierCapFamily[]; foundations: FoundationFamily[]; bearings: BearingFamily[]; girders: GirderVariant[]; preferred: PreferredSpanRule[] }
 const CATALOG_KEYS = {
-  preferred: 'kopruq.project-design-system.girder-span-rules',
+  preferred: PROJECT_MODULES.preferredSpanRules.key,
 }
 const NAV: { group: string; label: string; slug: string }[] = [
   { group: 'Bridge', label: 'Bridge Overview', slug: 'overview' },

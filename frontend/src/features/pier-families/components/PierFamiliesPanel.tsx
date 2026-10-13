@@ -4,9 +4,10 @@ import { defaultDimensions, generatePierVariants, statusOfPierFamily } from '../
 import { DesignSystemSection, EngineeringInput, GenerationTable } from '../../../shared/ui/DesignSystemUi'
 import type { PierConfiguration, PierFamily, PierType } from '../model/types'
 import { getFamilyReferences, publishFamilySelection } from '../../family-registry/model/registry'
+import { familyStorageKey } from '../../family-registry/model/familyRepository'
 import { useFamilyCatalog } from '../../family-registry/hooks/useFamilyCatalog'
 
-const STORAGE_KEY = 'kopruq.project-design-system.pier-families'
+const STORAGE_KEY = familyStorageKey('PIER')
 const emptyHeight = { minimumHeight: null, preferredHeightMin: null, preferredHeightMax: null, maximumHeight: null }
 const INITIAL: PierFamily[] = [{ id: 'RECT-M', name: 'RECT-M', pierType: 'RECTANGULAR', enabled: false, dimensions: defaultDimensions('RECTANGULAR'), allowedConfigurations: ['SINGLE_COLUMN', 'TWO_COLUMNS'], twoColumnSpacing: { key: 'spacing', label: 'Transverse Spacing (m)', min: 6, max: 10, delta: 1 }, heightApplicability: emptyHeight, source: 'PROJECT_DESIGN_SYSTEM' }]
 

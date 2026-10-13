@@ -1,3 +1,4 @@
+import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
 import type { BridgeRow } from './types'
 
 export interface ProjectWorkspaceData {
@@ -69,18 +70,22 @@ export function ensureBridgeIds(bridges: BridgeRow[]): BridgeRow[] {
   })
 }
 
+/** Pure normalization shared by storage reads and file opens: fills defaults, converts unit labels to ids, gives every bridge an id. */
+export function normalizeProjectState(saved: { project?: Partial<ProjectWorkspaceData> & { units?: Partial<ProjectWorkspaceData['units']>; coordinate?: Partial<ProjectWorkspaceData['coordinate']>; criteria?: Partial<ProjectWorkspaceData['criteria']>; environment?: Partial<ProjectWorkspaceData['environment']> }; bridges?: BridgeRow[] }, fallbackBridges: BridgeRow[]): PersistedProjectState {
+  return {
+    project: { ...INITIAL_PROJECT, ...saved.project, units: normalizeProjectUnits({ ...INITIAL_PROJECT.units, ...saved.project?.units }), coordinate: { ...INITIAL_PROJECT.coordinate, ...saved.project?.coordinate }, criteria: { ...INITIAL_PROJECT.criteria, ...saved.project?.criteria }, environment: { ...INITIAL_PROJECT.environment, ...saved.project?.environment } },
+    bridges: ensureBridgeIds(Array.isArray(saved.bridges) ? saved.bridges : fallbackBridges),
+  }
+}
+
 export function readProjectState(fallbackBridges: BridgeRow[]): PersistedProjectState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return { project: INITIAL_PROJECT, bridges: ensureBridgeIds(fallbackBridges) }
-    const saved = JSON.parse(raw) as Partial<PersistedProjectState>
-    return {
-      project: { ...INITIAL_PROJECT, ...saved.project, units: normalizeProjectUnits({ ...INITIAL_PROJECT.units, ...saved.project?.units }), coordinate: { ...INITIAL_PROJECT.coordinate, ...saved.project?.coordinate }, criteria: { ...INITIAL_PROJECT.criteria, ...saved.project?.criteria }, environment: { ...INITIAL_PROJECT.environment, ...saved.project?.environment } },
-      bridges: ensureBridgeIds(Array.isArray(saved.bridges) ? saved.bridges : fallbackBridges),
-    }
+    return normalizeProjectState(JSON.parse(raw) as Partial<PersistedProjectState>, fallbackBridges)
   } catch { return { project: INITIAL_PROJECT, bridges: ensureBridgeIds(fallbackBridges) } }
 }
 
 export function persistProjectState(state: PersistedProjectState): boolean {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'project' } })); return true } catch { return false }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'project' } })); return true } catch { return false }
 }

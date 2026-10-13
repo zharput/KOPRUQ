@@ -4,6 +4,8 @@ import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'
 import type { PersistedProjectState } from '../../features/project/model/projectWorkspace'
 import { useProjectFile } from './useProjectFile'
 import { buildProjectFile, projectFileText } from './projectFileService'
+import { goodFileJson, REJECTIONS } from './projectFileFixtures'
+import { PROJECT_DATA_ENTRIES } from './projectDataContract'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../../features/graph/state/graphStore'
 import { getFamilyRecords, saveFamilyRecords } from '../../features/family-registry/model/familyRepository'
 import { getFamilySnapshots, publishFamilySnapshots } from '../../features/graph/family/familySnapshotStore'
@@ -86,6 +88,45 @@ describe('useProjectFile safety', () => {
     failState = false
     await act(async () => { await hook.result.current.save() })
     const saved = JSON.parse(written[0]); expect(saved.graph.graphs[0].name).toBe('Before'); expect(saved.projectState.project.name).toBe('Initial')
+    hook.unmount()
+  })
+  it.each(REJECTIONS)('rejects the whole file when %s and leaves storage, React state, file reference and dirty untouched', async (_name, corrupt, path) => {
+    const json = goodFileJson()
+    const before = createEmptyGraph('Before'); importGraphDocuments({ activeGraphId: before.id, graphs: [before] }); saveFamilyRecords('PIER', [{ id: 'before', name: 'Before' }])
+    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.1', g: 'A', t: 'Type 2', i: '1' }))
+    localStorage.setItem('kopruq.project-workspace.v1', '{"marker":"project"}'); localStorage.setItem('kopruq.bridge-definitions.v1', '{"marker":"definitions"}')
+    const handle = { name: 'kept.kopruq', createWritable: vi.fn().mockResolvedValue({ write: vi.fn(), close: vi.fn() }) }
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue(handle) })
+    let current = state('Initial'); let currentDefinitions = definitions; let setterCalls = 0
+    const setProject = (next: typeof current | ((previous: typeof current) => typeof current)) => { setterCalls++; current = typeof next === 'function' ? next(current) : next }
+    const setDefinitions = () => { setterCalls++ }; const setWind = vi.fn()
+    const hook = renderHook(() => useProjectFile(current, setProject, currentDefinitions, setDefinitions, null, setWind))
+    await act(async () => { await hook.result.current.save(true) })
+    expect(hook.result.current.dirty).toBe(false)
+    const keys = [...PROJECT_DATA_ENTRIES.flatMap((entry) => entry.storageKeys), 'kopruq.project-workspace.v1', 'kopruq.bridge-definitions.v1']
+    const bytes = () => keys.map((key) => localStorage.getItem(key)); const storageBefore = bytes(); const projectBefore = current; const refBefore = hook.result.current.ref
+    corrupt(json)
+    await act(async () => { await expect(hook.result.current.open(new File([JSON.stringify(json)], 'bad.kopruq'))).rejects.toThrow(path) })
+    expect(bytes()).toEqual(storageBefore); expect(current).toBe(projectBefore); expect(currentDefinitions).toBe(definitions); expect(setterCalls).toBe(0); expect(setWind).not.toHaveBeenCalled()
+    expect(hook.result.current.ref).toBe(refBefore); expect(hook.result.current.ref?.name).toBe('kept.kopruq'); expect(hook.result.current.dirty).toBe(false)
+    hook.unmount()
+  })
+  it('keeps one Recent record across open and Save, and Save As does not bind the new file to the old record', async () => {
+    localStorage.removeItem('kopruq.recent-projects.metadata.v1')
+    const makeHandle = (name: string) => { const self = { name, kind: 'file', createWritable: vi.fn().mockResolvedValue({ write: vi.fn(), close: vi.fn() }), isSameEntry: vi.fn(async (other: unknown) => other === self) }; return self as unknown as FileSystemFileHandle }
+    const opened = makeHandle('shared-name.kopruq'), copy = makeHandle('shared-name.kopruq')
+    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue(copy) })
+    let current = state('Initial')
+    const setProject = (next: typeof current | ((previous: typeof current) => typeof current)) => { current = typeof next === 'function' ? next(current) : next }
+    const hook = renderHook(() => useProjectFile(current, setProject, definitions, vi.fn()))
+    await act(async () => { await hook.result.current.open(new File([projectFileText(buildProjectFile(state('Opened'), definitions))], 'shared-name.kopruq'), { name: 'shared-name.kopruq', handle: opened }) })
+    const openedId = hook.result.current.ref?.recentId
+    expect(openedId).toBeTruthy(); expect(openedId).not.toBe('shared-name.kopruq'); expect(hook.result.current.recent).toHaveLength(1)
+    await act(async () => { await hook.result.current.save() })
+    expect(hook.result.current.recent).toHaveLength(1); expect(hook.result.current.ref?.recentId).toBe(openedId)
+    await act(async () => { await hook.result.current.save(true) })
+    expect(hook.result.current.recent).toHaveLength(2); expect(hook.result.current.ref?.recentId).toBeTruthy(); expect(hook.result.current.ref?.recentId).not.toBe(openedId)
+    expect(hook.result.current.recent.find((record) => record.id === openedId)?.handle).toBe(opened)
     hook.unmount()
   })
 })

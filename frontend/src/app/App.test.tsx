@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
+import { buildProjectFile, projectFileText } from '../shared/project-file/projectFileService'
+import { INITIAL_PROJECT } from '../features/project/model/projectWorkspace'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../features/graph/state/graphStore'
 vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div className="spn-workspace-layout"><aside aria-label="Node Library"><label htmlFor="search-nodes">Search nodes</label><input id="search-nodes" /></aside><main><h1>Graph Workspace</h1><input aria-label="Graph name" defaultValue="Untitled Graph" /><div className="spn-graph-flow" /></main><aside aria-label="Node Inspector">Node Inspector</aside></div> }))
 
@@ -410,5 +412,15 @@ describe('App workspace shell', () => {
     await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); await user.upload(input, new File(['not json'], 'broken.kopruq', { type: 'application/json' })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
     expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*'); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Dirty Project')
+  })
+
+  it('opens an older project file without project.environment instead of crashing (AC9)', async () => {
+    const user = userEvent.setup()
+    const json = JSON.parse(projectFileText(buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Env Less' }, bridges: [] }, { selectedBridgeId: null, definitions: {} })))
+    delete json.projectState.project.environment
+    render(<App />)
+    await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File([JSON.stringify(json)], 'env-less.kopruq', { type: 'application/json' }))
+    await waitFor(() => expect(document.querySelector('.spn-project-name')).toHaveTextContent('Env Less'))
+    expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.environment).toEqual({ terrainDatasetId: null, landXmlImportId: null })
   })
 })

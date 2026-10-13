@@ -32,7 +32,7 @@ The current browser adapter preserves existing `localStorage` keys and record sh
 | Girder | `kopruq.girder-library.precast` | Existing dimension record and generated variant IDs remain. Not yet a stable family catalog; adapter migration is future work. |
 | Superstructure | App-owned cross-section state consumed by Superstructure and Loads UI | No reusable stable-ID family model yet; no record conversion performed. |
 | Abutment | No family catalog exists | Not fabricated in this phase. |
-| Material | `kopruq.project-design-system.material-assignments` | Concrete class per structural element, not a material-property family catalog. No material properties or IDs invented. |
+| Material | `kopruq.project-design-system.material-assignments` | Concrete class per structural element, not a material-property family catalog. No material properties or IDs invented. Written through the family repository (`saveFamilyRecords('MATERIAL', ...)`) since G3, so edits mark the project dirty. |
 
 Family catalog React state is shared through a repository-backed subscription hook. UI-only selection/drafts remain local. Project-level state and bridge-instance definitions retain their existing stores and responsibilities.
 

@@ -4,7 +4,8 @@ export type FamilyReference = { bridgeId: string; location: string }
 export type FamilySelection = { category: FamilyCategory; id: string | null }
 
 import { PRECAST_DIMENSIONS } from '../../girder-library/model/variants'
-import { getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
+import { familyStorageKey, getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
+import { BRIDGE_DEFINITIONS_STORAGE_KEY } from '../../bridge-definition/model/store'
 
 const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
   GIRDER: 'kopruq:girder-catalog-changed',
@@ -21,7 +22,7 @@ const val = (row: Record<string, unknown>, key: string) => row[key] == null ? ''
 /** Reads existing feature-owned catalogs; this adapter does not own or persist family data. */
 export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
   if (category === 'MATERIAL') {
-    const classes = new Set(readArray('kopruq.project-design-system.material-assignments').map((row) => val(row, 'concreteClass')).filter(Boolean))
+    const classes = new Set(readArray(familyStorageKey('MATERIAL')).map((row) => val(row, 'concreteClass')).filter(Boolean))
     return [...classes].sort().map((concreteClass) => ({ id: `EN1992-1-1:${concreteClass}`, name: concreteClass, category, type: 'CONCRETE', enabled: true, summary: 'EN 1992-1-1 concrete strength class reference; engineering material properties are not configured in this panel.' }))
   }
   if (category === 'GIRDER') {
@@ -46,7 +47,7 @@ export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
 export function getFamilyReferences(category: FamilyCategory, id: string): FamilyReference[] {
   if (typeof localStorage === 'undefined') return []
   let stored: { definitions?: Record<string, Record<string, unknown>> } = {}
-  try { stored = JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}') as typeof stored } catch { return [] }
+  try { stored = JSON.parse(localStorage.getItem(BRIDGE_DEFINITIONS_STORAGE_KEY) ?? '{}') as typeof stored } catch { return [] }
   const found: FamilyReference[] = []
   for (const [bridgeId, definition] of Object.entries(stored.definitions ?? {})) {
     const assignments = definition.axisAssignments && typeof definition.axisAssignments === 'object' ? definition.axisAssignments as Record<string, Record<string, unknown>> : {}

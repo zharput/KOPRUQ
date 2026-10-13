@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore, type SetStateAction } from 'react'
-import { getFamilyRecords, saveFamilyRecords, subscribeFamilyRecords, type FamilyRecord, type FamilyRepositoryCategory } from '../model/familyRepository'
+import { familyStorageKey, getFamilyRecords, saveFamilyRecords, subscribeFamilyRecords, type FamilyRecord, type FamilyRepositoryCategory } from '../model/familyRepository'
 
 const snapshots = new Map<FamilyRepositoryCategory, FamilyRecord[]>()
 const listeners = new Map<FamilyRepositoryCategory, Set<() => void>>()
@@ -12,7 +12,7 @@ function snapshot<T extends FamilyRecord>(category: FamilyRepositoryCategory, fa
     fallbacks.set(category, fallback)
     const initial = getFamilyRecords(category, fallback)
     snapshots.set(category, initial)
-    if (typeof localStorage !== 'undefined' && localStorage.getItem(storageKey(category)) == null) saveFamilyRecords(category, initial)
+    if (typeof localStorage !== 'undefined' && localStorage.getItem(familyStorageKey(category)) == null) saveFamilyRecords(category, initial)
   }
   return snapshots.get(category) as T[]
 }
@@ -26,7 +26,7 @@ function subscribe(category: FamilyRepositoryCategory, listener: () => void) {
   const current = snapshots.get(category) ?? []
   const refreshed = getFamilyRecords(category, fallbacks.get(category))
   if (JSON.stringify(current) !== JSON.stringify(refreshed)) snapshots.set(category, refreshed)
-  if (typeof localStorage !== 'undefined' && localStorage.getItem(storageKey(category)) == null) saveFamilyRecords(category, refreshed)
+  if (typeof localStorage !== 'undefined' && localStorage.getItem(familyStorageKey(category)) == null) saveFamilyRecords(category, refreshed)
   const group = listeners.get(category) ?? new Set<() => void>()
   group.add(listener); listeners.set(category, group)
   if (!detach.has(category)) detach.set(category, subscribeFamilyRecords(category, () => emit(category)))
@@ -48,8 +48,4 @@ export function useFamilyCatalog<T extends FamilyRecord>(category: FamilyReposit
     listeners.get(category)?.forEach((listener) => listener())
   }, [category, fallback])
   return [families, setFamilies]
-}
-
-function storageKey(category: FamilyRepositoryCategory): string {
-  return ({ PIER: 'kopruq.project-design-system.pier-families', PIER_CAP: 'kopruq.project-design-system.pier-cap-families', FOUNDATION: 'kopruq.project-design-system.foundation-families', BEARING: 'kopruq.project-design-system.bearing-families', MATERIAL: 'kopruq.project-design-system.material-assignments' })[category]
 }

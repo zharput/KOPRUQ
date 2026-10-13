@@ -90,13 +90,13 @@ function App() {
   const openProject = (input: File, fileRef?: FileRef) => runAfterUnsavedDecision(() => { setShowWelcome(false); void file.open(input, fileRef).then(notifyMissingModules).catch(showRecentError) })
   const openRecentProject = (entry: RecentProject) => runAfterUnsavedDecision(() => { setShowWelcome(false)
     if (!entry.handle) { setRecentAccessEntry(entry); return }
-    void getRecentProjectFile(entry).then((recentFile) => file.open(recentFile, { name: entry.fileName, handle: entry.handle })).then(notifyMissingModules).catch(showRecentError)
+    void getRecentProjectFile(entry).then((recentFile) => file.open(recentFile, { name: entry.fileName, handle: entry.handle, recentId: entry.id })).then(notifyMissingModules).catch(showRecentError)
   })
   const reselectRecentProject = async () => {
     if (!recentAccessEntry) return
     const picker = (window as Window & { showOpenFilePicker?: (options?: unknown) => Promise<FileSystemFileHandle[]> }).showOpenFilePicker
     if (!picker) { setRecentAccessError('Dosya seçici bu tarayıcıda desteklenmiyor.'); return }
-    try { const [handle] = await picker(KOPRUQ_FILE_PICKER_OPTIONS); if (handle.name !== recentAccessEntry.fileName) { setRecentAccessError(`Seçilen dosya ${recentAccessEntry.fileName} ile eşleşmiyor.`); return }; const selected = await handle.getFile(); await repairRecentProject(recentAccessEntry, handle); notifyMissingModules(await file.open(selected, { name: handle.name, handle })); setRecentAccessEntry(null); setRecentAccessError(undefined) } catch (error) { if ((error as DOMException)?.name !== 'AbortError') showRecentError(error) }
+    try { const [handle] = await picker(KOPRUQ_FILE_PICKER_OPTIONS); if (handle.name !== recentAccessEntry.fileName) { setRecentAccessError(`Seçilen dosya ${recentAccessEntry.fileName} ile eşleşmiyor.`); return }; const selected = await handle.getFile(); await repairRecentProject(recentAccessEntry, handle); notifyMissingModules(await file.open(selected, { name: handle.name, handle, recentId: recentAccessEntry.id })); setRecentAccessEntry(null); setRecentAccessError(undefined) } catch (error) { if ((error as DOMException)?.name !== 'AbortError') showRecentError(error) }
   }
   useEffect(() => { const beforeUnload = (event: BeforeUnloadEvent) => { if (file.dirty) { event.preventDefault(); event.returnValue = '' } }; window.addEventListener('beforeunload', beforeUnload); return () => window.removeEventListener('beforeunload', beforeUnload) }, [file.dirty])
   const terrainId = projectState.project.environment.terrainDatasetId

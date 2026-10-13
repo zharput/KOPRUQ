@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyProjectFile, buildProjectFile, projectFileText, ProjectStorageRollbackError, resetProjectStorage, validateProjectFile, writeProjectFile } from './projectFileService'
+import { applyProjectFile, buildProjectFile, projectFileText, ProjectStorageRollbackError, readProjectFile, resetProjectStorage, validateProjectFile, writeProjectFile } from './projectFileService'
 import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'
 import { INITIAL_BRIDGES } from '../../features/project/model/types'
+import { goodFileJson, asFile, REJECTIONS, type Json } from './projectFileFixtures'
+import { createBridgeDefinition } from '../../features/bridge-definition/model/store'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../../features/graph/state/graphStore'
 import { getFamilyRecords, saveFamilyRecords } from '../../features/family-registry/model/familyRepository'
 
@@ -101,5 +103,65 @@ describe('KOPRUQ project file', () => {
     const originalRemove = localStorage.removeItem.bind(localStorage); const removeSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation((key) => { if (key === 'kopruq.seismic') throw new Error('blocked'); originalRemove(key) })
     let error: unknown; try { resetProjectStorage() } catch (e) { error = e } finally { spy.mockRestore(); removeSpy.mockRestore() }
     expect(error).toBeInstanceOf(ProjectStorageRollbackError)
+  })
+})
+
+describe('project file record validation (C-013-01)', () => {
+  it('accepts a file produced by the application from real defaults', async () => {
+    const json = goodFileJson(); expect(() => validateProjectFile(json)).not.toThrow()
+    const read = await readProjectFile(asFile(json)); expect(read.projectState.bridges).toHaveLength(3)
+  })
+  it.each(REJECTIONS)('rejects the whole file when %s and names the path', (_name, corrupt, path) => {
+    const json = goodFileJson(); corrupt(json)
+    expect(() => validateProjectFile(json)).toThrow(path)
+  })
+  it.each(REJECTIONS)('readProjectFile rejects when %s', async (_name, corrupt, path) => {
+    const json = goodFileJson(); corrupt(json)
+    await expect(readProjectFile(asFile(json))).rejects.toThrow(path)
+  })
+  it('keeps the existing error texts', () => {
+    expect(() => validateProjectFile({})).toThrow('Invalid or unsupported KOPRUQ project file.')
+    const missing = goodFileJson(); delete missing.families.BEARING; expect(() => validateProjectFile(missing)).toThrow('Missing family data: BEARING')
+    const badModule = goodFileJson(); badModule.modules.seismicInputs = { a: 5 }; expect(() => validateProjectFile(badModule)).toThrow('Invalid project data in file: seismicInputs')
+    const badWind = goodFileJson(); badWind.modules.windLoads = { schemaVersion: 1 }; expect(() => validateProjectFile(badWind)).toThrow('Invalid wind load data in project file.')
+    const badGraph = goodFileJson(); badGraph.graph.activeGraphId = 'nope'; expect(() => validateProjectFile(badGraph)).toThrow('Active graph is missing.')
+    const emptyGraph = goodFileJson(); emptyGraph.graph.graphs = []; expect(() => validateProjectFile(emptyGraph)).toThrow('Invalid graph data.')
+  })
+  it('lists several problems and not only the first one', () => {
+    const json = goodFileJson(); json.projectState.bridges = [{}]
+    let text = ''; try { validateProjectFile(json) } catch (error) { text = (error as Error).message }
+    expect(text).toMatch(/bridges\[0\]\.no/); expect(text).toMatch(/bridges\[0\]\.km/)
+  })
+})
+describe('older project files keep opening (compatibility)', () => {
+  it('fills missing environment, criteria and coordinate from the defaults', async () => {
+    const json = goodFileJson(); delete json.projectState.project.environment; delete json.projectState.project.criteria; delete json.projectState.project.coordinate
+    const read = await readProjectFile(asFile(json))
+    expect(read.projectState.project.environment).toEqual(INITIAL_PROJECT.environment); expect(read.projectState.project.criteria).toEqual(INITIAL_PROJECT.criteria); expect(read.projectState.project.coordinate).toEqual(INITIAL_PROJECT.coordinate)
+  })
+  it('fills missing definition fields with the definition defaults', async () => {
+    const json = goodFileJson(); const bare = json.bridgeDefinitions.definitions['VIA-01']; delete bare.viewMode; delete bare.terrainVisible; delete bare.constraints; delete bare.abutmentFamilyIds; delete bare.axisAssignments
+    const read = await readProjectFile(asFile(json)); const defaults = createBridgeDefinition(INITIAL_BRIDGES[0])
+    const filled = read.bridgeDefinitions.definitions['VIA-01']
+    expect(filled.viewMode).toBe(defaults.viewMode); expect(filled.terrainVisible).toBe(defaults.terrainVisible); expect(filled.constraints).toEqual([]); expect(filled.abutmentFamilyIds).toEqual({ A1: null, A2: null })
+  })
+  it('assigns ids to bridges that have none', async () => {
+    const json = goodFileJson(); json.projectState.bridges.forEach((bridge: Json) => { delete bridge.id })
+    const read = await readProjectFile(asFile(json)); expect(read.projectState.bridges.every((bridge) => typeof bridge.id === 'string' && bridge.id.length > 0)).toBe(true)
+  })
+  it('opens graph documents without groups, a file without modules and the legacy box pier migration', async () => {
+    const json = goodFileJson(); delete json.graph.graphs[0].groups; delete json.modules
+    json.graph.graphs[0].nodes.push({ id: 'box', type: 'substructure.pier.box', name: 'Box', position: { x: 1, y: 1 }, parameters: { twValue: 0.4, twUnit: 'm' } })
+    const read = await readProjectFile(asFile(json))
+    const box = read.graph.graphs[0].nodes.find((node) => node.id === 'box')!
+    expect(box.parameters.wxValue).toBe(0.4); expect(box.parameters.twValue).toBeUndefined(); expect(read.modules).toEqual({})
+  })
+  it('accepts the legacy pier types and unknown extra fields on family records', () => {
+    const json = goodFileJson(); json.families.PIER = [{ id: 'p1', pierType: 'H_TYPE', futureField: { a: 1 } }, { id: 'p2', pierType: 'WALL' }]
+    expect(() => validateProjectFile(json)).not.toThrow()
+  })
+  it('does not add numeric range rules: zero, negative and fractional numbers pass', () => {
+    const json = goodFileJson(); json.projectState.bridges[0].estimatedLengthM = -1; json.projectState.bridges[0].roadWidthM = 0; json.projectState.bridges[0].spansM = [0, -5, 1.5]
+    expect(() => validateProjectFile(json)).not.toThrow()
   })
 })

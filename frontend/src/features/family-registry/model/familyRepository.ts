@@ -3,6 +3,8 @@
  * Storage keys and payload shapes are intentionally preserved so current
  * projects and bridge familyId references remain backward compatible.
  */
+import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
+
 export type FamilyRepositoryCategory = 'PIER' | 'PIER_CAP' | 'FOUNDATION' | 'BEARING' | 'MATERIAL'
 export type FamilyRecord = { id: string; name?: string }
 export type FamilyParameterDescriptor = { key: string; label: string; dataType: 'number' | 'integer' | 'string' | 'boolean'; unit?: string; editable: boolean; derived: boolean }
@@ -15,16 +17,22 @@ const CATALOGS: Record<FamilyRepositoryCategory, { key: string; event: string }>
   MATERIAL: { key: 'kopruq.project-design-system.material-assignments', event: 'kopruq:material-catalog-changed' },
 }
 
+export const FAMILY_CATEGORIES = Object.keys(CATALOGS) as FamilyRepositoryCategory[]
+/** localStorage key of a family catalog; the only place these keys are defined. */
+export function familyStorageKey(category: FamilyRepositoryCategory): string { return CATALOGS[category].key }
+
+export const PRECAST_GIRDER_STORAGE_KEY = 'kopruq.girder-library.precast'
+
 /** Adapter over Girder Library's existing singleton payload; keeps its legacy shape and key. */
 export function getPrecastGirderDefinition<T>(fallback: T): T {
-  try { return (JSON.parse(localStorage.getItem('kopruq.girder-library.precast') ?? 'null') as T | null) ?? fallback } catch { return fallback }
+  try { return (JSON.parse(localStorage.getItem(PRECAST_GIRDER_STORAGE_KEY) ?? 'null') as T | null) ?? fallback } catch { return fallback }
 }
 export function savePrecastGirderDefinition(value: unknown): boolean {
   try {
     const text = JSON.stringify(value)
-    if (localStorage.getItem('kopruq.girder-library.precast') === text) return true // unchanged: no event, so remount-time writes do not mark the project dirty
-    localStorage.setItem('kopruq.girder-library.precast', text)
-    if (typeof window !== 'undefined') { window.dispatchEvent(new Event('kopruq:girder-catalog-changed')); window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'girder' } })) }
+    if (localStorage.getItem(PRECAST_GIRDER_STORAGE_KEY) === text) return true // unchanged: no event, so remount-time writes do not mark the project dirty
+    localStorage.setItem(PRECAST_GIRDER_STORAGE_KEY, text)
+    if (typeof window !== 'undefined') { window.dispatchEvent(new Event('kopruq:girder-catalog-changed')); window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'girder' } })) }
     return true
   } catch { return false }
 }
@@ -45,7 +53,7 @@ export function getFamilyRecord<T extends FamilyRecord>(category: FamilyReposito
 export function saveFamilyRecords<T extends FamilyRecord>(category: FamilyRepositoryCategory, records: T[]): boolean {
   try {
     localStorage.setItem(CATALOGS[category].key, JSON.stringify(records))
-    if (typeof window !== 'undefined') { window.dispatchEvent(new Event(CATALOGS[category].event)); window.dispatchEvent(new CustomEvent('kopruq:project-data-changed', { detail: { source: 'family' } })) }
+    if (typeof window !== 'undefined') { window.dispatchEvent(new Event(CATALOGS[category].event)); window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'family' } })) }
     return true
   } catch { return false }
 }

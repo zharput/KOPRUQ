@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import type { PreferredSpanRule } from '../../features/preferred-span/model/types'
 import type { Lm1Parameters } from '../../features/loads/api/trafficLoadsService'
-import { savePrecastGirderDefinition } from '../../features/family-registry/model/familyRepository'
+import { PRECAST_GIRDER_STORAGE_KEY, savePrecastGirderDefinition } from '../../features/family-registry/model/familyRepository'
+import { PROJECT_DATA_CHANGED_EVENT } from './projectDataEvents'
 
 /**
  * Single list of project-scoped data that lives in localStorage and must travel
@@ -11,7 +12,6 @@ import { savePrecastGirderDefinition } from '../../features/family-registry/mode
  * `kopruq:project-module-changed` (subscribers such as `useProjectModule`).
  */
 export const PROJECT_MODULE_CHANGED_EVENT = 'kopruq:project-module-changed'
-const DATA_CHANGED_EVENT = 'kopruq:project-data-changed'
 
 const number = z.number()
 const girderLibrarySchema = z.union([z.array(z.unknown()), z.object({}).passthrough()])
@@ -40,7 +40,7 @@ export type ProjectModule<T> = {
 function emit(id: string) {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new CustomEvent(PROJECT_MODULE_CHANGED_EVENT, { detail: { id } }))
-  window.dispatchEvent(new CustomEvent(DATA_CHANGED_EVENT, { detail: { source: 'module', id } }))
+  window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'module', id } }))
 }
 
 function createModule<S extends z.ZodTypeAny>(id: string, key: string, schema: S, custom?: { write?: (value: z.infer<S>) => boolean; reset?: () => boolean }): ProjectModule<z.infer<S>> {
@@ -73,7 +73,7 @@ function createModule<S extends z.ZodTypeAny>(id: string, key: string, schema: S
 }
 
 export const PROJECT_MODULES = {
-  girderLibrary: createModule('girderLibrary', 'kopruq.girder-library.precast', girderLibrarySchema, { write: (value) => savePrecastGirderDefinition(value), reset: () => savePrecastGirderDefinition([]) }),
+  girderLibrary: createModule('girderLibrary', PRECAST_GIRDER_STORAGE_KEY, girderLibrarySchema, { write: (value) => savePrecastGirderDefinition(value), reset: () => savePrecastGirderDefinition([]) }),
   preferredSpanRules: createModule('preferredSpanRules', 'kopruq.project-design-system.girder-span-rules', preferredSpanRulesSchema),
   seismicInputs: createModule('seismicInputs', 'kopruq.seismic', seismicInputsSchema),
   windInputs: createModule('windInputs', 'kopruq.wind-load.inputs', windInputsSchema),
@@ -91,20 +91,4 @@ export const PROJECT_MODULE_IDS = Object.keys(PROJECT_MODULES) as ProjectModuleI
 export const PROJECT_MODULE_LABELS: Record<ProjectModuleId, string> = {
   girderLibrary: 'Girder library', preferredSpanRules: 'Preferred span rules', seismicInputs: 'Seismic inputs', windInputs: 'Wind inputs',
   temperatureInputs: 'Temperature inputs', crossSectionValues: 'Cross section', selfWeightInputs: 'Self weight', trafficLm1: 'Traffic LM1',
-}
-
-/** Raw localStorage snapshot of every module key, used for rollback while applying a project file. */
-export function snapshotModuleStorage(): Record<string, string | null> {
-  return Object.fromEntries(PROJECT_MODULE_IDS.map((id) => [PROJECT_MODULES[id].key, localStorage.getItem(PROJECT_MODULES[id].key)]))
-}
-export function restoreModuleStorage(snapshot: Record<string, string | null>): void {
-  const failed: string[] = []
-  for (const [key, value] of Object.entries(snapshot)) {
-    try {
-      if (localStorage.getItem(key) === value) continue
-      if (value == null) localStorage.removeItem(key); else localStorage.setItem(key, value)
-    } catch { failed.push(key) }
-  }
-  if (typeof window !== 'undefined') for (const id of PROJECT_MODULE_IDS) window.dispatchEvent(new CustomEvent(PROJECT_MODULE_CHANGED_EVENT, { detail: { id } }))
-  if (failed.length) throw new Error(`Unable to restore project data: ${failed.join(', ')}`)
 }

@@ -12,6 +12,7 @@ import WorkspaceLayout from '../../../app/layout/WorkspaceLayout'
 import { familyChangedEvent, getFamilies, getFamilyReferences, publishFamilySelection, type FamilyCategory, type FamilyRegistryRecord, type FamilySelection } from '../../family-registry/model/registry'
 import type { BridgeRow } from '../../project/model/types'
 import { readProjectState } from '../../project/model/projectWorkspace'
+import { GRAPH_DOCUMENTS_STORAGE_KEY } from '../../graph/state/graphStore'
 import { getFamilySnapshots } from '../../graph/family/familySnapshotStore'
 import type { FamilyCategory as GraphFamilyCategory, FamilyCalculationSnapshot } from '../../graph/family/familyResults'
 import { familyCandidateDisplayIds, familyGroups, candidateColumns, cellValue, filterFamilyCandidates, paginateAlternatives } from '../model/graphFamilyPresentation'
@@ -37,7 +38,7 @@ export default function FamilyTablesWorkspace({ crossSectionValues, setCrossSect
   const [snapshots, setSnapshots] = useState<FamilyCalculationSnapshot[]>([])
   const [projectUnits, setProjectUnits] = useState(() => readProjectState([]).project.units)
   const graphCategory = category as unknown as GraphFamilyCategory
-  const refreshSnapshots = () => { const graph = typeof localStorage === 'undefined' ? undefined : (() => { try { return JSON.parse(localStorage.getItem('kopruq.graph.documents.v1') ?? 'null') as { graphs?: { id: string; bridgeId?: string }[] } | null } catch { return null } })(); const document = graph?.graphs?.find(item => item.bridgeId === bridgeId); setSnapshots(document ? getFamilySnapshots(bridgeId, document.id) : []) }
+  const refreshSnapshots = () => { const graph = typeof localStorage === 'undefined' ? undefined : (() => { try { return JSON.parse(localStorage.getItem(GRAPH_DOCUMENTS_STORAGE_KEY) ?? 'null') as { graphs?: { id: string; bridgeId?: string }[] } | null } catch { return null } })(); const document = graph?.graphs?.find(item => item.bridgeId === bridgeId); setSnapshots(document ? getFamilySnapshots(bridgeId, document.id) : []) }
   useEffect(() => { if (!bridges.some(item => item.id === bridgeId)) setBridgeId(bridges[0]?.id ?? '') }, [bridges, bridgeId])
   useEffect(() => { refreshSnapshots(); window.addEventListener('kopruq:family-snapshots-changed', refreshSnapshots); return () => window.removeEventListener('kopruq:family-snapshots-changed', refreshSnapshots) }, [bridgeId])
   useEffect(() => { const refreshUnits = () => setProjectUnits(readProjectState([]).project.units); window.addEventListener('kopruq:project-units-changed', refreshUnits); return () => window.removeEventListener('kopruq:project-units-changed', refreshUnits) }, [])

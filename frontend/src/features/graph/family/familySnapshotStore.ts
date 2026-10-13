@@ -1,4 +1,4 @@
-import type { FamilyCalculationSnapshot, FamilyCategory, SnapshotFreshness } from './familyResults'
+import { currentFreshness, type FamilyCalculationSnapshot, type FamilyCategory, type SnapshotFreshness } from './familyResults'
 
 const snapshots = new Map<string, FamilyCalculationSnapshot>()
 const key = (bridgeId: string, graphDocumentId: string, sourceNodeId: string, category?: FamilyCategory) => [bridgeId, graphDocumentId, sourceNodeId, category ?? ''].join('|')
@@ -11,7 +11,11 @@ export function publishFamilySnapshots(items: readonly FamilyCalculationSnapshot
   for (const item of items) snapshots.set(key(item.bridgeId, item.graphDocumentId, item.sourceNodeId, item.familyCategory), item)
   notify()
 }
-export function getFamilySnapshots(bridgeId: string, graphDocumentId: string) { return [...snapshots.values()].filter(item => item.bridgeId === bridgeId && item.graphDocumentId === graphDocumentId) }
+/** With `currentFingerprint`, returns copies whose freshness is derived at read time; the store is not mutated. */
+export function getFamilySnapshots(bridgeId: string, graphDocumentId: string, currentFingerprint?: string) {
+  const found = [...snapshots.values()].filter(item => item.bridgeId === bridgeId && item.graphDocumentId === graphDocumentId)
+  return currentFingerprint === undefined ? found : found.map(item => ({ ...item, freshness: currentFreshness(item, currentFingerprint) }))
+}
 export function getFamilySnapshot(bridgeId: string, graphDocumentId: string, sourceNodeId: string) { return getFamilySnapshots(bridgeId, graphDocumentId).find(item => item.sourceNodeId === sourceNodeId) }
 export function getFamilyAlternatives(bridgeId: string, graphDocumentId: string, category: FamilyCategory) { return getFamilySnapshots(bridgeId, graphDocumentId).filter(item => item.familyCategory === category).flatMap(item => item.candidates) }
 export function markFamilySnapshotsStale(bridgeId: string, graphDocumentId: string, fingerprint: string) {

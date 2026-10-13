@@ -4,6 +4,7 @@ import { convertQuantity, getDisplayUnit, getUnit, toDisplayValue, type Quantity
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getNodeDefinition, previewDesignOutput, previewBearingStatistics, previewFoundationStatistics, previewPierCapStatistics } from '../registry/nodeRegistry'
 import { useState } from 'react'
+import { isCandidateValid, summarizeValidation } from '../family/familyResults'
 import EditableNumericInput from './EditableNumericInput'
 import { EngineeringSchematic } from './EngineeringSchematics'
 import MaterialSelector from './MaterialSelector'
@@ -23,28 +24,29 @@ type Props = {
 }
 
 export default function EngineeringNodeInspector(props: Props) {
-  const { node, states, errors, outputs, resolvedInputs, previewInputs, connections, projectUnits, onNodeChange, onParameterChange } = props
+  const { node, errors, outputs, resolvedInputs, previewInputs, connections, projectUnits, onNodeChange, onParameterChange } = props
   const definition = getNodeDefinition(node.type)
   const schema = definition?.engineeringInspector
   if (!definition || !schema) return <p role="alert">Engineering Inspector metadata is unavailable.</p>
   const inputs = Object.fromEntries(Object.entries(previewInputs).flatMap(([key, item]) => item.value === undefined ? [] : [[key, item.value]]))
   let candidateValue: GraphValue | undefined
-  try { candidateValue = previewDesignOutput(node, 'candidates', inputs) ?? outputs[node.id]?.candidates } catch { candidateValue = outputs[node.id]?.candidates }
+  let previewError: string | undefined
+  try { candidateValue = previewDesignOutput(node, 'candidates', inputs) ?? outputs[node.id]?.candidates } catch (error) { previewError = error instanceof Error ? error.message : String(error); candidateValue = outputs[node.id]?.candidates }
   const candidates = Array.isArray(candidateValue) ? candidateValue : []
   let stats: { generatedCombinations?: number; invalidCombinations?: number } | undefined
   try {
     if (schema.schematic === 'pier-cap') stats = previewPierCapStatistics(node, inputs, candidates.length)
     else if (schema.schematic === 'foundation') stats = previewFoundationStatistics(node, inputs, candidates.length)
     else if (schema.schematic === 'bearing') stats = previewBearingStatistics(node, inputs, candidates.length)
-    else stats = { generatedCombinations: Number(outputs[node.id]?.generatedCombinations ?? candidates.length), invalidCombinations: Number(outputs[node.id]?.invalidCombinations ?? 0) }
-  } catch { /* validation state below already reports the failure */ }
+    else if (outputs[node.id]) stats = { generatedCombinations: Number(outputs[node.id]?.generatedCombinations ?? candidates.length), ...(typeof outputs[node.id]?.invalidCombinations === 'number' ? { invalidCombinations: Number(outputs[node.id]?.invalidCombinations) } : {}) }
+  } catch (error) { previewError ??= error instanceof Error ? error.message : String(error) }
+  const validCount = candidates.filter(isCandidateValid).length, validation = errors[node.id] ? 'FAILED' : previewError && !candidates.length ? 'FAILED' : summarizeValidation(candidates)
   const connected = new Set(connections.filter(edge => edge.targetNodeId === node.id).map(edge => edge.targetPortId))
   const inputById = new Map(definition.inputs.map(input => [input.id, input]))
   const orderedInputs = schema.parameterOrder.map(id => inputById.get(id)).filter((item): item is NonNullable<typeof item> => !!item)
   const displayedInputs = node.type === 'structural.girder.precast'
     ? ['H', 'tf', 'bf', 'w', 'th1', 'bh1', 'th2', 'bh2', 'material'].map(id => inputById.get(id)).filter((item): item is NonNullable<typeof item> => !!item)
     : orderedInputs
-  const state = states[node.id] ?? 'idle'
   if (schema.schematic === 'abutment') return <AbutmentInspector node={node} candidate={candidates[0] as import('../domain/abutmentCandidates').AbutmentCandidate | undefined} connected={connected} previewInputs={previewInputs} projectUnits={projectUnits} onParameterChange={onParameterChange} onNodeChange={onNodeChange} errors={errors[node.id]} />
   return <div className="spn-graph-inspector spn-engineering-inspector">
     <section className="spn-engineering-general"><h3>GENERAL</h3><label>Name<input className="spn-input" value={node.name} onChange={event => onNodeChange(node.id, { name: event.target.value })} /></label><div className="spn-graph-inspector-row"><span>Type</span><strong>{definition.label}</strong></div>{errors[node.id] && <p className="spn-graph-inspector-error">{errors[node.id]}</p>}</section>
@@ -62,8 +64,14 @@ export default function EngineeringNodeInspector(props: Props) {
           : <div className="spn-engineering-controls">{input.id === 'material' ? <MaterialSelector steel={node.type.endsWith('.steel')} value={String(node.parameters.materialId ?? (node.type.endsWith('.steel') ? 'S355' : 'C40/50'))} onChange={value => onParameterChange(node.id, 'materialId', value)} /> : descriptors.map(descriptor => <ParameterControl key={descriptor.key} node={node} descriptor={descriptor} projectUnits={projectUnits} onChange={onParameterChange} />)}</div>}
       </div>
     })}</section>
-    <section className="spn-engineering-family"><h3>FAMILY</h3><div className="spn-graph-inspector-row"><span>Candidate Count</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Valid</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Invalid</span><strong>{stats?.invalidCombinations ?? 0}</strong></div><div className="spn-graph-inspector-row"><span>Validation</span><strong className={`state-${errors[node.id] ? 'error' : state}`}>{errors[node.id] ? 'FAILED' : candidates.length ? 'VALID' : 'NO VALID CANDIDATES'}</strong></div></section>
+    <section className="spn-engineering-family"><h3>FAMILY</h3>{previewError && <p role="alert" className="spn-graph-inspector-error">{previewError}</p>}<div className="spn-graph-inspector-row"><span>Candidate Count</span><strong>{candidates.length}</strong></div><div className="spn-graph-inspector-row"><span>Valid</span><strong>{validCount}</strong></div><div className="spn-graph-inspector-row"><span>Invalid</span><strong>{stats?.invalidCombinations ?? '—'}</strong></div><div className="spn-graph-inspector-row"><span>Validation</span><strong className={validationClass(validation)}>{validation}</strong></div></section>
   </div>
+}
+
+/** Colour class from the displayed validation text (not the node run state): only VALID is success; any other status stays neutral (`state-idle` has no colour rule). */
+function validationClass(validation: string): string {
+  if (validation === 'VALID') return 'state-success'
+  return validation === 'FAILED' || validation === 'INVALID' || validation === 'ERROR' ? 'state-error' : 'state-idle'
 }
 
 function AbutmentInspector({ node, candidate, connected, previewInputs, projectUnits, onParameterChange, onNodeChange, errors }: { node: KopruqNode; candidate?: import('../domain/abutmentCandidates').AbutmentCandidate; connected: Set<string>; previewInputs: Props['previewInputs']; projectUnits?: ProjectUnitPreferences; onParameterChange: Props['onParameterChange']; onNodeChange: Props['onNodeChange']; errors?: string }) {

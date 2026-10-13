@@ -1848,3 +1848,12 @@ Frontend-only data-integrity fixes (details in `docs/architecture.md`, "FRONTEND
 - [x] T6 Precast candidate finiteness check and `INCOMPLETE` status - C-005-02.
 - [x] T7 Assembly status propagation and no A2 fallback - C-005-03.
 - [ ] Deferred, waiting for the engineer: C-005-01 (precast `Wy`), C-016-01 (sweep rounding), A-05 (Graph precast name mapping). Not planned: C-009-01, C-005-04.
+
+## G2 stale/valid track (2026-10-13)
+
+Frontend-only presentation fixes so that a stale result is never shown as valid (plan and evidence in `docs/features/g2/`). No backend change, no new dependency, no engineering value added.
+
+- [x] C-006-04 Family freshness derived at read time from the graph store and project units.
+- [x] C-007-04 Inspector FAMILY section derives Valid/Validation from candidate status; preview error visible; unknown Invalid shown as a dash.
+- [x] C-010-04 Wind hides the previous result while STALE; snapshot kept.
+- [ ] Flagged, not part of G2: H-006-c (`FamilyWorkspaceShell` badge uses the active graph), canvas footer "valid" count (`EngineeringNodeShell.tsx`), abutment shell (C-008-01 remainder), dead `CandidateTable` in `EngineeringNodeInspector.tsx`, A-05, C-007-05, C-007-07, `FamilyTablesWorkspace.tsx` dead screen, Wind Details "Status: INVALID" when no snapshot exists.

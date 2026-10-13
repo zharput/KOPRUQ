@@ -1,0 +1,3 @@
+g2 bulguları için feature planlaması yaparmısın
+
+Koordinatör notu (kullanıcı konuşmasından): "G2" = Stale/Valid durumu grubu: C-006-04, C-007-04, C-010-04 (frontend review docs/reviews/2026-10-11T14-19-35Z). Ekran görüntülerindeki kalan durumlar: C-006-04 (Family ekranı stale rozeti gösteriyor ama Graph ekranı açık değilken yapılan değişiklikte tazelik yeniden hesaplanmıyor), C-007-04 (kirli Graph için eski Run çıktısı gizleniyor ama Inspector adayların tamamını hâlâ "Valid" sayabiliyor), C-010-04 (Wind eski sonucu STALE işaretliyor ama Details eski girdileri gösteriyor, eski sonuç özeti yeni girdilerin altında görünmeye devam ediyor). Mühendislik sabiti, birim veya kural uydurma; karar gerektiren maddeyi NEEDS_INPUT olarak bildir.

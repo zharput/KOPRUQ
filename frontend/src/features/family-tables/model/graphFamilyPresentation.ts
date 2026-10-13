@@ -1,4 +1,4 @@
-import type { FamilyCalculationSnapshot, FamilyCategory, FamilyAlternative } from '../../graph/family/familyResults'
+import { candidateValidationStatus, isCandidateValid, type FamilyCalculationSnapshot, type FamilyCategory, type FamilyAlternative } from '../../graph/family/familyResults'
 import { getDisplayUnit, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type ProjectUnits, type QuantityKind } from '../../graph/domain/quantities'
 
 export const FAMILY_GROUPS: readonly FamilyCategory[] = ['SPAN_ARRANGEMENT', 'GIRDER', 'SUPERSTRUCTURE', 'PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'ABUTMENT']
@@ -88,8 +88,8 @@ export function cellValue(alternative: FamilyAlternative, key: string, units: Pr
   return value == null ? '—' : JSON.stringify(value)
 }
 
-function validationOf(item: FamilyAlternative) { const data = item.candidateData as unknown as Record<string, unknown>; const value = data.validationStatus ?? (data.validation as Record<string, unknown> | undefined)?.status; return typeof value === 'string' ? value : undefined }
-function isValid(item: FamilyAlternative) { return validationOf(item) === 'VALID' || validationOf(item) === undefined }
+function validationOf(item: FamilyAlternative) { return candidateValidationStatus(item.candidateData) }
+function isValid(item: FamilyAlternative) { return isCandidateValid(item.candidateData) }
 function worstFreshness(values: FamilyCalculationSnapshot['freshness'][]): FamilyCalculationSnapshot['freshness'] { return values.includes('FAILED') ? 'FAILED' : values.includes('STALE') ? 'STALE' : values.includes('INCOMPLETE') ? 'INCOMPLETE' : values.includes('VALID') ? 'VALID' : 'NO_RESULT' }
 function formatNumber(value: number, key: string, units: ProjectUnits) {
   if (['spanCount', 'pierCount', 'girderCount', 'columnCount', 'pileCountX', 'pileCountY'].some(item => key.toLowerCase().includes(item.toLowerCase()))) return String(value)

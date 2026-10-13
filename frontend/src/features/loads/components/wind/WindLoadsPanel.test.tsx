@@ -41,11 +41,36 @@ describe('WindLoadsPanel', () => {
     view.rerender(<Harness deckWidthM={12} />)
     expect(screen.getByText('STALE')).toBeInTheDocument()
   })
-  it('shows the snapshot inputs, not the current inputs, in Details', async () => {
+  it('shows the current inputs and hides the previous results in Details when STALE', async () => {
     respond(VALID); render(<Harness />); await calculate('27', '10')
     await screen.findByText('Wind Actions'); fill('Basic Wind Velocity, vb', '99')
     await userEvent.setup().click(screen.getByRole('button', { name: /Details/ }))
-    expect(screen.getByText('27 m/s')).toBeInTheDocument(); expect(screen.queryByText('99 m/s')).not.toBeInTheDocument()
+    expect(screen.getByText('99 m/s')).toBeInTheDocument(); expect(screen.queryByText('27 m/s')).not.toBeInTheDocument()
+    for (const label of ['qp(z)', 'kr', 'cfx', 'Transverse wind action']) expect(screen.getByText(label).nextElementSibling).toHaveTextContent('—')
+    expect(screen.getByText('Status').nextElementSibling).toHaveTextContent('STALE')
+  })
+  it('hides the previous Summary value while STALE and restores it when the inputs return to the snapshot', async () => {
+    respond(VALID); const onSnapshot = vi.fn(); render(<Harness onSnapshot={onSnapshot} />); await calculate('27', '10')
+    await screen.findByText('12.300 kN/m'); expect(onSnapshot).toHaveBeenCalledTimes(1)
+    fill('Basic Wind Velocity, vb', '30')
+    expect(screen.getByText('STALE')).toBeInTheDocument(); expect(screen.queryByText('12.300 kN/m')).not.toBeInTheDocument()
+    fill('Basic Wind Velocity, vb', '27')
+    expect(screen.getByText('12.300 kN/m')).toBeInTheDocument(); expect(screen.queryByText('STALE')).not.toBeInTheDocument()
+    expect(onSnapshot).toHaveBeenCalledTimes(1)
+  })
+  it('does not show the previous INVALID warning once the inputs changed', async () => {
+    respond(INVALID); render(<Harness />); await calculate('27', '')
+    expect(await screen.findByText(/Wind result is INVALID/)).toBeInTheDocument()
+    fill('Reference Height, ze', '10')
+    expect(screen.getByText('STALE')).toBeInTheDocument(); expect(screen.queryByText(/Wind result is INVALID/)).not.toBeInTheDocument()
+  })
+  it('does not claim the values are from the previous calculation when STALE after an HTTP error', async () => {
+    respond(VALID); render(<Harness />); await calculate('27', '10')
+    await screen.findByText('Wind Actions')
+    respond({ status: 400, code: 'INVALID_REQUEST', message: 'vbMs must be positive' }, 400)
+    await calculate('-1', '10')
+    expect(await screen.findByText(/vbMs must be positive/)).toBeInTheDocument()
+    expect(screen.queryByText(/previous calculation/)).not.toBeInTheDocument()
   })
   it('shows the missing reason and no zero values for an INVALID result', async () => {
     respond(INVALID); render(<Harness />); await calculate('27', '')

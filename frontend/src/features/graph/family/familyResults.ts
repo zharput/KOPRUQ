@@ -53,6 +53,31 @@ export function graphFingerprint(graph: KopruqGraph, units?: ProjectUnits): stri
   return stableStringify({ units: unitsFingerprint(units), id: graph.id, bridgeId: graph.bridgeId ?? null, nodes: graph.nodes.map(({ id, type, parameters }) => ({ id, type, parameters })).sort(byId), connections: graph.connections.slice().sort(byId).map(({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId }) => ({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId })) })
 }
 
+/** Candidate validation status as reported by the candidate itself (`validationStatus ?? validation.status`). */
+export function candidateValidationStatus(data: unknown): string | undefined {
+  const record = data && typeof data === 'object' ? data as Record<string, unknown> : undefined
+  const value = record?.validationStatus ?? (record?.validation as Record<string, unknown> | undefined)?.status
+  return typeof value === 'string' ? value : undefined
+}
+/** A candidate is valid when it reports VALID or reports no status at all. */
+export function isCandidateValid(data: unknown): boolean { const status = candidateValidationStatus(data); return status === 'VALID' || status === undefined }
+/** Summary of the candidates' own statuses: VALID only when all are valid; otherwise the most severe non-valid status (INVALID/ERROR > INCOMPLETE > other). */
+export function summarizeValidation(candidates: unknown[]): string {
+  if (!candidates.length) return 'NO VALID CANDIDATES'
+  const rejected = candidates.filter(item => !isCandidateValid(item)).map(item => candidateValidationStatus(item) ?? '')
+  if (!rejected.length) return 'VALID'
+  return rejected.find(status => status === 'INVALID' || status === 'ERROR') ?? rejected.find(status => status === 'INCOMPLETE') ?? rejected[0]
+}
+
+/**
+ * Read-time freshness. A stored STALE/FAILED stays as is (never upgraded); otherwise a snapshot whose
+ * fingerprint differs from the current graph + project units fingerprint is STALE.
+ */
+export function currentFreshness(snapshot: Pick<FamilyCalculationSnapshot, 'freshness' | 'graphFingerprint'>, currentFingerprint: string | undefined): SnapshotFreshness {
+  if (snapshot.freshness === 'STALE' || snapshot.freshness === 'FAILED') return snapshot.freshness
+  return snapshot.graphFingerprint !== currentFingerprint ? 'STALE' : snapshot.freshness
+}
+
 export function adaptGraphExecutionToFamilySnapshots(graph: KopruqGraph, result: GraphExecutionResult, generatedAt = new Date().toISOString(), units?: ProjectUnits): FamilyCalculationSnapshot[] {
   const fingerprint = graphFingerprint(graph, units)
   return graph.nodes.flatMap(node => familySnapshotsForNode(graph, node, result, fingerprint, generatedAt))

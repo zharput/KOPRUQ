@@ -39,4 +39,32 @@ describe('Family snapshot runtime store', () => {
     markFamilySnapshotsStale('bridge-1', 'graph-1', 'other'); expect(listener).toHaveBeenCalledTimes(1)
     window.removeEventListener('kopruq:family-snapshots-changed', listener)
   })
+
+  describe('read-time freshness derivation', () => {
+    const publish = () => publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(graph, result))
+    it('keeps VALID when the fingerprint matches', () => {
+      publish()
+      expect(getFamilySnapshots('bridge-1', 'graph-1', graphFingerprint(graph))[0].freshness).toBe('VALID')
+    })
+    it('derives STALE for a different fingerprint without mutating the store or emitting an event', () => {
+      publish()
+      const listener = vi.fn(); window.addEventListener('kopruq:family-snapshots-changed', listener)
+      expect(getFamilySnapshots('bridge-1', 'graph-1', 'other')[0].freshness).toBe('STALE')
+      expect(getFamilySnapshots('bridge-1', 'graph-1', undefined)[0].freshness).toBe('VALID')
+      expect(getFamilySnapshot('bridge-1', 'graph-1', 'node-1')?.freshness).toBe('VALID')
+      expect(listener).not.toHaveBeenCalled()
+      window.removeEventListener('kopruq:family-snapshots-changed', listener)
+    })
+    it('never upgrades a stored STALE or FAILED snapshot even when the fingerprint matches', () => {
+      const fingerprint = graphFingerprint(graph)
+      publish(); markFamilySnapshotsStale('bridge-1', 'graph-1', 'other')
+      expect(getFamilySnapshots('bridge-1', 'graph-1', fingerprint)[0].freshness).toBe('STALE')
+      publishFamilySnapshots([{ ...adaptGraphExecutionToFamilySnapshots(graph, result)[0], freshness: 'FAILED' }])
+      expect(getFamilySnapshots('bridge-1', 'graph-1', fingerprint)[0].freshness).toBe('FAILED')
+    })
+    it('returns the stored snapshots unchanged when called without a fingerprint', () => {
+      publish()
+      expect(getFamilySnapshots('bridge-1', 'graph-1')).toEqual(adaptGraphExecutionToFamilySnapshots(graph, result).map(item => ({ ...item, generatedAt: expect.any(String) })))
+    })
+  })
 })

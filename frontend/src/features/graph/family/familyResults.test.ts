@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { GraphExecutionResult, KopruqGraph } from '../domain/types'
-import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from './familyResults'
+import { adaptGraphExecutionToFamilySnapshots, candidateValidationStatus, currentFreshness, graphFingerprint, isCandidateValid, summarizeValidation } from './familyResults'
 import { generatePrecastGirderCandidates } from '../domain/girderCandidates'
 
 const graph = (bridgeId = 'bridge-1', parameter = 3): KopruqGraph => ({ id: 'graph-1', bridgeId, projectId: 'project-1', name: 'Graph', schemaVersion: 1, nodes: [{ id: 'pier-1', type: 'substructure.pier.rectangular', name: 'Pier', position: { x: 10, y: 20 }, parameters: { widthValue: parameter, widthUnit: 'm' } }], connections: [] })
@@ -39,5 +39,50 @@ describe('Family calculation result adapter', () => {
   it('changes the fingerprint when the project units change, but not when a unit label replaces its id', () => {
     expect(graphFingerprint(graph(), { length: 'm' })).not.toBe(graphFingerprint(graph(), { length: 'mm' }))
     expect(graphFingerprint(graph(), { moment: 'kNm' })).toBe(graphFingerprint(graph(), { moment: 'kN·m' }))
+  })
+})
+
+describe('candidate validation helpers', () => {
+  it('reads validationStatus first, then validation.status', () => {
+    expect(candidateValidationStatus({ validationStatus: 'INCOMPLETE', validation: { status: 'VALID' } })).toBe('INCOMPLETE')
+    expect(candidateValidationStatus({ validation: { status: 'INVALID' } })).toBe('INVALID')
+    expect(candidateValidationStatus({})).toBeUndefined()
+    expect(candidateValidationStatus(null)).toBeUndefined()
+  })
+  it('treats only VALID or a missing status as valid', () => {
+    expect(isCandidateValid({ validationStatus: 'INCOMPLETE' })).toBe(false)
+    expect(isCandidateValid({})).toBe(true)
+    expect(isCandidateValid({ validation: { status: 'VALID' } })).toBe(true)
+    expect(isCandidateValid({ validationStatus: 'INVALID' })).toBe(false)
+  })
+})
+
+describe('summarizeValidation (plan 3.2 / D-2 severity order)', () => {
+  const s = (status?: string) => status === undefined ? {} : { validationStatus: status }
+  it('no candidates -> NO VALID CANDIDATES', () => expect(summarizeValidation([])).toBe('NO VALID CANDIDATES'))
+  it('all valid (or statusless) -> VALID', () => {
+    expect(summarizeValidation([s('VALID'), s('VALID')])).toBe('VALID')
+    expect(summarizeValidation([s(), s('VALID')])).toBe('VALID')
+  })
+  it('INVALID outranks INCOMPLETE regardless of order', () => {
+    expect(summarizeValidation([s('VALID'), s('INCOMPLETE'), s('INVALID')])).toBe('INVALID')
+    expect(summarizeValidation([s('INVALID'), s('INCOMPLETE')])).toBe('INVALID')
+  })
+  it('ERROR outranks INCOMPLETE', () => expect(summarizeValidation([s('INCOMPLETE'), s('ERROR')])).toBe('ERROR'))
+  it('INCOMPLETE among valid -> INCOMPLETE', () => expect(summarizeValidation([s('VALID'), s('INCOMPLETE')])).toBe('INCOMPLETE'))
+  it('INCOMPLETE outranks an unknown status, which is shown as-is when alone', () => {
+    expect(summarizeValidation([s('PENDING'), s('INCOMPLETE')])).toBe('INCOMPLETE')
+    expect(summarizeValidation([s('VALID'), s('PENDING')])).toBe('PENDING')
+  })
+})
+
+describe('currentFreshness', () => {
+  it('is monotonic: never upgrades STALE or FAILED, downgrades a mismatch to STALE', () => {
+    expect(currentFreshness({ freshness: 'VALID', graphFingerprint: 'a' }, 'a')).toBe('VALID')
+    expect(currentFreshness({ freshness: 'VALID', graphFingerprint: 'a' }, 'b')).toBe('STALE')
+    expect(currentFreshness({ freshness: 'VALID', graphFingerprint: 'a' }, undefined)).toBe('STALE')
+    expect(currentFreshness({ freshness: 'STALE', graphFingerprint: 'a' }, 'a')).toBe('STALE')
+    expect(currentFreshness({ freshness: 'FAILED', graphFingerprint: 'a' }, 'a')).toBe('FAILED')
+    expect(currentFreshness({ freshness: 'INCOMPLETE', graphFingerprint: 'a' }, 'a')).toBe('INCOMPLETE')
   })
 })

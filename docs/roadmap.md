@@ -1887,3 +1887,14 @@ Frontend-only (plan and evidence in `docs/features/g4/`). No backend change, no 
 - [x] A-08b `shared/project-file` split. `shared` keeps only events, validation, the generic `projectModuleStore` and the generic `useProjectModule(module, fallback)`; the eight project modules are defined by their owning features; the registry, contract, service, `useProjectFile` and recent projects live in `app/project-file/`; wind types in `features/loads/model/windTypes.ts`.
 - [x] `ALLOWED_VIOLATIONS` is empty (R1 23 -> 0, R2 = R4 = 0, R3 90 -> 90). See `docs/architecture.md` G5 track.
 - [ ] Manual checks: open and save a real `.kopruq` project, Recent list, all load panels persist and restore values, Materials dirty indicator.
+
+## Bridge Definition identity fix (2026-10-13)
+
+- [x] A-02 Bridge Definition storage and selection use stable `BridgeRow.id`; renumbering preserves assigned data.
+- [x] Migrate legacy number-keyed localStorage and `.kopruq` definitions, retaining selection; keep current bridge numbers in family reference messages.
+- [x] Regression coverage: renumber/reload, swapped numbers, replacement isolation, old file migration and save/reopen. Frontend: 88 files / 861 tests passed; production build passed; lint exited 0 with existing warnings.
+
+## A-05 Precast geometry contract (2026-10-13)
+
+- [x] Graph `tf/bf/w` inputs convert once to canonical Precast candidate `Btf/Bbf/tw`; preview and Run publish finite section properties. Existing Graph nodes and older candidate snapshots remain readable; candidate IDs from unchanged inputs remain stable.
+- [x] Superstructure, abutment, Graph schematic and Family views consume the same geometry keys. `Wy` formula approval (C-005-01) remains open.

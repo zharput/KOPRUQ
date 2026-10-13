@@ -55,7 +55,7 @@ export default function FoundationFamiliesPanel({ initialFoundationType = 'SHALL
   }
   const remove = (id: string) => {
     const references = getFamilyReferences('FOUNDATION', id)
-    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeId} / ${item.location}`).join(', ')}.`); return }
+    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeNo} / ${item.location}`).join(', ')}.`); return }
     const next = families.filter((item) => item.id !== id); if (!commit(next)) return
     if (selectedId === id) { const nextFamily = next[0]; setSelectedId(nextFamily?.id ?? null); setEmptyFamily(nextFamily ? clone(nextFamily) : blank(initialFoundationType)) }
   }

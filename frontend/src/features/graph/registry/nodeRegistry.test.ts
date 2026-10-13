@@ -53,7 +53,8 @@ describe('Precast girder live preview contract', () => {
     const node = { id: 'g', type: definition.type, name: definition.label, position: { x: 0, y: 0 }, parameters: definition.createDefaultParameters({ length: 'm' }) }
     const preview = previewDesignOutput(node, 'candidates', {}) as unknown[]
     expect(preview).toHaveLength(1)
-    expect(preview[0]).toMatchObject({ geometry: { H: 1.9, tf: 1.5, bf: 0.8, w: 0.2, th1: 0.12, th2: 0.1, bh1: 0.28, bh2: 0.15 }, material: { id: 'C40/50' } })
+    expect(preview[0]).toMatchObject({ geometry: { H: 1.9, Btf: 1.5, Bbf: 0.8, tw: 0.2, th1: 0.12, th2: 0.1, bh1: 0.28, bh2: 0.15 }, material: { id: 'C40/50' }, validationStatus: 'VALID' })
+    expect(Object.values((preview[0] as {sectionProperties: Record<string,number>}).sectionProperties).every(Number.isFinite)).toBe(true)
   })
 })
 

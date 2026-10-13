@@ -30,8 +30,9 @@ const definitionSchema: z.ZodType<Partial<BridgeInstanceDefinition>, z.ZodTypeDe
   viewMode: z.enum(['3D', 'PLAN', 'PROFILE']), terrainVisible: z.boolean(),
 }).partial().passthrough() as unknown as z.ZodType<Partial<BridgeInstanceDefinition>, z.ZodTypeDef, unknown>
 
-export type BridgeDefinitionStoreFileInput = { selectedBridgeId?: string | null; definitions: Record<string, Partial<BridgeInstanceDefinition>> }
+export type BridgeDefinitionStoreFileInput = { keyBy?: 'bridgeId'; selectedBridgeId?: string | null; definitions: Record<string, Partial<BridgeInstanceDefinition>> }
 export const bridgeDefinitionStoreFileSchema: z.ZodType<BridgeDefinitionStoreFileInput, z.ZodTypeDef, unknown> = z.object({
+  keyBy: z.literal('bridgeId').optional(),
   selectedBridgeId: nullableText.optional(),
   definitions: z.record(z.string(), definitionSchema),
 }).passthrough()

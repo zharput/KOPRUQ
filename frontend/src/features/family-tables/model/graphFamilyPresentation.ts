@@ -1,5 +1,6 @@
 import { candidateValidationStatus, isCandidateValid, type FamilyCalculationSnapshot, type FamilyCategory, type FamilyAlternative } from '../../graph/family/familyResults'
 import { getDisplayUnit, getUnit, quantityFromCanonical, toDisplayValue, type PhysicalDimension, type ProjectUnits, type QuantityKind } from '../../graph/domain/quantities'
+import { precastGeometryValue, type PrecastGeometryKey } from '../../graph/domain/precastGeometry'
 
 export const FAMILY_GROUPS: readonly FamilyCategory[] = ['SPAN_ARRANGEMENT', 'GIRDER', 'SUPERSTRUCTURE', 'PIER', 'PIER_CAP', 'FOUNDATION', 'BEARING', 'ABUTMENT']
 export const FAMILY_CANDIDATE_PREFIXES = { GIRDER: 'PG', PIER: 'RP', PIER_CAP: 'RC', FOUNDATION: 'SF', BEARING: 'EB', SUPERSTRUCTURE: 'SS', ABUTMENT: 'AB', SPAN_ARRANGEMENT: 'SA' } as const
@@ -65,7 +66,7 @@ export function candidateColumns(category: FamilyCategory, alternatives: readonl
   else if (category === 'BEARING') columns.push(...['kx', 'ky', 'kz', 'krx', 'kry', 'krz'].map(key => ({ key: `stiffness.${key}`, label: key.toUpperCase() })))
   else if (category === 'PIER_CAP') columns.push(...geometryColumns(rows))
   else if (category === 'FOUNDATION') columns.push(...geometryColumns(rows))
-  else if (category === 'GIRDER') columns.push(...(['H', 'tf', 'bf', 'w', 'th1', 'bh1', 'th2', 'bh2'] as const).filter((key) => rows.some((row) => typeof (row.geometry as Record<string, unknown> | undefined)?.[key] === 'number')).map((key) => ({ key: `geometry.${key}`, label: ({ H: 'H', tf: 'Btf', bf: 'Bbf', w: 'tw', th1: 'th1', bh1: 'bh1', th2: 'th2', bh2: 'bh2' } as Record<string, string>)[key] + ` (${units.length ?? 'm'})` })), { key: 'preferredSpan', label: `Pref. Span (${units.length ?? 'm'})` })
+  else if (category === 'GIRDER') columns.push(...(['H', 'Btf', 'Bbf', 'tw', 'th1', 'bh1', 'th2', 'bh2'] as const).filter((key) => rows.some((row) => typeof precastGeometryValue((row.geometry as Record<string, unknown> | undefined) ?? {}, key) === 'number')).map((key) => ({ key: `geometry.${key}`, label: `${key} (${units.length ?? 'm'})` })), { key: 'preferredSpan', label: `Pref. Span (${units.length ?? 'm'})` })
   else if (category === 'SUPERSTRUCTURE') columns.push(...['deckWidth', 'deckSlabThickness', 'girderCount', 'girderSpacing', 'clearEdgeCantileverLeft'].map(key => ({ key, label: key })))
   else if (category === 'ABUTMENT') columns.push(...geometryColumns(rows), { key: 'seismic.seiW', label: 'Seismic Block Width' })
   columns.push({ key: 'validation', label: 'Validation' })
@@ -80,7 +81,9 @@ function geometryColumns(rows: Record<string, unknown>[], units?: ProjectUnits) 
 export function cellValue(alternative: FamilyAlternative, key: string, units: ProjectUnits = {}, displayIds?: ReadonlyMap<string, string>): string {
   if (key === 'candidateId') return displayIds?.get(alternative.candidateId) ?? getCandidateDisplayId(alternative.candidateId)
   if (key === 'validation') return validationOf(alternative) ?? '—'
-  const value = key.split('.').reduce<unknown>((current, part) => current && typeof current === 'object' ? (current as Record<string, unknown>)[part] : undefined, alternative.candidateData as unknown)
+  const value = key.startsWith('geometry.') && alternative.familyCategory === 'GIRDER'
+    ? precastGeometryValue(((alternative.candidateData as Record<string, unknown>).geometry as Record<string, unknown> | undefined) ?? {}, key.slice(9) as PrecastGeometryKey)
+    : key.split('.').reduce<unknown>((current, part) => current && typeof current === 'object' ? (current as Record<string, unknown>)[part] : undefined, alternative.candidateData as unknown)
   if (key.startsWith('span:')) { const spans = (alternative.candidateData as unknown as Record<string, unknown>).spanLengthsM; return Array.isArray(spans) && typeof spans[Number(key.slice(5))] === 'number' ? toDisplayValue(Number(spans[Number(key.slice(5))]), 'Length', units).toFixed(2) : '—' }
   if (value && typeof value === 'object' && 'id' in value && 'name' in value) return String((value as { name: string }).name)
   if (typeof value === 'number') return formatNumber(value, key, units)

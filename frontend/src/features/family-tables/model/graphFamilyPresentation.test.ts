@@ -31,6 +31,16 @@ describe('graph family presentation', () => {
     const columns = candidateColumns('SPAN_ARRANGEMENT', [{ candidateId: 'a', bridgeId: 'b', graphDocumentId: 'g', sourceNodeId: 's', sourceNodeType: 'span', familyCategory: 'SPAN_ARRANGEMENT', candidateData: { id: 'a', spanLengthsM: [30, 40, 50] } as any }])
     expect(columns.map(column => column.key)).toContain('span:2')
   })
+  it('shows canonical precast dimensions and reads older saved candidate names', () => {
+    const current = { candidateId: 'current', familyCategory: 'GIRDER', candidateData: { geometry: { H: 1.9, Btf: 1.5, Bbf: .8, tw: .2 } } } as any
+    const older = { candidateId: 'older', familyCategory: 'GIRDER', candidateData: { geometry: { H: 1.9, tf: 1.5, bf: .8, w: .2 } } } as any
+    const columns = candidateColumns('GIRDER', [current, older])
+    expect(columns.map((column) => column.key)).toEqual(expect.arrayContaining(['geometry.Btf', 'geometry.Bbf', 'geometry.tw']))
+    expect(cellValue(current, 'geometry.Btf')).toBe('1.50')
+    expect(cellValue(older, 'geometry.Btf')).toBe('1.50')
+    expect(cellValue(older, 'geometry.Bbf')).toBe('0.80')
+    expect(cellValue(older, 'geometry.tw')).toBe('0.20')
+  })
   it('keeps Candidate first and Validation last while omitting redundant type/material columns', () => {
     const columns = candidateColumns('PIER', [{ candidateId: 'x', bridgeId: 'b', graphDocumentId: 'g', sourceNodeId: 's', sourceNodeType: 'pier', familyCategory: 'PIER', candidateData: { id: 'x', pierType: 'RECTANGULAR', material: { name: 'C40/50' }, geometry: { B: 3 }, validationStatus: 'VALID' } } as any])
     expect(columns[0].key).toBe('candidateId')

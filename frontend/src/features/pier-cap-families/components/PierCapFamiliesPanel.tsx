@@ -27,7 +27,7 @@ export default function PierCapFamiliesPanel() {
   }
   const remove = (id: string) => {
     const references = getFamilyReferences('PIER_CAP', id)
-    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeId} / ${item.location}`).join(', ')}.`); return }
+    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeNo} / ${item.location}`).join(', ')}.`); return }
     const next = families.filter((item) => item.id !== id); setFamilies(next); if (selectedId === id) setSelectedId(next[0]?.id ?? '')
   }
   const dimensions = family ? [dimension('capTransverseLength', 'Cap Transverse Length (m)', family.capTransverseLength), dimension('capStructuralHeight', 'Cap Structural Height (m)', family.capStructuralHeight), ...(family.capType === 'T_CAP' ? [dimension('stemWidth', 'Stem Width (m)', family.stemWidth)] : [])] : []

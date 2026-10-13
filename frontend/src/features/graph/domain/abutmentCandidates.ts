@@ -1,6 +1,7 @@
 import type { BearingCandidate, GraphValue } from './types'
 import type { GirderCandidate } from './girderCandidates'
 import type { SuperstructureCandidate } from './superstructureCandidates'
+import { precastGeometryValue } from './precastGeometry'
 
 export type AbutmentValidationStatus = 'VALID' | 'WARNING' | 'ERROR' | 'INCOMPLETE'
 export interface AbutmentCandidate {
@@ -44,7 +45,9 @@ export function generateAbutmentCandidates(input: {
   let invalid = 0
   const candidates = rows.flatMap(row => {
     const girderH = girder?.geometry.H ?? superstructure?.girderHeight
-    const girderBottomFlangeW = girder?.girderType === 'STEEL' ? girder.geometry.Bbf : girder?.geometry.bf ?? superstructure?.girderTopFlangeWidth ?? 0
+    const girderBottomFlangeW = (girder?.girderType === 'STEEL'
+      ? girder.geometry.Bbf
+      : girder ? precastGeometryValue(girder.geometry, 'Bbf') : undefined) ?? superstructure?.girderTopFlangeWidth ?? 0
     const axes = superstructure?.girderAxisPositions ?? []
     const girderCount = superstructure?.girderCount ?? axes.length
     const deckW = superstructure?.deckWidth

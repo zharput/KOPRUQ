@@ -33,7 +33,7 @@ export default function PierFamiliesPanel() {
   const status = statusOfPierFamily(family)
   const deleteFamily = (id: string) => {
     const references = getFamilyReferences('PIER', id)
-    if (references.length) { setDeleteError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeId} / ${item.location}`).join(', ')}.`); return }
+    if (references.length) { setDeleteError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeNo} / ${item.location}`).join(', ')}.`); return }
     const next = families.filter((item) => item.id !== id)
     setFamilies(next); setSelectedId(next[0]?.id ?? '') ; setDeleteError('')
   }

@@ -1,4 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { generateSuperstructureCandidates } from './superstructureCandidates'
+import { generatePrecastGirderCandidates } from './girderCandidates'
 const g:any={id:'g1',girderType:'PRECAST',geometry:{H:1.9,tf:1.5},material:{domainType:'ConcreteMaterial',id:'C40/50',name:'C40/50',properties:{}}}; const c:any={domainType:'ConcreteMaterial',id:'C30/37',name:'C30/37',properties:{}}
 describe('superstructure candidates',()=>{it('calculates clear edge from flange outside edge',()=>{const r=generateSuperstructureCandidates({girders:[g],deckWidth:15,girderCount:6,girderSpacing:2.5,deckSlabThickness:.25,deckConcrete:c});expect(r.generatedCombinations).toBe(1);expect(r.candidates[0].clearEdgeCantileverLeft).toBeCloseTo(.5);expect(r.candidates[0].girderAxisPositions).toHaveLength(6)});it('rejects zero and negative clear edge with exact message',()=>{for(const s of [3,3.1]){const r=generateSuperstructureCandidates({girders:[g],deckWidth:15,girderCount:6,girderSpacing:s,deckSlabThickness:.25,deckConcrete:c});expect(r.candidates).toHaveLength(0);expect(r.invalidMessages).toContain('e yeterli degil !!!')}})})
+
+it('uses canonical Btf from a Graph precast candidate for deck clearance', () => {
+  const girder = generatePrecastGirderCandidates({ geometry: { H: 1.9, tf: 1.5, bf: .8, w: .2, th1: .12, bh1: .28, bh2: .15, th2: .1 }, material: c }).candidates[0]
+  const result = generateSuperstructureCandidates({ girders: [girder], deckWidth: 15, girderCount: 6, girderSpacing: 2.5, deckSlabThickness: .25, deckConcrete: c })
+  expect(result.candidates[0]).toMatchObject({ girderTopFlangeWidth: 1.5, clearEdgeCantileverLeft: .5, validationStatus: 'VALID' })
+  expect(result.candidates[0].girderGeometry).toEqual(girder.geometry)
+})

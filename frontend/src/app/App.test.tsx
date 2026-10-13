@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 import { buildProjectFile, projectFileText } from './project-file/projectFileService'
 import { INITIAL_PROJECT } from '../features/project/model/projectWorkspace'
+import { INITIAL_BRIDGES } from '../features/project/model/types'
+import { assignedAxis, axesFromSpans, createBridgeDefinition } from '../features/bridge-definition/model/store'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../features/graph/state/graphStore'
 vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div className="spn-workspace-layout"><aside aria-label="Node Library"><label htmlFor="search-nodes">Search nodes</label><input id="search-nodes" /></aside><main><h1>Graph Workspace</h1><input aria-label="Graph name" defaultValue="Untitled Graph" /><div className="spn-graph-flow" /></main><aside aria-label="Node Inspector">Node Inspector</aside></div> }))
 
@@ -114,7 +116,7 @@ describe('App workspace shell', () => {
     for (const label of ['Bridge Overview', 'Horizontal Alignment', 'Vertical Alignment', 'Cross Section', 'Terrain Reference', 'Span Layout', 'Axis Definition', 'Type & Assignment', 'Deck Geometry', 'Girder Layout', 'Pier Layout', 'Pier Cap Assignment', 'Abutments', 'Foundation Assignment', 'Soil Reference', 'Bearing Layout', 'Bearing Assignment', 'Construction Method', 'Construction Stages', 'Roads / Railways', 'Rivers', 'Clearances', 'Geometric Constraints', 'Bridge Assembly', 'Validation']) {
       expect(bridgeMenu.getByRole('button', { name: label })).toBeInTheDocument()
     }
-    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveValue('VIA-01')
+    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-01 · Cantilever Bridge')
     expect(screen.getByRole('button', { name: '3D' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Plan' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Profile' })).toBeInTheDocument()
@@ -124,10 +126,10 @@ describe('App workspace shell', () => {
     window.history.pushState({}, '', '/bridge-definition')
     render(<App />)
     const user = userEvent.setup()
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Bridge selector' }), 'VIA-02')
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Bridge selector' }), screen.getByRole('option', { name: /^VIA-02 ·/ }))
     await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
     act(() => { window.history.pushState({}, '', '/bridge-definition'); window.dispatchEvent(new PopStateEvent('popstate')) })
-    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveValue('VIA-02')
+    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-02 · Precast Girder')
   })
 
   it('shows the existing LandXML alignment import inside Bridge Definition', async () => {
@@ -153,8 +155,40 @@ describe('App workspace shell', () => {
     await user.click(screen.getByText('P1'))
     const pierFamily = screen.getByRole('combobox', { name: 'Pier Family' })
     await user.selectOptions(pierFamily, 'PIER-01')
-    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}').definitions['VIA-01'].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
+    const bridgeId = JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').bridges[0].id
+    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}').definitions[bridgeId].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
     expect(JSON.parse(localStorage.getItem('kopruq.project-design-system.pier-families') ?? '[]')).toEqual(pierCatalog)
+  })
+
+  it('preserves legacy bridge assignments after editing its number and reloading', async () => {
+    const bridge = { ...INITIAL_BRIDGES[0], id: 'bridge-1' }
+    const definition = {
+      ...createBridgeDefinition(bridge), spanLengthsM: [30, 40], axes: axesFromSpans([30, 40]), selectedAxisId: 'P1',
+      girderFamilyId: 'GIRDER-1', girderVariantId: 'VARIANT-1',
+      axisAssignments: { P1: assignedAxis({ pierFamilyId: 'PIER-1', foundationFamilyId: 'FOUNDATION-1', bearingFamilyId: 'BEARING-1' }) },
+      abutmentFamilyIds: { A1: 'ABUTMENT-1', A2: 'ABUTMENT-2' },
+    }
+    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: INITIAL_PROJECT, bridges: [bridge] }))
+    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: { ...definition, bridgeId: bridge.no } } }))
+    window.history.pushState({}, '', '/project/bridge-information')
+    const view = render(<App />)
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Edit VIA-01' }))
+    await user.clear(screen.getByRole('textbox', { name: 'No' }))
+    await user.type(screen.getByRole('textbox', { name: 'No' }), 'VIA-99')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    act(() => { window.history.pushState({}, '', '/bridge-definition'); window.dispatchEvent(new PopStateEvent('popstate')) })
+    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveValue(bridge.id)
+    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-99 · Cantilever Bridge')
+    await user.click(within(screen.getByRole('complementary', { name: 'Bridge Definition sections' })).getByRole('button', { name: 'Span Layout' }))
+    expect(screen.getByRole('textbox', { name: 'Selected span lengths' })).toHaveValue('30, 40')
+    const saved = JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}')
+    expect(saved).toEqual({ keyBy: 'bridgeId', selectedBridgeId: bridge.id, definitions: { [bridge.id]: definition } })
+    view.unmount()
+    render(<App />)
+    expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-99 · Cantilever Bridge')
+    expect(screen.getByRole('textbox', { name: 'Selected span lengths' })).toHaveValue('30, 40')
+    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}')).toEqual(saved)
   })
 
   it('opens the existing Loads feature at /loads', async () => {

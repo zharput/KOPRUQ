@@ -10,7 +10,7 @@ export type Json = Record<string, any> // a corruptible JSON document; tests pok
 export function goodFileJson(): Json {
   const bridges = INITIAL_BRIDGES.slice(0, 3).map((bridge, index) => ({ ...bridge, id: `bridge-${index}` }))
   const definitions = ensureBridgeDefinitions({ selectedBridgeId: null, definitions: {} }, bridges)
-  definitions.definitions['VIA-02'] = { ...definitions.definitions['VIA-02'], spanLengthsM: [30, 35], axes: [{ id: 'A1', name: 'A1', type: 'ABUTMENT', chainageM: 0, elevationM: null, skewDegrees: null }, { id: 'P1', name: 'P1', type: 'PIER', chainageM: 30, elevationM: 1, skewDegrees: 0 }, { id: 'A2', name: 'A2', type: 'ABUTMENT', chainageM: 65, elevationM: null, skewDegrees: null }], constraints: [{ id: 'c1', kind: 'RIVER', name: 'River', startChainageM: 1, endChainageM: null, note: '' }] }
+  definitions.definitions['bridge-1'] = { ...definitions.definitions['bridge-1'], spanLengthsM: [30, 35], axes: [{ id: 'A1', name: 'A1', type: 'ABUTMENT', chainageM: 0, elevationM: null, skewDegrees: null }, { id: 'P1', name: 'P1', type: 'PIER', chainageM: 30, elevationM: 1, skewDegrees: 0 }, { id: 'A2', name: 'A2', type: 'ABUTMENT', chainageM: 65, elevationM: null, skewDegrees: null }], constraints: [{ id: 'c1', kind: 'RIVER', name: 'River', startChainageM: 1, endChainageM: null, note: '' }] }
   const graph = createEmptyGraph('G'); graph.nodes.push({ id: 'n1', type: 'math.add', name: 'Add', position: { x: 0, y: 0 }, parameters: { a: 1 } })
   importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] })
   return JSON.parse(projectFileText(buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Good' }, bridges }, definitions)))
@@ -24,8 +24,8 @@ export const REJECTIONS: [string, (f: Json) => void, RegExp][] = [
   ['bridgeType is unknown', (f) => { f.projectState.bridges[0].bridgeType = 'X' }, /projectState\.bridges\[0\]\.bridgeType/],
   ['bridgeDefinitions is empty', (f) => { f.bridgeDefinitions = {} }, /bridgeDefinitions\.definitions/],
   ['definitions is an array', (f) => { f.bridgeDefinitions.definitions = [] }, /bridgeDefinitions\.definitions/],
-  ['an axis is empty', (f) => { f.bridgeDefinitions.definitions['VIA-02'].axes = [{}] }, /bridgeDefinitions\.definitions\.VIA-02\.axes\[0\]/],
-  ['a constraint kind is unknown', (f) => { f.bridgeDefinitions.definitions['VIA-02'].constraints[0].kind = 'LAVA' }, /constraints\[0\]\.kind/],
+  ['an axis is empty', (f) => { f.bridgeDefinitions.definitions['bridge-1'].axes = [{}] }, /bridgeDefinitions\.definitions\.bridge-1\.axes\[0\]/],
+  ['a constraint kind is unknown', (f) => { f.bridgeDefinitions.definitions['bridge-1'].constraints[0].kind = 'LAVA' }, /constraints\[0\]\.kind/],
   ['a family record is null', (f) => { f.families.PIER = [null] }, /families\.PIER\[0\]/],
   ['a family record has no id', (f) => { f.families.PIER = [{ name: 'x' }] }, /families\.PIER\[0\]\.id/],
   ['family ids repeat', (f) => { f.families.PIER = [{ id: 'p' }, { id: 'p' }] }, /families\.PIER.*duplicate id "p"/],

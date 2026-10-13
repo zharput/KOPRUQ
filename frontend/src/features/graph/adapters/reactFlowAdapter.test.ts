@@ -71,12 +71,12 @@ describe('live output availability projection', () => {
   expect(node.data.connectedInputs?.tf.value).toEqual(node.data.connectedInputs?.H.value)
   expect(node.data.previewCandidateCount).toBe(9)
   const candidates = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'watch')!.data.previewValue as unknown as GirderCandidate[]
-  expect(candidates.map(item => [item.geometry.H, item.geometry.tf])).toEqual([
+  expect(candidates.map(item => [item.geometry.H, item.geometry.Btf])).toEqual([
    [1, 1], [1, 1.5], [1, 2],
    [1.5, 1], [1.5, 1.5], [1.5, 2],
    [2, 1], [2, 1.5], [2, 2],
   ])
-  expect(new Set(candidates.map(item => `${item.geometry.H}:${item.geometry.tf}`)).size).toBe(9)
+  expect(new Set(candidates.map(item => `${item.geometry.H}:${item.geometry.Btf}`)).size).toBe(9)
   expect(node.data.executionState).not.toBe('error')
  })
 
@@ -94,12 +94,12 @@ describe('live output availability projection', () => {
   const node = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'girder')!
   const candidates = toReactFlowNodes(graph, { projectUnits: { length: 'm' }, onParameterChange: vi.fn() }).find(item => item.id === 'watch')!.data.previewValue as unknown as GirderCandidate[]
   expect(node.data.previewCandidateCount).toBe(9)
-  expect(candidates.map(item => [item.geometry.H, item.geometry.tf])).toEqual([
+  expect(candidates.map(item => [item.geometry.H, item.geometry.Btf])).toEqual([
    [1, 1], [1, 1.5], [1, 2],
    [1.5, 1], [1.5, 1.5], [1.5, 2],
    [2, 1], [2, 1.5], [2, 2],
   ])
-  expect(new Set(candidates.map(item => `${item.geometry.H}:${item.geometry.tf}`)).size).toBe(9)
+  expect(new Set(candidates.map(item => `${item.geometry.H}:${item.geometry.Btf}`)).size).toBe(9)
   expect(node.data.executionState).not.toBe('error')
  })
 

@@ -3192,3 +3192,17 @@ Feature `g5` (plan and evidence in `docs/features/g5/`; review finding A-08b, th
 Old -> new: `shared/project-file/{projectModules, projectFileTypes, projectDataContract, projectFileService, useProjectFile, recentProjects, projectFileFixtures}.ts` and their tests moved to `app/project-file/` (`projectModules.ts` split as above, `projectFileTypes.ts` lost the wind types).
 
 **Layer rules before -> after:** R1 23 -> 0, R2 0 -> 0, R4 0 -> 0, R3 90 -> 90. `ALLOWED_VIOLATIONS` in `layerRules.test.ts` is now empty. Features never import `app/` or the registry.
+
+## Bridge Definition stable identity fix (2026-10-13)
+
+Bridge Definition records, their `bridgeId` and `selectedBridgeId`, and the workspace selector now use the persistent `BridgeRow.id`. Editing the display `no` preserves spans, support axes, family assignments, construction data and the selected bridge. Graph identity already uses this same ID.
+
+Legacy number-keyed localStorage and `.kopruq` definitions are migrated by `ensureBridgeDefinitions` after project bridge IDs have been normalized. The optional `keyBy: "bridgeId"` discriminator identifies converted records; once converted, lookup never falls back to a display number. This prevents number reuse or swaps from transferring assignments to a different bridge. The localStorage key and top-level file `schemaVersion: 1` remain unchanged; new files include the discriminator. This supports opening old files in the updated app, not opening newly saved files in older app builds. Family deletion messages resolve the stable reference to the current bridge number for display.
+
+Verification: 88 frontend test files / 861 tests passed, including legacy migration, UI renumbering and reload, number swaps, replacement bridge isolation, file save/reopen and reference labels. Production build passed; lint exited 0 with existing warnings. Historical G3/G4 scope notes above remain unchanged. Previously discarded assignments cannot be reconstructed by this migration.
+
+## A-05 Precast geometry contract (2026-10-13)
+
+The Graph precast node keeps its persisted `tf/bf/w` parameters and input port names. `graph/domain/precastGeometry.ts` defines one canonical candidate geometry (`H/Btf/Bbf/tw/th1/bh1/bh2/th2`) and maps legacy names at candidate generation. Precast candidate geometry and section properties now use canonical names; preview and Run share the same generator. Existing Graph input order still determines candidate IDs, preserving IDs for saved nodes. Superstructure and abutment calculations, Graph schematics, and Family tables read canonical names with legacy candidate fallback. The Family technical preview uses the same mapping. This repairs A-05 without changing graph document shape, units, engineering limits or the pending C-005-01 `Wy` formula decision. Historical E2 notes above describe the earlier state.
+
+Regression coverage exercises legacy node inputs, finite candidate properties, metre/millimetre preview parity, superstructure clearance, abutment geometry, Graph schematics and Family dimension columns. The four recorded precast executor golden hashes were updated for the intended candidate payload change.

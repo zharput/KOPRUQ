@@ -21,8 +21,9 @@ export function axesFromSpans(spans: number[], previous: BridgeAxis[] = []): Bri
 }
 
 export function createBridgeDefinition(bridge: BridgeRow): BridgeInstanceDefinition {
+  if (!bridge.id) throw new Error('Bridge definitions require a stable bridge id.')
   return {
-    bridgeId: bridge.no, spanLengthsM: [], axes: [], selectedAxisId: null, superstructureType: bridge.bridgeType,
+    bridgeId: bridge.id, spanLengthsM: [], axes: [], selectedAxisId: null, superstructureType: bridge.bridgeType,
     girderFamilyId: null, girderVariantId: null, girderCount: null, deckWidthOverrideM: null, axisAssignments: {},
     abutmentFamilyIds: { A1: null, A2: null }, constructionMethod: '', constructionStagesNote: '', constraints: [], selectedConstraintId: null,
     viewMode: 'PROFILE', terrainVisible: true,
@@ -31,7 +32,7 @@ export function createBridgeDefinition(bridge: BridgeRow): BridgeInstanceDefinit
 
 function mergeDefinition(bridge: BridgeRow, input?: Partial<BridgeInstanceDefinition>): BridgeInstanceDefinition {
   const initial = createBridgeDefinition(bridge)
-  const definition = { ...initial, ...input, bridgeId: bridge.no, abutmentFamilyIds: { ...initial.abutmentFamilyIds, ...input?.abutmentFamilyIds } }
+  const definition = { ...initial, ...input, bridgeId: initial.bridgeId, abutmentFamilyIds: { ...initial.abutmentFamilyIds, ...input?.abutmentFamilyIds } }
   definition.spanLengthsM = Array.isArray(input?.spanLengthsM) ? input.spanLengthsM.filter((value) => Number.isFinite(value) && value > 0) : []
   definition.axes = axesFromSpans(definition.spanLengthsM, Array.isArray(input?.axes) ? input.axes : [])
   definition.axisAssignments = Object.fromEntries(Object.entries(input?.axisAssignments ?? {}).map(([id, value]) => [id, { ...blankAssignments(), ...value }]))
@@ -42,15 +43,19 @@ function mergeDefinition(bridge: BridgeRow, input?: Partial<BridgeInstanceDefini
 export function readBridgeDefinitionStore(bridges: BridgeRow[]): BridgeDefinitionStore {
   let saved: Partial<BridgeDefinitionStore> = {}
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<BridgeDefinitionStore> } catch { /* empty store */ }
-  const definitions = Object.fromEntries(bridges.map((bridge) => [bridge.no, mergeDefinition(bridge, saved.definitions?.[bridge.no])]))
-  const selectedBridgeId = bridges.some((bridge) => bridge.no === saved.selectedBridgeId) ? saved.selectedBridgeId! : bridges[0]?.no ?? null
-  return { selectedBridgeId, definitions }
+  return ensureBridgeDefinitions(saved, bridges)
 }
 
-export function ensureBridgeDefinitions(store: BridgeDefinitionStore, bridges: BridgeRow[]): BridgeDefinitionStore {
-  const definitions = Object.fromEntries(bridges.map((bridge) => [bridge.no, mergeDefinition(bridge, store.definitions[bridge.no])]))
-  const selectedBridgeId = bridges.some((bridge) => bridge.no === store.selectedBridgeId) ? store.selectedBridgeId : bridges[0]?.no ?? null
-  return { selectedBridgeId, definitions }
+/** Migrates legacy number-keyed records once; normalized records never fall back to display numbers. */
+export function ensureBridgeDefinitions(store: Partial<BridgeDefinitionStore>, bridges: BridgeRow[]): BridgeDefinitionStore {
+  const legacy = store.keyBy !== 'bridgeId'
+  const definitions = Object.fromEntries(bridges.map((bridge) => {
+    const key = legacy ? bridge.no : bridge.id
+    const definition = mergeDefinition(bridge, key === undefined ? undefined : store.definitions?.[key])
+    return [definition.bridgeId, definition]
+  }))
+  const selected = bridges.find((bridge) => (legacy ? bridge.no : bridge.id) === store.selectedBridgeId)
+  return { keyBy: 'bridgeId', selectedBridgeId: selected?.id ?? bridges[0]?.id ?? null, definitions }
 }
 
 export function persistBridgeDefinitionStore(store: BridgeDefinitionStore): void {

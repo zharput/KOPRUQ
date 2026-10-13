@@ -15,6 +15,13 @@ describe('abutment candidate generation', () => {
     expect(result.candidates[0].seismic.seiWClear).toBeCloseTo(-.18)
     expect(result.candidates[0].seismic.status).toBe('VALID')
   })
+  it('reads the same bottom flange from canonical and saved legacy precast candidates', () => {
+    const legacy = generateAbutmentCandidates({ geometry, seiU: .03, girder, superstructure, bearing }).candidates[0]
+    const canonicalGirder = { ...girder, geometry: { H: 1.9, Btf: 1.5, Bbf: .8 } }
+    const current = generateAbutmentCandidates({ geometry, seiU: .03, girder: canonicalGirder, superstructure, bearing }).candidates[0]
+    expect(current.seismic).toEqual(legacy.seismic)
+    expect(current.geometry).toEqual(legacy.geometry)
+  })
 
   it('fans out independent geometry and sei_u ranges without sharing validation state', () => {
     const result = generateAbutmentCandidates({ geometry: { ...geometry, found_d: [14, 18] }, seiU: [.03, .05], girder, superstructure, bearing })

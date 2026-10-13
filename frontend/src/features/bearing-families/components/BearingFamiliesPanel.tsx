@@ -46,7 +46,7 @@ export default function BearingFamiliesPanel() {
   }
   const remove = (id: string) => {
     const references = getFamilyReferences('BEARING', id)
-    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeId} / ${item.location}`).join(', ')}.`); return }
+    if (references.length) { setError(`Cannot delete ${id}; used by ${references.map((item) => `${item.bridgeNo} / ${item.location}`).join(', ')}.`); return }
     const next = families.filter((item) => item.id !== id)
     if (!commitCatalog(next)) return
     if (selectedId === id) setSelectedId(next[0]?.id ?? null)

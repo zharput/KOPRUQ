@@ -55,6 +55,8 @@ export interface BridgeInstanceDefinition {
 }
 
 export interface BridgeDefinitionStore {
+  /** Absent in legacy stores, where keys and selection were display numbers. */
+  keyBy?: 'bridgeId'
   selectedBridgeId: string | null
   definitions: Record<string, BridgeInstanceDefinition>
 }

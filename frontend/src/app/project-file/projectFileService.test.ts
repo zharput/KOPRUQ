@@ -3,7 +3,7 @@ import { applyProjectFile, buildProjectFile, projectFileText, ProjectStorageRoll
 import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspace'
 import { INITIAL_BRIDGES } from '../../features/project/model/types'
 import { goodFileJson, asFile, REJECTIONS, type Json } from './projectFileFixtures'
-import { createBridgeDefinition } from '../../features/bridge-definition/model/store'
+import { createBridgeDefinition, ensureBridgeDefinitions } from '../../features/bridge-definition/model/store'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../../features/graph/state/graphStore'
 import { getFamilyRecords, saveFamilyRecords } from '../../features/family-registry/model/familyRepository'
 
@@ -140,14 +140,37 @@ describe('older project files keep opening (compatibility)', () => {
     expect(read.projectState.project.environment).toEqual(INITIAL_PROJECT.environment); expect(read.projectState.project.criteria).toEqual(INITIAL_PROJECT.criteria); expect(read.projectState.project.coordinate).toEqual(INITIAL_PROJECT.coordinate)
   })
   it('fills missing definition fields with the definition defaults', async () => {
-    const json = goodFileJson(); const bare = json.bridgeDefinitions.definitions['VIA-01']; delete bare.viewMode; delete bare.terrainVisible; delete bare.constraints; delete bare.abutmentFamilyIds; delete bare.axisAssignments
-    const read = await readProjectFile(asFile(json)); const defaults = createBridgeDefinition(INITIAL_BRIDGES[0])
-    const filled = read.bridgeDefinitions.definitions['VIA-01']
+    const json = goodFileJson(); const bare = json.bridgeDefinitions.definitions['bridge-0']; delete bare.viewMode; delete bare.terrainVisible; delete bare.constraints; delete bare.abutmentFamilyIds; delete bare.axisAssignments
+    const read = await readProjectFile(asFile(json)); const defaults = createBridgeDefinition({ ...INITIAL_BRIDGES[0], id: 'bridge-0' })
+    const filled = read.bridgeDefinitions.definitions['bridge-0']
     expect(filled.viewMode).toBe(defaults.viewMode); expect(filled.terrainVisible).toBe(defaults.terrainVisible); expect(filled.constraints).toEqual([]); expect(filled.abutmentFamilyIds).toEqual({ A1: null, A2: null })
   })
   it('assigns ids to bridges that have none', async () => {
-    const json = goodFileJson(); json.projectState.bridges.forEach((bridge: Json) => { delete bridge.id })
-    const read = await readProjectFile(asFile(json)); expect(read.projectState.bridges.every((bridge) => typeof bridge.id === 'string' && bridge.id.length > 0)).toBe(true)
+    const json = goodFileJson()
+    json.bridgeDefinitions = { selectedBridgeId: 'VIA-02', definitions: Object.fromEntries(json.projectState.bridges.map((bridge: Json) => [bridge.no, { ...json.bridgeDefinitions.definitions[bridge.id], bridgeId: bridge.no }])) }
+    json.projectState.bridges.forEach((bridge: Json) => { delete bridge.id })
+    const read = await readProjectFile(asFile(json))
+    expect(read.projectState.bridges.every((bridge) => typeof bridge.id === 'string' && bridge.id.length > 0)).toBe(true)
+    const selected = read.projectState.bridges.find((bridge) => bridge.no === 'VIA-02')!
+    expect(read.bridgeDefinitions.selectedBridgeId).toBe(selected.id)
+    expect(read.bridgeDefinitions.definitions[selected.id!].spanLengthsM).toEqual([30, 35])
+  })
+  it('migrates legacy definitions, then keeps their assignments after renumbering and saving again', async () => {
+    const json = goodFileJson()
+    json.bridgeDefinitions = { selectedBridgeId: 'VIA-02', definitions: Object.fromEntries(json.projectState.bridges.map((bridge: Json) => [bridge.no, { ...json.bridgeDefinitions.definitions[bridge.id], bridgeId: bridge.no }])) }
+    json.bridgeDefinitions.definitions['VIA-02'].girderFamilyId = 'GIRDER-1'
+    json.bridgeDefinitions.definitions['VIA-02'].axisAssignments = { P1: { pierFamilyId: 'PIER-1' } }
+    const migrated = await readProjectFile(asFile(json))
+    const before = migrated.bridgeDefinitions.definitions['bridge-1']
+    const bridges = migrated.projectState.bridges.map((bridge) => bridge.id === 'bridge-1' ? { ...bridge, no: 'VIA-99' } : bridge)
+    const definitions = ensureBridgeDefinitions(migrated.bridgeDefinitions, bridges)
+    const saved = buildProjectFile({ ...migrated.projectState, bridges }, definitions)
+    const reopened = await readProjectFile(asFile(saved))
+    expect(reopened.bridgeDefinitions.keyBy).toBe('bridgeId')
+    expect(reopened.bridgeDefinitions.selectedBridgeId).toBe('bridge-1')
+    expect(reopened.bridgeDefinitions.definitions['bridge-1']).toEqual(before)
+    expect(reopened.bridgeDefinitions.definitions['bridge-1'].axisAssignments.P1.pierFamilyId).toBe('PIER-1')
+    expect(reopened.projectState.bridges[1].no).toBe('VIA-99')
   })
   it('opens graph documents without groups, a file without modules and the legacy box pier migration', async () => {
     const json = goodFileJson(); delete json.graph.graphs[0].groups; delete json.modules

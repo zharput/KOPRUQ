@@ -61,8 +61,8 @@ export default function BridgeDefinitionWorkspace({ bridges, project, store, set
   const navigate = useNavigate()
   const slug = pathname.split('/').slice(2).join('/') || 'overview'
   const selectedItem = NAV.find((item) => item.slug === slug) ?? NAV[0]
-  const bridge = bridges.find((item) => item.no === store.selectedBridgeId) ?? bridges[0]
-  const definition = bridge ? store.definitions[bridge.no] : undefined
+  const bridge = bridges.find((item) => item.id === store.selectedBridgeId) ?? bridges[0]
+  const definition = bridge?.id ? store.definitions[bridge.id] : undefined
   const [catalogs, setCatalogs] = useState(readCatalogs)
   const [spanText, setSpanText] = useState('')
   const [importingAlignment, setImportingAlignment] = useState(false)
@@ -74,14 +74,14 @@ export default function BridgeDefinitionWorkspace({ bridges, project, store, set
     events.forEach((event) => window.addEventListener(event, refresh))
     return () => events.forEach((event) => window.removeEventListener(event, refresh))
   }, [])
-  useEffect(() => { setSpanText(definition?.spanLengthsM.join(', ') ?? '') }, [bridge?.no])
+  useEffect(() => { setSpanText(definition?.spanLengthsM.join(', ') ?? '') }, [bridge?.id])
 
   const axes = definition?.axes ?? []
   const activeAxis = axes.find((axis) => axis.id === definition?.selectedAxisId) ?? axes[0]
   const assignments = activeAxis ? definition?.axisAssignments[activeAxis.id] ?? emptyAssignments() : emptyAssignments()
   const updateDefinition = (patch: Partial<BridgeInstanceDefinition>) => {
     if (!bridge || !definition) return
-    setStore((previous) => ({ ...previous, definitions: { ...previous.definitions, [bridge.no]: { ...definition, ...patch } } }))
+    setStore((previous) => ({ ...previous, definitions: { ...previous.definitions, [definition.bridgeId]: { ...definition, ...patch } } }))
   }
   const updateSelectedAxis = (patch: Partial<AxisFamilyAssignments>) => {
     if (!definition || !activeAxis) return
@@ -161,7 +161,7 @@ export default function BridgeDefinitionWorkspace({ bridges, project, store, set
   }
 
   return <div className="spn-bridge-definition-shell">
-    <aside className="spn-bridge-tree" aria-label="Bridge Definition sections"><label className="spn-field"><span>Bridge</span><select aria-label="Bridge selector" className="spn-input" value={bridge.no} onChange={(event) => selectBridge(event.target.value)}>{bridges.map((item) => <option key={item.no} value={item.no}>{item.no} · {item.bridgeType}</option>)}</select></label>{groups.map((group) => <div key={group.group} className="spn-bd-nav-group"><div>{group.group}</div>{group.items.map((item) => <button key={item.slug} className={item.slug === slug ? 'active' : ''} onClick={() => navigate(item.slug === 'overview' ? '/bridge-definition' : `/bridge-definition/${item.slug}`)}>{item.label}</button>)}</div>)}</aside>
+    <aside className="spn-bridge-tree" aria-label="Bridge Definition sections"><label className="spn-field"><span>Bridge</span><select aria-label="Bridge selector" className="spn-input" value={bridge.id} onChange={(event) => selectBridge(event.target.value)}>{bridges.map((item) => <option key={item.id} value={item.id}>{item.no} · {item.bridgeType}</option>)}</select></label>{groups.map((group) => <div key={group.group} className="spn-bd-nav-group"><div>{group.group}</div>{group.items.map((item) => <button key={item.slug} className={item.slug === slug ? 'active' : ''} onClick={() => navigate(item.slug === 'overview' ? '/bridge-definition' : `/bridge-definition/${item.slug}`)}>{item.label}</button>)}</div>)}</aside>
     <main className="spn-bridge-center">{slug === 'overview' ? <div className="spn-bd-view"><div className="spn-bd-view-toolbar"><div><strong>{bridge.no}</strong><span>{bridge.crossingType} · estimated inventory length {bridge.estimatedLengthM} m</span></div><div className="spn-bd-view-modes">{(['3D', 'PLAN', 'PROFILE'] as BridgeViewMode[]).map((mode) => <button key={mode} className={definition.viewMode === mode ? 'active' : ''} onClick={() => updateDefinition({ viewMode: mode })}>{mode === 'PLAN' ? 'Plan' : mode === 'PROFILE' ? 'Profile' : '3D'}</button>)}</div></div>{definition.viewMode === '3D' ? terrainId && definition.terrainVisible ? <TerrainViewerPanel terrainId={terrainId} landXmlImportId={landXmlImportId} /> : <EmptyState title="3D View" message="No project terrain dataset is loaded. Import terrain from Alignment > Terrain Reference." /> : <BridgeSchematic definition={definition} bridge={bridge} view={definition.viewMode} />}</div> : content}</main>
     <aside className="spn-bridge-inspector" aria-label="Bridge Definition Inspector">
       <header>INSPECTOR</header>

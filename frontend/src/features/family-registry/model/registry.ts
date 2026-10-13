@@ -1,11 +1,12 @@
 export type FamilyCategory = 'SUPERSTRUCTURE' | 'GIRDER' | 'PIER' | 'PIER_CAP' | 'ABUTMENT' | 'FOUNDATION' | 'BEARING' | 'MATERIAL'
 export type FamilyRegistryRecord = { id: string; name: string; category: FamilyCategory; type: string; enabled: boolean | null; summary: string }
-export type FamilyReference = { bridgeId: string; location: string }
+export type FamilyReference = { bridgeId: string; bridgeNo: string; location: string }
 export type FamilySelection = { category: FamilyCategory; id: string | null }
 
 import { PRECAST_DIMENSIONS } from '../../girder-library/model/variants'
 import { familyStorageKey, getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
 import { BRIDGE_DEFINITIONS_STORAGE_KEY } from '../../bridge-definition/model/store'
+import { readProjectState } from '../../project'
 
 const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
   GIRDER: 'kopruq:girder-catalog-changed',
@@ -46,19 +47,21 @@ export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
 
 export function getFamilyReferences(category: FamilyCategory, id: string): FamilyReference[] {
   if (typeof localStorage === 'undefined') return []
-  let stored: { definitions?: Record<string, Record<string, unknown>> } = {}
+  let stored: { keyBy?: 'bridgeId'; definitions?: Record<string, Record<string, unknown>> } = {}
   try { stored = JSON.parse(localStorage.getItem(BRIDGE_DEFINITIONS_STORAGE_KEY) ?? '{}') as typeof stored } catch { return [] }
   const found: FamilyReference[] = []
+  const bridges = readProjectState([]).bridges
   for (const [bridgeId, definition] of Object.entries(stored.definitions ?? {})) {
+    const bridgeNo = stored.keyBy === 'bridgeId' ? bridges.find((bridge) => bridge.id === bridgeId)?.no ?? bridgeId : bridgeId
     const assignments = definition.axisAssignments && typeof definition.axisAssignments === 'object' ? definition.axisAssignments as Record<string, Record<string, unknown>> : {}
     for (const [axisId, assignment] of Object.entries(assignments)) {
       const key = category === 'PIER' ? 'pierFamilyId' : category === 'PIER_CAP' ? 'pierCapFamilyId' : category === 'FOUNDATION' ? 'foundationFamilyId' : category === 'BEARING' ? 'bearingFamilyId' : null
-      if (key && assignment?.[key] === id) found.push({ bridgeId, location: axisId })
+      if (key && assignment?.[key] === id) found.push({ bridgeId, bridgeNo, location: axisId })
     }
-    if (category === 'GIRDER' && (definition.girderFamilyId === id || definition.girderVariantId === id)) found.push({ bridgeId, location: 'Superstructure / Girder' })
+    if (category === 'GIRDER' && (definition.girderFamilyId === id || definition.girderVariantId === id)) found.push({ bridgeId, bridgeNo, location: 'Superstructure / Girder' })
     if (category === 'ABUTMENT') {
       const abutments = definition.abutmentFamilyIds as Record<string, unknown> | undefined
-      for (const axis of ['A1', 'A2']) if (abutments?.[axis] === id) found.push({ bridgeId, location: axis })
+      for (const axis of ['A1', 'A2']) if (abutments?.[axis] === id) found.push({ bridgeId, bridgeNo, location: axis })
     }
   }
   return found

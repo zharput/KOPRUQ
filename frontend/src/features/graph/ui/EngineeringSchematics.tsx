@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react'
 import type { GraphValue, KopruqConnection, KopruqNode } from '../domain/types'
 import type { ProjectUnitPreferences } from '../domain/engineeringInputs'
 import { getUnit } from '../domain/quantities'
+import { canonicalPrecastKey } from '../domain/precastGeometry'
 import type { EngineeringInspectorSchema } from '../registry/nodeRegistry'
 import { displayLength, displayRange, geometryValues } from './engineeringSchematicValues'
 import { bulbTeeGirderPath } from '../../../shared/ui/BulbTeeGirderShape'
@@ -63,8 +64,9 @@ function StaticSuperstructureCard(p: { node: KopruqNode; candidates: GraphValue[
 
 function GirderSchematic({ node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string> }) {
   const steel=node.type.endsWith('.steel'), keys=steel?['H','Btf','ttf','Bbf','tbf','tw']:['H','tf','bf','w','th1','th2','bh1','bh2']
-  const vals=Object.fromEntries(keys.map(key=>[key,dimensionValue(node,candidates,previewInputs,connected,key,key,projectUnits)]))
-  const g=Object.fromEntries(keys.map(key=>[key,representativeMetres(node,candidates,previewInputs,connected,key,key)])) as Record<string,number|undefined>
+  const candidateKey=(key:string)=>steel?key:canonicalPrecastKey(key)
+  const vals=Object.fromEntries(keys.map(key=>[key,dimensionValue(node,candidates,previewInputs,connected,key,key,projectUnits,candidateKey(key))]))
+  const g=Object.fromEntries(keys.map(key=>[key,representativeMetres(node,candidates,previewInputs,connected,key,key,candidateKey(key))])) as Record<string,number|undefined>
   const precastPath=bulbTeeGirderPath({H:g.H??1.9,tf:g.tf??1.5,bf:g.bf??.8,w:g.w??.2,th1:g.th1??.12,th2:g.th2??.1,bh1:g.bh1??.28,bh2:g.bh2??.15})
   return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 250" role="img" aria-label={`${steel?'Steel':'Precast'} girder section schematic`}><path className="engineering-outline" d={steel?'M92 48H208V62H158V132H208V146H92V132H142V62H92Z':precastPath} transform={steel?undefined:'translate(40 48) scale(220 100)'} /><DimensionHorizontal x1={92} x2={208} y={25} toY={48} label={`${steel?'Btf':'tf'} = ${vals[steel?'Btf':'tf']??vals.H}`}/><DimensionVertical y1={48} y2={148} x={236} toX={208} label={`H = ${vals.H}`} compact/><text className="engineering-dimension" x="150" y="184" textAnchor="middle">{steel?`Btf ${vals.Btf} · ttf ${vals.ttf} · Bbf ${vals.Bbf} · tbf ${vals.tbf} · tw ${vals.tw}`:`tf ${vals.tf} · bf ${vals.bf} · w ${vals.w} · th1 ${vals.th1} · th2 ${vals.th2} · bh1 ${vals.bh1} · bh2 ${vals.bh2}`}</text></svg></SchematicCard>
 }
@@ -297,8 +299,8 @@ function BearingSchematic({ node, candidates, previewInputs, connected, projectU
   </svg></SchematicCard>
 }
 
-function dimensionValue(node: KopruqNode, candidates: GraphValue[], previewInputs: Props['previewInputs'], connected: Set<string>, port: string, key: string, projectUnits?: ProjectUnitPreferences) {
-  const fromCandidates=geometryValues(candidates,key)
+function dimensionValue(node: KopruqNode, candidates: GraphValue[], previewInputs: Props['previewInputs'], connected: Set<string>, port: string, key: string, projectUnits?: ProjectUnitPreferences, candidateKey=key) {
+  const fromCandidates=geometryValues(candidates,candidateKey)
   if(fromCandidates.length)return displayRange(fromCandidates,projectUnits)
   if(connected.has(port))return formatInputLength(previewInputs[port]?.value,projectUnits)
   const raw=node.parameters[`${key}Value`]
@@ -306,7 +308,7 @@ function dimensionValue(node: KopruqNode, candidates: GraphValue[], previewInput
   if(typeof raw==='number'&&source?.kind==='length')return displayLength(source.toCanonical(raw),projectUnits)
   return '—'
 }
-function representativeMetres(node:KopruqNode,candidates:GraphValue[],preview:Props['previewInputs'],connected:Set<string>,port:string,key:string){const v=geometryValues(candidates,key)[0];if(v!==undefined)return v;if(connected.has(port))return inputValues(preview[port]?.value)[0];const raw=node.parameters[`${key}Value`],unit=getUnit(String(node.parameters[`${key}Unit`]??'m'));return typeof raw==='number'&&unit?.kind==='length'?unit.toCanonical(raw):undefined}
+function representativeMetres(node:KopruqNode,candidates:GraphValue[],preview:Props['previewInputs'],connected:Set<string>,port:string,key:string,candidateKey=key){const v=geometryValues(candidates,candidateKey)[0];if(v!==undefined)return v;if(connected.has(port))return inputValues(preview[port]?.value)[0];const raw=node.parameters[`${key}Value`],unit=getUnit(String(node.parameters[`${key}Unit`]??'m'));return typeof raw==='number'&&unit?.kind==='length'?unit.toCanonical(raw):undefined}
 function localLengthParameter(node: KopruqNode, key: string) { const raw = node.parameters[`${key}Value`], unit = getUnit(String(node.parameters[`${key}Unit`] ?? 'm')); return typeof raw === 'number' && unit?.kind === 'length' ? unit.toCanonical(raw) : undefined }
 function representativeNumber(p:{node:KopruqNode;candidates:GraphValue[];previewInputs:Props['previewInputs'];connected:Set<string>},port:string,key:string){const v=geometryValues(p.candidates,key)[0];if(v!==undefined)return v;if(p.connected.has(port)){const raw=p.previewInputs[port]?.value;return inputValues(raw)[0]}const value=p.node.parameters[`${key}Value`];return typeof value==='number'?value:undefined}
 function representativeDerived(p:{candidates:GraphValue[]},axis:'Lx'|'Ly'){for(const item of p.candidates){if(typeof item!=='object'||item===null||Array.isArray(item)||!('geometry'in item))continue;const derived=(item.geometry as Record<string,unknown>).derived as Record<string,unknown>|undefined;if(typeof derived?.[axis]==='number')return derived[axis]}return undefined}

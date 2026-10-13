@@ -22,7 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({JpaProjectRepository.class, JpaProjectContentRepository.class, DesignSystemContentStore.class})
+@Import({JpaProjectRepository.class, JpaProjectContentRepository.class, DesignSystemContentStore.class,
+        LoadInputContentStore.class, GraphContentStore.class})
 class JpaProjectContentRepositoryTest {
 
     @Autowired

@@ -18,6 +18,9 @@ import java.util.UUID;
 
 import static com.kopruq.bridge.DesignSystemFixtures.crossSection;
 import static com.kopruq.bridge.DesignSystemFixtures.pierFamilies;
+import static com.kopruq.bridge.LoadGraphFixtures.graph;
+import static com.kopruq.bridge.LoadGraphFixtures.seismic;
+import static com.kopruq.bridge.LoadGraphFixtures.trafficLm1;
 import static com.kopruq.bridge.WorkspaceFixtures.row;
 import static com.kopruq.bridge.WorkspaceFixtures.workspace;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -129,6 +132,53 @@ class ProjectServiceIntegrationTest {
         assertEquals(0, jdbc.queryForObject("select count(*) from family_pier where project_id = ?", Integer.class,
                 created.projectId()));
         assertEquals(0, jdbc.queryForObject("select count(*) from project_section_presence where project_id = ?",
+                Integer.class, created.projectId()));
+    }
+
+    @Test
+    void loadAndGraphPuts_keepWorkspaceDesignSections_andCountAsRevisions() {
+        var created = service.create(workspace("m3", row("a")));
+        UUID id = created.projectId();
+        service.replace(id, 0, pierFamilies());
+
+        service.replace(id, 1, seismic());
+        service.replace(id, 2, trafficLm1());
+        service.replace(id, 3, graph("g-1"));
+        var document = service.document(id);
+
+        assertEquals(4, document.revision());
+        assertEquals(List.of("a"), document.workspace().bridges().stream().map(r -> r.id()).toList());
+        assertEquals(pierFamilies(), document.content().pierFamilies());
+        assertEquals(seismic().inputs(), document.content().loads().seismic());
+        assertEquals(trafficLm1().inputs(), document.content().loads().trafficLm1());
+        assertEquals(null, document.content().loads().wind());
+        assertEquals(List.of(graph("g-1")), document.content().graphs());
+    }
+
+    @Test
+    void workspaceAndDesignPuts_keepLoadsAndGraphs() {
+        var created = service.create(workspace("m3", row("a")));
+        UUID id = created.projectId();
+        service.replace(id, 0, seismic());
+        service.replace(id, 1, graph("g-1"));
+
+        service.replace(id, 2, workspace("renamed", row("b")));
+        service.replace(id, 3, crossSection());
+        var document = service.document(id);
+
+        assertEquals(seismic().inputs(), document.content().loads().seismic());
+        assertEquals(List.of(graph("g-1")), document.content().graphs());
+        assertEquals("renamed", document.workspace().project().name());
+        assertEquals(crossSection().values(), document.content().crossSection());
+    }
+
+    @Test
+    void conflictOnAGraphPut_writesNothing() {
+        var created = service.create(workspace("m3", row("a")));
+
+        assertThrows(RevisionConflictException.class, () -> service.replace(created.projectId(), 5, graph("g-1")));
+
+        assertEquals(0, jdbc.queryForObject("select count(*) from graph_document where project_id = ?",
                 Integer.class, created.projectId()));
     }
 }

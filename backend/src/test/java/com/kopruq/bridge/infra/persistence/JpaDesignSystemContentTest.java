@@ -49,7 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /** The M2 sections through the real adapter on the migrated test database (Flyway + {@code ddl-auto=validate}). */
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({JpaProjectRepository.class, JpaProjectContentRepository.class, DesignSystemContentStore.class})
+@Import({JpaProjectRepository.class, JpaProjectContentRepository.class, DesignSystemContentStore.class,
+        LoadInputContentStore.class, GraphContentStore.class})
 class JpaDesignSystemContentTest {
 
     @Autowired

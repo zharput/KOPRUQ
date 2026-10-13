@@ -8,12 +8,19 @@ import com.kopruq.bridge.model.BridgeInventoryRow;
 import com.kopruq.bridge.model.CrossSectionSection;
 import com.kopruq.bridge.model.FoundationFamilyCatalog;
 import com.kopruq.bridge.model.GirderLibrarySection;
+import com.kopruq.bridge.model.GraphDocument;
 import com.kopruq.bridge.model.MaterialAssignmentCatalog;
 import com.kopruq.bridge.model.PierCapFamilyCatalog;
 import com.kopruq.bridge.model.PierFamilyCatalog;
 import com.kopruq.bridge.model.PreferredSpanRulesSection;
 import com.kopruq.bridge.model.ProjectSection;
 import com.kopruq.bridge.model.ProjectWorkspace;
+import com.kopruq.bridge.model.SeismicInputsSection;
+import com.kopruq.bridge.model.SelfWeightInputsSection;
+import com.kopruq.bridge.model.TemperatureInputsSection;
+import com.kopruq.bridge.model.TrafficLm1Section;
+import com.kopruq.bridge.model.WindInputsSection;
+import com.kopruq.bridge.model.WindSnapshotSection;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** JPA adapter of the {@link ProjectContentRepository} port (the workspace; the design-system sections go through the {@link DesignSystemContentStore}). */
+/** JPA adapter of the {@link ProjectContentRepository} port (the workspace; the design-system sections go through the {@link DesignSystemContentStore}, the load inputs through the {@link LoadInputContentStore} and the graph documents through the {@link GraphContentStore}). */
 @Repository
 @Transactional
 public class JpaProjectContentRepository implements ProjectContentRepository {
@@ -30,19 +37,25 @@ public class JpaProjectContentRepository implements ProjectContentRepository {
     private final ProjectInfoJpaRepository infos;
     private final ProjectBridgeRowJpaRepository rows;
     private final DesignSystemContentStore designSystem;
+    private final LoadInputContentStore loadInputs;
+    private final GraphContentStore graphs;
 
     public JpaProjectContentRepository(ProjectJpaRepository projects, ProjectInfoJpaRepository infos,
-            ProjectBridgeRowJpaRepository rows, DesignSystemContentStore designSystem) {
+            ProjectBridgeRowJpaRepository rows, DesignSystemContentStore designSystem,
+            LoadInputContentStore loadInputs, GraphContentStore graphs) {
         this.projects = projects;
         this.infos = infos;
         this.rows = rows;
         this.designSystem = designSystem;
+        this.loadInputs = loadInputs;
+        this.graphs = graphs;
     }
 
     @Override
     @Transactional(readOnly = true)
     public ProjectContent load(UUID projectId) {
-        return designSystem.load(projectId, loadWorkspace(projectId));
+        return designSystem.load(projectId, loadWorkspace(projectId))
+                .withLoadsAndGraphs(loadInputs.load(projectId), graphs.load(projectId));
     }
 
     /** The workspace, or null when the project has no {@code project_info} row yet. */
@@ -72,6 +85,13 @@ public class JpaProjectContentRepository implements ProjectContentRepository {
             case GirderLibrarySection s -> designSystem.replace(projectId, s);
             case PreferredSpanRulesSection s -> designSystem.replace(projectId, s);
             case CrossSectionSection s -> designSystem.replace(projectId, s);
+            case SeismicInputsSection s -> loadInputs.replace(projectId, s);
+            case WindInputsSection s -> loadInputs.replace(projectId, s);
+            case TemperatureInputsSection s -> loadInputs.replace(projectId, s);
+            case SelfWeightInputsSection s -> loadInputs.replace(projectId, s);
+            case TrafficLm1Section s -> loadInputs.replace(projectId, s);
+            case WindSnapshotSection s -> loadInputs.replace(projectId, s);
+            case GraphDocument s -> graphs.replace(projectId, s);
         }
     }
 

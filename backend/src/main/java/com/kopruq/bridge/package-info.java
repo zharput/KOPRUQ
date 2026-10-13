@@ -29,5 +29,10 @@
  * <p>Design-system sections (backend-db-persistence M2): bridge definitions, family catalogs, girder library, preferred span
  * rules and cross section are further {@code ProjectSection}s, stored by {@code DesignSystemContentStore} and served by
  * {@code ProjectDesignSystemController}; see docs/architecture.md.
+ *
+ * <p>Load inputs and graph documents (backend-db-persistence M3): the six load-input sections (seismic, wind,
+ * temperature, self-weight, traffic LM1, wind snapshot - inputs only) and the graph documents (upserted one by one)
+ * are further {@code ProjectSection}s, stored by {@code LoadInputContentStore} and {@code GraphContentStore} and served
+ * by {@code ProjectLoadInputController} and {@code ProjectGraphController}; see docs/architecture.md.
  */
 package com.kopruq.bridge;

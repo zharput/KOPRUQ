@@ -539,7 +539,7 @@ class ProjectDesignSystemApiContractTest extends ContractTestSupport {
         JsonNode d = doc(id);
 
         assertEquals(List.of("projectId", "revision", "createdAt", "updatedAt", "workspace", "bridgeDefinitions",
-                "families", "girderLibrary", "preferredSpanRules", "crossSection"),
+                "families", "girderLibrary", "preferredSpanRules", "crossSection", "loads", "graphs"),
                 StreamSupport.stream(java.util.Spliterators.spliteratorUnknownSize(d.fieldNames(), 0), false).toList());
         assertTrue(d.get("bridgeDefinitions").isNull());
         assertTrue(d.get("girderLibrary").isNull());

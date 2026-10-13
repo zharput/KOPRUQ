@@ -2,18 +2,14 @@ package com.kopruq.bridge.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kopruq.bridge.api.DesignSystemPutRequests.SectionPut;
-import com.kopruq.bridge.application.ProjectRevision;
 import com.kopruq.bridge.application.ProjectService;
 import com.kopruq.bridge.model.ProjectSection;
-import com.kopruq.shared.exception.FieldViolation;
-import com.kopruq.shared.exception.InvalidRequestException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -103,32 +99,8 @@ public class ProjectDesignSystemController {
                 v -> DesignModuleMapper.toCrossSection(v, VALUE), s -> DesignModuleMapper.crossSectionDto(s.values()));
     }
 
-    /**
-     * Shared flow: read the body strictly, collect the {@code expectedRevision} and {@code value} problems in one 400,
-     * replace the section through the service, and answer with the stored value.
-     */
     private <V, M extends ProjectSection, R> SectionWriteResponse<R> write(UUID projectId, JsonNode body,
             Class<? extends SectionPut<V>> type, Function<V, M> toModel, Function<M, R> toDto) {
-        SectionPut<V> request = reader.read(body, type);
-        List<FieldViolation> violations = new ArrayList<>();
-        if (request.expectedRevision() == null) {
-            violations.add(new FieldViolation("expectedRevision", "is required"));
-        }
-        M model = null;
-        if (!body.has(VALUE)) {
-            violations.add(new FieldViolation(VALUE, "is required"));
-        } else {
-            try {
-                model = toModel.apply(request.value());
-            } catch (InvalidRequestException e) {
-                violations.addAll(e.violations());
-            }
-        }
-        if (!violations.isEmpty()) {
-            throw new InvalidRequestException(violations);
-        }
-        ProjectRevision revision = projects.replace(projectId, request.expectedRevision(), model);
-        return new SectionWriteResponse<>(revision.projectId(), revision.revision(), revision.updatedUtc(),
-                toDto.apply(model));
+        return SectionPutFlow.write(projects, reader, projectId, body, type, toModel, toDto);
     }
 }

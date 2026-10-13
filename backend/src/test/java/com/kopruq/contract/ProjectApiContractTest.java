@@ -134,7 +134,7 @@ class ProjectApiContractTest extends ContractTestSupport {
         assertEquals(ws, fetched.get("workspace"));
         assertEquals(0, fetched.get("revision").asInt());
         assertEquals(List.of("projectId", "revision", "createdAt", "updatedAt", "workspace", "bridgeDefinitions",
-                "families", "girderLibrary", "preferredSpanRules", "crossSection"),
+                "families", "girderLibrary", "preferredSpanRules", "crossSection", "loads", "graphs"),
                 StreamSupport.stream(java.util.Spliterators.spliteratorUnknownSize(fetched.fieldNames(), 0), false).toList());
 
         assertEquals("Koridor Ç", jdbc.queryForObject("select project_name from project where id = ?",

@@ -105,10 +105,10 @@ class ArchitectureTests {
     }
 
     @Test
-    void restControllers_onlyInDomainApi_andExactlyFourteen() throws IOException {
+    void restControllers_onlyInDomainApi_andExactlySixteen() throws IOException {
         Map<String, String> sources = mainSources();
         assertEquals(List.of(), ArchitectureRules.controllerLocationViolations(sources));
-        assertEquals(14, ArchitectureRules.restControllers(sources).size(), "expected the 14 controllers");
+        assertEquals(16, ArchitectureRules.restControllers(sources).size(), "expected the 16 controllers");
     }
 
     @Test

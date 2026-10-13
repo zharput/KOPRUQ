@@ -15,7 +15,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * BACKEND-REMEDIATION Faz 0b: pins the exact set of application REST
  * endpoints. The 21 original ones, the 4 project endpoints approved for backend-db-persistence M1 and the 9 design-system
- * endpoints approved for M2 (34 in total).
+ * endpoints approved for M2, and the 7 load-input and graph
+ * endpoints approved for M3 (41 in total).
  */
 class EndpointInventoryContractTest extends ContractTestSupport {
 
@@ -75,7 +76,15 @@ class EndpointInventoryContractTest extends ContractTestSupport {
                 "PUT /api/projects/{projectId}/families/materials",
                 "PUT /api/projects/{projectId}/girder-library",
                 "PUT /api/projects/{projectId}/preferred-span-rules",
-                "PUT /api/projects/{projectId}/cross-section"));
+                "PUT /api/projects/{projectId}/cross-section",
+                // backend-db-persistence M3
+                "PUT /api/projects/{projectId}/loads/seismic",
+                "PUT /api/projects/{projectId}/loads/wind",
+                "PUT /api/projects/{projectId}/loads/temperature",
+                "PUT /api/projects/{projectId}/loads/self-weight",
+                "PUT /api/projects/{projectId}/loads/traffic-lm1",
+                "PUT /api/projects/{projectId}/loads/wind-snapshot",
+                "PUT /api/projects/{projectId}/graphs/{graphId}"));
 
         assertEquals(expected, actual);
     }

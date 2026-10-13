@@ -163,7 +163,10 @@ class LayoutKernelCorsContractTest extends ContractTestSupport {
                 {"/api/projects", "GET"}, {"/api/projects", "POST"},
                 {"/api/projects/00000000-0000-0000-0000-000000000001/workspace", "PUT"},
                 {"/api/projects/00000000-0000-0000-0000-000000000001/families/piers", "PUT"},
-                {"/api/projects/00000000-0000-0000-0000-000000000001/cross-section", "PUT"}};
+                {"/api/projects/00000000-0000-0000-0000-000000000001/cross-section", "PUT"},
+                {"/api/projects/00000000-0000-0000-0000-000000000001/loads/seismic", "PUT"},
+                {"/api/projects/00000000-0000-0000-0000-000000000001/loads/wind-snapshot", "PUT"},
+                {"/api/projects/00000000-0000-0000-0000-000000000001/graphs/g-1", "PUT"}};
         for (String[] c : cases) {
             MvcResult r = mvc.perform(MockMvcRequestBuilders.options(c[0])
                     .header("Origin", "http://localhost:5173").header("Access-Control-Request-Method", c[1])).andReturn();

@@ -72,6 +72,10 @@ export function postJson<T>(path: string, body: unknown, signal?: AbortSignal): 
   return requestJson<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal })
 }
 
+export function putJson<T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> {
+  return requestJson<T>(path, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal })
+}
+
 export function postForm<T>(path: string, form: FormData, signal?: AbortSignal): Promise<T> {
   return requestJson<T>(path, { method: 'POST', body: form, signal })
 }

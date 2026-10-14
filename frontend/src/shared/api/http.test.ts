@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { API_BASE, ApiError, formatApiError, postJson, requestBinary, requestJson } from './http'
+import { API_BASE, ApiError, formatApiError, postJson, putJson, requestBinary, requestJson } from './http'
 
 const json = (body: unknown, status: number, headers: Record<string, string> = {}) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', ...headers } })
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); vi.resetModules() })
@@ -28,6 +28,19 @@ describe('shared HTTP layer', () => {
     await expect(postJson<{ ok: boolean }>('/api/y', { a: 1 }, controller.signal)).resolves.toEqual({ ok: true })
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe(`${API_BASE}/api/y`); expect(init.method).toBe('POST'); expect(init.signal).toBe(controller.signal); expect(init.body).toBe('{"a":1}')
+  })
+  it('putJson sends a PUT with a JSON body, the content type and the abort signal, and returns parsed JSON', async () => {
+    const fetchMock = vi.fn(async () => json({ revision: 4 }, 200)); vi.stubGlobal('fetch', fetchMock)
+    const controller = new AbortController()
+    await expect(putJson<{ revision: number }>('/p', { expectedRevision: 3, value: null }, controller.signal)).resolves.toEqual({ revision: 4 })
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe(`${API_BASE}/p`); expect(init.method).toBe('PUT'); expect(init.signal).toBe(controller.signal)
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json'); expect(init.body).toBe(JSON.stringify({ expectedRevision: 3, value: null }))
+  })
+  it('putJson maps a 409 revision conflict to an ApiError', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => json({ status: 409, code: 'PROJECT_REVISION_CONFLICT', message: 'Revision conflict', correlationId: 'c-409' }, 409)))
+    const error = await putJson('/p', {}).catch((e: unknown) => e) as ApiError
+    expect(error).toBeInstanceOf(ApiError); expect(error).toMatchObject({ status: 409, code: 'PROJECT_REVISION_CONFLICT', correlationId: 'c-409' })
   })
   it('requestBinary returns the body and raises ApiError for failures', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), { status: 200 })))

@@ -16,5 +16,5 @@ RUN useradd --system --uid 10001 --no-create-home kopruq
 COPY --from=build /build/target/kopruq-backend-*.jar /app/app.jar
 USER kopruq
 EXPOSE 8080
-# DB_URL, DB_USERNAME and DB_PASSWORD are supplied by the environment (see compose.yaml); there is no default password.
+# DB_URL, DB_USERNAME and DB_PASSWORD must be supplied when running this image; there is no default password.
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/app.jar"]

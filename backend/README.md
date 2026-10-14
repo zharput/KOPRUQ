@@ -109,10 +109,10 @@ com.kopruq
 |   |-- domain            # BridgeLayoutEngine
 |   `-- model             # Site, design space, candidates, constraints
 |-- bridge
-|   |-- api               # Kernel-state request mapping
-|   |-- application       # ProjectRepository port
-|   |-- infra/persistence # JPA entities and the PostgreSQL ProjectRepository adapter
-|   `-- model             # Canonical solver-independent bridge model
+|   |-- api               # Kernel state and stored-project endpoints/DTOs
+|   |-- application       # Project use cases and repository ports
+|   |-- infra/persistence # JPA adapters for the project aggregate and sections
+|   `-- model             # Bridge kernel and project-section models
 |-- rules
 |   |-- domain            # EngineeringRule and RuleEngine
 |   `-- model             # Traceable evaluation results
@@ -179,7 +179,7 @@ classDiagram
 
 | Model | Responsibility |
 | --- | --- |
-| `Project` | Mutable project/session aggregate containing the bridge, design space, generated alternatives, and selected alternative. Project persistence is not implemented yet. |
+| `Project` | Mutable aggregate containing the bridge, design space, generated alternatives, selection, identity, and revision. Its JPA repository persists this kernel model; the REST project document stores the workspace and its design/load/graph sections separately. |
 | `Bridge` | Fixed bridge facts: `bridgeName`, `totalLengthM`, and `deckWidthM`. |
 | `DesignSpace` | Engineer-supplied ranges for spans, girders, slab, pier dimensions, and the deterministic girder-depth search step. |
 | `BridgeAlternative` | One solver-independent configuration identified by UUID. It requires a `SpanLayout` and `Girder`; deck, pier, and foundation may remain unsized. |
@@ -354,8 +354,22 @@ design-space workflow is not fully automated yet.
 #### 5. Loads and materials
 
 Traffic, wind, seismic, uniform-temperature, and concrete-material endpoints
-are deterministic supporting calculations. They are not yet persisted into a
-project-level load model or automatically assembled into an analysis request.
+are deterministic supporting calculations. Project load inputs and a wind
+calculation snapshot can be stored through the project API, but calculations
+are not automatically assembled into an analysis request.
+
+#### 6. Stored project workflow
+
+1. `POST /api/projects` creates a project with a required workspace and returns
+   its UUID and revision `0`.
+2. `GET /api/projects` lists summaries; `GET /api/projects/{projectId}` returns
+   the workspace, design-system sections, load inputs/snapshot, and graphs.
+3. `PUT /api/projects/{projectId}/workspace` or a section-specific `PUT`
+   replaces one section using the current `expectedRevision` and returns the
+   next revision. A stale revision returns `409 PROJECT_REVISION_CONFLICT`.
+
+The frontend now uses these database-backed projects. The old browser-local
+project storage and `.kopruq` file workflow are no longer active.
 
 ## REST API
 
@@ -368,13 +382,50 @@ All application endpoints are under `/api`. The exact set is pinned by
 
 - JSON is used unless an endpoint explicitly declares multipart or binary
   content.
-- Successful calculation and query endpoints currently return `200 OK`.
+- Calculation and query endpoints return `200 OK`; project creation returns
+  `201 Created` with a `Location` header. Project updates return `200 OK`.
 - Every response carries `X-Correlation-ID`. A caller-supplied value is reused;
   otherwise the backend creates one.
 - Browser origins are controlled by `kopruq.cors.allowed-origins`; the default
   is `http://localhost:5173`.
 - Terrain/LandXML uploads are limited to 200 MB.
-- Imports are process-local and disappear when the backend restarts.
+- Imported terrain and LandXML data are stored in PostgreSQL and survive a
+  backend restart.
+
+### Stored projects
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/projects` | List stored project summaries, newest update first. |
+| `POST` | `/api/projects` | Create a project from `{ "workspace": WorkspaceDto }`; returns a project document at revision `0`. |
+| `GET` | `/api/projects/{projectId}` | Read the project document, including workspace, design system, loads, and graphs. |
+| `PUT` | `/api/projects/{projectId}/workspace` | Replace the workspace and bridge inventory. |
+| `PUT` | `/api/projects/{projectId}/bridge-definitions` | Replace bridge definitions. |
+| `PUT` | `/api/projects/{projectId}/families/piers` | Replace the pier family catalog. |
+| `PUT` | `/api/projects/{projectId}/families/pier-caps` | Replace the pier-cap family catalog. |
+| `PUT` | `/api/projects/{projectId}/families/foundations` | Replace the foundation family catalog. |
+| `PUT` | `/api/projects/{projectId}/families/bearings` | Replace the bearing family catalog. |
+| `PUT` | `/api/projects/{projectId}/families/materials` | Replace material assignments. |
+| `PUT` | `/api/projects/{projectId}/girder-library` | Replace the girder library. |
+| `PUT` | `/api/projects/{projectId}/preferred-span-rules` | Replace preferred span rules. |
+| `PUT` | `/api/projects/{projectId}/cross-section` | Replace the cross-section. |
+| `PUT` | `/api/projects/{projectId}/loads/seismic` | Replace seismic inputs. |
+| `PUT` | `/api/projects/{projectId}/loads/wind` | Replace wind inputs. |
+| `PUT` | `/api/projects/{projectId}/loads/temperature` | Replace temperature inputs. |
+| `PUT` | `/api/projects/{projectId}/loads/self-weight` | Replace self-weight inputs. |
+| `PUT` | `/api/projects/{projectId}/loads/traffic-lm1` | Replace LM1 inputs. |
+| `PUT` | `/api/projects/{projectId}/loads/wind-snapshot` | Store the wind calculation snapshot and its optional result. |
+| `PUT` | `/api/projects/{projectId}/graphs/{graphId}` | Create or replace one graph document. |
+
+Each `PUT` body is `{ "expectedRevision": 0, "value": ... }`. A successful
+write increments the shared project revision and returns `projectId`,
+`revision`, `updatedAt`, and the stored `value`. Project request bodies reject
+unknown fields. The full workspace shape is defined in
+[`WorkspaceDto.java`](src/main/java/com/kopruq/bridge/api/WorkspaceDto.java);
+the response shape is defined in
+[`ProjectDocumentResponse.java`](src/main/java/com/kopruq/bridge/api/ProjectDocumentResponse.java).
+There is no project or graph delete endpoint. A `graphId` may be added or
+updated, but cannot be removed through this API.
 
 ### Bridge and generation
 
@@ -574,7 +625,6 @@ Common codes include `INVALID_REQUEST`, `INVALID_INPUT`,
 
 - JDK 21
 - Apache Maven 3.9+
-
 - PostgreSQL 17 for running the API (Docker Desktop with Compose v2.17+ is the easiest way).
   Building and testing need no database (tests use in-memory H2).
 
@@ -585,18 +635,23 @@ copy .env.example .env      # then set DB_PASSWORD in .env (git-ignored)
 docker compose up -d --wait postgres
 ```
 
-The backend reads `DB_URL` (default `jdbc:postgresql://localhost:5432/kopruq`), `DB_USERNAME`
-(default `kopruq`) and `DB_PASSWORD` (no default - startup stops with
-`Could not resolve placeholder 'DB_PASSWORD'` if it is missing). Flyway creates the schema
-(`src/main/resources/db/migration`; released migrations are never edited, add `V3+`);
-Hibernate only validates it (`ddl-auto=validate`).
+Run these commands from the repository root. Compose reads the root `.env`;
+Spring Boot does **not** load that file automatically when started directly.
+Pass the same `DB_PASSWORD` as an environment variable to Maven or Java (or
+set it in the IntelliJ run configuration). `DB_URL` defaults to
+`jdbc:postgresql://localhost:5432/kopruq` and `DB_USERNAME` to `kopruq`.
+Without `DB_PASSWORD`, startup fails with
+`Could not resolve placeholder 'DB_PASSWORD'`. Flyway creates the schema from
+`backend/src/main/resources/db/migration` (currently V1–V6); Hibernate only
+validates it (`ddl-auto=validate`). Add a new migration for schema changes.
 
-Persisted: terrain (TIN as binary blobs), LandXML imports (alignment elements, vertical profile PVIs,
-warnings, terrain reference) and the bridge `Project` aggregate (bridge, design space, alternatives).
-Computed results (rule results, layouts, loads, analysis) are not stored. There is no REST endpoint
-for saving a bridge `Project` yet (only the repository exists).
-
-From the repository root:
+PostgreSQL stores terrain TINs, LandXML imports, and project documents
+(workspace/bridge inventory, design-system sections, load inputs, wind snapshot,
+and graphs). The bridge kernel aggregate also has its own JPA persistence
+model; the REST project document does not expose generated kernel alternatives.
+Layout generation, rule evaluations, fast-solver results, and other calculated
+load results are not stored as project results. The wind calculation snapshot
+is the specific persisted result exception.
 
 ```powershell
 $env:DB_PASSWORD = "<the password from .env>"
@@ -604,11 +659,8 @@ mvn -B -f backend/pom.xml package
 java -jar backend/target/kopruq-backend-0.1.0-SNAPSHOT.jar
 ```
 
-The whole stack in containers (backend image built from `backend/Dockerfile`):
-
-```powershell
-docker compose up -d --wait        # postgres + backend; set BACKEND_PORT if 8080 is taken
-```
+Compose starts only the PostgreSQL database. Run the backend separately with
+the command above or with Spring Boot below.
 
 `start-dev.bat` starts PostgreSQL through Compose (it reads `.env`), builds the backend and opens
 the backend and frontend windows.
@@ -616,6 +668,7 @@ the backend and frontend windows.
 Or run directly with Spring Boot:
 
 ```powershell
+$env:DB_PASSWORD = "<the password from .env>"
 mvn -f backend/pom.xml spring-boot:run
 ```
 
@@ -650,8 +703,13 @@ $env:KOPRUQ_TEST_DB_URL = "jdbc:postgresql://localhost:5433/kopruq_test"
 $env:KOPRUQ_TEST_DB_USERNAME = "kopruq"          # DB_USERNAME of .env
 $env:KOPRUQ_TEST_DB_PASSWORD = "<DB_PASSWORD>"
 mvn -B -f backend/pom.xml test
-docker compose --profile postgres-test down -v
+docker compose --profile postgres-test stop postgres-test
+docker compose --profile postgres-test rm -f postgres-test
 ```
+
+The test database uses `tmpfs`, so stopping/removing its container discards
+its data. Do not use `docker compose down -v` here: it would also delete the
+main PostgreSQL volume `kopruq-pgdata`.
 
 Build the executable jar and run the same test suite:
 
@@ -668,15 +726,17 @@ The suite includes:
 - native solver validation and MIDAS mapping contracts;
 - controller and end-to-end REST contract tests;
 - exact endpoint-inventory tests;
-- persistence round trips (terrain, LandXML import, bridge project) and the import transaction;
+- persistence round trips (terrain, LandXML import, project workspace and
+  sections) and import/write transaction behavior;
 - architecture boundary tests.
 
 ## Current limitations
 
-- The bridge `Project` aggregate is persistable (`ProjectRepository`) but no use case or endpoint saves it yet;
-  terrains are not linked to a `Project` (`terrain.project_id` is free text).
-- Computed results (rules, layouts, loads, analysis) are recomputed, not stored; there is no domain-level
-  revision check (only a technical `@Version`).
+- Stored projects have a domain revision and revision-checked section writes;
+  terrain's `project_id` remains free text rather than a project foreign key.
+- Generated alternatives and computed rule/layout/analysis results are not
+  persisted through the project API. Load inputs and the wind calculation
+  snapshot are persisted, but other calculated load results are not.
 - The layout-to-structural-alternative seam is not fully automated.
 - The rule engine contains infrastructure but no approved production
   engineering rules.
@@ -684,8 +744,7 @@ The suite includes:
   full 3D spatial constraint volumes are not implemented.
 - Traffic load groups are visible but undefined; LM2 remains
   `NOT_IMPLEMENTED` and is not fabricated.
-- Loads are calculated through supporting endpoints but are not yet persisted
-  as a project-level load model or automatically assembled into analysis.
+- Project load inputs are not automatically assembled into structural analysis.
 - MIDAS Civil NX mapping/round-trip components exist, but P07 analysis
   execution and result association are not complete or exposed through REST.
 - Quantities, cost, carbon, Pareto optimization, production AI orchestration,

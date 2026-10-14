@@ -84,9 +84,8 @@ its environment; Compose and `start-dev.bat` read the root `.env` file,
 but a direct backend launch does not.
 
 Frontend API requests use `http://localhost:8080` by default. If the
-backend is exposed on another port (for example, by setting
-`BACKEND_PORT` for the Compose backend), set `VITE_API_BASE` to its URL
-in `frontend/.env.local`, such as `VITE_API_BASE=http://localhost:8081`.
+backend runs on another port, set `VITE_API_BASE` to its URL in
+`frontend/.env.local`, such as `VITE_API_BASE=http://localhost:8081`.
 `start-dev.bat` launches the backend directly on port 8080.
 
 ## Notable dependencies

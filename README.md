@@ -164,7 +164,7 @@ KOPRUQ/
 ├── services/                Optimizasyon ve AI için yer tutucular
 ├── docs/                    Spesifikasyon, mimari, yol haritası ve özellik kayıtları
 ├── archive/                 Önceki nesiller; etkin uygulama bağımlılığı değil
-├── compose.yaml             PostgreSQL ve backend konteynerleri
+├── compose.yaml             PostgreSQL geliştirme ve test konteynerleri
 └── start-dev.bat             Windows yerel geliştirme başlatıcısı
 ```
 
@@ -207,7 +207,7 @@ npm.cmd install
 npm.cmd run dev
 ```
 
-Frontend varsayılan olarak `http://localhost:8080` API adresini kullanır. Farklı backend adresi için `frontend/.env.local` içine `VITE_API_BASE=http://localhost:8081` gibi bir değer koyun. Alternatif olarak `.env` hazırken `docker compose up -d --build --wait postgres backend` ile backend'i de konteynerde çalıştırabilirsiniz.
+Frontend varsayılan olarak `http://localhost:8080` API adresini kullanır. Farklı backend adresi için `frontend/.env.local` içine `VITE_API_BASE=http://localhost:8081` gibi bir değer koyun. Compose yalnızca PostgreSQL'i çalıştırır; backend'i IntelliJ, Maven veya JAR ile ayrı başlatın.
 
 ## Testler ve kalite kapıları
 

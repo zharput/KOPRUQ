@@ -1,4 +1,4 @@
-# Local development stack: PostgreSQL 17 + the backend. The frontend is run with `npm run dev` (no container).
+# Local development databases. Run the backend and frontend outside Compose.
 # Configuration comes from the environment / a local `.env` file (copy .env.example). No secret is stored here;
 # DB_PASSWORD has no default and compose refuses to start without it.
 name: kopruq
@@ -19,25 +19,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
-
-  backend:
-    build: ./backend
-    environment:
-      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-kopruq}
-      DB_USERNAME: ${DB_USERNAME:-kopruq}
-      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set (copy .env.example to .env and fill it in)}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "${BACKEND_PORT:-8080}:8080"
-    healthcheck:
-      # The JRE image has bash but no curl: speak HTTP over /dev/tcp.
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/localhost/8080 && printf 'GET /actuator/health HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q '\"status\":\"UP\"' <&3"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-      start_period: 20s
 
   # Throw-away PostgreSQL for running the backend tests against a real server (AC16 / `mvn test`):
   #   docker compose --profile postgres-test up -d --wait postgres-test

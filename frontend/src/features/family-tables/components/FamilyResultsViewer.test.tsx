@@ -6,6 +6,7 @@ import { clearFamilySnapshots, getFamilySnapshots, publishFamilySnapshots } from
 import { graphFingerprint, type FamilyCalculationSnapshot } from '../../graph/family/familyResults'
 import { importGraphDocuments } from '../../graph/state/graphStore'
 import type { KopruqGraph } from '../../graph/domain/types'
+import { resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
 
 const bridges = [{ id: 'bridge-1', no: 'VIA-01' }] as never
 const testGraph = (nodes: KopruqGraph['nodes'] = [{ id: 'n1', type: 'structural.girder.precast', name: 'Girder', position: { x: 0, y: 0 }, parameters: { tfValue: 1 } }]): KopruqGraph => ({ id: 'graph-1', bridgeId: 'bridge-1', name: 'G', schemaVersion: 1, nodes, connections: [] })
@@ -13,7 +14,7 @@ const setGraph = (graph: KopruqGraph) => importGraphDocuments({ activeGraphId: g
 const snapshot = (freshness: FamilyCalculationSnapshot['freshness']): FamilyCalculationSnapshot => ({ snapshotId: 's', bridgeId: 'bridge-1', graphDocumentId: 'graph-1', sourceNodeId: 'n1', sourceNodeType: 'structural.girder.precast', sourceNodeName: 'Girder', familyCategory: 'GIRDER', graphFingerprint: graphFingerprint(testGraph(), INITIAL_PROJECT.units), candidates: [], generatedAt: '2026-01-01T00:00:00Z', freshness, executionStatus: 'SUCCESS', errors: [] })
 
 beforeEach(() => {
-  clearFamilySnapshots(); localStorage.clear()
+  clearFamilySnapshots(); resetProjectData()
   setGraph(testGraph())
 })
 
@@ -65,7 +66,7 @@ describe('FamilyResultsViewer read-time freshness', () => {
 
 describe('FamilyResultsViewer count parameters', () => {
   it('shows a piled-foundation pile count without length conversion under a mm project unit', () => {
-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: { ...INITIAL_PROJECT, units: { ...INITIAL_PROJECT.units, length: 'mm' } }, bridges: [] }))
+    seedProjectData('workspace', ({ project: { ...INITIAL_PROJECT, units: { ...INITIAL_PROJECT.units, length: 'mm' } }, bridges: [] }))
     const piledGraph = testGraph([{ id: 'n1', type: 'substructure.foundation.piled', name: 'Piled', position: { x: 0, y: 0 }, parameters: { pileCountXValue: 4 } }]), mmUnits = { ...INITIAL_PROJECT.units, length: 'mm' }
     setGraph(piledGraph)
     publishFamilySnapshots([{ ...snapshot('VALID'), graphFingerprint: graphFingerprint(piledGraph, mmUnits), sourceNodeType: 'substructure.foundation.piled', familyCategory: 'FOUNDATION' }])

@@ -5,7 +5,7 @@ import type { GraphGroup, GraphParameterValue, KopruqConnection, KopruqGraph, Ko
 import { validateConnection } from '../engine/graphEngine'
 import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
 import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
-import { readProjectState } from '../../project/model/projectWorkspace'
+import { readProjectUnits } from '../../project/model/projectWorkspace'
 
 export const GRAPH_DOCUMENTS_STORAGE_KEY = 'kopruq.graph.documents.v1'
 const STORAGE_KEY = GRAPH_DOCUMENTS_STORAGE_KEY
@@ -97,7 +97,7 @@ function replaceActiveGraph(next: KopruqGraph, history = true) {
 export function addNode(type: string, position: { x: number; y: number }) {
   const definition = getNodeDefinition(type); if (!definition) return
   const graph = getActiveGraph(), count = graph.nodes.filter((node) => node.type === type).length + 1
-  const projectUnits = typeof localStorage === 'undefined' ? undefined : readProjectState([]).project.units
+  const projectUnits = readProjectUnits()
   const node = createNode(definition, { id: globalThis.crypto?.randomUUID?.() ?? `node-${Date.now()}-${Math.random().toString(36).slice(2)}`, name: `${definition.label}-${count}`, position, projectUnits })
   if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] node insertion')
   replaceActiveGraph({ ...graph, nodes: [...graph.nodes, node] })

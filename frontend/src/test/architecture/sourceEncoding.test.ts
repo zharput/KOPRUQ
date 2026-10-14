@@ -23,7 +23,7 @@ const MARKERS: ReadonlyArray<{ name: string; value: string }> = [
  * persistence compatibility.
  */
 export const ALLOWED_FILES: readonly string[] = [
-  '/src/features/project/model/projectWorkspace.ts',
+  '/src/features/project/model/projectWorkspaceModel.ts',
   '/src/features/project/model/projectWorkspace.test.ts',
 ]
 

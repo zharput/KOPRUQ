@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SeismicPanel from './SeismicPanel'
+import { resetProjectData } from '../../../../test/projectStoreTestUtils'
 
 vi.mock('recharts', () => ({ ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>, LineChart: ({ data }: { data: unknown[] }) => <div data-testid="chart" data-points={data.length} />, Line: () => null, XAxis: () => null, YAxis: () => null, Tooltip: () => null, ReferenceLine: () => null, CartesianGrid: () => null, Legend: () => null }))
 
@@ -19,7 +20,7 @@ function renderPanel() {
 }
 const setPga = (value: string) => fireEvent.change(screen.getByLabelText('Reference PGA, agR'), { target: { value } })
 const openDetails = () => userEvent.setup().click(screen.getByRole('button', { name: /Show Calculation Details/ }))
-beforeEach(() => localStorage.clear())
+beforeEach(() => resetProjectData())
 afterEach(() => vi.unstubAllGlobals())
 
 describe('SeismicPanel', () => {

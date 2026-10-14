@@ -4,23 +4,16 @@ import { defaultDimensions, generatePierVariants, statusOfPierFamily } from '../
 import { DesignSystemSection, EngineeringInput, GenerationTable } from '../../../shared/ui/DesignSystemUi'
 import type { PierConfiguration, PierFamily, PierType } from '../model/types'
 import { getFamilyReferences, publishFamilySelection } from '../../family-registry/model/registry'
-import { familyStorageKey } from '../../family-registry/model/familyRepository'
 import { useFamilyCatalog } from '../../family-registry/hooks/useFamilyCatalog'
 
-const STORAGE_KEY = familyStorageKey('PIER')
 const emptyHeight = { minimumHeight: null, preferredHeightMin: null, preferredHeightMax: null, maximumHeight: null }
 const INITIAL: PierFamily[] = [{ id: 'RECT-M', name: 'RECT-M', pierType: 'RECTANGULAR', enabled: false, dimensions: defaultDimensions('RECTANGULAR'), allowedConfigurations: ['SINGLE_COLUMN', 'TWO_COLUMNS'], twoColumnSpacing: { key: 'spacing', label: 'Transverse Spacing (m)', min: 6, max: 10, delta: 1 }, heightApplicability: emptyHeight, source: 'PROJECT_DESIGN_SYSTEM' }]
 
-function readFamilies() {
-  if (typeof window === 'undefined') return INITIAL
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as PierFamily[] | null
-    return saved?.map((family) => ({ ...family, pierType: family.pierType === ('H_TYPE' as PierType) || family.pierType === ('WALL' as PierType) ? 'H_SECTION' : family.pierType, allowedConfigurations: family.allowedConfigurations.filter((value) => value === 'SINGLE_COLUMN' || value === 'TWO_COLUMNS') })) ?? INITIAL
-  } catch { return INITIAL }
-}
+/** Module-level so useFamilyCatalog's callbacks keep a stable identity. */
+const PIER_FALLBACK = (): PierFamily[] => INITIAL
 
 export default function PierFamiliesPanel() {
-  const [families, setFamilies] = useFamilyCatalog<PierFamily>('PIER', readFamilies)
+  const [families, setFamilies] = useFamilyCatalog<PierFamily>('PIER', PIER_FALLBACK)
   const [selectedId, setSelectedId] = useState(families[0]?.id ?? '')
   const family = families.find((item) => item.id === selectedId) ?? families[0]
   const variants = useMemo(() => family ? generatePierVariants(family) : [], [family])

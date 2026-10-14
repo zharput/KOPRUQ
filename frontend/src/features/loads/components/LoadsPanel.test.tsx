@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import LoadsPanel from './LoadsPanel'
 import { INITIAL_CROSS_SECTION_VALUES } from '../../superstructure-families'
+import { readProjectData, resetProjectData } from '../../../test/projectStoreTestUtils'
 
 const pv = (value: number, provenance = 'CODE_DEFAULT') => ({ value, provenance, codeDefaultValue: value })
 const lane = (label: string, characteristic: number) => ({ label, characteristicValue: pv(characteristic), adjustmentFactor: pv(1) })
@@ -20,7 +21,7 @@ function renderLoads() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(<QueryClientProvider client={client}><LoadsPanel crossSectionValues={INITIAL_CROSS_SECTION_VALUES} /></QueryClientProvider>)
 }
-beforeEach(() => { localStorage.clear(); stubFetch() })
+beforeEach(() => { resetProjectData(); stubFetch() })
 afterEach(() => vi.unstubAllGlobals())
 
 describe('Loads project-scoped state', () => {
@@ -43,6 +44,6 @@ describe('Loads project-scoped state', () => {
     await user.click(screen.getByRole('tab', { name: /Temperature/ }))
     await openLm1()
     expect((await alpha()).value).toBe('0.8')
-    expect(JSON.parse(localStorage.getItem('kopruq.loads.traffic-lm1.v1') ?? 'null').tandemSystem[0].adjustmentFactor.provenance).toBe('PROJECT_OVERRIDE')
+    expect(readProjectData<{ tandemSystem: { adjustmentFactor: { characteristicValue?: unknown; provenance: string } }[] }>('loads.trafficLm1')!.tandemSystem[0].adjustmentFactor.provenance).toBe('PROJECT_OVERRIDE')
   })
 })

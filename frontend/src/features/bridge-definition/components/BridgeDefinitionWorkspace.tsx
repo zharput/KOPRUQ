@@ -29,9 +29,6 @@ type Props = {
 }
 type FamilyRef = { id: string; name: string }
 type Catalogs = { piers: PierFamily[]; pierCaps: PierCapFamily[]; foundations: FoundationFamily[]; bearings: BearingFamily[]; girders: GirderVariant[]; preferred: PreferredSpanRule[] }
-const CATALOG_KEYS = {
-  preferred: PREFERRED_SPAN_RULES_MODULE.key,
-}
 const NAV: { group: string; label: string; slug: string }[] = [
   { group: 'Bridge', label: 'Bridge Overview', slug: 'overview' },
   { group: 'Alignment', label: 'Horizontal Alignment', slug: 'alignment/horizontal' }, { group: 'Alignment', label: 'Vertical Alignment', slug: 'alignment/vertical' }, { group: 'Alignment', label: 'Cross Section', slug: 'alignment/cross-section' }, { group: 'Alignment', label: 'Terrain Reference', slug: 'alignment/terrain-reference' },
@@ -47,10 +44,9 @@ const NAV: { group: string; label: string; slug: string }[] = [
 const CONSTRAINT_KIND: Record<string, ConstraintKind> = { 'constraints/roads-railways': 'ROAD_RAILWAY', 'constraints/rivers': 'RIVER', 'constraints/clearances': 'CLEARANCE', 'constraints/geometric': 'OTHER' }
 const CONSTRUCTION_METHODS = ['Precast Girder', 'Steel Composite', 'Balanced Cantilever', 'MSS', 'Cast in Situ', 'Other / Custom']
 
-function readCatalog<T>(key: string): T[] { try { const value = JSON.parse(localStorage.getItem(key) ?? '[]') as unknown; return Array.isArray(value) ? value as T[] : [] } catch { return [] } }
 function readCatalogs(): Catalogs {
   const dimensions = getPrecastGirderDefinition<{ dimensions?: typeof PRECAST_DIMENSIONS } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS
-  return { piers: getFamilyRecords<PierFamily>('PIER'), pierCaps: getFamilyRecords<PierCapFamily>('PIER_CAP'), foundations: getFamilyRecords<FoundationFamily>('FOUNDATION'), bearings: getFamilyRecords<BearingFamily>('BEARING'), girders: generatePrecastGirderVariants(dimensions), preferred: readCatalog<PreferredSpanRule>(CATALOG_KEYS.preferred) }
+  return { piers: getFamilyRecords<PierFamily>('PIER'), pierCaps: getFamilyRecords<PierCapFamily>('PIER_CAP'), foundations: getFamilyRecords<FoundationFamily>('FOUNDATION'), bearings: getFamilyRecords<BearingFamily>('BEARING'), girders: generatePrecastGirderVariants(dimensions), preferred: PREFERRED_SPAN_RULES_MODULE.read() ?? [] }
 }
 function emptyAssignments(): AxisFamilyAssignments { return assignedAxis() }
 function shown(value: string | number | null | undefined) { return value == null || value === '' ? 'Not defined' : String(value) }

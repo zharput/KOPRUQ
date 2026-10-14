@@ -7,17 +7,12 @@ import { INITIAL_PROJECT } from '../features/project/model/projectWorkspace'
 import { INITIAL_BRIDGES } from '../features/project/model/types'
 import { assignedAxis, axesFromSpans, createBridgeDefinition } from '../features/bridge-definition/model/store'
 import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../features/graph/state/graphStore'
+import { readProjectData, readProjectDataText, resetProjectData, seedProjectData } from '../test/projectStoreTestUtils'
 vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div className="spn-workspace-layout"><aside aria-label="Node Library"><label htmlFor="search-nodes">Search nodes</label><input id="search-nodes" /></aside><main><h1>Graph Workspace</h1><input aria-label="Graph name" defaultValue="Untitled Graph" /><div className="spn-graph-flow" /></main><aside aria-label="Node Inspector">Node Inspector</aside></div> }))
 
 beforeEach(() => {
   window.history.pushState({}, '', '/')
-  localStorage.removeItem('kopruq.project-workspace.v1')
-  localStorage.removeItem('kopruq.bridge-definitions.v1')
-  localStorage.removeItem('kopruq.project-design-system.pier-families')
-  localStorage.removeItem('kopruq.project-design-system.pier-cap-families')
-  localStorage.removeItem('kopruq.project-design-system.foundation-families')
-  localStorage.removeItem('kopruq.project-design-system.bearing-families')
-  localStorage.removeItem('kopruq.graph.documents.v1')
+  resetProjectData(['workspace', 'bridgeDefinitions', 'families.PIER', 'families.PIER_CAP', 'families.FOUNDATION', 'families.BEARING', 'graphDocuments'])
 })
 
 describe('App workspace shell', () => {
@@ -91,7 +86,7 @@ describe('App workspace shell', () => {
   })
 
   it('keeps Family Workspace read-only while Bridge Definition remains separate', async () => {
-    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
+    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
     render(<App />)
     const user = userEvent.setup()
     await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
@@ -143,7 +138,7 @@ describe('App workspace shell', () => {
 
   it('derives support axes from explicit bridge spans and assigns family IDs without copying catalog data', async () => {
     const pierCatalog = [{ id: 'PIER-01', name: 'Pier Family A', enabled: true }]
-    localStorage.setItem('kopruq.project-design-system.pier-families', JSON.stringify(pierCatalog))
+    seedProjectData('families.PIER', pierCatalog)
     window.history.pushState({}, '', '/bridge-definition')
     render(<App />)
     const user = userEvent.setup()
@@ -155,9 +150,9 @@ describe('App workspace shell', () => {
     await user.click(screen.getByText('P1'))
     const pierFamily = screen.getByRole('combobox', { name: 'Pier Family' })
     await user.selectOptions(pierFamily, 'PIER-01')
-    const bridgeId = JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').bridges[0].id
-    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}').definitions[bridgeId].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
-    expect(JSON.parse(localStorage.getItem('kopruq.project-design-system.pier-families') ?? '[]')).toEqual(pierCatalog)
+    const bridgeId = readProjectData<{ bridges: { id: string }[] }>('workspace')!.bridges[0].id
+    expect(readProjectData<{ definitions: Record<string, { axisAssignments: { P1: { pierFamilyId: string } } }> }>('bridgeDefinitions')!.definitions[bridgeId].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
+    expect((readProjectData('families.PIER') ?? [])).toEqual(pierCatalog)
   })
 
   it('preserves legacy bridge assignments after editing its number and reloading', async () => {
@@ -168,8 +163,8 @@ describe('App workspace shell', () => {
       axisAssignments: { P1: assignedAxis({ pierFamilyId: 'PIER-1', foundationFamilyId: 'FOUNDATION-1', bearingFamilyId: 'BEARING-1' }) },
       abutmentFamilyIds: { A1: 'ABUTMENT-1', A2: 'ABUTMENT-2' },
     }
-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: INITIAL_PROJECT, bridges: [bridge] }))
-    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: { ...definition, bridgeId: bridge.no } } }))
+    seedProjectData('workspace', { project: INITIAL_PROJECT, bridges: [bridge] })
+    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: { ...definition, bridgeId: bridge.no } } }))
     window.history.pushState({}, '', '/project/bridge-information')
     const view = render(<App />)
     const user = userEvent.setup()
@@ -182,13 +177,13 @@ describe('App workspace shell', () => {
     expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-99 · Cantilever Bridge')
     await user.click(within(screen.getByRole('complementary', { name: 'Bridge Definition sections' })).getByRole('button', { name: 'Span Layout' }))
     expect(screen.getByRole('textbox', { name: 'Selected span lengths' })).toHaveValue('30, 40')
-    const saved = JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}')
+    const saved = readProjectData('bridgeDefinitions') ?? {}
     expect(saved).toEqual({ keyBy: 'bridgeId', selectedBridgeId: bridge.id, definitions: { [bridge.id]: definition } })
     view.unmount()
     render(<App />)
     expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-99 · Cantilever Bridge')
     expect(screen.getByRole('textbox', { name: 'Selected span lengths' })).toHaveValue('30, 40')
-    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}')).toEqual(saved)
+    expect(readProjectData('bridgeDefinitions') ?? {}).toEqual(saved)
   })
 
   it('opens the existing Loads feature at /loads', async () => {
@@ -264,7 +259,7 @@ describe('App workspace shell', () => {
     await user.type(editProperties.getByLabelText('Project Name'), 'Test Bridge Project')
     await user.click(editProperties.getByRole('button', { name: 'Save' }))
     expect(document.querySelector('.spn-project-name')).toHaveTextContent('Test Bridge Project')
-    expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.name).toBe('Test Bridge Project')
+    expect(readProjectData<{ project: { name: string } }>('workspace')!.project.name).toBe('Test Bridge Project')
   })
 
   it('preserves Project state across workspace navigation and browser refresh', async () => {
@@ -399,13 +394,13 @@ describe('App workspace shell', () => {
 
   it('resets project modules on New Project and leaves the project clean', async () => {
     const user = userEvent.setup()
-    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.3', g: 'A', t: 'Type 2', i: '1' }))
-    localStorage.setItem('kopruq.superstructure.cross-section.v1', JSON.stringify({ platformWidthM: 9, leftWalkwayM: 1, rightWalkwayM: 1, spaceOfGirderM: 2, numberOfGirders: 3 }))
+    seedProjectData('loads.seismic', { a: '0.3', g: 'A', t: 'Type 2', i: '1' })
+    seedProjectData('crossSection', { platformWidthM: 9, leftWalkwayM: 1, rightWalkwayM: 1, spaceOfGirderM: 2, numberOfGirders: 3 })
     render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
     await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ }))
-    await waitFor(() => expect(localStorage.getItem('kopruq.seismic')).toBeNull())
-    expect(localStorage.getItem('kopruq.superstructure.cross-section.v1')).toBeNull()
+    await waitFor(() => expect(readProjectDataText('loads.seismic')).toBeNull())
+    expect(readProjectDataText('crossSection')).toBeNull()
     expect(nav.getByRole('button', { name: /File/ })).not.toHaveTextContent('*')
   })
 
@@ -455,6 +450,6 @@ describe('App workspace shell', () => {
     render(<App />)
     await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File([JSON.stringify(json)], 'env-less.kopruq', { type: 'application/json' }))
     await waitFor(() => expect(document.querySelector('.spn-project-name')).toHaveTextContent('Env Less'))
-    expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.environment).toEqual({ terrainDatasetId: null, landXmlImportId: null })
+    expect(readProjectData<{ project: { environment: unknown } }>('workspace')!.project.environment).toEqual({ terrainDatasetId: null, landXmlImportId: null })
   })
 })

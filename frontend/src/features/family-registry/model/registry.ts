@@ -4,8 +4,8 @@ export type FamilyReference = { bridgeId: string; bridgeNo: string; location: st
 export type FamilySelection = { category: FamilyCategory; id: string | null }
 
 import { PRECAST_DIMENSIONS } from '../../girder-library/model/variants'
-import { familyStorageKey, getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
-import { BRIDGE_DEFINITIONS_STORAGE_KEY } from '../../bridge-definition/model/store'
+import { getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
+import { readStoredBridgeDefinitions } from '../../bridge-definition/model/store'
 import { readProjectState } from '../../project'
 
 const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
@@ -15,15 +15,12 @@ const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
   FOUNDATION: 'kopruq:foundation-catalog-changed', BEARING: 'kopruq:bearing-catalog-changed',
 }
 
-function readArray(key: string): Record<string, unknown>[] {
-  try { const value: unknown = JSON.parse(localStorage.getItem(key) ?? '[]'); return Array.isArray(value) ? value.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object') : [] } catch { return [] }
-}
 const val = (row: Record<string, unknown>, key: string) => row[key] == null ? '' : String(row[key])
 
 /** Reads existing feature-owned catalogs; this adapter does not own or persist family data. */
 export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
   if (category === 'MATERIAL') {
-    const classes = new Set(readArray(familyStorageKey('MATERIAL')).map((row) => val(row, 'concreteClass')).filter(Boolean))
+    const classes = new Set(getFamilyRecords<Record<string, unknown> & { id: string }>('MATERIAL').filter((row) => Boolean(row) && typeof row === 'object').map((row) => val(row, 'concreteClass')).filter(Boolean))
     return [...classes].sort().map((concreteClass) => ({ id: `EN1992-1-1:${concreteClass}`, name: concreteClass, category, type: 'CONCRETE', enabled: true, summary: 'EN 1992-1-1 concrete strength class reference; engineering material properties are not configured in this panel.' }))
   }
   if (category === 'GIRDER') {
@@ -46,9 +43,8 @@ export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
 }
 
 export function getFamilyReferences(category: FamilyCategory, id: string): FamilyReference[] {
-  if (typeof localStorage === 'undefined') return []
-  let stored: { keyBy?: 'bridgeId'; definitions?: Record<string, Record<string, unknown>> } = {}
-  try { stored = JSON.parse(localStorage.getItem(BRIDGE_DEFINITIONS_STORAGE_KEY) ?? '{}') as typeof stored } catch { return [] }
+  const stored = readStoredBridgeDefinitions()
+  if (stored === undefined) return []
   const found: FamilyReference[] = []
   const bridges = readProjectState([]).bridges
   for (const [bridgeId, definition] of Object.entries(stored.definitions ?? {})) {

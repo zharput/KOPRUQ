@@ -1,0 +1,996 @@
+diff --git a/frontend/src/app/App.test.tsx b/frontend/src/app/App.test.tsx
+index cd7ff00..9fbe87f 100644
+--- a/frontend/src/app/App.test.tsx
++++ b/frontend/src/app/App.test.tsx
+@@ -7,17 +7,12 @@ import { INITIAL_PROJECT } from '../features/project/model/projectWorkspace'
+ import { INITIAL_BRIDGES } from '../features/project/model/types'
+ import { assignedAxis, axesFromSpans, createBridgeDefinition } from '../features/bridge-definition/model/store'
+ import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../features/graph/state/graphStore'
++import { readProjectData, readProjectDataText, resetProjectData, seedProjectData } from '../test/projectStoreTestUtils'
+ vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div className="spn-workspace-layout"><aside aria-label="Node Library"><label htmlFor="search-nodes">Search nodes</label><input id="search-nodes" /></aside><main><h1>Graph Workspace</h1><input aria-label="Graph name" defaultValue="Untitled Graph" /><div className="spn-graph-flow" /></main><aside aria-label="Node Inspector">Node Inspector</aside></div> }))
+ 
+ beforeEach(() => {
+   window.history.pushState({}, '', '/')
+-  localStorage.removeItem('kopruq.project-workspace.v1')
+-  localStorage.removeItem('kopruq.bridge-definitions.v1')
+-  localStorage.removeItem('kopruq.project-design-system.pier-families')
+-  localStorage.removeItem('kopruq.project-design-system.pier-cap-families')
+-  localStorage.removeItem('kopruq.project-design-system.foundation-families')
+-  localStorage.removeItem('kopruq.project-design-system.bearing-families')
+-  localStorage.removeItem('kopruq.graph.documents.v1')
++  resetProjectData(['workspace', 'bridgeDefinitions', 'families.PIER', 'families.PIER_CAP', 'families.FOUNDATION', 'families.BEARING', 'graphDocuments'])
+ })
+ 
+ describe('App workspace shell', () => {
+@@ -91,7 +86,7 @@ describe('App workspace shell', () => {
+   })
+ 
+   it('keeps Family Workspace read-only while Bridge Definition remains separate', async () => {
+-    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
++    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: 'VIA-01', definitions: { 'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'RECT-M' } } } } }))
+     render(<App />)
+     const user = userEvent.setup()
+     await user.click(within(screen.getByRole('navigation', { name: 'Workspaces' })).getByRole('link', { name: 'Family' }))
+@@ -143,7 +138,7 @@ describe('App workspace shell', () => {
+ 
+   it('derives support axes from explicit bridge spans and assigns family IDs without copying catalog data', async () => {
+     const pierCatalog = [{ id: 'PIER-01', name: 'Pier Family A', enabled: true }]
+-    localStorage.setItem('kopruq.project-design-system.pier-families', JSON.stringify(pierCatalog))
++    seedProjectData('families.PIER', pierCatalog)
+     window.history.pushState({}, '', '/bridge-definition')
+     render(<App />)
+     const user = userEvent.setup()
+@@ -155,9 +150,9 @@ describe('App workspace shell', () => {
+     await user.click(screen.getByText('P1'))
+     const pierFamily = screen.getByRole('combobox', { name: 'Pier Family' })
+     await user.selectOptions(pierFamily, 'PIER-01')
+-    const bridgeId = JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').bridges[0].id
+-    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}').definitions[bridgeId].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
+-    expect(JSON.parse(localStorage.getItem('kopruq.project-design-system.pier-families') ?? '[]')).toEqual(pierCatalog)
++    const bridgeId = readProjectData<{ bridges: { id: string }[] }>('workspace')!.bridges[0].id
++    expect(readProjectData<{ definitions: Record<string, { axisAssignments: { P1: { pierFamilyId: string } } }> }>('bridgeDefinitions')!.definitions[bridgeId].axisAssignments.P1.pierFamilyId).toBe('PIER-01')
++    expect((readProjectData('families.PIER') ?? [])).toEqual(pierCatalog)
+   })
+ 
+   it('preserves legacy bridge assignments after editing its number and reloading', async () => {
+@@ -168,8 +163,8 @@ describe('App workspace shell', () => {
+       axisAssignments: { P1: assignedAxis({ pierFamilyId: 'PIER-1', foundationFamilyId: 'FOUNDATION-1', bearingFamilyId: 'BEARING-1' }) },
+       abutmentFamilyIds: { A1: 'ABUTMENT-1', A2: 'ABUTMENT-2' },
+     }
+-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: INITIAL_PROJECT, bridges: [bridge] }))
+-    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: { ...definition, bridgeId: bridge.no } } }))
++    seedProjectData('workspace', { project: INITIAL_PROJECT, bridges: [bridge] })
++    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: { ...definition, bridgeId: bridge.no } } }))
+     window.history.pushState({}, '', '/project/bridge-information')
+     const view = render(<App />)
+     const user = userEvent.setup()
+@@ -182,13 +177,13 @@ describe('App workspace shell', () => {
+     expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-99 · Cantilever Bridge')
+     await user.click(within(screen.getByRole('complementary', { name: 'Bridge Definition sections' })).getByRole('button', { name: 'Span Layout' }))
+     expect(screen.getByRole('textbox', { name: 'Selected span lengths' })).toHaveValue('30, 40')
+-    const saved = JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}')
++    const saved = readProjectData('bridgeDefinitions') ?? {}
+     expect(saved).toEqual({ keyBy: 'bridgeId', selectedBridgeId: bridge.id, definitions: { [bridge.id]: definition } })
+     view.unmount()
+     render(<App />)
+     expect(screen.getByRole('combobox', { name: 'Bridge selector' })).toHaveDisplayValue('VIA-99 · Cantilever Bridge')
+     expect(screen.getByRole('textbox', { name: 'Selected span lengths' })).toHaveValue('30, 40')
+-    expect(JSON.parse(localStorage.getItem('kopruq.bridge-definitions.v1') ?? '{}')).toEqual(saved)
++    expect(readProjectData('bridgeDefinitions') ?? {}).toEqual(saved)
+   })
+ 
+   it('opens the existing Loads feature at /loads', async () => {
+@@ -264,7 +259,7 @@ describe('App workspace shell', () => {
+     await user.type(editProperties.getByLabelText('Project Name'), 'Test Bridge Project')
+     await user.click(editProperties.getByRole('button', { name: 'Save' }))
+     expect(document.querySelector('.spn-project-name')).toHaveTextContent('Test Bridge Project')
+-    expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.name).toBe('Test Bridge Project')
++    expect(readProjectData<{ project: { name: string } }>('workspace')!.project.name).toBe('Test Bridge Project')
+   })
+ 
+   it('preserves Project state across workspace navigation and browser refresh', async () => {
+@@ -399,13 +394,13 @@ describe('App workspace shell', () => {
+ 
+   it('resets project modules on New Project and leaves the project clean', async () => {
+     const user = userEvent.setup()
+-    localStorage.setItem('kopruq.seismic', JSON.stringify({ a: '0.3', g: 'A', t: 'Type 2', i: '1' }))
+-    localStorage.setItem('kopruq.superstructure.cross-section.v1', JSON.stringify({ platformWidthM: 9, leftWalkwayM: 1, rightWalkwayM: 1, spaceOfGirderM: 2, numberOfGirders: 3 }))
++    seedProjectData('loads.seismic', { a: '0.3', g: 'A', t: 'Type 2', i: '1' })
++    seedProjectData('crossSection', { platformWidthM: 9, leftWalkwayM: 1, rightWalkwayM: 1, spaceOfGirderM: 2, numberOfGirders: 3 })
+     render(<App />)
+     const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
+     await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ }))
+-    await waitFor(() => expect(localStorage.getItem('kopruq.seismic')).toBeNull())
+-    expect(localStorage.getItem('kopruq.superstructure.cross-section.v1')).toBeNull()
++    await waitFor(() => expect(readProjectDataText('loads.seismic')).toBeNull())
++    expect(readProjectDataText('crossSection')).toBeNull()
+     expect(nav.getByRole('button', { name: /File/ })).not.toHaveTextContent('*')
+   })
+ 
+@@ -455,6 +450,6 @@ describe('App workspace shell', () => {
+     render(<App />)
+     await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File([JSON.stringify(json)], 'env-less.kopruq', { type: 'application/json' }))
+     await waitFor(() => expect(document.querySelector('.spn-project-name')).toHaveTextContent('Env Less'))
+-    expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.environment).toEqual({ terrainDatasetId: null, landXmlImportId: null })
++    expect(readProjectData<{ project: { environment: unknown } }>('workspace')!.project.environment).toEqual({ terrainDatasetId: null, landXmlImportId: null })
+   })
+ })
+diff --git a/frontend/src/features/bearing-families/components/BearingFamiliesPanel.test.tsx b/frontend/src/features/bearing-families/components/BearingFamiliesPanel.test.tsx
+index 03ead0e..e699ca4 100644
+--- a/frontend/src/features/bearing-families/components/BearingFamiliesPanel.test.tsx
++++ b/frontend/src/features/bearing-families/components/BearingFamiliesPanel.test.tsx
+@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
+ import { MemoryRouter } from 'react-router-dom'
+ import BearingFamiliesPanel from './BearingFamiliesPanel'
+ import SystemAssemblyPanel from '../../system-assembly/components/SystemAssemblyPanel'
++import { readProjectData, resetProjectData } from '../../../test/projectStoreTestUtils'
+ 
+-const storeKey = 'kopruq.project-design-system.bearing-families'
+ function setRule(label: string, min: number, max: number, delta: number) {
+   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Min` }), { target: { value: String(min) } })
+   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Max` }), { target: { value: String(max) } })
+@@ -20,7 +20,7 @@ function createFamily(name: string, base: number) {
+ 
+ describe('Bearing family management', () => {
+   it('uses the Pier workflow: selects a family, edits it directly, and Add creates an independent copy', () => {
+-    localStorage.removeItem(storeKey)
++    resetProjectData(['families.BEARING'])
+     render(<BearingFamiliesPanel />)
+     const schematic = document.querySelector('.bearing-schematic-grid')
+     expect(schematic?.children).toHaveLength(2)
+@@ -29,7 +29,7 @@ describe('Bearing family management', () => {
+     createFamily('B1', 300)
+     expect(screen.getByText('Generated Bearing Variants:').parentElement).toHaveTextContent('45')
+     fireEvent.click(screen.getByRole('button', { name: 'Add Bearing' }))
+-    let catalog = JSON.parse(localStorage.getItem(storeKey) ?? '[]') as { id: string; name: string; length: { max: number } }[]
++    let catalog = (readProjectData('families.BEARING') ?? []) as { id: string; name: string; length: { max: number } }[]
+     expect(catalog.map((family) => family.name)).toEqual(['B1', 'B1-COPY'])
+     const b1Id = catalog[0].id
+     const copyId = catalog[1].id
+@@ -37,20 +37,20 @@ describe('Bearing family management', () => {
+     const b1Row = screen.getByRole('row', { name: /B1\s/ })
+     fireEvent.click(b1Row)
+     fireEvent.change(screen.getByRole('spinbutton', { name: 'Bearing Length L (mm) Max' }), { target: { value: '450' } })
+-    catalog = JSON.parse(localStorage.getItem(storeKey) ?? '[]') as typeof catalog
++    catalog = (readProjectData('families.BEARING') ?? []) as typeof catalog
+     expect(catalog).toHaveLength(2)
+     expect(catalog[0]).toMatchObject({ id: b1Id, name: 'B1', length: { max: 450 } })
+     expect(catalog[1]).toMatchObject({ id: copyId, name: 'B1-COPY', length: { max: 400 } })
+ 
+     const copyRow = screen.getByRole('row', { name: /B1-COPY/ })
+     fireEvent.click(within(copyRow).getByRole('button', { name: 'Delete' }))
+-    catalog = JSON.parse(localStorage.getItem(storeKey) ?? '[]') as typeof catalog
++    catalog = (readProjectData('families.BEARING') ?? []) as typeof catalog
+     expect(catalog.map((family) => family.name)).toEqual(['B1'])
+     expect(catalog[0].id).toBe(b1Id)
+   })
+ 
+   it('feeds enabled valid families from the same persisted catalog to System Assembly', () => {
+-    localStorage.removeItem(storeKey)
++    resetProjectData(['families.BEARING'])
+     const { unmount } = render(<BearingFamiliesPanel />)
+     createFamily('B1', 300)
+     fireEvent.click(screen.getByRole('button', { name: 'Add Bearing' }))
+@@ -63,7 +63,7 @@ describe('Bearing family management', () => {
+     expect(within(selector).getByRole('option', { name: 'B1' })).toBeInTheDocument()
+     expect(within(selector).getByRole('option', { name: 'B1-COPY' })).toBeInTheDocument()
+     expect(screen.getByText('B1-L300-B300-H300')).toBeInTheDocument()
+-    const copyId = (JSON.parse(localStorage.getItem(storeKey) ?? '[]') as { id: string; name: string }[]).find((family) => family.name === 'B1-COPY')!.id
++    const copyId = ((readProjectData('families.BEARING') ?? []) as { id: string; name: string }[]).find((family) => family.name === 'B1-COPY')!.id
+     fireEvent.change(selector, { target: { value: copyId } })
+     expect(screen.getByText('B1-COPY-L300-B300-H300')).toBeInTheDocument()
+   })
+diff --git a/frontend/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx b/frontend/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx
+index 905a3dc..aee49a3 100644
+--- a/frontend/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx
++++ b/frontend/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx
+@@ -29,9 +29,6 @@ type Props = {
+ }
+ type FamilyRef = { id: string; name: string }
+ type Catalogs = { piers: PierFamily[]; pierCaps: PierCapFamily[]; foundations: FoundationFamily[]; bearings: BearingFamily[]; girders: GirderVariant[]; preferred: PreferredSpanRule[] }
+-const CATALOG_KEYS = {
+-  preferred: PREFERRED_SPAN_RULES_MODULE.key,
+-}
+ const NAV: { group: string; label: string; slug: string }[] = [
+   { group: 'Bridge', label: 'Bridge Overview', slug: 'overview' },
+   { group: 'Alignment', label: 'Horizontal Alignment', slug: 'alignment/horizontal' }, { group: 'Alignment', label: 'Vertical Alignment', slug: 'alignment/vertical' }, { group: 'Alignment', label: 'Cross Section', slug: 'alignment/cross-section' }, { group: 'Alignment', label: 'Terrain Reference', slug: 'alignment/terrain-reference' },
+@@ -47,10 +44,9 @@ const NAV: { group: string; label: string; slug: string }[] = [
+ const CONSTRAINT_KIND: Record<string, ConstraintKind> = { 'constraints/roads-railways': 'ROAD_RAILWAY', 'constraints/rivers': 'RIVER', 'constraints/clearances': 'CLEARANCE', 'constraints/geometric': 'OTHER' }
+ const CONSTRUCTION_METHODS = ['Precast Girder', 'Steel Composite', 'Balanced Cantilever', 'MSS', 'Cast in Situ', 'Other / Custom']
+ 
+-function readCatalog<T>(key: string): T[] { try { const value = JSON.parse(localStorage.getItem(key) ?? '[]') as unknown; return Array.isArray(value) ? value as T[] : [] } catch { return [] } }
+ function readCatalogs(): Catalogs {
+   const dimensions = getPrecastGirderDefinition<{ dimensions?: typeof PRECAST_DIMENSIONS } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS
+-  return { piers: getFamilyRecords<PierFamily>('PIER'), pierCaps: getFamilyRecords<PierCapFamily>('PIER_CAP'), foundations: getFamilyRecords<FoundationFamily>('FOUNDATION'), bearings: getFamilyRecords<BearingFamily>('BEARING'), girders: generatePrecastGirderVariants(dimensions), preferred: readCatalog<PreferredSpanRule>(CATALOG_KEYS.preferred) }
++  return { piers: getFamilyRecords<PierFamily>('PIER'), pierCaps: getFamilyRecords<PierCapFamily>('PIER_CAP'), foundations: getFamilyRecords<FoundationFamily>('FOUNDATION'), bearings: getFamilyRecords<BearingFamily>('BEARING'), girders: generatePrecastGirderVariants(dimensions), preferred: PREFERRED_SPAN_RULES_MODULE.read() ?? [] }
+ }
+ function emptyAssignments(): AxisFamilyAssignments { return assignedAxis() }
+ function shown(value: string | number | null | undefined) { return value == null || value === '' ? 'Not defined' : String(value) }
+diff --git a/frontend/src/features/bridge-definition/model/store.test.ts b/frontend/src/features/bridge-definition/model/store.test.ts
+index 4289e88..c1fed76 100644
+--- a/frontend/src/features/bridge-definition/model/store.test.ts
++++ b/frontend/src/features/bridge-definition/model/store.test.ts
+@@ -1,6 +1,7 @@
+ import { beforeEach, describe, expect, it } from 'vitest'
+ import { INITIAL_BRIDGES } from '../../project/model/types'
+-import { assignedAxis, axesFromSpans, BRIDGE_DEFINITIONS_STORAGE_KEY, createBridgeDefinition, ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore } from './store'
++import { assignedAxis, axesFromSpans, createBridgeDefinition, ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore, readStoredBridgeDefinitions } from './store'
++import { resetProjectData, seedProjectData, seedRawProjectData } from '../../../test/projectStoreTestUtils'
+ 
+ const bridge = { ...INITIAL_BRIDGES[0], id: 'bridge-1', no: 'VIA-01' }
+ const other = { ...INITIAL_BRIDGES[1], id: 'bridge-2', no: 'VIA-02' }
+@@ -13,7 +14,7 @@ const assigned = () => ({
+   constructionStagesNote: 'Keep this assignment',
+ })
+ 
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ 
+ describe('bridge definition identity', () => {
+   it('keys new definitions and selection by the stable bridge id', () => {
+@@ -41,7 +42,7 @@ describe('bridge definition identity', () => {
+ 
+   it('migrates legacy number-keyed storage and preserves selection and assignments', () => {
+     const legacy = { ...assigned(), bridgeId: bridge.no }
+-    localStorage.setItem(BRIDGE_DEFINITIONS_STORAGE_KEY, JSON.stringify({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: legacy } }))
++    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: legacy } }))
+     const migrated = readBridgeDefinitionStore([other, bridge])
+     expect(migrated.selectedBridgeId).toBe(bridge.id)
+     expect(migrated.definitions[bridge.id]).toEqual(assigned())
+@@ -59,3 +60,17 @@ describe('bridge definition identity', () => {
+     expect(next.definitions).not.toHaveProperty(bridge.id)
+   })
+ })
++
++describe('raw stored bridge definitions', () => {
++  it('returns the stored value un-normalized, so legacy number-keyed stores stay as they are', () => {
++    const legacy = { selectedBridgeId: bridge.no, definitions: { [bridge.no]: { axisAssignments: {} } } }
++    seedProjectData('bridgeDefinitions', legacy)
++    expect(readStoredBridgeDefinitions()).toEqual(legacy)
++  })
++
++  it('returns an empty object when absent and undefined for unreadable JSON', () => {
++    expect(readStoredBridgeDefinitions()).toEqual({})
++    seedRawProjectData('bridgeDefinitions', '{bad')
++    expect(readStoredBridgeDefinitions()).toBeUndefined()
++  })
++})
+diff --git a/frontend/src/features/bridge-definition/model/store.ts b/frontend/src/features/bridge-definition/model/store.ts
+index b716889..e111fa2 100644
+--- a/frontend/src/features/bridge-definition/model/store.ts
++++ b/frontend/src/features/bridge-definition/model/store.ts
+@@ -40,6 +40,13 @@ function mergeDefinition(bridge: BridgeRow, input?: Partial<BridgeInstanceDefini
+   return definition
+ }
+ 
++export type StoredBridgeDefinitions = { keyBy?: 'bridgeId'; selectedBridgeId?: string | null; definitions?: Record<string, Record<string, unknown>> }
++/** Raw, un-normalized stored value (legacy number-keyed stores stay as they are). undefined: storage unavailable or unreadable JSON; {} when absent. */
++export function readStoredBridgeDefinitions(): StoredBridgeDefinitions | undefined {
++  if (typeof localStorage === 'undefined') return undefined
++  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as StoredBridgeDefinitions } catch { return undefined }
++}
++
+ export function readBridgeDefinitionStore(bridges: BridgeRow[]): BridgeDefinitionStore {
+   let saved: Partial<BridgeDefinitionStore> = {}
+   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<BridgeDefinitionStore> } catch { /* empty store */ }
+diff --git a/frontend/src/features/family-registry/model/familyRepository.test.ts b/frontend/src/features/family-registry/model/familyRepository.test.ts
+index 0516ef4..d190ea8 100644
+--- a/frontend/src/features/family-registry/model/familyRepository.test.ts
++++ b/frontend/src/features/family-registry/model/familyRepository.test.ts
+@@ -1,7 +1,8 @@
+ import { beforeEach, describe, expect, it } from 'vitest'
+ import { getFamilyRecord, graphFamilyAdapter, saveFamilyRecords } from './familyRepository'
++import { readProjectDataText, resetProjectData } from '../../../test/projectStoreTestUtils'
+ 
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ 
+ describe('Family Repository', () => {
+   it('preserves existing catalog keys and resolves the current family by stable ID', () => {
+@@ -14,7 +15,7 @@ describe('Family Repository', () => {
+     saveFamilyRecords('PIER', [updated])
+     expect(getFamilyRecord('PIER', 'P-01')).toEqual(updated)
+     expect(graphFamilyAdapter.resolve(ref)).toEqual(updated)
+-    expect(localStorage.getItem('kopruq.project-design-system.pier-families')).toContain('P-01')
++    expect(readProjectDataText('families.PIER')).toContain('P-01')
+   })
+ 
+   it('exposes editable and derived piled foundation parameters without duplicating values', () => {
+diff --git a/frontend/src/features/family-registry/model/familySchemas.ts b/frontend/src/features/family-registry/model/familySchemas.ts
+index 456f159..cd869ff 100644
+--- a/frontend/src/features/family-registry/model/familySchemas.ts
++++ b/frontend/src/features/family-registry/model/familySchemas.ts
+@@ -21,7 +21,7 @@ const loose = <T>(shape: z.ZodRawShape) => z.object({ ...Object.fromEntries(Obje
+ 
+ const pierSchema = loose<PierFamily>({
+   ...base,
+-  // H_TYPE and WALL are legacy values that PierFamiliesPanel migrates to H_SECTION on read.
++  // H_TYPE and WALL are legacy values: accepted and stored as they are, not migrated on read.
+   pierType: z.enum(['RECTANGULAR', 'CIRCULAR', 'OVAL', 'BOX', 'H_SECTION', 'H_TYPE', 'WALL']),
+   dimensions: z.array(dimension), allowedConfigurations: z.array(text), twoColumnSpacing: dimension.nullable(),
+   heightApplicability: z.object({ minimumHeight: z.number().nullable(), preferredHeightMin: z.number().nullable(), preferredHeightMax: z.number().nullable(), maximumHeight: z.number().nullable() }).passthrough(),
+diff --git a/frontend/src/features/family-registry/model/registry.test.ts b/frontend/src/features/family-registry/model/registry.test.ts
+index 517566f..f19dcdd 100644
+--- a/frontend/src/features/family-registry/model/registry.test.ts
++++ b/frontend/src/features/family-registry/model/registry.test.ts
+@@ -1,17 +1,18 @@
+ import { afterEach, describe, expect, it } from 'vitest'
+ import { getFamilies, getFamilyReferences } from './registry'
++import { browserStorageText, resetProjectData, seedProjectData, seedRawProjectData } from '../../../test/projectStoreTestUtils'
+ 
+-afterEach(() => localStorage.clear())
++afterEach(() => resetProjectData())
+ 
+ describe('family registry adapters', () => {
+   it('reads stable IDs from the existing family catalogs without introducing a store', () => {
+-    localStorage.setItem('kopruq.project-design-system.foundation-families', JSON.stringify([{ id: 'F-01', name: 'Pile A', foundationType: 'PILED', enabled: true }]))
++    seedProjectData('families.FOUNDATION', ([{ id: 'F-01', name: 'Pile A', foundationType: 'PILED', enabled: true }]))
+     expect(getFamilies('FOUNDATION')).toEqual([{ id: 'F-01', name: 'Pile A', category: 'FOUNDATION', type: 'PILED', enabled: true, summary: 'PILED; pile layout with derived Lx/Ly' }])
+-    expect(localStorage.getItem('kopruq.family-registry')).toBeNull()
++    expect(browserStorageText('kopruq.family-registry')).toBeNull()
+   })
+ 
+   it('indexes Bridge Definition family-ID references by bridge and axis', () => {
+-    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ definitions: {
++    seedProjectData('bridgeDefinitions', ({ definitions: {
+       'VIA-01': { axisAssignments: { P1: { pierFamilyId: 'P-01' }, P2: { pierFamilyId: 'P-02' } } },
+       'VIA-02': { axisAssignments: { P3: { pierFamilyId: 'P-01' } } },
+     } }))
+@@ -19,12 +20,30 @@ describe('family registry adapters', () => {
+   })
+ 
+   it('keeps the stable reference while displaying the renamed bridge number', () => {
+-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ bridges: [{ id: 'bridge-1', no: 'VIA-99' }] }))
+-    localStorage.setItem('kopruq.bridge-definitions.v1', JSON.stringify({ keyBy: 'bridgeId', definitions: {
++    seedProjectData('workspace', ({ bridges: [{ id: 'bridge-1', no: 'VIA-99' }] }))
++    seedProjectData('bridgeDefinitions', ({ keyBy: 'bridgeId', definitions: {
+       'bridge-1': { axisAssignments: { P1: { pierFamilyId: 'P-01' } }, girderFamilyId: 'G-01', abutmentFamilyIds: { A1: 'A-01' } },
+     } }))
+     expect(getFamilyReferences('PIER', 'P-01')).toEqual([{ bridgeId: 'bridge-1', bridgeNo: 'VIA-99', location: 'P1' }])
+     expect(getFamilyReferences('GIRDER', 'G-01')).toEqual([{ bridgeId: 'bridge-1', bridgeNo: 'VIA-99', location: 'Superstructure / Girder' }])
+     expect(getFamilyReferences('ABUTMENT', 'A-01')).toEqual([{ bridgeId: 'bridge-1', bridgeNo: 'VIA-99', location: 'A1' }])
+   })
++
++  it('keeps only object rows of the MATERIAL catalog and lists each concrete class once', () => {
++    seedProjectData('families.MATERIAL', [null, 5, { concreteClass: 'C30/37' }, { concreteClass: 'C30/37' }])
++    expect(getFamilies('MATERIAL')).toHaveLength(1)
++    expect(getFamilies('MATERIAL')[0]).toMatchObject({ id: 'EN1992-1-1:C30/37', name: 'C30/37' })
++  })
++
++  it('returns no references for unreadable bridge definitions or an empty store', () => {
++    expect(getFamilyReferences('PIER', 'P-01')).toEqual([])
++    seedRawProjectData('bridgeDefinitions', '{bad')
++    expect(getFamilyReferences('PIER', 'P-01')).toEqual([])
++  })
++
++  it('uses the stored key as bridge number for legacy stores without keyBy', () => {
++    seedProjectData('workspace', { bridges: [{ id: 'bridge-1', no: 'VIA-99' }] })
++    seedProjectData('bridgeDefinitions', { definitions: { 'bridge-1': { axisAssignments: { P1: { pierFamilyId: 'P-01' } } } } })
++    expect(getFamilyReferences('PIER', 'P-01')).toEqual([{ bridgeId: 'bridge-1', bridgeNo: 'bridge-1', location: 'P1' }])
++  })
+ })
+diff --git a/frontend/src/features/family-registry/model/registry.ts b/frontend/src/features/family-registry/model/registry.ts
+index 8f49f88..1debd67 100644
+--- a/frontend/src/features/family-registry/model/registry.ts
++++ b/frontend/src/features/family-registry/model/registry.ts
+@@ -4,8 +4,8 @@ export type FamilyReference = { bridgeId: string; bridgeNo: string; location: st
+ export type FamilySelection = { category: FamilyCategory; id: string | null }
+ 
+ import { PRECAST_DIMENSIONS } from '../../girder-library/model/variants'
+-import { familyStorageKey, getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
+-import { BRIDGE_DEFINITIONS_STORAGE_KEY } from '../../bridge-definition/model/store'
++import { getFamilyRecords, getPrecastGirderDefinition } from './familyRepository'
++import { readStoredBridgeDefinitions } from '../../bridge-definition/model/store'
+ import { readProjectState } from '../../project'
+ 
+ const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
+@@ -15,15 +15,12 @@ const CHANGE_EVENTS: Partial<Record<FamilyCategory, string>> = {
+   FOUNDATION: 'kopruq:foundation-catalog-changed', BEARING: 'kopruq:bearing-catalog-changed',
+ }
+ 
+-function readArray(key: string): Record<string, unknown>[] {
+-  try { const value: unknown = JSON.parse(localStorage.getItem(key) ?? '[]'); return Array.isArray(value) ? value.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object') : [] } catch { return [] }
+-}
+ const val = (row: Record<string, unknown>, key: string) => row[key] == null ? '' : String(row[key])
+ 
+ /** Reads existing feature-owned catalogs; this adapter does not own or persist family data. */
+ export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
+   if (category === 'MATERIAL') {
+-    const classes = new Set(readArray(familyStorageKey('MATERIAL')).map((row) => val(row, 'concreteClass')).filter(Boolean))
++    const classes = new Set(getFamilyRecords<Record<string, unknown> & { id: string }>('MATERIAL').filter((row) => Boolean(row) && typeof row === 'object').map((row) => val(row, 'concreteClass')).filter(Boolean))
+     return [...classes].sort().map((concreteClass) => ({ id: `EN1992-1-1:${concreteClass}`, name: concreteClass, category, type: 'CONCRETE', enabled: true, summary: 'EN 1992-1-1 concrete strength class reference; engineering material properties are not configured in this panel.' }))
+   }
+   if (category === 'GIRDER') {
+@@ -46,9 +43,8 @@ export function getFamilies(category: FamilyCategory): FamilyRegistryRecord[] {
+ }
+ 
+ export function getFamilyReferences(category: FamilyCategory, id: string): FamilyReference[] {
+-  if (typeof localStorage === 'undefined') return []
+-  let stored: { keyBy?: 'bridgeId'; definitions?: Record<string, Record<string, unknown>> } = {}
+-  try { stored = JSON.parse(localStorage.getItem(BRIDGE_DEFINITIONS_STORAGE_KEY) ?? '{}') as typeof stored } catch { return [] }
++  const stored = readStoredBridgeDefinitions()
++  if (stored === undefined) return []
+   const found: FamilyReference[] = []
+   const bridges = readProjectState([]).bridges
+   for (const [bridgeId, definition] of Object.entries(stored.definitions ?? {})) {
+diff --git a/frontend/src/features/family-tables/components/FamilyResultsViewer.test.tsx b/frontend/src/features/family-tables/components/FamilyResultsViewer.test.tsx
+index 2126227..0e0c246 100644
+--- a/frontend/src/features/family-tables/components/FamilyResultsViewer.test.tsx
++++ b/frontend/src/features/family-tables/components/FamilyResultsViewer.test.tsx
+@@ -6,6 +6,7 @@ import { clearFamilySnapshots, getFamilySnapshots, publishFamilySnapshots } from
+ import { graphFingerprint, type FamilyCalculationSnapshot } from '../../graph/family/familyResults'
+ import { importGraphDocuments } from '../../graph/state/graphStore'
+ import type { KopruqGraph } from '../../graph/domain/types'
++import { resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
+ 
+ const bridges = [{ id: 'bridge-1', no: 'VIA-01' }] as never
+ const testGraph = (nodes: KopruqGraph['nodes'] = [{ id: 'n1', type: 'structural.girder.precast', name: 'Girder', position: { x: 0, y: 0 }, parameters: { tfValue: 1 } }]): KopruqGraph => ({ id: 'graph-1', bridgeId: 'bridge-1', name: 'G', schemaVersion: 1, nodes, connections: [] })
+@@ -13,7 +14,7 @@ const setGraph = (graph: KopruqGraph) => importGraphDocuments({ activeGraphId: g
+ const snapshot = (freshness: FamilyCalculationSnapshot['freshness']): FamilyCalculationSnapshot => ({ snapshotId: 's', bridgeId: 'bridge-1', graphDocumentId: 'graph-1', sourceNodeId: 'n1', sourceNodeType: 'structural.girder.precast', sourceNodeName: 'Girder', familyCategory: 'GIRDER', graphFingerprint: graphFingerprint(testGraph(), INITIAL_PROJECT.units), candidates: [], generatedAt: '2026-01-01T00:00:00Z', freshness, executionStatus: 'SUCCESS', errors: [] })
+ 
+ beforeEach(() => {
+-  clearFamilySnapshots(); localStorage.clear()
++  clearFamilySnapshots(); resetProjectData()
+   setGraph(testGraph())
+ })
+ 
+@@ -65,7 +66,7 @@ describe('FamilyResultsViewer read-time freshness', () => {
+ 
+ describe('FamilyResultsViewer count parameters', () => {
+   it('shows a piled-foundation pile count without length conversion under a mm project unit', () => {
+-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: { ...INITIAL_PROJECT, units: { ...INITIAL_PROJECT.units, length: 'mm' } }, bridges: [] }))
++    seedProjectData('workspace', ({ project: { ...INITIAL_PROJECT, units: { ...INITIAL_PROJECT.units, length: 'mm' } }, bridges: [] }))
+     const piledGraph = testGraph([{ id: 'n1', type: 'substructure.foundation.piled', name: 'Piled', position: { x: 0, y: 0 }, parameters: { pileCountXValue: 4 } }]), mmUnits = { ...INITIAL_PROJECT.units, length: 'mm' }
+     setGraph(piledGraph)
+     publishFamilySnapshots([{ ...snapshot('VALID'), graphFingerprint: graphFingerprint(piledGraph, mmUnits), sourceNodeType: 'substructure.foundation.piled', familyCategory: 'FOUNDATION' }])
+diff --git a/frontend/src/features/foundation-families/components/FoundationFamiliesPanel.test.tsx b/frontend/src/features/foundation-families/components/FoundationFamiliesPanel.test.tsx
+index f1967cf..facd2a4 100644
+--- a/frontend/src/features/foundation-families/components/FoundationFamiliesPanel.test.tsx
++++ b/frontend/src/features/foundation-families/components/FoundationFamiliesPanel.test.tsx
+@@ -3,20 +3,20 @@ import { MemoryRouter } from 'react-router-dom'
+ import { describe, expect, it } from 'vitest'
+ import FoundationFamiliesPanel from './FoundationFamiliesPanel'
+ import SystemAssemblyPanel from '../../system-assembly/components/SystemAssemblyPanel'
++import { readProjectData, resetProjectData } from '../../../test/projectStoreTestUtils'
+ 
+-const key = 'kopruq.project-design-system.foundation-families'
+ function setRule(label: string, min: number, max: number, delta: number) {
+   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Min` }), { target: { value: String(min) } })
+   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Max` }), { target: { value: String(max) } })
+   fireEvent.change(screen.getByRole('spinbutton', { name: `${label} Delta` }), { target: { value: String(delta) } })
+ }
+ function beginFamily(name: string) {
+-  const existing = JSON.parse(localStorage.getItem(key) ?? '[]') as unknown[]
++  const existing = (readProjectData('families.FOUNDATION') ?? []) as unknown[]
+   if (existing.length) fireEvent.click(screen.getByRole('button', { name: 'Add Foundation' }))
+   fireEvent.change(screen.getByLabelText('Family Name'), { target: { value: name } })
+ }
+ function finishFirstFamily() {
+-  const existing = JSON.parse(localStorage.getItem(key) ?? '[]') as unknown[]
++  const existing = (readProjectData('families.FOUNDATION') ?? []) as unknown[]
+   if (!existing.length) fireEvent.click(screen.getByRole('button', { name: 'Add Foundation' }))
+ }
+ function configureShallow(name: string, max = 8) {
+@@ -42,35 +42,35 @@ function configurePiled(name: string) {
+ 
+ describe('Foundation families', () => {
+   it('selects and edits catalog families directly, and Add Foundation clones the selected family', () => {
+-    localStorage.removeItem(key)
++    resetProjectData(['families.FOUNDATION'])
+     render(<FoundationFamiliesPanel />)
+     expect(screen.queryByRole('button', { name: /New Foundation/ })).not.toBeInTheDocument()
+     expect(screen.queryByRole('button', { name: 'Update Foundation' })).not.toBeInTheDocument()
+     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+ 
+     configureShallow('F1', 8)
+-    let families = JSON.parse(localStorage.getItem(key) ?? '[]') as { id: string; name: string; shallowGeneration: { lengthX: { max: number } } }[]
++    let families = (readProjectData('families.FOUNDATION') ?? []) as { id: string; name: string; shallowGeneration: { lengthX: { max: number } } }[]
+     expect(families).toHaveLength(1)
+     const originalId = families[0].id
+     fireEvent.change(screen.getByRole('spinbutton', { name: 'Foundation Length Lx (m) Max' }), { target: { value: '10' } })
+-    families = JSON.parse(localStorage.getItem(key) ?? '[]') as typeof families
++    families = (readProjectData('families.FOUNDATION') ?? []) as typeof families
+     expect(families).toHaveLength(1)
+     expect(families[0]).toMatchObject({ id: originalId, name: 'F1', shallowGeneration: { lengthX: { max: 10 } } })
+ 
+     fireEvent.click(screen.getByRole('button', { name: 'Add Foundation' }))
+-    families = JSON.parse(localStorage.getItem(key) ?? '[]') as typeof families
++    families = (readProjectData('families.FOUNDATION') ?? []) as typeof families
+     expect(families).toHaveLength(2)
+     expect(families[1].id).not.toBe(originalId)
+     expect(families[1].name).toBe('F1-COPY')
+     expect(screen.getByLabelText('Family Name')).toHaveValue('F1-COPY')
+     fireEvent.change(screen.getByLabelText('Family Name'), { target: { value: 'F1-COPY-2' } })
+     fireEvent.click(within(screen.getByRole('row', { name: /F1\s/ })).getByRole('button', { name: 'Delete' }))
+-    families = JSON.parse(localStorage.getItem(key) ?? '[]') as typeof families
++    families = (readProjectData('families.FOUNDATION') ?? []) as typeof families
+     expect(families.map((item) => item.name)).toEqual(['F1-COPY-2'])
+   })
+ 
+   it('retains shallow and piled generation and publishes family catalog entries to Assembly', () => {
+-    localStorage.removeItem(key)
++    resetProjectData(['families.FOUNDATION'])
+     const { unmount } = render(<FoundationFamiliesPanel />)
+     configureShallow('FS1')
+     configurePiled('FP1')
+@@ -82,7 +82,7 @@ describe('Foundation families', () => {
+     const select = screen.getByRole('combobox')
+     expect(within(select).getByRole('option', { name: 'FS1' })).toBeInTheDocument()
+     expect(within(select).getByRole('option', { name: 'FP1' })).toBeInTheDocument()
+-    const fp1 = (JSON.parse(localStorage.getItem(key) ?? '[]') as { id: string; name: string }[]).find((item) => item.name === 'FP1')!
++    const fp1 = ((readProjectData('families.FOUNDATION') ?? []) as { id: string; name: string }[]).find((item) => item.name === 'FP1')!
+     fireEvent.change(select, { target: { value: fp1.id } })
+     expect(screen.getByRole('img', { name: 'PIER engineering schematic' })).toHaveTextContent('PILES')
+   })
+diff --git a/frontend/src/features/graph/state/graphStore.ts b/frontend/src/features/graph/state/graphStore.ts
+index 8e637b5..c324dd6 100644
+--- a/frontend/src/features/graph/state/graphStore.ts
++++ b/frontend/src/features/graph/state/graphStore.ts
+@@ -5,7 +5,7 @@ import type { GraphGroup, GraphParameterValue, KopruqConnection, KopruqGraph, Ko
+ import { validateConnection } from '../engine/graphEngine'
+ import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
+ import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
+-import { readProjectState } from '../../project/model/projectWorkspace'
++import { readProjectUnits } from '../../project/model/projectWorkspace'
+ 
+ export const GRAPH_DOCUMENTS_STORAGE_KEY = 'kopruq.graph.documents.v1'
+ const STORAGE_KEY = GRAPH_DOCUMENTS_STORAGE_KEY
+@@ -97,7 +97,7 @@ function replaceActiveGraph(next: KopruqGraph, history = true) {
+ export function addNode(type: string, position: { x: number; y: number }) {
+   const definition = getNodeDefinition(type); if (!definition) return
+   const graph = getActiveGraph(), count = graph.nodes.filter((node) => node.type === type).length + 1
+-  const projectUnits = typeof localStorage === 'undefined' ? undefined : readProjectState([]).project.units
++  const projectUnits = readProjectUnits()
+   const node = createNode(definition, { id: globalThis.crypto?.randomUUID?.() ?? `node-${Date.now()}-${Math.random().toString(36).slice(2)}`, name: `${definition.label}-${count}`, position, projectUnits })
+   if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] node insertion')
+   replaceActiveGraph({ ...graph, nodes: [...graph.nodes, node] })
+diff --git a/frontend/src/features/loads/components/LoadsPanel.test.tsx b/frontend/src/features/loads/components/LoadsPanel.test.tsx
+index 06985a1..e20d0ef 100644
+--- a/frontend/src/features/loads/components/LoadsPanel.test.tsx
++++ b/frontend/src/features/loads/components/LoadsPanel.test.tsx
+@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+ import LoadsPanel from './LoadsPanel'
+ import { INITIAL_CROSS_SECTION_VALUES } from '../../superstructure-families'
++import { readProjectData, resetProjectData } from '../../../test/projectStoreTestUtils'
+ 
+ const pv = (value: number, provenance = 'CODE_DEFAULT') => ({ value, provenance, codeDefaultValue: value })
+ const lane = (label: string, characteristic: number) => ({ label, characteristicValue: pv(characteristic), adjustmentFactor: pv(1) })
+@@ -20,7 +21,7 @@ function renderLoads() {
+   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+   return render(<QueryClientProvider client={client}><LoadsPanel crossSectionValues={INITIAL_CROSS_SECTION_VALUES} /></QueryClientProvider>)
+ }
+-beforeEach(() => { localStorage.clear(); stubFetch() })
++beforeEach(() => { resetProjectData(); stubFetch() })
+ afterEach(() => vi.unstubAllGlobals())
+ 
+ describe('Loads project-scoped state', () => {
+@@ -43,6 +44,6 @@ describe('Loads project-scoped state', () => {
+     await user.click(screen.getByRole('tab', { name: /Temperature/ }))
+     await openLm1()
+     expect((await alpha()).value).toBe('0.8')
+-    expect(JSON.parse(localStorage.getItem('kopruq.loads.traffic-lm1.v1') ?? 'null').tandemSystem[0].adjustmentFactor.provenance).toBe('PROJECT_OVERRIDE')
++    expect(readProjectData<{ tandemSystem: { adjustmentFactor: { characteristicValue?: unknown; provenance: string } }[] }>('loads.trafficLm1')!.tandemSystem[0].adjustmentFactor.provenance).toBe('PROJECT_OVERRIDE')
+   })
+ })
+diff --git a/frontend/src/features/loads/components/seismic/SeismicPanel.test.tsx b/frontend/src/features/loads/components/seismic/SeismicPanel.test.tsx
+index 1e34ce1..c0edbf9 100644
+--- a/frontend/src/features/loads/components/seismic/SeismicPanel.test.tsx
++++ b/frontend/src/features/loads/components/seismic/SeismicPanel.test.tsx
+@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+ import userEvent from '@testing-library/user-event'
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+ import SeismicPanel from './SeismicPanel'
++import { resetProjectData } from '../../../../test/projectStoreTestUtils'
+ 
+ vi.mock('recharts', () => ({ ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>, LineChart: ({ data }: { data: unknown[] }) => <div data-testid="chart" data-points={data.length} />, Line: () => null, XAxis: () => null, YAxis: () => null, Tooltip: () => null, ReferenceLine: () => null, CartesianGrid: () => null, Legend: () => null }))
+ 
+@@ -19,7 +20,7 @@ function renderPanel() {
+ }
+ const setPga = (value: string) => fireEvent.change(screen.getByLabelText('Reference PGA, agR'), { target: { value } })
+ const openDetails = () => userEvent.setup().click(screen.getByRole('button', { name: /Show Calculation Details/ }))
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ afterEach(() => vi.unstubAllGlobals())
+ 
+ describe('SeismicPanel', () => {
+diff --git a/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.test.tsx b/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.test.tsx
+index 6c094a2..1dc8c79 100644
+--- a/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.test.tsx
++++ b/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.test.tsx
+@@ -2,12 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+ import UniformTemperaturePanel from './UniformTemperaturePanel'
++import { resetProjectData } from '../../../../test/projectStoreTestUtils'
+ 
+ const result = (contractionC: number | null, status = 'VALID', missingParameters: string[] = []) => ({ initialTemperatureC: 10, effectiveMinimumC: 1, effectiveMaximumC: 40, contractionC, expansionC: 30, thermalExpansionSource: 'x', standard: 'EN 1991-1-5', parameterSource: 'PROJECT_INPUT', status, missingParameters, concreteAlphaTPerC: 1e-5, steelAlphaTPerC: 1.2e-5, temperatureActionStatus: status, concreteAlphaStatus: 'VALID', steelAlphaStatus: 'VALID' })
+ const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
+ function renderPanel() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><UniformTemperaturePanel /></QueryClientProvider>) }
+ const set = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ afterEach(() => vi.unstubAllGlobals())
+ 
+ describe('UniformTemperaturePanel', () => {
+diff --git a/frontend/src/features/loads/components/wind/WindLoadsPanel.test.tsx b/frontend/src/features/loads/components/wind/WindLoadsPanel.test.tsx
+index d00f6bc..b1f5852 100644
+--- a/frontend/src/features/loads/components/wind/WindLoadsPanel.test.tsx
++++ b/frontend/src/features/loads/components/wind/WindLoadsPanel.test.tsx
+@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
+ import { useState } from 'react'
+ import WindLoadsPanel from './WindLoadsPanel'
+ import type { WindCalculationSnapshot } from '../../model/windTypes'
++import { resetProjectData } from '../../../../test/projectStoreTestUtils'
+ 
+ const VALID = { status: 'VALID', z0M: 0.05, zminM: 2, kr: 0.19, cr: 1.1, vmMs: 28, turbulenceIntensity: 0.2, qpKNm2: 1.1, bOverD: 4.6, cfx: 1.3, transverseKNm: 12.3, missing: null }
+ const INVALID = { status: 'INVALID', z0M: 0, zminM: 0, kr: 0, cr: 0, vmMs: 0, turbulenceIntensity: 0, qpKNm2: 0, bOverD: 0, cfx: 0, transverseKNm: null, missing: 'Reference height ze is required' }
+@@ -18,7 +19,7 @@ async function calculate(vb = '27', ze = '10') {
+   fill('Basic Wind Velocity, vb', vb); fill('Reference Height, ze', ze)
+   await userEvent.setup().click(screen.getByRole('button', { name: /Calculate Wind/ }))
+ }
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ afterEach(() => vi.unstubAllGlobals())
+ 
+ describe('WindLoadsPanel', () => {
+diff --git a/frontend/src/features/loads/model/loadsProjectModules.ts b/frontend/src/features/loads/model/loadsProjectModules.ts
+index 815ec16..20d0bbc 100644
+--- a/frontend/src/features/loads/model/loadsProjectModules.ts
++++ b/frontend/src/features/loads/model/loadsProjectModules.ts
+@@ -1,17 +1,8 @@
+ import { z } from 'zod'
+ import { createProjectModule } from '../../../shared/project-file/projectModuleStore'
+ import type { Lm1Parameters } from '../api/trafficLoadsService'
++import { seismicInputsSchema, selfWeightInputsSchema, temperatureInputsSchema, windInputsSchema } from './loadsInputs'
+ 
+-const number = z.number()
+-const seismicInputsSchema = z.object({ a: z.string(), g: z.string(), t: z.string(), i: z.string() })
+-const windInputsSchema = z.object({ vb: z.string(), terrain: z.string(), ze: z.string() })
+-const temperatureInputsSchema = z.object({ min: z.string(), max: z.string(), t0: z.string() })
+-const selfWeightInputsSchema = z.object({
+-  asphaltThicknessM: number, asphaltUnitWeightKNm3: number, sidewalkThicknessM: number, sidewalkUnitWeightKNm3: number,
+-  faciaCount: number, faciaWidthM: number, faciaThicknessM: number, faciaUnitWeightKNm3: number,
+-  guardrailCount: number, guardrailUnitLoadKNm: number, pedestrianRailingCount: number, pedestrianRailingUnitLoadKNm: number,
+-  protectiveFenceCount: number, protectiveFenceUnitLoadKNm: number, soundPanelCount: number, soundPanelUnitLoadKNm: number,
+-})
+ const trafficLm1Schema = z.object({ tandemSystem: z.array(z.unknown()), udl: z.array(z.unknown()), remainingAreaUdl: z.object({}).passthrough() }).passthrough() as unknown as z.ZodType<Lm1Parameters>
+ 
+ export const SEISMIC_INPUTS_MODULE = createProjectModule('seismicInputs', 'kopruq.seismic', seismicInputsSchema)
+diff --git a/frontend/src/features/loads/model/loadsWire.ts b/frontend/src/features/loads/model/loadsWire.ts
+index b36a52d..880bc13 100644
+--- a/frontend/src/features/loads/model/loadsWire.ts
++++ b/frontend/src/features/loads/model/loadsWire.ts
+@@ -1,7 +1,7 @@
+ import { z } from 'zod'
+ import type { SectionDefinition } from '../../../shared/project-store/serverSection'
+ import type { Lm1Parameters, LaneFactor, ParameterValue } from '../api/trafficLoadsService'
+-import type { SEISMIC_INPUTS_MODULE, SELF_WEIGHT_INPUTS_MODULE, TEMPERATURE_INPUTS_MODULE, WIND_INPUTS_MODULE } from './loadsProjectModules'
++import type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
+ import type { WindCalculationSnapshot } from './windTypes'
+ 
+ /**
+@@ -9,10 +9,7 @@ import type { WindCalculationSnapshot } from './windTypes'
+  * (key order follows the record components). Seismic, wind and temperature inputs are the texts the user typed, unchanged.
+  * Self-weight names carry their units (m, kN/m3, kN/m); nothing is converted.
+  */
+-export type SeismicInputs = NonNullable<ReturnType<typeof SEISMIC_INPUTS_MODULE.read>>
+-export type WindInputs = NonNullable<ReturnType<typeof WIND_INPUTS_MODULE.read>>
+-export type TemperatureInputs = NonNullable<ReturnType<typeof TEMPERATURE_INPUTS_MODULE.read>>
+-export type SelfWeightInputs = NonNullable<ReturnType<typeof SELF_WEIGHT_INPUTS_MODULE.read>>
++export type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
+ /** A wind snapshot without its calculation result: the backend stores the inputs only. */
+ export type WindSnapshotInputsValue = Omit<WindCalculationSnapshot, 'result'>
+ 
+diff --git a/frontend/src/features/materials/components/MaterialsPanel.test.tsx b/frontend/src/features/materials/components/MaterialsPanel.test.tsx
+index f7a0552..c3ca8b5 100644
+--- a/frontend/src/features/materials/components/MaterialsPanel.test.tsx
++++ b/frontend/src/features/materials/components/MaterialsPanel.test.tsx
+@@ -3,17 +3,18 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+ import MaterialsPanel from './MaterialsPanel'
+ import { getFamilyRecords, saveFamilyRecords } from '../../family-registry/model/familyRepository'
+ import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
++import { readProjectData, readProjectDataText, resetProjectData } from '../../../test/projectStoreTestUtils'
+ 
+ const watchDirty = () => { let count = 0; const on = () => { count++ }; window.addEventListener(PROJECT_DATA_CHANGED_EVENT, on); return { count: () => count, stop: () => window.removeEventListener(PROJECT_DATA_CHANGED_EVENT, on) } }
+ 
+-afterEach(() => { cleanup(); localStorage.clear() })
++afterEach(() => { cleanup(); resetProjectData() })
+ 
+ describe('material assignments', () => {
+   it('persists concrete class selections across workspace remounts', () => {
+     const first = render(<MaterialsPanel />)
+     const selects = screen.getAllByRole('combobox')
+     fireEvent.change(selects[0], { target: { value: 'C55/67' } })
+-    expect(JSON.parse(localStorage.getItem('kopruq.project-design-system.material-assignments') ?? '[]')[0]).toMatchObject({ id: 'DRILLED_PILES', concreteClass: 'C55/67' })
++    expect((readProjectData<Record<string, unknown>[]>('families.MATERIAL') ?? [])[0]).toMatchObject({ id: 'DRILLED_PILES', concreteClass: 'C55/67' })
+     first.unmount()
+     render(<MaterialsPanel />)
+     expect(screen.getAllByRole('combobox')[0]).toHaveValue('C55/67')
+@@ -34,7 +35,7 @@ describe('material assignments', () => {
+     expect(getFamilyRecords('MATERIAL')).toEqual(stored)
+   })
+   it('writes the eight default rows once on the first mount of an empty catalog and marks the project dirty once', () => {
+-    expect(localStorage.getItem('kopruq.project-design-system.material-assignments')).toBeNull()
++    expect(readProjectDataText('families.MATERIAL')).toBeNull()
+     const watcher = watchDirty(); render(<MaterialsPanel />); watcher.stop()
+     expect(getFamilyRecords('MATERIAL')).toHaveLength(8)
+     expect(watcher.count()).toBe(1)
+diff --git a/frontend/src/features/pier-families/components/PierFamiliesPanel.tsx b/frontend/src/features/pier-families/components/PierFamiliesPanel.tsx
+index ca0e57a..ded072d 100644
+--- a/frontend/src/features/pier-families/components/PierFamiliesPanel.tsx
++++ b/frontend/src/features/pier-families/components/PierFamiliesPanel.tsx
+@@ -4,23 +4,16 @@ import { defaultDimensions, generatePierVariants, statusOfPierFamily } from '../
+ import { DesignSystemSection, EngineeringInput, GenerationTable } from '../../../shared/ui/DesignSystemUi'
+ import type { PierConfiguration, PierFamily, PierType } from '../model/types'
+ import { getFamilyReferences, publishFamilySelection } from '../../family-registry/model/registry'
+-import { familyStorageKey } from '../../family-registry/model/familyRepository'
+ import { useFamilyCatalog } from '../../family-registry/hooks/useFamilyCatalog'
+ 
+-const STORAGE_KEY = familyStorageKey('PIER')
+ const emptyHeight = { minimumHeight: null, preferredHeightMin: null, preferredHeightMax: null, maximumHeight: null }
+ const INITIAL: PierFamily[] = [{ id: 'RECT-M', name: 'RECT-M', pierType: 'RECTANGULAR', enabled: false, dimensions: defaultDimensions('RECTANGULAR'), allowedConfigurations: ['SINGLE_COLUMN', 'TWO_COLUMNS'], twoColumnSpacing: { key: 'spacing', label: 'Transverse Spacing (m)', min: 6, max: 10, delta: 1 }, heightApplicability: emptyHeight, source: 'PROJECT_DESIGN_SYSTEM' }]
+ 
+-function readFamilies() {
+-  if (typeof window === 'undefined') return INITIAL
+-  try {
+-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as PierFamily[] | null
+-    return saved?.map((family) => ({ ...family, pierType: family.pierType === ('H_TYPE' as PierType) || family.pierType === ('WALL' as PierType) ? 'H_SECTION' : family.pierType, allowedConfigurations: family.allowedConfigurations.filter((value) => value === 'SINGLE_COLUMN' || value === 'TWO_COLUMNS') })) ?? INITIAL
+-  } catch { return INITIAL }
+-}
++/** Module-level so useFamilyCatalog's callbacks keep a stable identity. */
++const PIER_FALLBACK = (): PierFamily[] => INITIAL
+ 
+ export default function PierFamiliesPanel() {
+-  const [families, setFamilies] = useFamilyCatalog<PierFamily>('PIER', readFamilies)
++  const [families, setFamilies] = useFamilyCatalog<PierFamily>('PIER', PIER_FALLBACK)
+   const [selectedId, setSelectedId] = useState(families[0]?.id ?? '')
+   const family = families.find((item) => item.id === selectedId) ?? families[0]
+   const variants = useMemo(() => family ? generatePierVariants(family) : [], [family])
+diff --git a/frontend/src/features/preferred-span/components/PreferredSpanPanel.test.tsx b/frontend/src/features/preferred-span/components/PreferredSpanPanel.test.tsx
+index c9f9ecd..d02370a 100644
+--- a/frontend/src/features/preferred-span/components/PreferredSpanPanel.test.tsx
++++ b/frontend/src/features/preferred-span/components/PreferredSpanPanel.test.tsx
+@@ -1,29 +1,28 @@
+ import { beforeEach, describe, expect, it } from 'vitest'
+ import { act, render, screen } from '@testing-library/react'
+ import PreferredSpanPanel from './PreferredSpanPanel'
++import { readProjectData, resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
+ 
+-const RULES_KEY = 'kopruq.project-design-system.girder-span-rules'
+-const GIRDER_KEY = 'kopruq.girder-library.precast'
+ const dims = (max: number) => ({ dimensions: [{ key: 'H', label: 'H (cm)', min: 160, max, delta: 10 }] })
+ const rule = (variant: string, min: number, max: number, delta: number, primary: number) => ({ id: `girder-span-${variant}`, superstructureType: 'PRECAST_GIRDER', girderVariantId: variant, minSpan: min, maxSpan: max, spanDelta: delta, primarySpan: primary, enabled: true, source: 'PROJECT_DESIGN_SYSTEM' })
+-const storedRules = () => JSON.parse(localStorage.getItem(RULES_KEY) ?? '[]') as ReturnType<typeof rule>[]
++const storedRules = () => (readProjectData('preferredSpanRules') ?? []) as ReturnType<typeof rule>[]
+ 
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ 
+ describe('Preferred Span rules', () => {
+   it('keeps a rule when its variant disappears and restores it unchanged when the variant returns', () => {
+-    localStorage.setItem(GIRDER_KEY, JSON.stringify(dims(180)))
+-    localStorage.setItem(RULES_KEY, JSON.stringify([rule('PG-H160', 20, 30, 5, 25), rule('PG-H170', 25, 35, 5, 30), rule('PG-H180', 30, 40, 5, 35)]))
++    seedProjectData('girderLibrary', (dims(180)))
++    seedProjectData('preferredSpanRules', ([rule('PG-H160', 20, 30, 5, 25), rule('PG-H170', 25, 35, 5, 30), rule('PG-H180', 30, 40, 5, 35)]))
+     render(<PreferredSpanPanel />)
+     expect(screen.getByText('PG-H180')).toBeInTheDocument()
+ 
+-    localStorage.setItem(GIRDER_KEY, JSON.stringify(dims(170)))
++    seedProjectData('girderLibrary', (dims(170)))
+     act(() => { window.dispatchEvent(new Event('storage')) })
+     expect(screen.queryByText('PG-H180')).not.toBeInTheDocument()
+     expect(screen.getByText(/1 rule\(s\) belong to variants that are not currently available/)).toBeInTheDocument()
+     expect(storedRules().find((item) => item.girderVariantId === 'PG-H180')).toEqual(rule('PG-H180', 30, 40, 5, 35))
+ 
+-    localStorage.setItem(GIRDER_KEY, JSON.stringify(dims(180)))
++    seedProjectData('girderLibrary', (dims(180)))
+     act(() => { window.dispatchEvent(new Event('storage')) })
+     const row = screen.getByText('PG-H180').closest('tr')!
+     expect(Array.from(row.querySelectorAll('input')).map((input) => input.value)).toEqual(['30', '40', '5'])
+diff --git a/frontend/src/features/preferred-span/components/PreferredSpanPanel.tsx b/frontend/src/features/preferred-span/components/PreferredSpanPanel.tsx
+index 481ac95..235ca95 100644
+--- a/frontend/src/features/preferred-span/components/PreferredSpanPanel.tsx
++++ b/frontend/src/features/preferred-span/components/PreferredSpanPanel.tsx
+@@ -1,5 +1,5 @@
+ import { useEffect, useMemo, useState } from 'react'
+-import { GIRDER_LIBRARY_MODULE } from '../../family-registry'
++import { getPrecastGirderDefinition } from '../../family-registry/model/familyRepository'
+ import { useProjectModule } from '../../../shared/project-file/useProjectModule'
+ import { PREFERRED_SPAN_RULES_MODULE } from '../model/preferredSpanRulesProjectModule'
+ import { generatePrecastGirderVariants, PRECAST_DIMENSIONS, type GirderVariant } from '../../girder-library/model/variants'
+@@ -7,7 +7,6 @@ import type { Dimension } from '../../../shared/ui/ParamSweepCard'
+ import type { PreferredSpanRule, PreferredSpanStatus, SuperstructureType } from '../model/types'
+ 
+ const NO_RULES: PreferredSpanRule[] = []
+-const GIRDER_KEY = GIRDER_LIBRARY_MODULE.key
+ 
+ function candidateSpans(minSpan: number, maxSpan: number, delta: number): number[] {
+   if (!Number.isFinite(minSpan) || !Number.isFinite(maxSpan) || !Number.isFinite(delta) || minSpan <= 0 || maxSpan <= minSpan || delta <= 0 || delta > maxSpan - minSpan) return []
+@@ -25,13 +24,7 @@ function statusOf(rule: PreferredSpanRule, variants: GirderVariant[]): Preferred
+ }
+ 
+ function dimensionsFromStorage(): Dimension[] {
+-  if (typeof window === 'undefined') return PRECAST_DIMENSIONS
+-  try {
+-    const saved = JSON.parse(localStorage.getItem(GIRDER_KEY) ?? 'null') as { dimensions?: Dimension[] } | null
+-    return saved?.dimensions ?? PRECAST_DIMENSIONS
+-  } catch {
+-    return PRECAST_DIMENSIONS
+-  }
++  return getPrecastGirderDefinition<{ dimensions?: Dimension[] } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS
+ }
+ 
+ function newRule(variant: GirderVariant, type: SuperstructureType): PreferredSpanRule {
+diff --git a/frontend/src/features/project/model/projectWorkspace.test.ts b/frontend/src/features/project/model/projectWorkspace.test.ts
+index 8bcb18d..6d21867 100644
+--- a/frontend/src/features/project/model/projectWorkspace.test.ts
++++ b/frontend/src/features/project/model/projectWorkspace.test.ts
+@@ -1,7 +1,8 @@
+ import { beforeEach, describe, expect, it } from 'vitest'
+-import { INITIAL_PROJECT, normalizeProjectUnits, normalizeUnitId, readProjectState } from './projectWorkspace'
++import { INITIAL_PROJECT, normalizeProjectUnits, normalizeUnitId, readProjectState, readProjectUnits } from './projectWorkspace'
++import { resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
+ 
+-beforeEach(() => localStorage.clear())
++beforeEach(() => resetProjectData())
+ 
+ describe('project unit identifiers', () => {
+   it('normalizes display labels, including mojibake labels, to unit ids', () => {
+@@ -12,8 +13,13 @@ describe('project unit identifiers', () => {
+     expect(INITIAL_PROJECT.units.moment).toBe('kNm'); expect(INITIAL_PROJECT.units.temperature).toBe('C')
+   })
+   it('normalizes units read from storage', () => {
+-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: { units: { moment: 'kN·m', temperature: '°C', length: 'mm' } }, bridges: [] }))
++    seedProjectData('workspace', ({ project: { units: { moment: 'kN·m', temperature: '°C', length: 'mm' } }, bridges: [] }))
+     expect(readProjectState([]).project.units).toMatchObject({ moment: 'kNm', temperature: 'C', length: 'mm' })
+     expect(normalizeProjectUnits({ ...INITIAL_PROJECT.units, moment: 'MN·m' }).moment).toBe('MNm')
+   })
++  it('reads normalized units for the graph, and the defaults when the store is empty', () => {
++    expect(readProjectUnits()).toEqual(INITIAL_PROJECT.units)
++    seedProjectData('workspace', { project: { units: { moment: 'kN·m' } }, bridges: [] })
++    expect(readProjectUnits()).toMatchObject({ moment: 'kNm' })
++  })
+ })
+diff --git a/frontend/src/features/project/model/projectWorkspace.ts b/frontend/src/features/project/model/projectWorkspace.ts
+index 38a4f0c..e26bd10 100644
+--- a/frontend/src/features/project/model/projectWorkspace.ts
++++ b/frontend/src/features/project/model/projectWorkspace.ts
+@@ -1,82 +1,12 @@
+ import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
+ import type { BridgeRow } from './types'
++import { ensureBridgeIds, INITIAL_PROJECT, normalizeProjectState } from './projectWorkspaceModel'
++import type { PersistedProjectState, ProjectWorkspaceData } from './projectWorkspaceModel'
+ 
+-export interface ProjectWorkspaceData {
+-  name: string
+-  id: string
+-  client: string
+-  designer: string
+-  country: string
+-  region: string
+-  projectType: string
+-  status: string
+-  startDate: string
+-  targetDate: string
+-  description: string
+-  locationStart: string
+-  locationEnd: string
+-  coordinateSystem: string
+-  designStandardFamily: string
+-  concreteCode: string
+-  steelCode: string
+-  compositeCode: string
+-  seismicCode: string
+-  geotechnicalCode: string
+-  trafficLoadStandard: string
+-  units: { length: string; force: string; moment: string; stress: string; mass: string; temperature: string }
+-  coordinate: { name: string; epsg: string; horizontalDatum: string; verticalDatum: string; originX: string; originY: string; originZ: string; northAngle: string }
+-  criteria: { designLife: string; reliabilityClass: string; exposure: string; concreteClass: string; cover: string; philosophy: string }
+-  environment: { terrainDatasetId: string | null; landXmlImportId: string | null }
+-  lastModified: string
+-}
+-
+-/** Unit selections are stored as unit ids (quantities.ts), never as display labels. Old files/storage may hold labels (even mojibake ones). */
+-export function normalizeUnitId(value: string): string {
+-  // Most specific labels first: 'kNÂ·mm' and 'kNÂ·m' also contain 'NÂ·m'.
+-  if (value === 'kN·mm' || value.includes('kNÂ·mm')) return 'kNmm'
+-  if (value === 'kN·m' || value.includes('kNÂ·m')) return 'kNm'
+-  if (value === 'MN·m' || value.includes('MNÂ·m')) return 'MNm'
+-  if (value === 'N·m' || value.includes('NÂ·m')) return 'Nm'
+-  if (value === '°C' || value.includes('Â°C')) return 'C'
+-  if (value === '°F' || value.includes('Â°F')) return 'F'
+-  return value
+-}
+-export function normalizeProjectUnits(units: ProjectWorkspaceData['units']): ProjectWorkspaceData['units'] {
+-  return Object.fromEntries(Object.entries(units).map(([key, value]) => [key, typeof value === 'string' ? normalizeUnitId(value) : value])) as ProjectWorkspaceData['units']
+-}
+-
+-export const INITIAL_PROJECT: ProjectWorkspaceData = {
+-  name: '', id: '', client: '', designer: '', country: '', region: '', projectType: '', status: '', startDate: '', targetDate: '', description: '', locationStart: '', locationEnd: '', coordinateSystem: '',
+-  designStandardFamily: 'Eurocode', concreteCode: '', steelCode: '', compositeCode: '', seismicCode: '', geotechnicalCode: '', trafficLoadStandard: '',
+-  units: { length: 'm', force: 'kN', moment: 'kNm', stress: 'MPa', mass: 't', temperature: 'C' },
+-  coordinate: { name: '', epsg: '', horizontalDatum: '', verticalDatum: '', originX: '', originY: '', originZ: '', northAngle: '' },
+-  criteria: { designLife: '', reliabilityClass: '', exposure: '', concreteClass: '', cover: '', philosophy: '' }, environment: { terrainDatasetId: null, landXmlImportId: null }, lastModified: '',
+-}
++export type { PersistedProjectState, ProjectWorkspaceData } from './projectWorkspaceModel'
++export { ensureBridgeIds, INITIAL_PROJECT, normalizeProjectState, normalizeProjectUnits, normalizeUnitId } from './projectWorkspaceModel'
+ 
+ const STORAGE_KEY = 'kopruq.project-workspace.v1'
+-export interface PersistedProjectState { project: ProjectWorkspaceData; bridges: BridgeRow[] }
+-
+-function newBridgeId() {
+-  return globalThis.crypto?.randomUUID?.() ?? `bridge-${Date.now()}-${Math.random().toString(36).slice(2)}`
+-}
+-
+-/** One-time, persistence-backed identity migration. Never keys identity by row order or display No. */
+-export function ensureBridgeIds(bridges: BridgeRow[]): BridgeRow[] {
+-  const used = new Set<string>()
+-  return bridges.map((bridge) => {
+-    const id = bridge.id && !used.has(bridge.id) ? bridge.id : newBridgeId()
+-    used.add(id)
+-    return bridge.id === id ? bridge : { ...bridge, id }
+-  })
+-}
+-
+-/** Pure normalization shared by storage reads and file opens: fills defaults, converts unit labels to ids, gives every bridge an id. */
+-export function normalizeProjectState(saved: { project?: Partial<ProjectWorkspaceData> & { units?: Partial<ProjectWorkspaceData['units']>; coordinate?: Partial<ProjectWorkspaceData['coordinate']>; criteria?: Partial<ProjectWorkspaceData['criteria']>; environment?: Partial<ProjectWorkspaceData['environment']> }; bridges?: BridgeRow[] }, fallbackBridges: BridgeRow[]): PersistedProjectState {
+-  return {
+-    project: { ...INITIAL_PROJECT, ...saved.project, units: normalizeProjectUnits({ ...INITIAL_PROJECT.units, ...saved.project?.units }), coordinate: { ...INITIAL_PROJECT.coordinate, ...saved.project?.coordinate }, criteria: { ...INITIAL_PROJECT.criteria, ...saved.project?.criteria }, environment: { ...INITIAL_PROJECT.environment, ...saved.project?.environment } },
+-    bridges: ensureBridgeIds(Array.isArray(saved.bridges) ? saved.bridges : fallbackBridges),
+-  }
+-}
+ 
+ export function readProjectState(fallbackBridges: BridgeRow[]): PersistedProjectState {
+   try {
+@@ -86,6 +16,11 @@ export function readProjectState(fallbackBridges: BridgeRow[]): PersistedProject
+   } catch { return { project: INITIAL_PROJECT, bridges: ensureBridgeIds(fallbackBridges) } }
+ }
+ 
++/** Normalized project units from storage; undefined when storage is unavailable. */
++export function readProjectUnits(): ProjectWorkspaceData['units'] | undefined {
++  return typeof localStorage === 'undefined' ? undefined : readProjectState([]).project.units
++}
++
+ export function persistProjectState(state: PersistedProjectState): boolean {
+   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'project' } })); return true } catch { return false }
+ }
+diff --git a/frontend/src/features/project/model/projectWorkspaceWire.ts b/frontend/src/features/project/model/projectWorkspaceWire.ts
+index 42a01d1..b0b16e0 100644
+--- a/frontend/src/features/project/model/projectWorkspaceWire.ts
++++ b/frontend/src/features/project/model/projectWorkspaceWire.ts
+@@ -1,7 +1,7 @@
+ import { z } from 'zod'
+ import { WireMappingError } from '../../../shared/project-store/projectDataValidation'
+ import type { SectionDefinition } from '../../../shared/project-store/serverSection'
+-import { normalizeProjectState, type PersistedProjectState } from './projectWorkspace'
++import { normalizeProjectState, type PersistedProjectState } from './projectWorkspaceModel'
+ import { BRIDGE_TYPES, PIER_SHAPES, type BridgeRow } from './types'
+ 
+ /**
+diff --git a/frontend/src/features/system-assembly/components/SystemAssemblyPanel.tsx b/frontend/src/features/system-assembly/components/SystemAssemblyPanel.tsx
+index f35ae3c..68c87c8 100644
+--- a/frontend/src/features/system-assembly/components/SystemAssemblyPanel.tsx
++++ b/frontend/src/features/system-assembly/components/SystemAssemblyPanel.tsx
+@@ -57,7 +57,7 @@ export default function SystemAssemblyPanel() {
+ }
+ 
+ function readGirderDimensions() { return getPrecastGirderDefinition<{ dimensions?: typeof PRECAST_DIMENSIONS } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS }
+-function readSpanRules(): PreferredSpanRule[] { try { return JSON.parse(localStorage.getItem(PREFERRED_SPAN_RULES_MODULE.key) ?? '[]') as PreferredSpanRule[] } catch { return [] } }
++function readSpanRules(): PreferredSpanRule[] { return PREFERRED_SPAN_RULES_MODULE.read() ?? [] }
+ function readPierCapFamilies(): PierCapFamily[] { return getFamilyRecords<PierCapFamily>('PIER_CAP') }
+ function readBearingFamilies(): BearingFamily[] { return getFamilyRecords<BearingFamily>('BEARING') }
+ function readFoundationFamilies(): FoundationFamily[] { return getFamilyRecords<FoundationFamily>('FOUNDATION') }
+diff --git a/frontend/src/test/architecture/sourceEncoding.test.ts b/frontend/src/test/architecture/sourceEncoding.test.ts
+index 5452090..726a178 100644
+--- a/frontend/src/test/architecture/sourceEncoding.test.ts
++++ b/frontend/src/test/architecture/sourceEncoding.test.ts
+@@ -23,7 +23,7 @@ const MARKERS: ReadonlyArray<{ name: string; value: string }> = [
+  * persistence compatibility.
+  */
+ export const ALLOWED_FILES: readonly string[] = [
+-  '/src/features/project/model/projectWorkspace.ts',
++  '/src/features/project/model/projectWorkspaceModel.ts',
+   '/src/features/project/model/projectWorkspace.test.ts',
+ ]
+ 

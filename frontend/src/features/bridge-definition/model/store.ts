@@ -40,6 +40,13 @@ function mergeDefinition(bridge: BridgeRow, input?: Partial<BridgeInstanceDefini
   return definition
 }
 
+export type StoredBridgeDefinitions = { keyBy?: 'bridgeId'; selectedBridgeId?: string | null; definitions?: Record<string, Record<string, unknown>> }
+/** Raw, un-normalized stored value (legacy number-keyed stores stay as they are). undefined: storage unavailable or unreadable JSON; {} when absent. */
+export function readStoredBridgeDefinitions(): StoredBridgeDefinitions | undefined {
+  if (typeof localStorage === 'undefined') return undefined
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as StoredBridgeDefinitions } catch { return undefined }
+}
+
 export function readBridgeDefinitionStore(bridges: BridgeRow[]): BridgeDefinitionStore {
   let saved: Partial<BridgeDefinitionStore> = {}
   try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<BridgeDefinitionStore> } catch { /* empty store */ }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { GIRDER_LIBRARY_MODULE } from '../../family-registry'
+import { getPrecastGirderDefinition } from '../../family-registry/model/familyRepository'
 import { useProjectModule } from '../../../shared/project-file/useProjectModule'
 import { PREFERRED_SPAN_RULES_MODULE } from '../model/preferredSpanRulesProjectModule'
 import { generatePrecastGirderVariants, PRECAST_DIMENSIONS, type GirderVariant } from '../../girder-library/model/variants'
@@ -7,7 +7,6 @@ import type { Dimension } from '../../../shared/ui/ParamSweepCard'
 import type { PreferredSpanRule, PreferredSpanStatus, SuperstructureType } from '../model/types'
 
 const NO_RULES: PreferredSpanRule[] = []
-const GIRDER_KEY = GIRDER_LIBRARY_MODULE.key
 
 function candidateSpans(minSpan: number, maxSpan: number, delta: number): number[] {
   if (!Number.isFinite(minSpan) || !Number.isFinite(maxSpan) || !Number.isFinite(delta) || minSpan <= 0 || maxSpan <= minSpan || delta <= 0 || delta > maxSpan - minSpan) return []
@@ -25,13 +24,7 @@ function statusOf(rule: PreferredSpanRule, variants: GirderVariant[]): Preferred
 }
 
 function dimensionsFromStorage(): Dimension[] {
-  if (typeof window === 'undefined') return PRECAST_DIMENSIONS
-  try {
-    const saved = JSON.parse(localStorage.getItem(GIRDER_KEY) ?? 'null') as { dimensions?: Dimension[] } | null
-    return saved?.dimensions ?? PRECAST_DIMENSIONS
-  } catch {
-    return PRECAST_DIMENSIONS
-  }
+  return getPrecastGirderDefinition<{ dimensions?: Dimension[] } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS
 }
 
 function newRule(variant: GirderVariant, type: SuperstructureType): PreferredSpanRule {

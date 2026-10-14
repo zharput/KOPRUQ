@@ -21,7 +21,7 @@ const loose = <T>(shape: z.ZodRawShape) => z.object({ ...Object.fromEntries(Obje
 
 const pierSchema = loose<PierFamily>({
   ...base,
-  // H_TYPE and WALL are legacy values that PierFamiliesPanel migrates to H_SECTION on read.
+  // H_TYPE and WALL are legacy values: accepted and stored as they are, not migrated on read.
   pierType: z.enum(['RECTANGULAR', 'CIRCULAR', 'OVAL', 'BOX', 'H_SECTION', 'H_TYPE', 'WALL']),
   dimensions: z.array(dimension), allowedConfigurations: z.array(text), twoColumnSpacing: dimension.nullable(),
   heightApplicability: z.object({ minimumHeight: z.number().nullable(), preferredHeightMin: z.number().nullable(), preferredHeightMax: z.number().nullable(), maximumHeight: z.number().nullable() }).passthrough(),

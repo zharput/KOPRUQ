@@ -3,17 +3,18 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import MaterialsPanel from './MaterialsPanel'
 import { getFamilyRecords, saveFamilyRecords } from '../../family-registry/model/familyRepository'
 import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
+import { readProjectData, readProjectDataText, resetProjectData } from '../../../test/projectStoreTestUtils'
 
 const watchDirty = () => { let count = 0; const on = () => { count++ }; window.addEventListener(PROJECT_DATA_CHANGED_EVENT, on); return { count: () => count, stop: () => window.removeEventListener(PROJECT_DATA_CHANGED_EVENT, on) } }
 
-afterEach(() => { cleanup(); localStorage.clear() })
+afterEach(() => { cleanup(); resetProjectData() })
 
 describe('material assignments', () => {
   it('persists concrete class selections across workspace remounts', () => {
     const first = render(<MaterialsPanel />)
     const selects = screen.getAllByRole('combobox')
     fireEvent.change(selects[0], { target: { value: 'C55/67' } })
-    expect(JSON.parse(localStorage.getItem('kopruq.project-design-system.material-assignments') ?? '[]')[0]).toMatchObject({ id: 'DRILLED_PILES', concreteClass: 'C55/67' })
+    expect((readProjectData<Record<string, unknown>[]>('families.MATERIAL') ?? [])[0]).toMatchObject({ id: 'DRILLED_PILES', concreteClass: 'C55/67' })
     first.unmount()
     render(<MaterialsPanel />)
     expect(screen.getAllByRole('combobox')[0]).toHaveValue('C55/67')
@@ -34,7 +35,7 @@ describe('material assignments', () => {
     expect(getFamilyRecords('MATERIAL')).toEqual(stored)
   })
   it('writes the eight default rows once on the first mount of an empty catalog and marks the project dirty once', () => {
-    expect(localStorage.getItem('kopruq.project-design-system.material-assignments')).toBeNull()
+    expect(readProjectDataText('families.MATERIAL')).toBeNull()
     const watcher = watchDirty(); render(<MaterialsPanel />); watcher.stop()
     expect(getFamilyRecords('MATERIAL')).toHaveLength(8)
     expect(watcher.count()).toBe(1)

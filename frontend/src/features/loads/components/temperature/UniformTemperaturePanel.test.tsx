@@ -2,12 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import UniformTemperaturePanel from './UniformTemperaturePanel'
+import { resetProjectData } from '../../../../test/projectStoreTestUtils'
 
 const result = (contractionC: number | null, status = 'VALID', missingParameters: string[] = []) => ({ initialTemperatureC: 10, effectiveMinimumC: 1, effectiveMaximumC: 40, contractionC, expansionC: 30, thermalExpansionSource: 'x', standard: 'EN 1991-1-5', parameterSource: 'PROJECT_INPUT', status, missingParameters, concreteAlphaTPerC: 1e-5, steelAlphaTPerC: 1.2e-5, temperatureActionStatus: status, concreteAlphaStatus: 'VALID', steelAlphaStatus: 'VALID' })
 const ok = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
 function renderPanel() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><UniformTemperaturePanel /></QueryClientProvider>) }
 const set = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } })
-beforeEach(() => localStorage.clear())
+beforeEach(() => resetProjectData())
 afterEach(() => vi.unstubAllGlobals())
 
 describe('UniformTemperaturePanel', () => {

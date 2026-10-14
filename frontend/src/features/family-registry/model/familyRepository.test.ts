@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getFamilyRecord, graphFamilyAdapter, saveFamilyRecords } from './familyRepository'
+import { readProjectDataText, resetProjectData } from '../../../test/projectStoreTestUtils'
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => resetProjectData())
 
 describe('Family Repository', () => {
   it('preserves existing catalog keys and resolves the current family by stable ID', () => {
@@ -14,7 +15,7 @@ describe('Family Repository', () => {
     saveFamilyRecords('PIER', [updated])
     expect(getFamilyRecord('PIER', 'P-01')).toEqual(updated)
     expect(graphFamilyAdapter.resolve(ref)).toEqual(updated)
-    expect(localStorage.getItem('kopruq.project-design-system.pier-families')).toContain('P-01')
+    expect(readProjectDataText('families.PIER')).toContain('P-01')
   })
 
   it('exposes editable and derived piled foundation parameters without duplicating values', () => {

@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { WireMappingError } from '../../../shared/project-store/projectDataValidation'
 import type { SectionDefinition } from '../../../shared/project-store/serverSection'
-import { normalizeProjectState, type PersistedProjectState } from './projectWorkspace'
+import { normalizeProjectState, type PersistedProjectState } from './projectWorkspaceModel'
 import { BRIDGE_TYPES, PIER_SHAPES, type BridgeRow } from './types'
 
 /**

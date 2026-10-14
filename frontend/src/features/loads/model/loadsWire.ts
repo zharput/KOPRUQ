@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { SectionDefinition } from '../../../shared/project-store/serverSection'
 import type { Lm1Parameters, LaneFactor, ParameterValue } from '../api/trafficLoadsService'
-import type { SEISMIC_INPUTS_MODULE, SELF_WEIGHT_INPUTS_MODULE, TEMPERATURE_INPUTS_MODULE, WIND_INPUTS_MODULE } from './loadsProjectModules'
+import type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
 import type { WindCalculationSnapshot } from './windTypes'
 
 /**
@@ -9,10 +9,7 @@ import type { WindCalculationSnapshot } from './windTypes'
  * (key order follows the record components). Seismic, wind and temperature inputs are the texts the user typed, unchanged.
  * Self-weight names carry their units (m, kN/m3, kN/m); nothing is converted.
  */
-export type SeismicInputs = NonNullable<ReturnType<typeof SEISMIC_INPUTS_MODULE.read>>
-export type WindInputs = NonNullable<ReturnType<typeof WIND_INPUTS_MODULE.read>>
-export type TemperatureInputs = NonNullable<ReturnType<typeof TEMPERATURE_INPUTS_MODULE.read>>
-export type SelfWeightInputs = NonNullable<ReturnType<typeof SELF_WEIGHT_INPUTS_MODULE.read>>
+export type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
 /** A wind snapshot without its calculation result: the backend stores the inputs only. */
 export type WindSnapshotInputsValue = Omit<WindCalculationSnapshot, 'result'>
 

@@ -57,7 +57,7 @@ export default function SystemAssemblyPanel() {
 }
 
 function readGirderDimensions() { return getPrecastGirderDefinition<{ dimensions?: typeof PRECAST_DIMENSIONS } | null>(null)?.dimensions ?? PRECAST_DIMENSIONS }
-function readSpanRules(): PreferredSpanRule[] { try { return JSON.parse(localStorage.getItem(PREFERRED_SPAN_RULES_MODULE.key) ?? '[]') as PreferredSpanRule[] } catch { return [] } }
+function readSpanRules(): PreferredSpanRule[] { return PREFERRED_SPAN_RULES_MODULE.read() ?? [] }
 function readPierCapFamilies(): PierCapFamily[] { return getFamilyRecords<PierCapFamily>('PIER_CAP') }
 function readBearingFamilies(): BearingFamily[] { return getFamilyRecords<BearingFamily>('BEARING') }
 function readFoundationFamilies(): FoundationFamily[] { return getFamilyRecords<FoundationFamily>('FOUNDATION') }

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { INITIAL_BRIDGES } from '../../project/model/types'
-import { assignedAxis, axesFromSpans, BRIDGE_DEFINITIONS_STORAGE_KEY, createBridgeDefinition, ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore } from './store'
+import { assignedAxis, axesFromSpans, createBridgeDefinition, ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore, readStoredBridgeDefinitions } from './store'
+import { resetProjectData, seedProjectData, seedRawProjectData } from '../../../test/projectStoreTestUtils'
 
 const bridge = { ...INITIAL_BRIDGES[0], id: 'bridge-1', no: 'VIA-01' }
 const other = { ...INITIAL_BRIDGES[1], id: 'bridge-2', no: 'VIA-02' }
@@ -13,7 +14,7 @@ const assigned = () => ({
   constructionStagesNote: 'Keep this assignment',
 })
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => resetProjectData())
 
 describe('bridge definition identity', () => {
   it('keys new definitions and selection by the stable bridge id', () => {
@@ -41,7 +42,7 @@ describe('bridge definition identity', () => {
 
   it('migrates legacy number-keyed storage and preserves selection and assignments', () => {
     const legacy = { ...assigned(), bridgeId: bridge.no }
-    localStorage.setItem(BRIDGE_DEFINITIONS_STORAGE_KEY, JSON.stringify({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: legacy } }))
+    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: legacy } }))
     const migrated = readBridgeDefinitionStore([other, bridge])
     expect(migrated.selectedBridgeId).toBe(bridge.id)
     expect(migrated.definitions[bridge.id]).toEqual(assigned())
@@ -57,5 +58,19 @@ describe('bridge definition identity', () => {
     expect(next.selectedBridgeId).toBe(replacement.id)
     expect(next.definitions[replacement.id].girderFamilyId).toBeNull()
     expect(next.definitions).not.toHaveProperty(bridge.id)
+  })
+})
+
+describe('raw stored bridge definitions', () => {
+  it('returns the stored value un-normalized, so legacy number-keyed stores stay as they are', () => {
+    const legacy = { selectedBridgeId: bridge.no, definitions: { [bridge.no]: { axisAssignments: {} } } }
+    seedProjectData('bridgeDefinitions', legacy)
+    expect(readStoredBridgeDefinitions()).toEqual(legacy)
+  })
+
+  it('returns an empty object when absent and undefined for unreadable JSON', () => {
+    expect(readStoredBridgeDefinitions()).toEqual({})
+    seedRawProjectData('bridgeDefinitions', '{bad')
+    expect(readStoredBridgeDefinitions()).toBeUndefined()
   })
 })

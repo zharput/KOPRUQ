@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { INITIAL_PROJECT, normalizeProjectUnits, normalizeUnitId, readProjectState } from './projectWorkspace'
+import { INITIAL_PROJECT, normalizeProjectUnits, normalizeUnitId, readProjectState, readProjectUnits } from './projectWorkspace'
+import { resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => resetProjectData())
 
 describe('project unit identifiers', () => {
   it('normalizes display labels, including mojibake labels, to unit ids', () => {
@@ -12,8 +13,13 @@ describe('project unit identifiers', () => {
     expect(INITIAL_PROJECT.units.moment).toBe('kNm'); expect(INITIAL_PROJECT.units.temperature).toBe('C')
   })
   it('normalizes units read from storage', () => {
-    localStorage.setItem('kopruq.project-workspace.v1', JSON.stringify({ project: { units: { moment: 'kN·m', temperature: '°C', length: 'mm' } }, bridges: [] }))
+    seedProjectData('workspace', ({ project: { units: { moment: 'kN·m', temperature: '°C', length: 'mm' } }, bridges: [] }))
     expect(readProjectState([]).project.units).toMatchObject({ moment: 'kNm', temperature: 'C', length: 'mm' })
     expect(normalizeProjectUnits({ ...INITIAL_PROJECT.units, moment: 'MN·m' }).moment).toBe('MNm')
+  })
+  it('reads normalized units for the graph, and the defaults when the store is empty', () => {
+    expect(readProjectUnits()).toEqual(INITIAL_PROJECT.units)
+    seedProjectData('workspace', { project: { units: { moment: 'kN·m' } }, bridges: [] })
+    expect(readProjectUnits()).toMatchObject({ moment: 'kNm' })
   })
 })

@@ -16,9 +16,10 @@ describe('Pier families panel storage behaviour', () => {
     expect(readProjectData<StoredPier[]>('families.PIER')![0].id).toBe('RECT-M')
   })
 
-  it('keeps a stored legacy pierType as it is instead of normalizing it on read', () => {
+  it('shows a stored legacy pierType without normalizing it on read', async () => {
     seedProjectData('families.PIER', [{ id: 'LEGACY-1', name: 'LEGACY-1', pierType: 'H_TYPE', enabled: false, dimensions: [], allowedConfigurations: ['SINGLE_COLUMN'], twoColumnSpacing: null, heightApplicability: { minimumHeight: null, preferredHeightMin: null, preferredHeightMax: null, maximumHeight: null }, source: 'PROJECT_DESIGN_SYSTEM' }])
     render(<MemoryRouter><PierFamiliesPanel /></MemoryRouter>)
+    expect(await screen.findByText('H_TYPE')).toBeInTheDocument()
     expect(readProjectData<StoredPier[]>('families.PIER')![0]).toMatchObject({ id: 'LEGACY-1', pierType: 'H_TYPE' })
   })
 })

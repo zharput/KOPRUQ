@@ -49,4 +49,9 @@ None reported.
 
 ## Limitations / remaining work
 - M5b and M5c remain: `loads.windSnapshot` key in the helper, switching the helper to the backend store, the six `App.test.tsx` tests that keep `localStorage` (`.kopruq`/Recent/New-Project rollback), the `browserStorageText` replacement, removal of the 17-file allow-list.
-- No independent review has run.
+- An independent review is recorded in `review.md`; it passed with two P3 test-strength findings (F1 and F2).
+
+## Review follow-up: F1 and F2 (2026-10-14)
+- `projectWorkspace.test.ts` now seeds non-default moment and length units and checks the complete normalized result of `readProjectUnits()`; returning defaults without reading the store would fail.
+- `PierFamiliesPanel.test.tsx` now checks that the rendered catalog displays the stored legacy `H_TYPE`, as well as confirming that the persisted value stays unchanged.
+- Focused Vitest: 2 files / 6 tests passed. Frontend production build passed (existing large-chunk warning). No production code changed.

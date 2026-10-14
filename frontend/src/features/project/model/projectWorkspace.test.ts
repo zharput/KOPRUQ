@@ -19,7 +19,7 @@ describe('project unit identifiers', () => {
   })
   it('reads normalized units for the graph, and the defaults when the store is empty', () => {
     expect(readProjectUnits()).toEqual(INITIAL_PROJECT.units)
-    seedProjectData('workspace', { project: { units: { moment: 'kN·m' } }, bridges: [] })
-    expect(readProjectUnits()).toMatchObject({ moment: 'kNm' })
+    seedProjectData('workspace', { project: { units: { moment: 'MN·m', length: 'mm' } }, bridges: [] })
+    expect(readProjectUnits()).toEqual({ ...INITIAL_PROJECT.units, moment: 'MNm', length: 'mm' })
   })
 })

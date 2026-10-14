@@ -1,0 +1,870 @@
+diff --git a/backend/src/main/java/com/kopruq/bridge/api/LoadInputDtos.java b/backend/src/main/java/com/kopruq/bridge/api/LoadInputDtos.java
+index 9b0066e..b87b89d 100644
+--- a/backend/src/main/java/com/kopruq/bridge/api/LoadInputDtos.java
++++ b/backend/src/main/java/com/kopruq/bridge/api/LoadInputDtos.java
+@@ -42,7 +42,14 @@ public final class LoadInputDtos {
+     public record WindSnapshotInputsDto(String vb, String terrain, String ze, Double deckWidthM, Double drefM) {
+     }
+ 
+-    /** The wind snapshot: inputs only; a {@code result} is not a known field. */
+-    public record WindSnapshotDto(Integer schemaVersion, String status, WindSnapshotInputsDto inputs) {
++    /** The calculated wind result stored with a snapshot; strict (an unknown field is rejected). */
++    public record WindSnapshotResultDto(String status, Double z0M, Double zminM, Double kr, Double cr, Double vmMs,
++            Double turbulenceIntensity, Double qpKNm2, Double bOverD, Double cfx, Double transverseKNm,
++            String missing) {
++    }
++
++    /** The wind snapshot: inputs and an optional result (null or absent = no result); strict. */
++    public record WindSnapshotDto(Integer schemaVersion, String status, WindSnapshotInputsDto inputs,
++            WindSnapshotResultDto result) {
+     }
+ }
+diff --git a/backend/src/main/java/com/kopruq/bridge/api/LoadInputMapper.java b/backend/src/main/java/com/kopruq/bridge/api/LoadInputMapper.java
+index da71774..d1808d1 100644
+--- a/backend/src/main/java/com/kopruq/bridge/api/LoadInputMapper.java
++++ b/backend/src/main/java/com/kopruq/bridge/api/LoadInputMapper.java
+@@ -9,8 +9,10 @@ import com.kopruq.bridge.api.LoadInputDtos.TrafficLm1Dto;
+ import com.kopruq.bridge.api.LoadInputDtos.WindInputsDto;
+ import com.kopruq.bridge.api.LoadInputDtos.WindSnapshotDto;
+ import com.kopruq.bridge.api.LoadInputDtos.WindSnapshotInputsDto;
++import com.kopruq.bridge.api.LoadInputDtos.WindSnapshotResultDto;
+ import com.kopruq.bridge.application.ProjectLoadInputs;
+ import com.kopruq.bridge.enums.ParameterProvenance;
++import com.kopruq.bridge.enums.WindResultStatus;
+ import com.kopruq.bridge.model.Lm1LaneFactor;
+ import com.kopruq.bridge.model.Lm1ParameterValue;
+ import com.kopruq.bridge.model.SeismicInputs;
+@@ -25,13 +27,14 @@ import com.kopruq.bridge.model.WindInputs;
+ import com.kopruq.bridge.model.WindInputsSection;
+ import com.kopruq.bridge.model.WindSnapshot;
+ import com.kopruq.bridge.model.WindSnapshotInputs;
++import com.kopruq.bridge.model.WindSnapshotResult;
+ import com.kopruq.bridge.model.WindSnapshotSection;
+ 
+ import java.util.List;
+ 
+ /**
+  * Converts the six load-input JSON shapes to the model and back. Only structure is checked (present, finite, known
+- * provenance, wind-snapshot schema version); no engineering rule, range, default or unit conversion is applied, and
++ * provenance, wind-result status, wind-snapshot schema version); no engineering rule, range, default or unit conversion is applied, and
+  * string inputs are stored exactly as typed. A null {@code value} clears the section.
+  */
+ final class LoadInputMapper {
+@@ -150,8 +153,29 @@ final class LoadInputMapper {
+                 inputs = new WindSnapshotInputs(vb, terrain, ze, deckWidth, dref);
+             }
+         }
++        WindSnapshotResult result = null;
++        WindSnapshotResultDto r = dto.result();
++        if (r != null) {
++            String rp = path + ".result";
++            int before = c.count();
++            WindResultStatus status = c.requiredEnum(rp + ".status", r.status(), WindResultStatus.class);
++            double z0 = c.requiredFinite(rp + ".z0M", r.z0M());
++            double zmin = c.requiredFinite(rp + ".zminM", r.zminM());
++            double kr = c.requiredFinite(rp + ".kr", r.kr());
++            double cr = c.requiredFinite(rp + ".cr", r.cr());
++            double vm = c.requiredFinite(rp + ".vmMs", r.vmMs());
++            double turbulence = c.requiredFinite(rp + ".turbulenceIntensity", r.turbulenceIntensity());
++            double qp = c.requiredFinite(rp + ".qpKNm2", r.qpKNm2());
++            double bOverD = c.requiredFinite(rp + ".bOverD", r.bOverD());
++            double cfx = c.requiredFinite(rp + ".cfx", r.cfx());
++            Double transverse = c.optionalFinite(rp + ".transverseKNm", r.transverseKNm());
++            if (c.count() == before) {
++                result = new WindSnapshotResult(status, z0, zmin, kr, cr, vm, turbulence, qp, bOverD, cfx,
++                        transverse, r.missing());
++            }
++        }
+         c.throwIfAny();
+-        return new WindSnapshotSection(new WindSnapshot(dto.schemaVersion(), dto.status(), inputs));
++        return new WindSnapshotSection(new WindSnapshot(dto.schemaVersion(), dto.status(), inputs, result));
+     }
+ 
+     private static List<Lm1LaneFactor> laneList(SectionChecks c, String path, List<Lm1LaneFactorDto> dtos) {
+@@ -219,7 +243,14 @@ final class LoadInputMapper {
+     static WindSnapshotDto windSnapshotDto(WindSnapshot v) {
+         return v == null ? null : new WindSnapshotDto(v.schemaVersion(), v.status(),
+                 new WindSnapshotInputsDto(v.inputs().vb(), v.inputs().terrain(), v.inputs().ze(),
+-                        v.inputs().deckWidthM(), v.inputs().drefM()));
++                        v.inputs().deckWidthM(), v.inputs().drefM()),
++                windResultDto(v.result()));
++    }
++
++    private static WindSnapshotResultDto windResultDto(WindSnapshotResult r) {
++        return r == null ? null : new WindSnapshotResultDto(r.status().name(), r.z0M(), r.zminM(), r.kr(), r.cr(),
++                r.vmMs(), r.turbulenceIntensity(), r.qpKNm2(), r.bOverD(), r.cfx(), r.transverseKNm(),
++                r.missing());
+     }
+ 
+     static LoadsDto loadsDto(ProjectLoadInputs l) {
+diff --git a/backend/src/main/java/com/kopruq/bridge/infra/persistence/WindSnapshotEntity.java b/backend/src/main/java/com/kopruq/bridge/infra/persistence/WindSnapshotEntity.java
+index 1c52929..2cbf170 100644
+--- a/backend/src/main/java/com/kopruq/bridge/infra/persistence/WindSnapshotEntity.java
++++ b/backend/src/main/java/com/kopruq/bridge/infra/persistence/WindSnapshotEntity.java
+@@ -1,15 +1,22 @@
+ package com.kopruq.bridge.infra.persistence;
+ 
++import com.kopruq.bridge.enums.WindResultStatus;
+ import com.kopruq.bridge.model.WindSnapshot;
+ import com.kopruq.bridge.model.WindSnapshotInputs;
++import com.kopruq.bridge.model.WindSnapshotResult;
+ import jakarta.persistence.Column;
+ import jakarta.persistence.Entity;
++import jakarta.persistence.EnumType;
++import jakarta.persistence.Enumerated;
+ import jakarta.persistence.Id;
+ import jakarta.persistence.Table;
+ 
+ import java.util.UUID;
+ 
+-/** Persistent form of the wind snapshot (one row per project): the inputs only, never the calculated result. */
++/**
++ * Persistent form of the wind snapshot (one row per project): the inputs and, when present, the calculated result as
++ * typed columns. {@code result_present} tells "no result" from a result; the result columns are nullable.
++ */
+ @Entity
+ @Table(name = "load_wind_snapshot")
+ class WindSnapshotEntity {
+@@ -39,6 +46,46 @@ class WindSnapshotEntity {
+     @Column(name = "dref_m", nullable = false)
+     private double drefM;
+ 
++    @Column(name = "result_present", nullable = false)
++    private boolean resultPresent;
++
++    @Enumerated(EnumType.STRING)
++    @Column(name = "result_status", length = 16)
++    private WindResultStatus resultStatus;
++
++    @Column(name = "result_z0_m")
++    private Double resultZ0M;
++
++    @Column(name = "result_zmin_m")
++    private Double resultZminM;
++
++    @Column(name = "result_kr")
++    private Double resultKr;
++
++    @Column(name = "result_cr")
++    private Double resultCr;
++
++    @Column(name = "result_vm_m_s")
++    private Double resultVmMs;
++
++    @Column(name = "result_turbulence_intensity")
++    private Double resultTurbulenceIntensity;
++
++    @Column(name = "result_qp_kn_m2")
++    private Double resultQpKNm2;
++
++    @Column(name = "result_b_over_d")
++    private Double resultBOverD;
++
++    @Column(name = "result_cfx")
++    private Double resultCfx;
++
++    @Column(name = "result_transverse_kn_m")
++    private Double resultTransverseKNm;
++
++    @Column(name = "result_missing")
++    private String resultMissing;
++
+     protected WindSnapshotEntity() {
+     }
+ 
+@@ -51,10 +98,59 @@ class WindSnapshotEntity {
+         this.referenceHeight = s.inputs().ze();
+         this.deckWidthM = s.inputs().deckWidthM();
+         this.drefM = s.inputs().drefM();
++        WindSnapshotResult r = s.result();
++        if (r != null) {
++            this.resultPresent = true;
++            this.resultStatus = r.status();
++            this.resultZ0M = r.z0M();
++            this.resultZminM = r.zminM();
++            this.resultKr = r.kr();
++            this.resultCr = r.cr();
++            this.resultVmMs = r.vmMs();
++            this.resultTurbulenceIntensity = r.turbulenceIntensity();
++            this.resultQpKNm2 = r.qpKNm2();
++            this.resultBOverD = r.bOverD();
++            this.resultCfx = r.cfx();
++            this.resultTransverseKNm = r.transverseKNm();
++            this.resultMissing = r.missing();
++        }
+     }
+ 
+     WindSnapshot toDomain() {
+         return new WindSnapshot(schemaVersion, snapshotStatus, new WindSnapshotInputs(basicWindVelocity,
+-                terrainCategory, referenceHeight, deckWidthM, drefM));
++                terrainCategory, referenceHeight, deckWidthM, drefM), resultToDomain());
++    }
++
++    private WindSnapshotResult resultToDomain() {
++        if (!resultPresent) {
++            if (resultStatus != null || resultZ0M != null || resultZminM != null || resultKr != null
++                    || resultCr != null || resultVmMs != null || resultTurbulenceIntensity != null
++                    || resultQpKNm2 != null || resultBOverD != null || resultCfx != null
++                    || resultTransverseKNm != null || resultMissing != null) {
++                throw new IllegalStateException("Stored wind snapshot of project " + projectId
++                        + " has result_present = false but a result column is not null");
++            }
++            return null;
++        }
++        requireColumn("result_status", resultStatus);
++        requireColumn("result_z0_m", resultZ0M);
++        requireColumn("result_zmin_m", resultZminM);
++        requireColumn("result_kr", resultKr);
++        requireColumn("result_cr", resultCr);
++        requireColumn("result_vm_m_s", resultVmMs);
++        requireColumn("result_turbulence_intensity", resultTurbulenceIntensity);
++        requireColumn("result_qp_kn_m2", resultQpKNm2);
++        requireColumn("result_b_over_d", resultBOverD);
++        requireColumn("result_cfx", resultCfx);
++        return new WindSnapshotResult(resultStatus, resultZ0M, resultZminM, resultKr, resultCr, resultVmMs,
++                resultTurbulenceIntensity, resultQpKNm2, resultBOverD, resultCfx, resultTransverseKNm,
++                resultMissing);
++    }
++
++    private void requireColumn(String column, Object value) {
++        if (value == null) {
++            throw new IllegalStateException("Stored wind snapshot of project " + projectId
++                    + " has result_present but " + column + " is null");
++        }
+     }
+ }
+diff --git a/backend/src/main/java/com/kopruq/bridge/model/WindSnapshot.java b/backend/src/main/java/com/kopruq/bridge/model/WindSnapshot.java
+index 0fc003a..139a6a4 100644
+--- a/backend/src/main/java/com/kopruq/bridge/model/WindSnapshot.java
++++ b/backend/src/main/java/com/kopruq/bridge/model/WindSnapshot.java
+@@ -1,7 +1,10 @@
+ package com.kopruq.bridge.model;
+ 
+-/** A wind calculation snapshot. Only the inputs are stored; the calculated result is never persisted. */
+-public record WindSnapshot(int schemaVersion, String status, WindSnapshotInputs inputs) {
++/**
++ * A wind calculation snapshot: the inputs and, optionally, the result calculated from them. The result is stored as
++ * calculated (null = no result); whether it is still valid is decided at read time by comparing the inputs (M3b).
++ */
++public record WindSnapshot(int schemaVersion, String status, WindSnapshotInputs inputs, WindSnapshotResult result) {
+ 
+     public static final int SCHEMA_VERSION = 1;
+ 
+diff --git a/backend/src/test/java/com/kopruq/bridge/LoadGraphFixtures.java b/backend/src/test/java/com/kopruq/bridge/LoadGraphFixtures.java
+index debd3e6..f69eadc 100644
+--- a/backend/src/test/java/com/kopruq/bridge/LoadGraphFixtures.java
++++ b/backend/src/test/java/com/kopruq/bridge/LoadGraphFixtures.java
+@@ -1,6 +1,7 @@
+ package com.kopruq.bridge;
+ 
+ import com.kopruq.bridge.enums.ParameterProvenance;
++import com.kopruq.bridge.enums.WindResultStatus;
+ import com.kopruq.bridge.model.GraphConnection;
+ import com.kopruq.bridge.model.GraphDocument;
+ import com.kopruq.bridge.model.GraphGroup;
+@@ -24,6 +25,7 @@ import com.kopruq.bridge.model.WindInputs;
+ import com.kopruq.bridge.model.WindInputsSection;
+ import com.kopruq.bridge.model.WindSnapshot;
+ import com.kopruq.bridge.model.WindSnapshotInputs;
++import com.kopruq.bridge.model.WindSnapshotResult;
+ import com.kopruq.bridge.model.WindSnapshotSection;
+ 
+ import java.util.List;
+@@ -78,11 +80,22 @@ public final class LoadGraphFixtures {
+ 
+     public static WindSnapshotSection windSnapshot() {
+         return new WindSnapshotSection(new WindSnapshot(1, "VALID",
+-                new WindSnapshotInputs("27", "II", "10", 13.8, 0.30000000000000004)));
++                new WindSnapshotInputs("27", "II", "10", 13.8, 0.30000000000000004),
++                new WindSnapshotResult(WindResultStatus.VALID, 0.05, 2.0, 0.30000000000000004, -1.5, 0.0, 1.0E-300,
++                        Double.MAX_VALUE, 4.6, 1.3, 2.5, null)));
+     }
+ 
++    /** No result (and no top-level status): the snapshot of an inputs-only save. */
+     public static WindSnapshotSection windSnapshotWithoutStatus() {
+-        return new WindSnapshotSection(new WindSnapshot(1, null, new WindSnapshotInputs("", "", "", 0.0, -3.0)));
++        return new WindSnapshotSection(new WindSnapshot(1, null, new WindSnapshotInputs("", "", "", 0.0, -3.0),
++                null));
++    }
++
++    /** An INVALID result: no transverse load, a free-text {@code missing}, and no top-level status. */
++    public static WindSnapshotSection windSnapshotInvalidResult() {
++        return new WindSnapshotSection(new WindSnapshot(1, null, new WindSnapshotInputs("", "", "", 0.0, -3.0),
++                new WindSnapshotResult(WindResultStatus.INVALID, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.3, null,
++                        "x ç")));
+     }
+ 
+     /** A full graph: all four parameter kinds (empty array too), a group, owner ids, odd node types and ports. */
+diff --git a/backend/src/test/java/com/kopruq/bridge/infra/persistence/JpaLoadGraphContentTest.java b/backend/src/test/java/com/kopruq/bridge/infra/persistence/JpaLoadGraphContentTest.java
+index 88df13c..1e4a3e0 100644
+--- a/backend/src/test/java/com/kopruq/bridge/infra/persistence/JpaLoadGraphContentTest.java
++++ b/backend/src/test/java/com/kopruq/bridge/infra/persistence/JpaLoadGraphContentTest.java
+@@ -14,6 +14,7 @@ import com.kopruq.bridge.model.SelfWeightInputsSection;
+ import com.kopruq.bridge.model.TemperatureInputsSection;
+ import com.kopruq.bridge.model.TrafficLm1Section;
+ import com.kopruq.bridge.model.WindInputsSection;
++import com.kopruq.bridge.model.WindSnapshotResult;
+ import com.kopruq.bridge.model.WindSnapshotSection;
+ import jakarta.persistence.EntityManager;
+ import org.junit.jupiter.api.Test;
+@@ -39,6 +40,7 @@ import static com.kopruq.bridge.LoadGraphFixtures.temperature;
+ import static com.kopruq.bridge.LoadGraphFixtures.trafficLm1;
+ import static com.kopruq.bridge.LoadGraphFixtures.wind;
+ import static com.kopruq.bridge.LoadGraphFixtures.windSnapshot;
++import static com.kopruq.bridge.LoadGraphFixtures.windSnapshotInvalidResult;
+ import static com.kopruq.bridge.LoadGraphFixtures.windSnapshotWithoutStatus;
+ import static com.kopruq.bridge.WorkspaceFixtures.row;
+ import static com.kopruq.bridge.WorkspaceFixtures.workspace;
+@@ -118,7 +120,7 @@ class JpaLoadGraphContentTest {
+ 
+     static Stream<ProjectSection> loadSections() {
+         return Stream.of(seismic(), wind(), temperature(), selfWeight(), trafficLm1(), windSnapshot(),
+-                windSnapshotWithoutStatus());
++                windSnapshotWithoutStatus(), windSnapshotInvalidResult());
+     }
+ 
+     @ParameterizedTest
+@@ -194,15 +196,104 @@ class JpaLoadGraphContentTest {
+         assertThrows(IllegalStateException.class, () -> contents.load(id));
+     }
+ 
++    private static final List<String> RESULT_NUMBER_COLUMNS = List.of("result_z0_m", "result_zmin_m", "result_kr",
++            "result_cr", "result_vm_m_s", "result_turbulence_intensity", "result_qp_kn_m2", "result_b_over_d",
++            "result_cfx", "result_transverse_kn_m");
++
++    @Test
++    void windSnapshot_hasTypedResultColumns() {
++        List<java.util.Map<String, Object>> rows = jdbc.queryForList("select lower(column_name) as name, "
++                + "lower(data_type) as type, upper(is_nullable) as nullable from information_schema.columns "
++                + "where lower(table_name) = 'load_wind_snapshot' and lower(column_name) like 'result\\_%' escape '\\'");
++
++        java.util.Map<String, String> types = new java.util.HashMap<>();
++        java.util.Map<String, String> nullable = new java.util.HashMap<>();
++        for (java.util.Map<String, Object> r : rows) {
++            types.put((String) r.get("name"), (String) r.get("type"));
++            nullable.put((String) r.get("name"), (String) r.get("nullable"));
++        }
++
++        assertEquals(13, rows.size());
++        assertEquals("boolean", types.get("result_present"));
++        assertEquals("NO", nullable.get("result_present"));
++        assertEquals("character varying", types.get("result_status"));
++        assertEquals("character varying", types.get("result_missing"));
++        for (String column : RESULT_NUMBER_COLUMNS) {
++            assertEquals("double precision", types.get(column), column);
++        }
++        for (String column : types.keySet()) {
++            if (!column.equals("result_present")) {
++                assertEquals("YES", nullable.get(column), column);
++            }
++        }
++    }
++
++    private java.util.Map<String, Object> windRow(UUID id) {
++        return jdbc.queryForMap("select * from load_wind_snapshot where project_id = ?", id);
++    }
++
++    private boolean allResultColumnsNull(java.util.Map<String, Object> row) {
++        return row.entrySet().stream().filter(e -> e.getKey().toLowerCase().startsWith("result_")
++                && !e.getKey().equalsIgnoreCase("result_present")).allMatch(e -> e.getValue() == null);
++    }
++
++    @Test
++    void windSnapshot_replaceWithAndWithoutResult() {
++        UUID id = newProject();
++
++        ProjectContent first = replaceAndReload(id, windSnapshot());
++        assertEquals(windSnapshot().snapshot(), first.loads().windSnapshot());
++        assertEquals(Boolean.TRUE, windRow(id).get("RESULT_PRESENT"));
++
++        ProjectContent second = replaceAndReload(id, windSnapshotWithoutStatus());
++        assertNull(second.loads().windSnapshot().result());
++        assertEquals(Boolean.FALSE, windRow(id).get("RESULT_PRESENT"));
++        assertEquals(true, allResultColumnsNull(windRow(id)));
++
++        ProjectContent third = replaceAndReload(id, windSnapshotInvalidResult());
++        assertEquals(windSnapshotInvalidResult().snapshot(), third.loads().windSnapshot());
++        assertEquals(Boolean.TRUE, windRow(id).get("RESULT_PRESENT"));
++        assertNull(windRow(id).get("RESULT_TRANSVERSE_KN_M"));
++
++        ProjectContent fourth = replaceAndReload(id, windSnapshot());
++        assertEquals(windSnapshot().snapshot(), fourth.loads().windSnapshot());
++        assertEquals(1, count("load_wind_snapshot", id));
++    }
++
++    @Test
++    void windSnapshot_numbersAreBitIdentical() {
++        UUID id = newProject();
++        WindSnapshotResult expected = windSnapshot().snapshot().result();
++
++        WindSnapshotResult actual = replaceAndReload(id, windSnapshot()).loads().windSnapshot().result();
++
++        assertEquals(Double.doubleToRawLongBits(expected.cr()), Double.doubleToRawLongBits(actual.cr()));
++        assertEquals(Double.doubleToRawLongBits(expected.qpKNm2()), Double.doubleToRawLongBits(actual.qpKNm2()));
++        assertEquals(Double.doubleToRawLongBits(expected.turbulenceIntensity()),
++                Double.doubleToRawLongBits(actual.turbulenceIntensity()));
++        assertEquals(Double.MAX_VALUE, actual.qpKNm2());
++        assertEquals(1.0E-300, actual.turbulenceIntensity());
++        assertEquals(expected, actual);
++    }
++
+     @Test
+-    void windSnapshot_storesNoResult() {
++    void windSnapshot_presentWithNullRequiredColumn_isCorruptData() {
+         UUID id = newProject();
+         replaceAndReload(id, windSnapshot());
++        jdbc.update("update load_wind_snapshot set result_kr = null where project_id = ?", id);
++        em.clear();
+ 
+-        List<String> columns = jdbc.queryForList("select column_name from information_schema.columns "
+-                + "where lower(table_name) = 'load_wind_snapshot'", String.class);
++        assertThrows(IllegalStateException.class, () -> contents.load(id));
++    }
+ 
+-        assertEquals(false, columns.stream().anyMatch(n -> n.toLowerCase().contains("result")));
++    @Test
++    void windSnapshot_absentWithResultColumn_isCorruptData() {
++        UUID id = newProject();
++        replaceAndReload(id, windSnapshotWithoutStatus());
++        jdbc.update("update load_wind_snapshot set result_cfx = 1.3 where project_id = ?", id);
++        em.clear();
++
++        assertThrows(IllegalStateException.class, () -> contents.load(id));
+     }
+ 
+     // ------------------------------------------------------------------ graphs
+diff --git a/backend/src/test/java/com/kopruq/bridge/model/LoadGraphSectionsTest.java b/backend/src/test/java/com/kopruq/bridge/model/LoadGraphSectionsTest.java
+index d03a83a..7012545 100644
+--- a/backend/src/test/java/com/kopruq/bridge/model/LoadGraphSectionsTest.java
++++ b/backend/src/test/java/com/kopruq/bridge/model/LoadGraphSectionsTest.java
+@@ -2,6 +2,7 @@ package com.kopruq.bridge.model;
+ 
+ import com.kopruq.bridge.enums.GraphParameterKind;
+ import com.kopruq.bridge.enums.ParameterProvenance;
++import com.kopruq.bridge.enums.WindResultStatus;
+ import com.kopruq.bridge.model.GraphParameterValue.GraphNumberListValue;
+ import com.kopruq.bridge.model.GraphParameterValue.GraphNumberValue;
+ import com.kopruq.bridge.model.GraphParameterValue.GraphStringValue;
+@@ -81,15 +82,43 @@ class LoadGraphSectionsTest {
+     @Test
+     void windSnapshot_schemaVersionMustBeOne_inputsRequired_statusOptional() {
+         WindSnapshotInputs inputs = new WindSnapshotInputs("", "", "", 0.0, 0.0);
+-        assertDoesNotThrow(() -> new WindSnapshot(1, null, inputs));
+-        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(2, null, inputs));
+-        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(0, null, inputs));
+-        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(1, "VALID", null));
++        assertDoesNotThrow(() -> new WindSnapshot(1, null, inputs, null));
++        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(2, null, inputs, null));
++        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(0, null, inputs, null));
++        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(1, "VALID", null, null));
+         assertThrows(IllegalArgumentException.class, () -> new WindSnapshotInputs("", "", "", Double.NaN, 0.0));
+         assertThrows(IllegalArgumentException.class, () -> new WindSnapshotInputs("", "", "", 0.0, Double.NaN));
+         assertThrows(IllegalArgumentException.class, () -> new WindSnapshotInputs(null, "", "", 0.0, 0.0));
+     }
+ 
++    @Test
++    void windSnapshotResult_isStructuralOnly() {
++        WindSnapshotInputs inputs = new WindSnapshotInputs("", "", "", 0.0, 0.0);
++        // no range or consistency rule: VALID with a filled missing text, INVALID without transverse, negatives, zeros
++        assertDoesNotThrow(() -> new WindSnapshotResult(WindResultStatus.VALID, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.0, "m"));
++        assertDoesNotThrow(() -> new WindSnapshotResult(WindResultStatus.INVALID, 0, 0, 0, 0, 0, 0, 0, 0, 1.3, null,
++                "m"));
++        assertDoesNotThrow(() -> new WindSnapshotResult(WindResultStatus.VALID, -1, -0.0, -3, 0, -5, -6, -7, -8, -9,
++                -10.0, null));
++        assertDoesNotThrow(() -> new WindSnapshot(1, "INVALID", inputs, new WindSnapshotResult(
++                WindResultStatus.VALID, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.0, "m")));
++        assertThrows(IllegalArgumentException.class,
++                () -> new WindSnapshotResult(null, 1, 1, 1, 1, 1, 1, 1, 1, 1, null, null));
++        assertThrows(IllegalArgumentException.class,
++                () -> new WindSnapshotResult(WindResultStatus.VALID, 1, 1, 1, 1, 1, 1, 1, 1, 1, Double.NaN, null));
++        assertThrows(IllegalArgumentException.class, () -> new WindSnapshotResult(WindResultStatus.VALID, 1, 1, 1, 1,
++                1, 1, 1, 1, 1, Double.POSITIVE_INFINITY, null));
++        for (int field = 0; field < 9; field++) {
++            for (double bad : new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
++                double[] v = new double[9];
++                Arrays.fill(v, 1.0);
++                v[field] = bad;
++                assertThrows(IllegalArgumentException.class, () -> new WindSnapshotResult(WindResultStatus.VALID,
++                        v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], null, null), "field " + field);
++            }
++        }
++    }
++
+     @Test
+     void graphParameterValues_reportTheirKind_andRejectBadContent() {
+         assertEquals(GraphParameterKind.NUMBER, new GraphNumberValue(1).kind());
+diff --git a/backend/src/test/java/com/kopruq/contract/ProjectLoadGraphApiContractTest.java b/backend/src/test/java/com/kopruq/contract/ProjectLoadGraphApiContractTest.java
+index c393de3..c51916a 100644
+--- a/backend/src/test/java/com/kopruq/contract/ProjectLoadGraphApiContractTest.java
++++ b/backend/src/test/java/com/kopruq/contract/ProjectLoadGraphApiContractTest.java
+@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
+ import static org.junit.jupiter.api.Assertions.assertEquals;
+ import static org.junit.jupiter.api.Assertions.assertFalse;
+ import static org.junit.jupiter.api.Assertions.assertNotEquals;
++import static org.junit.jupiter.api.Assertions.assertNull;
+ import static org.junit.jupiter.api.Assertions.assertTrue;
+ 
+ /**
+@@ -69,7 +70,20 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
+ 
+     private static final String WIND_SNAPSHOT = """
+             {"schemaVersion":1,"status":"VALID",
+-             "inputs":{"vb":"27","terrain":"II","ze":"10","deckWidthM":13.8,"drefM":3.0}}""";
++             "inputs":{"vb":"27","terrain":"II","ze":"10","deckWidthM":13.8,"drefM":3.0},
++             "result":{"status":"VALID","z0M":0.05,"zminM":2.0,"kr":0.19,"cr":0.30000000000000004,
++                       "vmMs":-1.5,"turbulenceIntensity":0.0,"qpKNm2":1.0E-300,"bOverD":4.6,"cfx":1.3,
++                       "transverseKNm":2.5,"missing":null}}""";
++
++    private static final String WIND_SNAPSHOT_INVALID = """
++            {"schemaVersion":1,"status":"INVALID",
++             "inputs":{"vb":"27","terrain":"II","ze":"10","deckWidthM":13.8,"drefM":3.0},
++             "result":{"status":"INVALID","z0M":0.0,"zminM":0.0,"kr":0.0,"cr":0.0,
++                       "vmMs":0.0,"turbulenceIntensity":0.0,"qpKNm2":0.0,"bOverD":0.0,"cfx":1.3,
++                       "transverseKNm":null,"missing":"some text ç"}}""";
++
++    private static final List<String> WIND_RESULT_KEYS = List.of("status", "z0M", "zminM", "kr", "cr", "vmMs",
++            "turbulenceIntensity", "qpKNm2", "bOverD", "cfx", "transverseKNm", "missing");
+ 
+     private static final String GRAPH = """
+             {"id":"GID","name":"Bridge B-1","schemaVersion":1,"projectId":"P-2026","bridgeId":"b-1",
+@@ -389,6 +403,8 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
+                 "self weight overflow", "value.asphaltThicknessM");
+         assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"deckWidthM\":13.8", "\"deckWidthM\":1e999"), 1L,
+                 "snapshot overflow", "value.inputs.deckWidthM");
++        assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"cr\":0.30000000000000004", "\"cr\":1e999"), 1L,
++                "snapshot result overflow", "value.result.cr");
+         assertRejected(LOADS[4], TRAFFIC_LM1.replace("\"value\":300.0", "\"value\":1e999"), 1L, "lm1 overflow",
+                 "value.tandemSystem[0].characteristicValue.value");
+         assertRejected(GRAPH_SECTION, graph("g-1").replace("\"x\":0.30000000000000004", "\"x\":1e999"), 1L,
+@@ -513,28 +529,126 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
+ 
+     // ------------------------------------------------------------------ AC5: wind snapshot
+ 
++    private boolean resultPresent(String projectId) {
++        return jdbc.queryForObject("select result_present from load_wind_snapshot where project_id = ?",
++                Boolean.class, UUID.fromString(projectId));
++    }
++
+     @Test
+-    void windSnapshot_storesAndReturnsExactlyThreeKeys_andNoResult() throws Exception {
++    void windSnapshot_storesAndReturnsTheResult_inKeyOrder() throws Exception {
+         String id = createProject();
+ 
+         JsonNode r = written(put(id, LOADS[5], envelope(0L, WIND_SNAPSHOT)));
+ 
+-        assertEquals(List.of("schemaVersion", "status", "inputs"), keysOf(r.get("value")));
+-        assertEquals(List.of("schemaVersion", "status", "inputs"), keysOf(doc(id).at("/loads/windSnapshot")));
+-        assertFalse(doc(id).toString().contains("\"result\""));
++        assertEquals(List.of("schemaVersion", "status", "inputs", "result"), keysOf(r.get("value")));
++        assertEquals(List.of("schemaVersion", "status", "inputs", "result"), keysOf(doc(id).at("/loads/windSnapshot")));
++        assertEquals(WIND_RESULT_KEYS, keysOf(r.get("value").get("result")));
++        assertEquals(WIND_RESULT_KEYS, keysOf(doc(id).at("/loads/windSnapshot/result")));
++        assertEquals(parse(WIND_SNAPSHOT), doc(id).at("/loads/windSnapshot"));
++        assertTrue(resultPresent(id));
+     }
+ 
+     @Test
+-    void windSnapshot_resultIsNotAKnownField() throws Exception {
+-        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result", "null"), 1L, "result null", "value.result");
++    void windSnapshot_invalidResult_roundTrips() throws Exception {
+         String id = createProject();
+ 
+-        JsonNode b = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result", "{\"x\":1}"))));
++        JsonNode r = written(put(id, LOADS[5], envelope(0L, WIND_SNAPSHOT_INVALID)));
+ 
+-        assertEquals("value.result", b.get("errors").get(0).get("field").asText());
++        assertEquals(1, r.get("revision").asInt());
++        assertEquals(parse(WIND_SNAPSHOT_INVALID), r.get("value"));
++        assertEquals(parse(WIND_SNAPSHOT_INVALID), doc(id).at("/loads/windSnapshot"));
++        assertTrue(doc(id).at("/loads/windSnapshot/result/transverseKNm").isNull());
++        assertEquals("some text ç", doc(id).at("/loads/windSnapshot/result/missing").asText());
++    }
++
++    @Test
++    void windSnapshot_resultNullOrAbsent_isStoredAsNull() throws Exception {
++        for (Object noResult : new Object[] {null, REMOVE}) {
++            String id = createProject();
++
++            JsonNode r = written(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result", noResult))));
++
++            assertEquals(List.of("schemaVersion", "status", "inputs", "result"), keysOf(r.get("value")));
++            assertTrue(r.get("value").get("result").isNull());
++            assertTrue(doc(id).at("/loads/windSnapshot/result").isNull());
++            assertTrue(doc(id).at("/loads/windSnapshot").has("result"));
++            assertFalse(resultPresent(id));
++            Map<String, Object> row = jdbc.queryForMap("select * from load_wind_snapshot where project_id = ?",
++                    UUID.fromString(id));
++            row.forEach((column, value) -> {
++                if (column.toLowerCase().startsWith("result_") && !column.equalsIgnoreCase("result_present")) {
++                    assertNull(value, column);
++                }
++            });
++        }
++    }
++
++    @Test
++    void windSnapshot_unknownFieldInResult_isRejected() throws Exception {
++        String withExtra = change(WIND_SNAPSHOT, "/result/x", "1");
++        assertRejected(LOADS[5], withExtra, 1L, "result unknown field", "value.result.x");
++        String id = createProject();
++
++        JsonNode b = body(put(id, LOADS[5], envelope(0L, withExtra)));
++
++        assertEquals("value.result.x", b.get("errors").get(0).get("field").asText());
+         assertEquals("is not a known field", b.get("errors").get(0).get("message").asText());
+     }
+ 
++    @Test
++    void windSnapshot_resultStatusMustBeKnown() throws Exception {
++        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/status", REMOVE), 1L, "result status absent",
++                "value.result.status");
++        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/status", null), 1L, "result status null",
++                "value.result.status");
++        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/status", "\"OK\""), 1L, "result status OK",
++                "value.result.status");
++        String id = createProject();
++
++        JsonNode bad = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result/status", "\"OK\""))));
++        JsonNode missing = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result/status", REMOVE))));
++
++        assertEquals("must be one of: VALID, INVALID", bad.get("errors").get(0).get("message").asText());
++        assertEquals("is required", missing.get("errors").get(0).get("message").asText());
++    }
++
++    @Test
++    void windSnapshot_resultNumbersRequiredAndFinite() throws Exception {
++        for (String field : List.of("z0M", "zminM", "kr", "cr", "vmMs", "turbulenceIntensity", "qpKNm2", "bOverD",
++                "cfx")) {
++            assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/" + field, REMOVE), 1L, field + " absent",
++                    "value.result." + field);
++            assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/" + field, null), 1L, field + " null",
++                    "value.result." + field);
++        }
++        assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"qpKNm2\":1.0E-300", "\"qpKNm2\":1e999"), 1L, "qp overflow",
++                "value.result.qpKNm2");
++        assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"transverseKNm\":2.5", "\"transverseKNm\":1e999"), 1L,
++                "transverse overflow", "value.result.transverseKNm");
++        String id = createProject();
++        JsonNode b = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result/kr", REMOVE))));
++        JsonNode o = body(put(id, LOADS[5], envelope(0L,
++                WIND_SNAPSHOT.replace("\"qpKNm2\":1.0E-300", "\"qpKNm2\":1e999"))));
++        assertEquals("is required", b.get("errors").get(0).get("message").asText());
++        assertEquals("must be a finite number", o.get("errors").get(0).get("message").asText());
++        // transverseKNm null and missing null are fine
++        written(put(id, LOADS[5], envelope(0L, change(change(WIND_SNAPSHOT, "/result/transverseKNm", null),
++                "/result/missing", null))));
++    }
++
++    @Test
++    void windSnapshot_noConsistencyRule() throws Exception {
++        String id = createProject();
++        String value = change(change(WIND_SNAPSHOT, "/result/missing", "\"still filled\""), "/status",
++                "\"INVALID\"");
++
++        JsonNode r = written(put(id, LOADS[5], envelope(0L, value)));
++
++        assertEquals(parse(value), r.get("value"));
++        assertEquals("VALID", r.get("value").at("/result/status").asText());
++        assertEquals("INVALID", r.get("value").get("status").asText());
++    }
++
+     @Test
+     void windSnapshot_statusIsOptional_andComesBackNull() throws Exception {
+         String id = createProject();
+diff --git a/frontend/src/app/project-session/projectDocument.test.ts b/frontend/src/app/project-session/projectDocument.test.ts
+index 977adc6..157eb8c 100644
+--- a/frontend/src/app/project-session/projectDocument.test.ts
++++ b/frontend/src/app/project-session/projectDocument.test.ts
+@@ -25,7 +25,10 @@ describe('loadProjectDocument', () => {
+     expect(loaded.preferredSpanRules?.[0].primarySpan).toBe(25); expect(loaded.crossSection).toEqual({ platformWidthM: 13.8, leftWalkwayM: 1, rightWalkwayM: 1.5, spaceOfGirderM: 2, numberOfGirders: 5 })
+     expect(loaded.loads.seismic).toEqual({ a: '0.2', g: 'C', t: 'Type 2', i: '1.2' }); expect(loaded.loads.wind?.vb).toBe('27'); expect(loaded.loads.temperature?.min).toBe('-20')
+     expect(loaded.loads.selfWeight?.soundPanelUnitLoadKNm).toBe(1); expect(loaded.loads.trafficLm1?.tandemSystem[0].adjustmentFactor.value).toBeNull()
+-    expect(loaded.loads.windSnapshot).toEqual({ schemaVersion: 1, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 } })
++    expect(loaded.loads.windSnapshot).toEqual({
++      schemaVersion: 1, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 },
++      result: { status: 'VALID', z0M: 0.05, zminM: 2, kr: 0.19, cr: 0.30000000000000004, vmMs: -1.5, turbulenceIntensity: 0, qpKNm2: 1, bOverD: 4.6, cfx: 1.3, transverseKNm: 2.5, missing: null },
++    })
+     expect(loaded.graphs.map((g) => g.id)).toEqual(['graph-1', 'graph-2', 'graph-3'])
+     expect(loaded.graphs[0].nodes[0].parameters).toEqual({ value: 35, flag: true, label: 'abc', list: [30, 35, 40], none: [] })
+     expect('groups' in loaded.graphs[1]).toBe(false); expect(loaded.graphs[2].groups).toEqual([])
+@@ -64,6 +67,18 @@ describe('loadProjectDocument', () => {
+     expect(byPath['loads/wind-snapshot'].toWire(loaded.loads.windSnapshot)).toEqual(CANONICAL.loads.windSnapshot)
+     expect(loaded.graphs.map((g) => GRAPH_COLLECTION_DEFINITION.codec.toWire(g))).toEqual(CANONICAL.graphs)
+   })
++  it('W -> T -> W of the wind snapshot is byte-exact with a null result and with an INVALID result', () => {
++    const snapshotCodec = PROJECT_SECTION_DEFINITIONS.find((definition) => definition.path === 'loads/wind-snapshot')!.codec
++    const noResult = clone(CANONICAL); noResult.loads.windSnapshot.result = null as never
++    const invalid = clone(CANONICAL)
++    invalid.loads.windSnapshot.result = { status: 'INVALID', z0M: 0.0, zminM: 0.0, kr: 0.0, cr: 0.0, vmMs: 0.0, turbulenceIntensity: 0.0, qpKNm2: 0.0, bOverD: 0.0, cfx: 1.3, transverseKNm: null, missing: 'some text' } as never
++    for (const doc of [CANONICAL, noResult, invalid]) {
++      const loaded = loadProjectDocument(clone(doc))
++      expect(JSON.stringify(snapshotCodec.toWire(loaded.loads.windSnapshot))).toBe(JSON.stringify(doc.loads.windSnapshot))
++    }
++    expect(loadProjectDocument(clone(noResult)).loads.windSnapshot?.result).toBeNull()
++    expect(loadProjectDocument(clone(invalid)).loads.windSnapshot?.result).toMatchObject({ status: 'INVALID', transverseKNm: null, missing: 'some text' })
++  })
+   it('W -> T -> W is also exact for the serialized key order', () => {
+     const loaded = loadProjectDocument(clone(CANONICAL))
+     expect(JSON.stringify(PROJECT_SECTION_DEFINITIONS[0].codec.toWire(loaded.workspace))).toBe(JSON.stringify(CANONICAL.workspace))
+diff --git a/frontend/src/app/project-session/projectDocument.ts b/frontend/src/app/project-session/projectDocument.ts
+index fb9ff46..fb54b33 100644
+--- a/frontend/src/app/project-session/projectDocument.ts
++++ b/frontend/src/app/project-session/projectDocument.ts
+@@ -13,8 +13,9 @@ import type { KopruqGraph } from '../../features/graph/domain/types'
+ import type { Lm1Parameters } from '../../features/loads/api/trafficLoadsService'
+ import {
+   SEISMIC_SECTION, SELF_WEIGHT_SECTION, TEMPERATURE_SECTION, TRAFFIC_LM1_SECTION, WIND_SECTION, WIND_SNAPSHOT_SECTION, loadsWireSchema,
+-  type SeismicInputs, type SelfWeightInputs, type TemperatureInputs, type WindInputs, type WindSnapshotInputsValue,
++  type SeismicInputs, type SelfWeightInputs, type TemperatureInputs, type WindInputs,
+ } from '../../features/loads/model/loadsWire'
++import type { WindCalculationSnapshot } from '../../features/loads/model/windTypes'
+ import { PREFERRED_SPAN_RULES_SECTION, preferredSpanRulesWireSchema } from '../../features/preferred-span/model/preferredSpanWire'
+ import type { PreferredSpanRule } from '../../features/preferred-span/model/types'
+ import { WORKSPACE_SECTION, workspaceToWire, workspaceWireSchema, type WorkspaceWire } from '../../features/project/model/projectWorkspaceWire'
+@@ -51,7 +52,7 @@ export type LoadedProjectDocument = {
+     temperature: TemperatureInputs | undefined
+     selfWeight: SelfWeightInputs | undefined
+     trafficLm1: Lm1Parameters | undefined
+-    windSnapshot: WindSnapshotInputsValue | undefined
++    windSnapshot: WindCalculationSnapshot | undefined
+   }
+   graphs: KopruqGraph[]
+ }
+diff --git a/frontend/src/app/project-session/projectDocumentFixtures.ts b/frontend/src/app/project-session/projectDocumentFixtures.ts
+index 8051cfa..a7a1dfa 100644
+--- a/frontend/src/app/project-session/projectDocumentFixtures.ts
++++ b/frontend/src/app/project-session/projectDocumentFixtures.ts
+@@ -122,7 +122,10 @@ export const CANONICAL_PROJECT_DOCUMENT_JSON = {
+       udl: [{ label: 'Lane 1', characteristicValue: parameter(9.0, 'CODE_DEFAULT', 9.0), adjustmentFactor: parameter(1.0, 'PROJECT_OVERRIDE', 0.8) }],
+       remainingAreaUdl: { label: 'Remaining', characteristicValue: parameter(2.5, 'CODE_DEFAULT', 2.5), adjustmentFactor: parameter(0.8, 'PROJECT_OVERRIDE', 1.0) },
+     },
+-    windSnapshot: { schemaVersion: 1, status: null, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 } },
++    windSnapshot: {
++      schemaVersion: 1, status: null, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 },
++      result: { status: 'VALID', z0M: 0.05, zminM: 2.0, kr: 0.19, cr: 0.30000000000000004, vmMs: -1.5, turbulenceIntensity: 0.0, qpKNm2: 1.0, bOverD: 4.6, cfx: 1.3, transverseKNm: 2.5, missing: null },
++    },
+   },
+   graphs: [
+     {
+diff --git a/frontend/src/features/loads/model/loadsWire.test.ts b/frontend/src/features/loads/model/loadsWire.test.ts
+index c4ee291..fdd50b0 100644
+--- a/frontend/src/features/loads/model/loadsWire.test.ts
++++ b/frontend/src/features/loads/model/loadsWire.test.ts
+@@ -4,7 +4,7 @@ import type { Lm1Parameters } from '../api/trafficLoadsService'
+ import {
+   SEISMIC_SECTION, SELF_WEIGHT_SECTION, TEMPERATURE_SECTION, TRAFFIC_LM1_SECTION, WIND_SECTION, WIND_SNAPSHOT_SECTION, loadsWireSchema, seismicToWire, selfWeightToWire,
+   temperatureToWire, trafficLm1FromWire, trafficLm1ToWire, trafficLm1WireSchema, windSnapshotFromWire, windSnapshotToWire, windSnapshotWireSchema, windToWire,
+-  type SelfWeightInputs, type WindSnapshotInputsValue,
++  type SelfWeightInputs,
+ } from './loadsWire'
+ import type { WindCalculationSnapshot } from './windTypes'
+ 
+@@ -46,22 +46,35 @@ describe('loads wire mapping', () => {
+     expect(trafficLm1FromWire(wire)).toEqual(LM1)
+     expect(TRAFFIC_LM1_SECTION.codec.toWire(LM1)).toEqual(wire)
+   })
+-  it('wind snapshot: drops result on the way out and returns no result on the way back', () => {
++  it('wind snapshot: keeps the result on the way out and back, in the backend key order', () => {
+     const wire = windSnapshotToWire(SNAPSHOT)
+-    expect(Object.keys(wire)).toEqual(['schemaVersion', 'status', 'inputs']); expect(Object.keys(wire.inputs)).toEqual(['vb', 'terrain', 'ze', 'deckWidthM', 'drefM'])
+-    expect(JSON.stringify(wire)).not.toContain('result')
+-    const back = windSnapshotFromWire(wire)
+-    expect(back).toEqual({ schemaVersion: 1, status: 'VALID', inputs: SNAPSHOT.inputs }); expect('result' in back).toBe(false)
++    expect(Object.keys(wire)).toEqual(['schemaVersion', 'status', 'inputs', 'result']); expect(Object.keys(wire.inputs)).toEqual(['vb', 'terrain', 'ze', 'deckWidthM', 'drefM'])
++    expect(Object.keys(wire.result!)).toEqual(['status', 'z0M', 'zminM', 'kr', 'cr', 'vmMs', 'turbulenceIntensity', 'qpKNm2', 'bOverD', 'cfx', 'transverseKNm', 'missing'])
++    expect(parseProjectData(windSnapshotWireSchema, JSON.parse(JSON.stringify(wire)), 'value')).toEqual(wire)
++    expect(windSnapshotFromWire(wire)).toEqual(SNAPSHOT)
++    expect(WIND_SNAPSHOT_SECTION.codec.fromWire(WIND_SNAPSHOT_SECTION.codec.toWire(SNAPSHOT))).toEqual(SNAPSHOT)
++  })
++  it('wind snapshot: an INVALID result (no transverse load, missing text) and a null result round-trip', () => {
++    const invalid: WindCalculationSnapshot = { ...SNAPSHOT, status: 'INVALID', result: { status: 'INVALID', z0M: 0, zminM: 0, kr: 0, cr: 0, vmMs: 0, turbulenceIntensity: 0, qpKNm2: 0, bOverD: 0, cfx: 1.3, transverseKNm: null, missing: 'some text' } }
++    expect(windSnapshotFromWire(windSnapshotToWire(invalid))).toEqual(invalid)
++    const none: WindCalculationSnapshot = { ...SNAPSHOT, result: null }
++    expect(windSnapshotToWire(none).result).toBeNull(); expect(windSnapshotFromWire(windSnapshotToWire(none))).toEqual(none)
++    const legacy = { schemaVersion: 1, inputs: SNAPSHOT.inputs } as unknown as WindCalculationSnapshot
++    expect(windSnapshotToWire(legacy).result).toBeNull()
+   })
+   it('wind snapshot: a missing status goes out as null and a null status is omitted on read', () => {
+-    const noStatus: WindSnapshotInputsValue = { schemaVersion: 1, inputs: SNAPSHOT.inputs }
++    const noStatus: WindCalculationSnapshot = { schemaVersion: 1, inputs: SNAPSHOT.inputs, result: null }
+     const wire = windSnapshotToWire(noStatus); expect(wire.status).toBeNull()
+-    const back = windSnapshotFromWire(wire); expect(back).toEqual(noStatus); expect('status' in back).toBe(false)
++    const back = windSnapshotFromWire(wire); expect(back).toEqual(noStatus); expect('status' in back).toBe(false); expect(back.result).toBeNull()
+     expect(WIND_SNAPSHOT_SECTION.codec.fromWire(wire)).toEqual(noStatus)
+   })
+   it('strict schemas reject unknown keys, a wrong schemaVersion and a wrong provenance with the full path', () => {
+     const snapshot = JSON.parse(JSON.stringify(windSnapshotToWire(SNAPSHOT)))
+-    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: null }, 'loads.windSnapshot')).toThrow('loads.windSnapshot')
++    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: null }, 'loads.windSnapshot')).not.toThrow()
++    const { result: _dropped, ...withoutResult } = snapshot
++    expect(() => parseProjectData(windSnapshotWireSchema, withoutResult, 'loads.windSnapshot')).toThrow('loads.windSnapshot.result')
++    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: { ...snapshot.result, x: 1 } }, 'loads.windSnapshot')).toThrow('loads.windSnapshot.result')
++    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: { ...snapshot.result, status: 'OK' } }, 'loads.windSnapshot')).toThrow('loads.windSnapshot.result.status')
+     expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, schemaVersion: 2 }, 'loads.windSnapshot')).toThrow('loads.windSnapshot.schemaVersion')
+     const lm1 = JSON.parse(JSON.stringify(trafficLm1ToWire(LM1))); lm1.udl[0].adjustmentFactor.provenance = 'GUESS'
+     expect(() => parseProjectData(trafficLm1WireSchema, lm1, 'loads.trafficLm1')).toThrow('loads.trafficLm1.udl[0].adjustmentFactor.provenance')
+diff --git a/frontend/src/features/loads/model/loadsWire.ts b/frontend/src/features/loads/model/loadsWire.ts
+index 880bc13..467007f 100644
+--- a/frontend/src/features/loads/model/loadsWire.ts
++++ b/frontend/src/features/loads/model/loadsWire.ts
+@@ -10,8 +10,7 @@ import type { WindCalculationSnapshot } from './windTypes'
+  * Self-weight names carry their units (m, kN/m3, kN/m); nothing is converted.
+  */
+ export type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
+-/** A wind snapshot without its calculation result: the backend stores the inputs only. */
+-export type WindSnapshotInputsValue = Omit<WindCalculationSnapshot, 'result'>
++/** The wind snapshot result is stored as calculated, with the inputs it was calculated from (backend M3b). */
+ 
+ const text = z.string()
+ const number = z.number()
+@@ -27,9 +26,14 @@ export const selfWeightWireSchema = z.object({
+ const parameterValue = z.object({ value: number.nullable(), provenance: z.enum(['CODE_DEFAULT', 'NATIONAL_ANNEX', 'PROJECT_OVERRIDE']), codeDefaultValue: number.nullable() }).strict()
+ const laneFactor = z.object({ label: text, characteristicValue: parameterValue, adjustmentFactor: parameterValue }).strict()
+ export const trafficLm1WireSchema = z.object({ tandemSystem: z.array(laneFactor), udl: z.array(laneFactor), remainingAreaUdl: laneFactor }).strict()
++export const windResultWireSchema = z.object({
++  status: z.enum(['VALID', 'INVALID']), z0M: number, zminM: number, kr: number, cr: number, vmMs: number, turbulenceIntensity: number,
++  qpKNm2: number, bOverD: number, cfx: number, transverseKNm: number.nullable(), missing: text.nullable(),
++}).strict()
+ export const windSnapshotWireSchema = z.object({
+   schemaVersion: z.literal(1), status: text.nullable(),
+   inputs: z.object({ vb: text, terrain: text, ze: text, deckWidthM: number, drefM: number }).strict(),
++  result: windResultWireSchema.nullable(),
+ }).strict()
+ 
+ export type SeismicWire = z.infer<typeof seismicWireSchema>
+@@ -64,15 +68,25 @@ const laneToWire = (l: LaneFactor) => ({ label: l.label, characteristicValue: pa
+ export const trafficLm1ToWire = (v: Lm1Parameters): TrafficLm1Wire => ({ tandemSystem: v.tandemSystem.map(laneToWire), udl: v.udl.map(laneToWire), remainingAreaUdl: laneToWire(v.remainingAreaUdl) })
+ export const trafficLm1FromWire = (w: TrafficLm1Wire): Lm1Parameters => trafficLm1ToWire(w)
+ 
+-/** `result` is dropped on the way out; a missing `status` is sent as null. */
+-export const windSnapshotToWire = (v: WindSnapshotInputsValue): WindSnapshotWire => ({
++/** `result` goes out as calculated (null when there is none; `== null` also covers legacy data without the field); a missing `status` is sent as null. */
++export const windSnapshotToWire = (v: WindCalculationSnapshot): WindSnapshotWire => ({
+   schemaVersion: 1, status: v.status ?? null,
+   inputs: { vb: v.inputs.vb, terrain: v.inputs.terrain, ze: v.inputs.ze, deckWidthM: v.inputs.deckWidthM, drefM: v.inputs.drefM },
++  result: v.result == null ? null : {
++    status: v.result.status, z0M: v.result.z0M, zminM: v.result.zminM, kr: v.result.kr, cr: v.result.cr, vmMs: v.result.vmMs,
++    turbulenceIntensity: v.result.turbulenceIntensity, qpKNm2: v.result.qpKNm2, bOverD: v.result.bOverD, cfx: v.result.cfx,
++    transverseKNm: v.result.transverseKNm, missing: v.result.missing,
++  },
+ })
+-/** No `result` is invented: the snapshot comes back without one (the caller recalculates or shows "not calculated"). */
+-export const windSnapshotFromWire = (w: WindSnapshotWire): WindSnapshotInputsValue => ({
++/** The stored result comes back unchanged; whether it is still current is decided by comparing the inputs (STALE), not here. */
++export const windSnapshotFromWire = (w: WindSnapshotWire): WindCalculationSnapshot => ({
+   schemaVersion: 1, ...(w.status !== null && { status: w.status }),
+   inputs: { vb: w.inputs.vb, terrain: w.inputs.terrain, ze: w.inputs.ze, deckWidthM: w.inputs.deckWidthM, drefM: w.inputs.drefM },
++  result: w.result === null ? null : {
++    status: w.result.status, z0M: w.result.z0M, zminM: w.result.zminM, kr: w.result.kr, cr: w.result.cr, vmMs: w.result.vmMs,
++    turbulenceIntensity: w.result.turbulenceIntensity, qpKNm2: w.result.qpKNm2, bOverD: w.result.bOverD, cfx: w.result.cfx,
++    transverseKNm: w.result.transverseKNm, missing: w.result.missing,
++  },
+ })
+ 
+ function loadSection<T, W>(id: string, path: string, schema: z.ZodType<W, z.ZodTypeDef, unknown>, toWire: (value: T) => W, fromWire: (wire: W) => T): SectionDefinition<T, W> {
+@@ -84,4 +98,4 @@ export const WIND_SECTION = loadSection<WindInputs, WindWire>('windInputs', 'loa
+ export const TEMPERATURE_SECTION = loadSection<TemperatureInputs, TemperatureWire>('temperatureInputs', 'loads/temperature', temperatureWireSchema, temperatureToWire, temperatureFromWire)
+ export const SELF_WEIGHT_SECTION = loadSection<SelfWeightInputs, SelfWeightWire>('selfWeightInputs', 'loads/self-weight', selfWeightWireSchema, selfWeightToWire, selfWeightFromWire)
+ export const TRAFFIC_LM1_SECTION = loadSection<Lm1Parameters, TrafficLm1Wire>('trafficLm1', 'loads/traffic-lm1', trafficLm1WireSchema, trafficLm1ToWire, trafficLm1FromWire)
+-export const WIND_SNAPSHOT_SECTION = loadSection<WindSnapshotInputsValue, WindSnapshotWire>('windSnapshot', 'loads/wind-snapshot', windSnapshotWireSchema, windSnapshotToWire, windSnapshotFromWire)
++export const WIND_SNAPSHOT_SECTION = loadSection<WindCalculationSnapshot, WindSnapshotWire>('windSnapshot', 'loads/wind-snapshot', windSnapshotWireSchema, windSnapshotToWire, windSnapshotFromWire)

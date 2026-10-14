@@ -10,8 +10,7 @@ import type { WindCalculationSnapshot } from './windTypes'
  * Self-weight names carry their units (m, kN/m3, kN/m); nothing is converted.
  */
 export type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
-/** A wind snapshot without its calculation result: the backend stores the inputs only. */
-export type WindSnapshotInputsValue = Omit<WindCalculationSnapshot, 'result'>
+/** The wind snapshot result is stored as calculated, with the inputs it was calculated from (backend M3b). */
 
 const text = z.string()
 const number = z.number()
@@ -27,9 +26,14 @@ export const selfWeightWireSchema = z.object({
 const parameterValue = z.object({ value: number.nullable(), provenance: z.enum(['CODE_DEFAULT', 'NATIONAL_ANNEX', 'PROJECT_OVERRIDE']), codeDefaultValue: number.nullable() }).strict()
 const laneFactor = z.object({ label: text, characteristicValue: parameterValue, adjustmentFactor: parameterValue }).strict()
 export const trafficLm1WireSchema = z.object({ tandemSystem: z.array(laneFactor), udl: z.array(laneFactor), remainingAreaUdl: laneFactor }).strict()
+export const windResultWireSchema = z.object({
+  status: z.enum(['VALID', 'INVALID']), z0M: number, zminM: number, kr: number, cr: number, vmMs: number, turbulenceIntensity: number,
+  qpKNm2: number, bOverD: number, cfx: number, transverseKNm: number.nullable(), missing: text.nullable(),
+}).strict()
 export const windSnapshotWireSchema = z.object({
   schemaVersion: z.literal(1), status: text.nullable(),
   inputs: z.object({ vb: text, terrain: text, ze: text, deckWidthM: number, drefM: number }).strict(),
+  result: windResultWireSchema.nullable(),
 }).strict()
 
 export type SeismicWire = z.infer<typeof seismicWireSchema>
@@ -64,15 +68,25 @@ const laneToWire = (l: LaneFactor) => ({ label: l.label, characteristicValue: pa
 export const trafficLm1ToWire = (v: Lm1Parameters): TrafficLm1Wire => ({ tandemSystem: v.tandemSystem.map(laneToWire), udl: v.udl.map(laneToWire), remainingAreaUdl: laneToWire(v.remainingAreaUdl) })
 export const trafficLm1FromWire = (w: TrafficLm1Wire): Lm1Parameters => trafficLm1ToWire(w)
 
-/** `result` is dropped on the way out; a missing `status` is sent as null. */
-export const windSnapshotToWire = (v: WindSnapshotInputsValue): WindSnapshotWire => ({
+/** `result` goes out as calculated (null when there is none; `== null` also covers legacy data without the field); a missing `status` is sent as null. */
+export const windSnapshotToWire = (v: WindCalculationSnapshot): WindSnapshotWire => ({
   schemaVersion: 1, status: v.status ?? null,
   inputs: { vb: v.inputs.vb, terrain: v.inputs.terrain, ze: v.inputs.ze, deckWidthM: v.inputs.deckWidthM, drefM: v.inputs.drefM },
+  result: v.result == null ? null : {
+    status: v.result.status, z0M: v.result.z0M, zminM: v.result.zminM, kr: v.result.kr, cr: v.result.cr, vmMs: v.result.vmMs,
+    turbulenceIntensity: v.result.turbulenceIntensity, qpKNm2: v.result.qpKNm2, bOverD: v.result.bOverD, cfx: v.result.cfx,
+    transverseKNm: v.result.transverseKNm, missing: v.result.missing,
+  },
 })
-/** No `result` is invented: the snapshot comes back without one (the caller recalculates or shows "not calculated"). */
-export const windSnapshotFromWire = (w: WindSnapshotWire): WindSnapshotInputsValue => ({
+/** The stored result comes back unchanged; whether it is still current is decided by comparing the inputs (STALE), not here. */
+export const windSnapshotFromWire = (w: WindSnapshotWire): WindCalculationSnapshot => ({
   schemaVersion: 1, ...(w.status !== null && { status: w.status }),
   inputs: { vb: w.inputs.vb, terrain: w.inputs.terrain, ze: w.inputs.ze, deckWidthM: w.inputs.deckWidthM, drefM: w.inputs.drefM },
+  result: w.result === null ? null : {
+    status: w.result.status, z0M: w.result.z0M, zminM: w.result.zminM, kr: w.result.kr, cr: w.result.cr, vmMs: w.result.vmMs,
+    turbulenceIntensity: w.result.turbulenceIntensity, qpKNm2: w.result.qpKNm2, bOverD: w.result.bOverD, cfx: w.result.cfx,
+    transverseKNm: w.result.transverseKNm, missing: w.result.missing,
+  },
 })
 
 function loadSection<T, W>(id: string, path: string, schema: z.ZodType<W, z.ZodTypeDef, unknown>, toWire: (value: T) => W, fromWire: (wire: W) => T): SectionDefinition<T, W> {
@@ -84,4 +98,4 @@ export const WIND_SECTION = loadSection<WindInputs, WindWire>('windInputs', 'loa
 export const TEMPERATURE_SECTION = loadSection<TemperatureInputs, TemperatureWire>('temperatureInputs', 'loads/temperature', temperatureWireSchema, temperatureToWire, temperatureFromWire)
 export const SELF_WEIGHT_SECTION = loadSection<SelfWeightInputs, SelfWeightWire>('selfWeightInputs', 'loads/self-weight', selfWeightWireSchema, selfWeightToWire, selfWeightFromWire)
 export const TRAFFIC_LM1_SECTION = loadSection<Lm1Parameters, TrafficLm1Wire>('trafficLm1', 'loads/traffic-lm1', trafficLm1WireSchema, trafficLm1ToWire, trafficLm1FromWire)
-export const WIND_SNAPSHOT_SECTION = loadSection<WindSnapshotInputsValue, WindSnapshotWire>('windSnapshot', 'loads/wind-snapshot', windSnapshotWireSchema, windSnapshotToWire, windSnapshotFromWire)
+export const WIND_SNAPSHOT_SECTION = loadSection<WindCalculationSnapshot, WindSnapshotWire>('windSnapshot', 'loads/wind-snapshot', windSnapshotWireSchema, windSnapshotToWire, windSnapshotFromWire)

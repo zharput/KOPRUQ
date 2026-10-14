@@ -1,6 +1,7 @@
 package com.kopruq.bridge;
 
 import com.kopruq.bridge.enums.ParameterProvenance;
+import com.kopruq.bridge.enums.WindResultStatus;
 import com.kopruq.bridge.model.GraphConnection;
 import com.kopruq.bridge.model.GraphDocument;
 import com.kopruq.bridge.model.GraphGroup;
@@ -24,6 +25,7 @@ import com.kopruq.bridge.model.WindInputs;
 import com.kopruq.bridge.model.WindInputsSection;
 import com.kopruq.bridge.model.WindSnapshot;
 import com.kopruq.bridge.model.WindSnapshotInputs;
+import com.kopruq.bridge.model.WindSnapshotResult;
 import com.kopruq.bridge.model.WindSnapshotSection;
 
 import java.util.List;
@@ -78,11 +80,22 @@ public final class LoadGraphFixtures {
 
     public static WindSnapshotSection windSnapshot() {
         return new WindSnapshotSection(new WindSnapshot(1, "VALID",
-                new WindSnapshotInputs("27", "II", "10", 13.8, 0.30000000000000004)));
+                new WindSnapshotInputs("27", "II", "10", 13.8, 0.30000000000000004),
+                new WindSnapshotResult(WindResultStatus.VALID, 0.05, 2.0, 0.30000000000000004, -1.5, 0.0, 1.0E-300,
+                        Double.MAX_VALUE, 4.6, 1.3, 2.5, null)));
     }
 
+    /** No result (and no top-level status): the snapshot of an inputs-only save. */
     public static WindSnapshotSection windSnapshotWithoutStatus() {
-        return new WindSnapshotSection(new WindSnapshot(1, null, new WindSnapshotInputs("", "", "", 0.0, -3.0)));
+        return new WindSnapshotSection(new WindSnapshot(1, null, new WindSnapshotInputs("", "", "", 0.0, -3.0),
+                null));
+    }
+
+    /** An INVALID result: no transverse load, a free-text {@code missing}, and no top-level status. */
+    public static WindSnapshotSection windSnapshotInvalidResult() {
+        return new WindSnapshotSection(new WindSnapshot(1, null, new WindSnapshotInputs("", "", "", 0.0, -3.0),
+                new WindSnapshotResult(WindResultStatus.INVALID, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.3, null,
+                        "x ç")));
     }
 
     /** A full graph: all four parameter kinds (empty array too), a group, owner ids, odd node types and ports. */

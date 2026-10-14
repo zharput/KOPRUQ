@@ -2,6 +2,7 @@ package com.kopruq.bridge.model;
 
 import com.kopruq.bridge.enums.GraphParameterKind;
 import com.kopruq.bridge.enums.ParameterProvenance;
+import com.kopruq.bridge.enums.WindResultStatus;
 import com.kopruq.bridge.model.GraphParameterValue.GraphNumberListValue;
 import com.kopruq.bridge.model.GraphParameterValue.GraphNumberValue;
 import com.kopruq.bridge.model.GraphParameterValue.GraphStringValue;
@@ -81,13 +82,41 @@ class LoadGraphSectionsTest {
     @Test
     void windSnapshot_schemaVersionMustBeOne_inputsRequired_statusOptional() {
         WindSnapshotInputs inputs = new WindSnapshotInputs("", "", "", 0.0, 0.0);
-        assertDoesNotThrow(() -> new WindSnapshot(1, null, inputs));
-        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(2, null, inputs));
-        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(0, null, inputs));
-        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(1, "VALID", null));
+        assertDoesNotThrow(() -> new WindSnapshot(1, null, inputs, null));
+        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(2, null, inputs, null));
+        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(0, null, inputs, null));
+        assertThrows(IllegalArgumentException.class, () -> new WindSnapshot(1, "VALID", null, null));
         assertThrows(IllegalArgumentException.class, () -> new WindSnapshotInputs("", "", "", Double.NaN, 0.0));
         assertThrows(IllegalArgumentException.class, () -> new WindSnapshotInputs("", "", "", 0.0, Double.NaN));
         assertThrows(IllegalArgumentException.class, () -> new WindSnapshotInputs(null, "", "", 0.0, 0.0));
+    }
+
+    @Test
+    void windSnapshotResult_isStructuralOnly() {
+        WindSnapshotInputs inputs = new WindSnapshotInputs("", "", "", 0.0, 0.0);
+        // no range or consistency rule: VALID with a filled missing text, INVALID without transverse, negatives, zeros
+        assertDoesNotThrow(() -> new WindSnapshotResult(WindResultStatus.VALID, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.0, "m"));
+        assertDoesNotThrow(() -> new WindSnapshotResult(WindResultStatus.INVALID, 0, 0, 0, 0, 0, 0, 0, 0, 1.3, null,
+                "m"));
+        assertDoesNotThrow(() -> new WindSnapshotResult(WindResultStatus.VALID, -1, -0.0, -3, 0, -5, -6, -7, -8, -9,
+                -10.0, null));
+        assertDoesNotThrow(() -> new WindSnapshot(1, "INVALID", inputs, new WindSnapshotResult(
+                WindResultStatus.VALID, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1.0, "m")));
+        assertThrows(IllegalArgumentException.class,
+                () -> new WindSnapshotResult(null, 1, 1, 1, 1, 1, 1, 1, 1, 1, null, null));
+        assertThrows(IllegalArgumentException.class,
+                () -> new WindSnapshotResult(WindResultStatus.VALID, 1, 1, 1, 1, 1, 1, 1, 1, 1, Double.NaN, null));
+        assertThrows(IllegalArgumentException.class, () -> new WindSnapshotResult(WindResultStatus.VALID, 1, 1, 1, 1,
+                1, 1, 1, 1, 1, Double.POSITIVE_INFINITY, null));
+        for (int field = 0; field < 9; field++) {
+            for (double bad : new double[] {Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY}) {
+                double[] v = new double[9];
+                Arrays.fill(v, 1.0);
+                v[field] = bad;
+                assertThrows(IllegalArgumentException.class, () -> new WindSnapshotResult(WindResultStatus.VALID,
+                        v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], null, null), "field " + field);
+            }
+        }
     }
 
     @Test

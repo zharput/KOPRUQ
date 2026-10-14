@@ -14,6 +14,7 @@ import com.kopruq.bridge.model.SelfWeightInputsSection;
 import com.kopruq.bridge.model.TemperatureInputsSection;
 import com.kopruq.bridge.model.TrafficLm1Section;
 import com.kopruq.bridge.model.WindInputsSection;
+import com.kopruq.bridge.model.WindSnapshotResult;
 import com.kopruq.bridge.model.WindSnapshotSection;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,7 @@ import static com.kopruq.bridge.LoadGraphFixtures.temperature;
 import static com.kopruq.bridge.LoadGraphFixtures.trafficLm1;
 import static com.kopruq.bridge.LoadGraphFixtures.wind;
 import static com.kopruq.bridge.LoadGraphFixtures.windSnapshot;
+import static com.kopruq.bridge.LoadGraphFixtures.windSnapshotInvalidResult;
 import static com.kopruq.bridge.LoadGraphFixtures.windSnapshotWithoutStatus;
 import static com.kopruq.bridge.WorkspaceFixtures.row;
 import static com.kopruq.bridge.WorkspaceFixtures.workspace;
@@ -118,7 +120,7 @@ class JpaLoadGraphContentTest {
 
     static Stream<ProjectSection> loadSections() {
         return Stream.of(seismic(), wind(), temperature(), selfWeight(), trafficLm1(), windSnapshot(),
-                windSnapshotWithoutStatus());
+                windSnapshotWithoutStatus(), windSnapshotInvalidResult());
     }
 
     @ParameterizedTest
@@ -194,15 +196,104 @@ class JpaLoadGraphContentTest {
         assertThrows(IllegalStateException.class, () -> contents.load(id));
     }
 
+    private static final List<String> RESULT_NUMBER_COLUMNS = List.of("result_z0_m", "result_zmin_m", "result_kr",
+            "result_cr", "result_vm_m_s", "result_turbulence_intensity", "result_qp_kn_m2", "result_b_over_d",
+            "result_cfx", "result_transverse_kn_m");
+
     @Test
-    void windSnapshot_storesNoResult() {
+    void windSnapshot_hasTypedResultColumns() {
+        List<java.util.Map<String, Object>> rows = jdbc.queryForList("select lower(column_name) as name, "
+                + "lower(data_type) as type, upper(is_nullable) as nullable from information_schema.columns "
+                + "where lower(table_name) = 'load_wind_snapshot' and lower(column_name) like 'result\\_%' escape '\\'");
+
+        java.util.Map<String, String> types = new java.util.HashMap<>();
+        java.util.Map<String, String> nullable = new java.util.HashMap<>();
+        for (java.util.Map<String, Object> r : rows) {
+            types.put((String) r.get("name"), (String) r.get("type"));
+            nullable.put((String) r.get("name"), (String) r.get("nullable"));
+        }
+
+        assertEquals(13, rows.size());
+        assertEquals("boolean", types.get("result_present"));
+        assertEquals("NO", nullable.get("result_present"));
+        assertEquals("character varying", types.get("result_status"));
+        assertEquals("character varying", types.get("result_missing"));
+        for (String column : RESULT_NUMBER_COLUMNS) {
+            assertEquals("double precision", types.get(column), column);
+        }
+        for (String column : types.keySet()) {
+            if (!column.equals("result_present")) {
+                assertEquals("YES", nullable.get(column), column);
+            }
+        }
+    }
+
+    private java.util.Map<String, Object> windRow(UUID id) {
+        return jdbc.queryForMap("select * from load_wind_snapshot where project_id = ?", id);
+    }
+
+    private boolean allResultColumnsNull(java.util.Map<String, Object> row) {
+        return row.entrySet().stream().filter(e -> e.getKey().toLowerCase().startsWith("result_")
+                && !e.getKey().equalsIgnoreCase("result_present")).allMatch(e -> e.getValue() == null);
+    }
+
+    @Test
+    void windSnapshot_replaceWithAndWithoutResult() {
+        UUID id = newProject();
+
+        ProjectContent first = replaceAndReload(id, windSnapshot());
+        assertEquals(windSnapshot().snapshot(), first.loads().windSnapshot());
+        assertEquals(Boolean.TRUE, windRow(id).get("RESULT_PRESENT"));
+
+        ProjectContent second = replaceAndReload(id, windSnapshotWithoutStatus());
+        assertNull(second.loads().windSnapshot().result());
+        assertEquals(Boolean.FALSE, windRow(id).get("RESULT_PRESENT"));
+        assertEquals(true, allResultColumnsNull(windRow(id)));
+
+        ProjectContent third = replaceAndReload(id, windSnapshotInvalidResult());
+        assertEquals(windSnapshotInvalidResult().snapshot(), third.loads().windSnapshot());
+        assertEquals(Boolean.TRUE, windRow(id).get("RESULT_PRESENT"));
+        assertNull(windRow(id).get("RESULT_TRANSVERSE_KN_M"));
+
+        ProjectContent fourth = replaceAndReload(id, windSnapshot());
+        assertEquals(windSnapshot().snapshot(), fourth.loads().windSnapshot());
+        assertEquals(1, count("load_wind_snapshot", id));
+    }
+
+    @Test
+    void windSnapshot_numbersAreBitIdentical() {
+        UUID id = newProject();
+        WindSnapshotResult expected = windSnapshot().snapshot().result();
+
+        WindSnapshotResult actual = replaceAndReload(id, windSnapshot()).loads().windSnapshot().result();
+
+        assertEquals(Double.doubleToRawLongBits(expected.cr()), Double.doubleToRawLongBits(actual.cr()));
+        assertEquals(Double.doubleToRawLongBits(expected.qpKNm2()), Double.doubleToRawLongBits(actual.qpKNm2()));
+        assertEquals(Double.doubleToRawLongBits(expected.turbulenceIntensity()),
+                Double.doubleToRawLongBits(actual.turbulenceIntensity()));
+        assertEquals(Double.MAX_VALUE, actual.qpKNm2());
+        assertEquals(1.0E-300, actual.turbulenceIntensity());
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void windSnapshot_presentWithNullRequiredColumn_isCorruptData() {
         UUID id = newProject();
         replaceAndReload(id, windSnapshot());
+        jdbc.update("update load_wind_snapshot set result_kr = null where project_id = ?", id);
+        em.clear();
 
-        List<String> columns = jdbc.queryForList("select column_name from information_schema.columns "
-                + "where lower(table_name) = 'load_wind_snapshot'", String.class);
+        assertThrows(IllegalStateException.class, () -> contents.load(id));
+    }
 
-        assertEquals(false, columns.stream().anyMatch(n -> n.toLowerCase().contains("result")));
+    @Test
+    void windSnapshot_absentWithResultColumn_isCorruptData() {
+        UUID id = newProject();
+        replaceAndReload(id, windSnapshotWithoutStatus());
+        jdbc.update("update load_wind_snapshot set result_cfx = 1.3 where project_id = ?", id);
+        em.clear();
+
+        assertThrows(IllegalStateException.class, () -> contents.load(id));
     }
 
     // ------------------------------------------------------------------ graphs

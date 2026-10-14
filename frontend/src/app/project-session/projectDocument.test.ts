@@ -25,7 +25,10 @@ describe('loadProjectDocument', () => {
     expect(loaded.preferredSpanRules?.[0].primarySpan).toBe(25); expect(loaded.crossSection).toEqual({ platformWidthM: 13.8, leftWalkwayM: 1, rightWalkwayM: 1.5, spaceOfGirderM: 2, numberOfGirders: 5 })
     expect(loaded.loads.seismic).toEqual({ a: '0.2', g: 'C', t: 'Type 2', i: '1.2' }); expect(loaded.loads.wind?.vb).toBe('27'); expect(loaded.loads.temperature?.min).toBe('-20')
     expect(loaded.loads.selfWeight?.soundPanelUnitLoadKNm).toBe(1); expect(loaded.loads.trafficLm1?.tandemSystem[0].adjustmentFactor.value).toBeNull()
-    expect(loaded.loads.windSnapshot).toEqual({ schemaVersion: 1, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 } })
+    expect(loaded.loads.windSnapshot).toEqual({
+      schemaVersion: 1, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 },
+      result: { status: 'VALID', z0M: 0.05, zminM: 2, kr: 0.19, cr: 0.30000000000000004, vmMs: -1.5, turbulenceIntensity: 0, qpKNm2: 1, bOverD: 4.6, cfx: 1.3, transverseKNm: 2.5, missing: null },
+    })
     expect(loaded.graphs.map((g) => g.id)).toEqual(['graph-1', 'graph-2', 'graph-3'])
     expect(loaded.graphs[0].nodes[0].parameters).toEqual({ value: 35, flag: true, label: 'abc', list: [30, 35, 40], none: [] })
     expect('groups' in loaded.graphs[1]).toBe(false); expect(loaded.graphs[2].groups).toEqual([])
@@ -63,6 +66,18 @@ describe('loadProjectDocument', () => {
     expect(byPath['loads/traffic-lm1'].toWire(loaded.loads.trafficLm1)).toEqual(CANONICAL.loads.trafficLm1)
     expect(byPath['loads/wind-snapshot'].toWire(loaded.loads.windSnapshot)).toEqual(CANONICAL.loads.windSnapshot)
     expect(loaded.graphs.map((g) => GRAPH_COLLECTION_DEFINITION.codec.toWire(g))).toEqual(CANONICAL.graphs)
+  })
+  it('W -> T -> W of the wind snapshot is byte-exact with a null result and with an INVALID result', () => {
+    const snapshotCodec = PROJECT_SECTION_DEFINITIONS.find((definition) => definition.path === 'loads/wind-snapshot')!.codec
+    const noResult = clone(CANONICAL); noResult.loads.windSnapshot.result = null as never
+    const invalid = clone(CANONICAL)
+    invalid.loads.windSnapshot.result = { status: 'INVALID', z0M: 0.0, zminM: 0.0, kr: 0.0, cr: 0.0, vmMs: 0.0, turbulenceIntensity: 0.0, qpKNm2: 0.0, bOverD: 0.0, cfx: 1.3, transverseKNm: null, missing: 'some text' } as never
+    for (const doc of [CANONICAL, noResult, invalid]) {
+      const loaded = loadProjectDocument(clone(doc))
+      expect(JSON.stringify(snapshotCodec.toWire(loaded.loads.windSnapshot))).toBe(JSON.stringify(doc.loads.windSnapshot))
+    }
+    expect(loadProjectDocument(clone(noResult)).loads.windSnapshot?.result).toBeNull()
+    expect(loadProjectDocument(clone(invalid)).loads.windSnapshot?.result).toMatchObject({ status: 'INVALID', transverseKNm: null, missing: 'some text' })
   })
   it('W -> T -> W is also exact for the serialized key order', () => {
     const loaded = loadProjectDocument(clone(CANONICAL))

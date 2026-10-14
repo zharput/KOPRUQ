@@ -26,6 +26,7 @@ import java.util.stream.StreamSupport;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -69,7 +70,20 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
 
     private static final String WIND_SNAPSHOT = """
             {"schemaVersion":1,"status":"VALID",
-             "inputs":{"vb":"27","terrain":"II","ze":"10","deckWidthM":13.8,"drefM":3.0}}""";
+             "inputs":{"vb":"27","terrain":"II","ze":"10","deckWidthM":13.8,"drefM":3.0},
+             "result":{"status":"VALID","z0M":0.05,"zminM":2.0,"kr":0.19,"cr":0.30000000000000004,
+                       "vmMs":-1.5,"turbulenceIntensity":0.0,"qpKNm2":1.0E-300,"bOverD":4.6,"cfx":1.3,
+                       "transverseKNm":2.5,"missing":null}}""";
+
+    private static final String WIND_SNAPSHOT_INVALID = """
+            {"schemaVersion":1,"status":"INVALID",
+             "inputs":{"vb":"27","terrain":"II","ze":"10","deckWidthM":13.8,"drefM":3.0},
+             "result":{"status":"INVALID","z0M":0.0,"zminM":0.0,"kr":0.0,"cr":0.0,
+                       "vmMs":0.0,"turbulenceIntensity":0.0,"qpKNm2":0.0,"bOverD":0.0,"cfx":1.3,
+                       "transverseKNm":null,"missing":"some text ç"}}""";
+
+    private static final List<String> WIND_RESULT_KEYS = List.of("status", "z0M", "zminM", "kr", "cr", "vmMs",
+            "turbulenceIntensity", "qpKNm2", "bOverD", "cfx", "transverseKNm", "missing");
 
     private static final String GRAPH = """
             {"id":"GID","name":"Bridge B-1","schemaVersion":1,"projectId":"P-2026","bridgeId":"b-1",
@@ -389,6 +403,8 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
                 "self weight overflow", "value.asphaltThicknessM");
         assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"deckWidthM\":13.8", "\"deckWidthM\":1e999"), 1L,
                 "snapshot overflow", "value.inputs.deckWidthM");
+        assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"cr\":0.30000000000000004", "\"cr\":1e999"), 1L,
+                "snapshot result overflow", "value.result.cr");
         assertRejected(LOADS[4], TRAFFIC_LM1.replace("\"value\":300.0", "\"value\":1e999"), 1L, "lm1 overflow",
                 "value.tandemSystem[0].characteristicValue.value");
         assertRejected(GRAPH_SECTION, graph("g-1").replace("\"x\":0.30000000000000004", "\"x\":1e999"), 1L,
@@ -513,26 +529,124 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
 
     // ------------------------------------------------------------------ AC5: wind snapshot
 
+    private boolean resultPresent(String projectId) {
+        return jdbc.queryForObject("select result_present from load_wind_snapshot where project_id = ?",
+                Boolean.class, UUID.fromString(projectId));
+    }
+
     @Test
-    void windSnapshot_storesAndReturnsExactlyThreeKeys_andNoResult() throws Exception {
+    void windSnapshot_storesAndReturnsTheResult_inKeyOrder() throws Exception {
         String id = createProject();
 
         JsonNode r = written(put(id, LOADS[5], envelope(0L, WIND_SNAPSHOT)));
 
-        assertEquals(List.of("schemaVersion", "status", "inputs"), keysOf(r.get("value")));
-        assertEquals(List.of("schemaVersion", "status", "inputs"), keysOf(doc(id).at("/loads/windSnapshot")));
-        assertFalse(doc(id).toString().contains("\"result\""));
+        assertEquals(List.of("schemaVersion", "status", "inputs", "result"), keysOf(r.get("value")));
+        assertEquals(List.of("schemaVersion", "status", "inputs", "result"), keysOf(doc(id).at("/loads/windSnapshot")));
+        assertEquals(WIND_RESULT_KEYS, keysOf(r.get("value").get("result")));
+        assertEquals(WIND_RESULT_KEYS, keysOf(doc(id).at("/loads/windSnapshot/result")));
+        assertEquals(parse(WIND_SNAPSHOT), doc(id).at("/loads/windSnapshot"));
+        assertTrue(resultPresent(id));
     }
 
     @Test
-    void windSnapshot_resultIsNotAKnownField() throws Exception {
-        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result", "null"), 1L, "result null", "value.result");
+    void windSnapshot_invalidResult_roundTrips() throws Exception {
         String id = createProject();
 
-        JsonNode b = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result", "{\"x\":1}"))));
+        JsonNode r = written(put(id, LOADS[5], envelope(0L, WIND_SNAPSHOT_INVALID)));
 
-        assertEquals("value.result", b.get("errors").get(0).get("field").asText());
+        assertEquals(1, r.get("revision").asInt());
+        assertEquals(parse(WIND_SNAPSHOT_INVALID), r.get("value"));
+        assertEquals(parse(WIND_SNAPSHOT_INVALID), doc(id).at("/loads/windSnapshot"));
+        assertTrue(doc(id).at("/loads/windSnapshot/result/transverseKNm").isNull());
+        assertEquals("some text ç", doc(id).at("/loads/windSnapshot/result/missing").asText());
+    }
+
+    @Test
+    void windSnapshot_resultNullOrAbsent_isStoredAsNull() throws Exception {
+        for (Object noResult : new Object[] {null, REMOVE}) {
+            String id = createProject();
+
+            JsonNode r = written(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result", noResult))));
+
+            assertEquals(List.of("schemaVersion", "status", "inputs", "result"), keysOf(r.get("value")));
+            assertTrue(r.get("value").get("result").isNull());
+            assertTrue(doc(id).at("/loads/windSnapshot/result").isNull());
+            assertTrue(doc(id).at("/loads/windSnapshot").has("result"));
+            assertFalse(resultPresent(id));
+            Map<String, Object> row = jdbc.queryForMap("select * from load_wind_snapshot where project_id = ?",
+                    UUID.fromString(id));
+            row.forEach((column, value) -> {
+                if (column.toLowerCase().startsWith("result_") && !column.equalsIgnoreCase("result_present")) {
+                    assertNull(value, column);
+                }
+            });
+        }
+    }
+
+    @Test
+    void windSnapshot_unknownFieldInResult_isRejected() throws Exception {
+        String withExtra = change(WIND_SNAPSHOT, "/result/x", "1");
+        assertRejected(LOADS[5], withExtra, 1L, "result unknown field", "value.result.x");
+        String id = createProject();
+
+        JsonNode b = body(put(id, LOADS[5], envelope(0L, withExtra)));
+
+        assertEquals("value.result.x", b.get("errors").get(0).get("field").asText());
         assertEquals("is not a known field", b.get("errors").get(0).get("message").asText());
+    }
+
+    @Test
+    void windSnapshot_resultStatusMustBeKnown() throws Exception {
+        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/status", REMOVE), 1L, "result status absent",
+                "value.result.status");
+        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/status", null), 1L, "result status null",
+                "value.result.status");
+        assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/status", "\"OK\""), 1L, "result status OK",
+                "value.result.status");
+        String id = createProject();
+
+        JsonNode bad = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result/status", "\"OK\""))));
+        JsonNode missing = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result/status", REMOVE))));
+
+        assertEquals("must be one of: VALID, INVALID", bad.get("errors").get(0).get("message").asText());
+        assertEquals("is required", missing.get("errors").get(0).get("message").asText());
+    }
+
+    @Test
+    void windSnapshot_resultNumbersRequiredAndFinite() throws Exception {
+        for (String field : List.of("z0M", "zminM", "kr", "cr", "vmMs", "turbulenceIntensity", "qpKNm2", "bOverD",
+                "cfx")) {
+            assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/" + field, REMOVE), 1L, field + " absent",
+                    "value.result." + field);
+            assertRejected(LOADS[5], change(WIND_SNAPSHOT, "/result/" + field, null), 1L, field + " null",
+                    "value.result." + field);
+        }
+        assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"qpKNm2\":1.0E-300", "\"qpKNm2\":1e999"), 1L, "qp overflow",
+                "value.result.qpKNm2");
+        assertRejected(LOADS[5], WIND_SNAPSHOT.replace("\"transverseKNm\":2.5", "\"transverseKNm\":1e999"), 1L,
+                "transverse overflow", "value.result.transverseKNm");
+        String id = createProject();
+        JsonNode b = body(put(id, LOADS[5], envelope(0L, change(WIND_SNAPSHOT, "/result/kr", REMOVE))));
+        JsonNode o = body(put(id, LOADS[5], envelope(0L,
+                WIND_SNAPSHOT.replace("\"qpKNm2\":1.0E-300", "\"qpKNm2\":1e999"))));
+        assertEquals("is required", b.get("errors").get(0).get("message").asText());
+        assertEquals("must be a finite number", o.get("errors").get(0).get("message").asText());
+        // transverseKNm null and missing null are fine
+        written(put(id, LOADS[5], envelope(0L, change(change(WIND_SNAPSHOT, "/result/transverseKNm", null),
+                "/result/missing", null))));
+    }
+
+    @Test
+    void windSnapshot_noConsistencyRule() throws Exception {
+        String id = createProject();
+        String value = change(change(WIND_SNAPSHOT, "/result/missing", "\"still filled\""), "/status",
+                "\"INVALID\"");
+
+        JsonNode r = written(put(id, LOADS[5], envelope(0L, value)));
+
+        assertEquals(parse(value), r.get("value"));
+        assertEquals("VALID", r.get("value").at("/result/status").asText());
+        assertEquals("INVALID", r.get("value").get("status").asText());
     }
 
     @Test

@@ -9,8 +9,10 @@ import com.kopruq.bridge.api.LoadInputDtos.TrafficLm1Dto;
 import com.kopruq.bridge.api.LoadInputDtos.WindInputsDto;
 import com.kopruq.bridge.api.LoadInputDtos.WindSnapshotDto;
 import com.kopruq.bridge.api.LoadInputDtos.WindSnapshotInputsDto;
+import com.kopruq.bridge.api.LoadInputDtos.WindSnapshotResultDto;
 import com.kopruq.bridge.application.ProjectLoadInputs;
 import com.kopruq.bridge.enums.ParameterProvenance;
+import com.kopruq.bridge.enums.WindResultStatus;
 import com.kopruq.bridge.model.Lm1LaneFactor;
 import com.kopruq.bridge.model.Lm1ParameterValue;
 import com.kopruq.bridge.model.SeismicInputs;
@@ -25,13 +27,14 @@ import com.kopruq.bridge.model.WindInputs;
 import com.kopruq.bridge.model.WindInputsSection;
 import com.kopruq.bridge.model.WindSnapshot;
 import com.kopruq.bridge.model.WindSnapshotInputs;
+import com.kopruq.bridge.model.WindSnapshotResult;
 import com.kopruq.bridge.model.WindSnapshotSection;
 
 import java.util.List;
 
 /**
  * Converts the six load-input JSON shapes to the model and back. Only structure is checked (present, finite, known
- * provenance, wind-snapshot schema version); no engineering rule, range, default or unit conversion is applied, and
+ * provenance, wind-result status, wind-snapshot schema version); no engineering rule, range, default or unit conversion is applied, and
  * string inputs are stored exactly as typed. A null {@code value} clears the section.
  */
 final class LoadInputMapper {
@@ -150,8 +153,29 @@ final class LoadInputMapper {
                 inputs = new WindSnapshotInputs(vb, terrain, ze, deckWidth, dref);
             }
         }
+        WindSnapshotResult result = null;
+        WindSnapshotResultDto r = dto.result();
+        if (r != null) {
+            String rp = path + ".result";
+            int before = c.count();
+            WindResultStatus status = c.requiredEnum(rp + ".status", r.status(), WindResultStatus.class);
+            double z0 = c.requiredFinite(rp + ".z0M", r.z0M());
+            double zmin = c.requiredFinite(rp + ".zminM", r.zminM());
+            double kr = c.requiredFinite(rp + ".kr", r.kr());
+            double cr = c.requiredFinite(rp + ".cr", r.cr());
+            double vm = c.requiredFinite(rp + ".vmMs", r.vmMs());
+            double turbulence = c.requiredFinite(rp + ".turbulenceIntensity", r.turbulenceIntensity());
+            double qp = c.requiredFinite(rp + ".qpKNm2", r.qpKNm2());
+            double bOverD = c.requiredFinite(rp + ".bOverD", r.bOverD());
+            double cfx = c.requiredFinite(rp + ".cfx", r.cfx());
+            Double transverse = c.optionalFinite(rp + ".transverseKNm", r.transverseKNm());
+            if (c.count() == before) {
+                result = new WindSnapshotResult(status, z0, zmin, kr, cr, vm, turbulence, qp, bOverD, cfx,
+                        transverse, r.missing());
+            }
+        }
         c.throwIfAny();
-        return new WindSnapshotSection(new WindSnapshot(dto.schemaVersion(), dto.status(), inputs));
+        return new WindSnapshotSection(new WindSnapshot(dto.schemaVersion(), dto.status(), inputs, result));
     }
 
     private static List<Lm1LaneFactor> laneList(SectionChecks c, String path, List<Lm1LaneFactorDto> dtos) {
@@ -219,7 +243,14 @@ final class LoadInputMapper {
     static WindSnapshotDto windSnapshotDto(WindSnapshot v) {
         return v == null ? null : new WindSnapshotDto(v.schemaVersion(), v.status(),
                 new WindSnapshotInputsDto(v.inputs().vb(), v.inputs().terrain(), v.inputs().ze(),
-                        v.inputs().deckWidthM(), v.inputs().drefM()));
+                        v.inputs().deckWidthM(), v.inputs().drefM()),
+                windResultDto(v.result()));
+    }
+
+    private static WindSnapshotResultDto windResultDto(WindSnapshotResult r) {
+        return r == null ? null : new WindSnapshotResultDto(r.status().name(), r.z0M(), r.zminM(), r.kr(), r.cr(),
+                r.vmMs(), r.turbulenceIntensity(), r.qpKNm2(), r.bOverD(), r.cfx(), r.transverseKNm(),
+                r.missing());
     }
 
     static LoadsDto loadsDto(ProjectLoadInputs l) {

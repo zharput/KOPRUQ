@@ -13,8 +13,9 @@ import type { KopruqGraph } from '../../features/graph/domain/types'
 import type { Lm1Parameters } from '../../features/loads/api/trafficLoadsService'
 import {
   SEISMIC_SECTION, SELF_WEIGHT_SECTION, TEMPERATURE_SECTION, TRAFFIC_LM1_SECTION, WIND_SECTION, WIND_SNAPSHOT_SECTION, loadsWireSchema,
-  type SeismicInputs, type SelfWeightInputs, type TemperatureInputs, type WindInputs, type WindSnapshotInputsValue,
+  type SeismicInputs, type SelfWeightInputs, type TemperatureInputs, type WindInputs,
 } from '../../features/loads/model/loadsWire'
+import type { WindCalculationSnapshot } from '../../features/loads/model/windTypes'
 import { PREFERRED_SPAN_RULES_SECTION, preferredSpanRulesWireSchema } from '../../features/preferred-span/model/preferredSpanWire'
 import type { PreferredSpanRule } from '../../features/preferred-span/model/types'
 import { WORKSPACE_SECTION, workspaceToWire, workspaceWireSchema, type WorkspaceWire } from '../../features/project/model/projectWorkspaceWire'
@@ -51,7 +52,7 @@ export type LoadedProjectDocument = {
     temperature: TemperatureInputs | undefined
     selfWeight: SelfWeightInputs | undefined
     trafficLm1: Lm1Parameters | undefined
-    windSnapshot: WindSnapshotInputsValue | undefined
+    windSnapshot: WindCalculationSnapshot | undefined
   }
   graphs: KopruqGraph[]
 }

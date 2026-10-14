@@ -4,7 +4,7 @@ import type { Lm1Parameters } from '../api/trafficLoadsService'
 import {
   SEISMIC_SECTION, SELF_WEIGHT_SECTION, TEMPERATURE_SECTION, TRAFFIC_LM1_SECTION, WIND_SECTION, WIND_SNAPSHOT_SECTION, loadsWireSchema, seismicToWire, selfWeightToWire,
   temperatureToWire, trafficLm1FromWire, trafficLm1ToWire, trafficLm1WireSchema, windSnapshotFromWire, windSnapshotToWire, windSnapshotWireSchema, windToWire,
-  type SelfWeightInputs, type WindSnapshotInputsValue,
+  type SelfWeightInputs,
 } from './loadsWire'
 import type { WindCalculationSnapshot } from './windTypes'
 
@@ -46,22 +46,35 @@ describe('loads wire mapping', () => {
     expect(trafficLm1FromWire(wire)).toEqual(LM1)
     expect(TRAFFIC_LM1_SECTION.codec.toWire(LM1)).toEqual(wire)
   })
-  it('wind snapshot: drops result on the way out and returns no result on the way back', () => {
+  it('wind snapshot: keeps the result on the way out and back, in the backend key order', () => {
     const wire = windSnapshotToWire(SNAPSHOT)
-    expect(Object.keys(wire)).toEqual(['schemaVersion', 'status', 'inputs']); expect(Object.keys(wire.inputs)).toEqual(['vb', 'terrain', 'ze', 'deckWidthM', 'drefM'])
-    expect(JSON.stringify(wire)).not.toContain('result')
-    const back = windSnapshotFromWire(wire)
-    expect(back).toEqual({ schemaVersion: 1, status: 'VALID', inputs: SNAPSHOT.inputs }); expect('result' in back).toBe(false)
+    expect(Object.keys(wire)).toEqual(['schemaVersion', 'status', 'inputs', 'result']); expect(Object.keys(wire.inputs)).toEqual(['vb', 'terrain', 'ze', 'deckWidthM', 'drefM'])
+    expect(Object.keys(wire.result!)).toEqual(['status', 'z0M', 'zminM', 'kr', 'cr', 'vmMs', 'turbulenceIntensity', 'qpKNm2', 'bOverD', 'cfx', 'transverseKNm', 'missing'])
+    expect(parseProjectData(windSnapshotWireSchema, JSON.parse(JSON.stringify(wire)), 'value')).toEqual(wire)
+    expect(windSnapshotFromWire(wire)).toEqual(SNAPSHOT)
+    expect(WIND_SNAPSHOT_SECTION.codec.fromWire(WIND_SNAPSHOT_SECTION.codec.toWire(SNAPSHOT))).toEqual(SNAPSHOT)
+  })
+  it('wind snapshot: an INVALID result (no transverse load, missing text) and a null result round-trip', () => {
+    const invalid: WindCalculationSnapshot = { ...SNAPSHOT, status: 'INVALID', result: { status: 'INVALID', z0M: 0, zminM: 0, kr: 0, cr: 0, vmMs: 0, turbulenceIntensity: 0, qpKNm2: 0, bOverD: 0, cfx: 1.3, transverseKNm: null, missing: 'some text' } }
+    expect(windSnapshotFromWire(windSnapshotToWire(invalid))).toEqual(invalid)
+    const none: WindCalculationSnapshot = { ...SNAPSHOT, result: null }
+    expect(windSnapshotToWire(none).result).toBeNull(); expect(windSnapshotFromWire(windSnapshotToWire(none))).toEqual(none)
+    const legacy = { schemaVersion: 1, inputs: SNAPSHOT.inputs } as unknown as WindCalculationSnapshot
+    expect(windSnapshotToWire(legacy).result).toBeNull()
   })
   it('wind snapshot: a missing status goes out as null and a null status is omitted on read', () => {
-    const noStatus: WindSnapshotInputsValue = { schemaVersion: 1, inputs: SNAPSHOT.inputs }
+    const noStatus: WindCalculationSnapshot = { schemaVersion: 1, inputs: SNAPSHOT.inputs, result: null }
     const wire = windSnapshotToWire(noStatus); expect(wire.status).toBeNull()
-    const back = windSnapshotFromWire(wire); expect(back).toEqual(noStatus); expect('status' in back).toBe(false)
+    const back = windSnapshotFromWire(wire); expect(back).toEqual(noStatus); expect('status' in back).toBe(false); expect(back.result).toBeNull()
     expect(WIND_SNAPSHOT_SECTION.codec.fromWire(wire)).toEqual(noStatus)
   })
   it('strict schemas reject unknown keys, a wrong schemaVersion and a wrong provenance with the full path', () => {
     const snapshot = JSON.parse(JSON.stringify(windSnapshotToWire(SNAPSHOT)))
-    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: null }, 'loads.windSnapshot')).toThrow('loads.windSnapshot')
+    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: null }, 'loads.windSnapshot')).not.toThrow()
+    const { result: _dropped, ...withoutResult } = snapshot
+    expect(() => parseProjectData(windSnapshotWireSchema, withoutResult, 'loads.windSnapshot')).toThrow('loads.windSnapshot.result')
+    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: { ...snapshot.result, x: 1 } }, 'loads.windSnapshot')).toThrow('loads.windSnapshot.result')
+    expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, result: { ...snapshot.result, status: 'OK' } }, 'loads.windSnapshot')).toThrow('loads.windSnapshot.result.status')
     expect(() => parseProjectData(windSnapshotWireSchema, { ...snapshot, schemaVersion: 2 }, 'loads.windSnapshot')).toThrow('loads.windSnapshot.schemaVersion')
     const lm1 = JSON.parse(JSON.stringify(trafficLm1ToWire(LM1))); lm1.udl[0].adjustmentFactor.provenance = 'GUESS'
     expect(() => parseProjectData(trafficLm1WireSchema, lm1, 'loads.trafficLm1')).toThrow('loads.trafficLm1.udl[0].adjustmentFactor.provenance')

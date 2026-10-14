@@ -122,7 +122,10 @@ export const CANONICAL_PROJECT_DOCUMENT_JSON = {
       udl: [{ label: 'Lane 1', characteristicValue: parameter(9.0, 'CODE_DEFAULT', 9.0), adjustmentFactor: parameter(1.0, 'PROJECT_OVERRIDE', 0.8) }],
       remainingAreaUdl: { label: 'Remaining', characteristicValue: parameter(2.5, 'CODE_DEFAULT', 2.5), adjustmentFactor: parameter(0.8, 'PROJECT_OVERRIDE', 1.0) },
     },
-    windSnapshot: { schemaVersion: 1, status: null, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 } },
+    windSnapshot: {
+      schemaVersion: 1, status: null, inputs: { vb: '27', terrain: 'III', ze: '12', deckWidthM: 13.8, drefM: 2.1 },
+      result: { status: 'VALID', z0M: 0.05, zminM: 2.0, kr: 0.19, cr: 0.30000000000000004, vmMs: -1.5, turbulenceIntensity: 0.0, qpKNm2: 1.0, bOverD: 4.6, cfx: 1.3, transverseKNm: 2.5, missing: null },
+    },
   },
   graphs: [
     {

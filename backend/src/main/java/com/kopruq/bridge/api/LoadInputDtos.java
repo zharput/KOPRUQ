@@ -42,7 +42,14 @@ public final class LoadInputDtos {
     public record WindSnapshotInputsDto(String vb, String terrain, String ze, Double deckWidthM, Double drefM) {
     }
 
-    /** The wind snapshot: inputs only; a {@code result} is not a known field. */
-    public record WindSnapshotDto(Integer schemaVersion, String status, WindSnapshotInputsDto inputs) {
+    /** The calculated wind result stored with a snapshot; strict (an unknown field is rejected). */
+    public record WindSnapshotResultDto(String status, Double z0M, Double zminM, Double kr, Double cr, Double vmMs,
+            Double turbulenceIntensity, Double qpKNm2, Double bOverD, Double cfx, Double transverseKNm,
+            String missing) {
+    }
+
+    /** The wind snapshot: inputs and an optional result (null or absent = no result); strict. */
+    public record WindSnapshotDto(Integer schemaVersion, String status, WindSnapshotInputsDto inputs,
+            WindSnapshotResultDto result) {
     }
 }

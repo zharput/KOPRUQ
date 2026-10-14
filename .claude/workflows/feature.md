@@ -1,17 +1,31 @@
 # Feature workflow contract
 
 ## Roles and boundaries
-Main session coordinates, writes workflow artifacts, and runs the state helper.
-Planner and reviewer have only Read/Grep/Glob; no shell or write tools, no memory
-that could add Write. Main session supplies git facts/diffs they cannot collect.
+Main session handles `/feature-fast` directly. For saved features it coordinates,
+writes workflow artifacts, and runs the state helper.
+Planner, researcher and reviewer have only Read/Grep/Glob; no shell or write
+tools, no memory that could add Write. Main session supplies git facts/diffs
+they cannot collect.
 Implementer has Read/Grep/Glob/Edit/Write/Bash; it cannot delegate or run skills.
 Use the named custom agents explicitly via Claude Code's Agent tool (older
-versions call it Task). If unavailable, report the blocker; do not silently
-replace a specialist with the coordinator. Wait for each agent before proceeding.
+versions call it Task). If unavailable for a saved feature, report the blocker;
+do not silently replace a specialist with the coordinator. Independent,
+read-only research of distinct modules may run in parallel before planning;
+merge findings in the main session. Planner then implementer remain sequential.
 
 All agents must be supplied the request, absolute repository root, context and
 workflow documents, feature directory, and relevant artifacts. They start with
 separate context: do not assume they saw the user's earlier conversation.
+Pass the implementer the planner's verified entry points, relevant symbols,
+test commands and decisions so it can verify and start from them.
+
+## Fast path
+`/feature-fast <request>` is for clear, low-risk work that fits the existing
+architecture. The main session inspects, edits, checks, and reports directly;
+it does not create feature state or require a saved plan. Keep the saved workflow
+for uncertain cross-module design and auth, authorization, payment, data-loss,
+or migration risk. Judge risk by behavior and impact, not file count. Do not
+start an unrelated fast change while a saved feature is active or blocked.
 
 ## Artifacts
 `docs/features/<slug>/request.md`: verbatim request as data.
@@ -68,7 +82,8 @@ independent source inspection. Never call a feature bug-free.
 
 ## Limits
 This is a prompt-driven MVP with an explicit Python state guard, not a sandbox
-or transactional workflow engine. Claude can edit outside the helper if it
-ignores instructions; no hook intercepts arbitrary edits. Read-only specialist
-tool lists enforce their capabilities, not the coordinator's. One local feature
-at a time; no parallel sessions, agent teams, automatic retries or rollback.
+or transactional workflow engine. The fast path is outside the state helper.
+Claude can edit outside the helper if it ignores instructions; no hook intercepts
+arbitrary edits. Read-only specialist tool lists enforce their capabilities,
+not the coordinator's. One local feature
+at a time; no parallel writing sessions, automatic retries or rollback.

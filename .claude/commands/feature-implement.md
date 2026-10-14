@@ -12,9 +12,12 @@ Input: $ARGUMENTS
 2. This explicit user command approves the current plan. Take plan_sha256 from
    status, run `start <slug> --plan-hash <quoted-hash>`. On nonzero exit stop
    and explain the blocker. Never bypass helper or auto-edit the plan.
-3. Explicitly invoke feature-implementer via Agent with absolute root, slug,
-   request, approved plan/hash, artifact paths, context/workflow and existing
-   progress. Run one agent; wait for its report.
+3. Extract the planner's verified entry points, relevant files/symbols, current
+   approach, accepted decisions, and exact discovered check commands. Include
+   these with the absolute root, slug, request, approved plan/hash, artifact
+   paths, context/workflow and existing progress in the feature-implementer
+   task input. Tell it to verify the handoff against current code. Run one
+   implementer; wait for its report.
 4. Save its complete handoff to implementation.md. Verify AC and checks from
    evidence. Run `finish <slug> --result implemented` only for complete work
    with passing required checks, otherwise `finish <slug> --result blocked`.

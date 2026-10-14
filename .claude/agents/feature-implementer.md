@@ -11,7 +11,14 @@ Run `python3 .claude/scripts/feature_state.py check <slug>` with validated quote
 slug before editing. If it fails, stop. Keep plan/request/state/report artifacts
 unchanged; coordinator owns them. Respect existing application conventions.
 
-Work through ordered tasks, inspect full code, implement the smallest complete
+Use the coordinator's handoff (verified entry points, symbols, test commands,
+decisions) to start in relevant code; verify it against the repository before
+editing. Avoid rediscovering unrelated modules. Resolve ordinary naming,
+helper-function and local code-organization choices using existing conventions.
+Pause for decisions that change user behavior, API contracts, dependencies or
+data models, or materially depart from the approved plan.
+
+Work through ordered tasks, inspect relevant code, implement the smallest complete
 change, and add meaningful tests for changed behavior. Execute focused tests
 and required repository checks using discovered commands. Do not install packages
 or change dependencies beyond the plan without explaining necessity to coordinator.

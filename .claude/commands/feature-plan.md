@@ -12,10 +12,15 @@ Input: $ARGUMENTS
    `python3 .claude/scripts/feature_state.py init <quoted-slug>`.
    Existing slug is an error: suggest status or a new slug, never overwrite it.
 2. Write the complete request to `docs/features/<slug>/request.md` with Write.
-3. Explicitly invoke architecture-planner via Agent with slug, absolute root,
-   request, context/workflow paths and any necessary repository facts. Wait.
-4. If NEEDS_INPUT, ask the material question, retain planning state and rerun
+3. If distinct modules need independent research, optionally invoke separate
+   read-only feature-researcher agents in parallel, with a bounded question for
+   each. Wait and merge their findings before invoking the planner. Keep the
+   planner-to-implementer dependency sequential.
+4. Explicitly invoke architecture-planner via Agent with slug, absolute root,
+   request, context/workflow paths, research findings and necessary repository
+   facts. Tell it to verify research findings. Wait.
+5. If NEEDS_INPUT, ask the material question, retain planning state and rerun
    planner on answers. No implementation. If READY, save returned plan as
    `plan.md`, run helper `planned <slug>`, and show the plan's key decisions,
    acceptance criteria and path for inspection.
-5. End with next command `/feature-implement <slug>`. Do not run it yourself.
+6. End with next command `/feature-implement <slug>`. Do not run it yourself.

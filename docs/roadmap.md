@@ -1848,7 +1848,11 @@ PostgreSQL + JPA persistence and Docker for the backend (details in `docs/archit
 - [x] Transactional LandXML import.
 - [x] Persistence tests (codec, three adapters, import transaction, `PersistenceContractTest`) and the `postgres-test` run against real PostgreSQL 17.
 - [x] `backend/Dockerfile`, `compose.yaml`, `.env.example`, `start-dev.bat`.
-- [ ] Not done (future milestones): use case/endpoint that saves a bridge `Project`; linking terrains to a `Project`; persisting computed results; domain-level revision control (`expectedRevision`); frontend localStorage migration (done in M5c, 2026-10-14). (Project endpoints, domain revision control and the workspace store: see the BACKEND-DB-PERSISTENCE track below.)
+- [x] Use case/endpoint that saves a bridge `Project`, domain-level revision control (`expectedRevision`) and the workspace store (BACKEND-DB-PERSISTENCE M1-M3, see the track below).
+- [x] Frontend localStorage migration (M5c, 2026-10-14).
+- [x] The project stores its terrain dataset and LandXML import as id references (`terrainDatasetId`, `landXmlImportId` in the project `environment`; V3 columns), saved with the workspace section.
+- [x] Persisting the calculated wind result (M3b, V6).
+- [ ] Not done (future milestones): persisting the other computed results; referential integrity of the terrain/LandXML id references (they are plain `VARCHAR` columns without a foreign key or ownership check).
 
 ## FRONTEND-DATA-INTEGRITY track (2026-10-12)
 

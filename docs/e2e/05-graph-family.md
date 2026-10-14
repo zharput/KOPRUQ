@@ -11,11 +11,13 @@
 3. **Family** (`/family-tables`) ekranında aynı köprüyü ve **Steel Girder** ailesini seçin. Kaynak, aday listesi, kesit önizlemesi ve durum rozetini kontrol edin.
 4. Graph'a dönüp aynı düğümde örneğin **Girder Height** değerini küçük bir miktar değiştirin; **Run** basmadan Family'ye dönün.
 5. Önceki sonucun `STALE` olarak işaretlendiğini, güncel mühendislik sonucu gibi sunulmadığını kontrol edin. Graph'ta tekrar **Run** yapıp Family'ye dönün.
+6. Üst çubuk **Kaydedildi** durumundayken sayfayı yenileyin. Graph düğümü ve parametresi geri gelmeli. Family'deki Run adaylarının otomatik geri gelmesini beklemeyin; hesap anlık görüntüleri bu sürümde bellektedir, gerektiğinde Graph'ı yeniden çalıştırın.
 
 ## Geçme ölçütü
 
 - İlk Run bir aday yayımlıyorsa aday aynı köprünün Family ekranında görünür; başka köprüde görünmez. Run hata verirse bu senaryo `FAIL` olarak kayıt altına alınır ve Graph Log eklenir.
 - Parametre değişince eski sonuç `STALE` olur; yeniden Run sonrası yeni durum ve adaylar gösterilir.
+- Yenileme Graph tanımını korur; Run sonucu sunucuda kalıcı bir mühendislik sonucu olarak sunulmaz.
 - Kesit önizlemesinin görünmesi mühendislik yeterliliği veya solver doğrulaması anlamına gelmez; bu senaryoda yalnızca veri ve güncellik akışı geçer.
 
 **Kanıt:** Run log'u, aday satırı, değişiklik öncesi/sonrası rozet. **Sonuç:** `PASS / FAIL / BLOCKED` — Not:

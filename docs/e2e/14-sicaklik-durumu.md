@@ -10,11 +10,13 @@
 2. Yalnızca **Effective Minimum Temperature** alanına `0` yazın. Network'te `/api/temperature/uniform/resolve` isteğinin yanıtını not edin; eksik alanlar için UI `INVALID` veya açık eksik parametre durumu göstermeli.
 3. **Effective Maximum Temperature = 20**, **Initial Temperature = 10** girin. Güncel API yanıtını bekleyin.
 4. Sonuç `VALID` ise ekrandaki contraction/expansion alanlarının o yanıtla eşleştiğini; **Details** bölümünde kullanılan girişlerin gösterildiğini kontrol edin. Sonuç `INVALID` ise gerekçeyi kaydedin; eski geçerli sonucu yeni giriş için göstermemeli.
+5. Üst çubukta **Kaydedildi** durumunu bekleyin. Network'te `PUT /api/projects/<id>/loads/temperature` isteğini kontrol edin; sayfayı yenileyince üç girdi geri gelmeli. Hesap sonucunun kendisini kalıcı mühendislik sonucu olarak beklemeyin.
 
 ## Geçme ölçütü
 
 - Eksik alanlar sıfıra çevrilip geçerli hesap gibi sunulmaz.
 - Her yeni girdi kümesi için görünen durum ve değerler ilgili API yanıtına aittir; gecikmiş eski yanıt yenisini ezmez.
+- Sıcaklık girdileri aynı sunucu projesine yazılır ve yeniden açmada geri gelir.
 - Katsayıların veya sıcaklık kabulünün mühendislik doğruluğu bu testte değerlendirilmez.
 
 **Kanıt:** Eksik ve tam girdi Network yanıtları, iki UI durumu. **Sonuç:** `PASS / FAIL / BLOCKED` — Not:

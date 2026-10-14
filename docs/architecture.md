@@ -3209,7 +3209,7 @@ Regression coverage exercises legacy node inputs, finite candidate properties, m
 
 ## BACKEND-DB-PERSISTENCE M1 (2026-10-13)
 
-Backend-only first step of storing projects in the database (plan: `docs/features/backend-db-persistence-m1/plan.md`, parent plan `docs/features/backend-db-persistence/plan.md`). The frontend is not changed.
+Backend-only first step of storing projects in the database (plan: `docs/features/backend-db-persistence-m1/plan.md`). The frontend is not changed.
 
 **Schema (Flyway `V3__project_workspace.sql`).** `project` gets `revision BIGINT NOT NULL` (domain revision) and `updated_utc TIMESTAMP WITH TIME ZONE NOT NULL`; existing rows are back-filled with `revision = 0`, `updated_utc = created_utc`. The V2 `row_version` stays the technical optimistic-lock counter and is not the revision. New tables: `project_info` (one row per project, 0..1; the project name is only in `project.project_name`; `project_code` holds the form's project id), `project_bridge_row` (ordered by `ordinal`, `UNIQUE (project_id, row_id)`, enums stored by constant name, `has_girder_depths` tells a null depth list from an empty one) with `project_bridge_row_span` and `project_bridge_row_girder_depth`. Same principles as V1/V2: no DEFAULT values, no engineering CHECKs, units in column names (`_m`, `_cm`), user-entered text stored as given.
 

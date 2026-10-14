@@ -1913,7 +1913,7 @@ Frontend-only (plan and evidence in `docs/features/g4/`). No backend change, no 
 
 ## BACKEND-DB-PERSISTENCE track (2026-10-13)
 
-Stored projects with revision-checked writes (details in `docs/architecture.md`, "BACKEND-DB-PERSISTENCE M1"; plan in `docs/features/backend-db-persistence/` and `docs/features/backend-db-persistence-m1/`).
+Stored projects with revision-checked writes (details in `docs/architecture.md`, "BACKEND-DB-PERSISTENCE M1"; plan in `docs/features/backend-db-persistence-m1/`).
 
 - [x] M1 Backend project + workspace: Flyway V3 (`project.revision`/`updated_utc`, `project_info`, `project_bridge_row` and its span/girder-depth tables), `Project` revision rule (`requireRevision`/`recordChange`), `ProjectService`, JPA adapters, `ProjectController` with `GET /api/projects`, `POST /api/projects`, `GET /api/projects/{projectId}`, `PUT /api/projects/{projectId}/workspace`, 404 `PROJECT_NOT_FOUND` / 409 `PROJECT_REVISION_CONFLICT`, CORS `PUT`. No frontend change.
 - [x] M2 Backend design-system sections (2026-10-13; plan `docs/features/backend-db-persistence-m2/`): Flyway V4 (`project_section_presence`, bridge definitions with span/axis/assignment/constraint tables, pier / pier cap / foundation / bearing / material family tables, girder library, preferred span rules, cross section), nine `PUT` endpoints in `ProjectDesignSystemController` (`/bridge-definitions`, `/families/{piers,pier-caps,foundations,bearings,materials}`, `/girder-library`, `/preferred-span-rules`, `/cross-section`), `GET`/`POST` project document gains `bridgeDefinitions`, `families`, `girderLibrary`, `preferredSpanRules`, `crossSection`. Controllers 14, endpoints 34. Loads and graph move to M3. No frontend change.

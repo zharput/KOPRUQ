@@ -1,0 +1,14 @@
+/* Project session layer (BACKEND-DB-PERSISTENCE M5b). Only new .spn-session-* selectors; no existing rule is touched. */
+.spn-session-dialog-wide { width: min(560px, calc(100vw - 32px)); }
+.spn-session-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow-y: auto; display: grid; gap: 6px; }
+.spn-session-list-row { display: grid; width: 100%; gap: 2px; padding: 8px 10px; text-align: left; color: inherit; background: var(--surface-1); border: 1px solid var(--border); }
+.spn-session-list-row:hover:not(:disabled), .spn-session-list-row:focus-visible { background: var(--sp-surface-hover); }
+.spn-session-list-row:focus-visible { outline: 2px solid var(--sp-focus-ring); outline-offset: 2px; }
+.spn-session-list-row[aria-current='true'] { border-color: var(--accent); }
+.spn-session-list-meta { font-size: 11px; color: var(--text-muted); }
+.spn-session-field { display: grid; gap: 6px; font-size: 13px; }
+.spn-session-field input { padding: 6px 8px; color: inherit; background: var(--bg-page); border: 1px solid var(--border); }
+.spn-session-status { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+.spn-session-status[data-status='error'], .spn-session-status[data-status='rejected'], .spn-session-status[data-status='conflict'] { color: #d97878; }
+.spn-session-status[data-status='saving'] { color: #7899b8; }
+.spn-session-screen { min-height: calc(100vh - 72px); display: grid; place-content: center; justify-items: center; gap: 12px; padding: 32px; text-align: center; background: var(--bg-page); }

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { WireMappingError } from '../../../shared/project-store/projectDataValidation'
 import type { SectionDefinition } from '../../../shared/project-store/serverSection'
 import type { Lm1Parameters, LaneFactor, ParameterValue } from '../api/trafficLoadsService'
 import type { SeismicInputs, SelfWeightInputs, TemperatureInputs, WindInputs } from './loadsInputs'
@@ -68,14 +69,24 @@ const laneToWire = (l: LaneFactor) => ({ label: l.label, characteristicValue: pa
 export const trafficLm1ToWire = (v: Lm1Parameters): TrafficLm1Wire => ({ tandemSystem: v.tandemSystem.map(laneToWire), udl: v.udl.map(laneToWire), remainingAreaUdl: laneToWire(v.remainingAreaUdl) })
 export const trafficLm1FromWire = (w: TrafficLm1Wire): Lm1Parameters => trafficLm1ToWire(w)
 
-/** `result` goes out as calculated (null when there is none; `== null` also covers legacy data without the field); a missing `status` is sent as null. */
+/** A snapshot value that is not a finite number cannot be stored: the server would reject it with a misleading message, so it is refused here. */
+function requireFinite(path: string, value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) throw new WireMappingError(path, 'must be a finite number')
+  return value
+}
+
+/**
+ * `result` goes out as calculated (null when there is none; `== null` also covers legacy data without the field); a missing `status` is sent as null.
+ * The numeric result fields and the numeric inputs must be finite numbers (WireMappingError otherwise; a structural check, not an engineering rule).
+ */
 export const windSnapshotToWire = (v: WindCalculationSnapshot): WindSnapshotWire => ({
   schemaVersion: 1, status: v.status ?? null,
-  inputs: { vb: v.inputs.vb, terrain: v.inputs.terrain, ze: v.inputs.ze, deckWidthM: v.inputs.deckWidthM, drefM: v.inputs.drefM },
+  inputs: { vb: v.inputs.vb, terrain: v.inputs.terrain, ze: v.inputs.ze, deckWidthM: requireFinite('inputs.deckWidthM', v.inputs.deckWidthM), drefM: requireFinite('inputs.drefM', v.inputs.drefM) },
   result: v.result == null ? null : {
-    status: v.result.status, z0M: v.result.z0M, zminM: v.result.zminM, kr: v.result.kr, cr: v.result.cr, vmMs: v.result.vmMs,
-    turbulenceIntensity: v.result.turbulenceIntensity, qpKNm2: v.result.qpKNm2, bOverD: v.result.bOverD, cfx: v.result.cfx,
-    transverseKNm: v.result.transverseKNm, missing: v.result.missing,
+    status: v.result.status, z0M: requireFinite('result.z0M', v.result.z0M), zminM: requireFinite('result.zminM', v.result.zminM), kr: requireFinite('result.kr', v.result.kr),
+    cr: requireFinite('result.cr', v.result.cr), vmMs: requireFinite('result.vmMs', v.result.vmMs), turbulenceIntensity: requireFinite('result.turbulenceIntensity', v.result.turbulenceIntensity),
+    qpKNm2: requireFinite('result.qpKNm2', v.result.qpKNm2), bOverD: requireFinite('result.bOverD', v.result.bOverD), cfx: requireFinite('result.cfx', v.result.cfx),
+    transverseKNm: v.result.transverseKNm == null ? null : requireFinite('result.transverseKNm', v.result.transverseKNm), missing: v.result.missing,
   },
 })
 /** The stored result comes back unchanged; whether it is still current is decided by comparing the inputs (STALE), not here. */

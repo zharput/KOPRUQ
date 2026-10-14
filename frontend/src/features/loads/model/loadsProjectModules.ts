@@ -1,12 +1,12 @@
-import { z } from 'zod'
 import { createProjectModule } from '../../../shared/project-file/projectModuleStore'
-import type { Lm1Parameters } from '../api/trafficLoadsService'
-import { seismicInputsSchema, selfWeightInputsSchema, temperatureInputsSchema, windInputsSchema } from './loadsInputs'
+import {
+  SEISMIC_SERVER_SECTION, SELF_WEIGHT_SERVER_SECTION, TEMPERATURE_SERVER_SECTION, TRAFFIC_LM1_SERVER_SECTION, WIND_SERVER_SECTION, WIND_SNAPSHOT_SERVER_SECTION,
+} from './loadsServerSections'
 
-const trafficLm1Schema = z.object({ tandemSystem: z.array(z.unknown()), udl: z.array(z.unknown()), remainingAreaUdl: z.object({}).passthrough() }).passthrough() as unknown as z.ZodType<Lm1Parameters>
-
-export const SEISMIC_INPUTS_MODULE = createProjectModule('seismicInputs', 'kopruq.seismic', seismicInputsSchema)
-export const WIND_INPUTS_MODULE = createProjectModule('windInputs', 'kopruq.wind-load.inputs', windInputsSchema)
-export const TEMPERATURE_INPUTS_MODULE = createProjectModule('temperatureInputs', 'kopruq.uniform-temperature.inputs', temperatureInputsSchema)
-export const SELF_WEIGHT_INPUTS_MODULE = createProjectModule('selfWeightInputs', 'kopruq.loads.self-weight.v1', selfWeightInputsSchema)
-export const TRAFFIC_LM1_MODULE = createProjectModule('trafficLm1', 'kopruq.loads.traffic-lm1.v1', trafficLm1Schema)
+export const SEISMIC_INPUTS_MODULE = createProjectModule(SEISMIC_SERVER_SECTION)
+export const WIND_INPUTS_MODULE = createProjectModule(WIND_SERVER_SECTION)
+export const TEMPERATURE_INPUTS_MODULE = createProjectModule(TEMPERATURE_SERVER_SECTION)
+export const SELF_WEIGHT_INPUTS_MODULE = createProjectModule(SELF_WEIGHT_SERVER_SECTION)
+export const TRAFFIC_LM1_MODULE = createProjectModule(TRAFFIC_LM1_SERVER_SECTION)
+/** The wind calculation snapshot, result included (stored as calculated; BACKEND-DB-PERSISTENCE m3b). */
+export const WIND_SNAPSHOT_MODULE = createProjectModule(WIND_SNAPSHOT_SERVER_SECTION)

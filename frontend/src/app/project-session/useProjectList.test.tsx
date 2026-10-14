@@ -1,13 +1,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, renderHook, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ApiError } from '../../shared/api/http'
 import { createFakeProjectApi } from '../../test/fakeProjectApi'
 import { installFakeProjectApi, resetActiveProject } from '../../test/projectSessionTestUtils'
 import { NEW_PROJECT_DOCUMENT_JSON } from './projectDocumentFixtures'
 import { PROJECT_LIST_QUERY_KEY, useProjectList } from './useProjectList'
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(() => { cleanup(); resetActiveProject() })
 
 function wrapper() {

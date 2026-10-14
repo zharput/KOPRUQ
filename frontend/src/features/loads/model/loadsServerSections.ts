@@ -3,7 +3,7 @@ import {
   SEISMIC_SECTION, SELF_WEIGHT_SECTION, TEMPERATURE_SECTION, TRAFFIC_LM1_SECTION, WIND_SECTION, WIND_SNAPSHOT_SECTION,
 } from './loadsWire'
 
-/** Server section instances of the six load-input sections (M5b: not wired into the application yet). */
+/** Server section instances of the six load-input sections (the data store of the feature since M5c). */
 export const SEISMIC_SERVER_SECTION = createActiveSection(SEISMIC_SECTION)
 export const WIND_SERVER_SECTION = createActiveSection(WIND_SECTION)
 export const TEMPERATURE_SERVER_SECTION = createActiveSection(TEMPERATURE_SECTION)

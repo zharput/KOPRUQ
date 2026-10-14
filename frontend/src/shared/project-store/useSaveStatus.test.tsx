@@ -1,8 +1,11 @@
 import { act, cleanup, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { resetActiveProject } from '../../test/projectSessionTestUtils'
 import { activeProjectSession, activeWriteQueue } from './activeProject'
 import { useSaveStatus } from './useSaveStatus'
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(() => { cleanup(); activeWriteQueue.reset(); activeProjectSession.end() })
 
 describe('useSaveStatus', () => {

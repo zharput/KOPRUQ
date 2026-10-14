@@ -4,7 +4,7 @@ export type ProjectFileIssue = { path: string; message: string }
 const MAX_LISTED_ISSUES = 3
 
 /**
- * A .kopruq file was rejected as a whole (no partial import). `path` is the location inside the file
+ * A project document was rejected as a whole (no partial import). `path` is the location inside the document
  * (e.g. `projectState.bridges[2].spansM[0]`); the message lists the first few problems.
  */
 export class ProjectFileValidationError extends Error {

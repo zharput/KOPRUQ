@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { INITIAL_BRIDGES } from '../../project/model/types'
-import { assignedAxis, axesFromSpans, createBridgeDefinition, ensureBridgeDefinitions, persistBridgeDefinitionStore, readBridgeDefinitionStore, readStoredBridgeDefinitions } from './store'
-import { resetProjectData, seedProjectData, seedRawProjectData } from '../../../test/projectStoreTestUtils'
+import { assignedAxis, axesFromSpans, createBridgeDefinition, ensureBridgeDefinitions, readBridgeDefinitionStore, readStoredBridgeDefinitions, writeBridgeDefinitionStore } from './store'
+import { resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
 
 const bridge = { ...INITIAL_BRIDGES[0], id: 'bridge-1', no: 'VIA-01' }
 const other = { ...INITIAL_BRIDGES[1], id: 'bridge-2', no: 'VIA-02' }
@@ -40,15 +40,23 @@ describe('bridge definition identity', () => {
     expect(swapped.definitions[other.id].girderFamilyId).toBeNull()
   })
 
-  it('migrates legacy number-keyed storage and preserves selection and assignments', () => {
+  it('migrates legacy number-keyed definitions and preserves selection and assignments', () => {
     const legacy = { ...assigned(), bridgeId: bridge.no }
-    seedProjectData('bridgeDefinitions', ({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: legacy } }))
-    const migrated = readBridgeDefinitionStore([other, bridge])
+    const migrated = ensureBridgeDefinitions({ selectedBridgeId: bridge.no, definitions: { [bridge.no]: legacy } }, [other, bridge])
     expect(migrated.selectedBridgeId).toBe(bridge.id)
     expect(migrated.definitions[bridge.id]).toEqual(assigned())
     expect(migrated.definitions).not.toHaveProperty(bridge.no)
-    persistBridgeDefinitionStore(migrated)
-    expect(readBridgeDefinitionStore([other, { ...bridge, no: 'VIA-99' }])).toEqual(migrated)
+    expect(ensureBridgeDefinitions(migrated, [other, { ...bridge, no: 'VIA-99' }])).toEqual(migrated)
+  })
+
+  it('reads the section data reconciled with the workspace bridges and returns the same object until something changes', () => {
+    seedProjectData('workspace', { bridges: [other, bridge] })
+    seedProjectData('bridgeDefinitions', { keyBy: 'bridgeId', selectedBridgeId: bridge.id, definitions: { [bridge.id]: assigned() } })
+    const first = readBridgeDefinitionStore()
+    expect(first.definitions[bridge.id]).toEqual(assigned())
+    expect(readBridgeDefinitionStore()).toBe(first)
+    expect(writeBridgeDefinitionStore({ ...first, definitions: { ...first.definitions, [bridge.id]: { ...assigned(), girderFamilyId: 'GIRDER-2' } } })).toBe(true)
+    expect(readBridgeDefinitionStore().definitions[bridge.id].girderFamilyId).toBe('GIRDER-2')
   })
 
   it('does not give a replacement bridge the deleted bridge assignments', () => {
@@ -62,15 +70,13 @@ describe('bridge definition identity', () => {
 })
 
 describe('raw stored bridge definitions', () => {
-  it('returns the stored value un-normalized, so legacy number-keyed stores stay as they are', () => {
-    const legacy = { selectedBridgeId: bridge.no, definitions: { [bridge.no]: { axisAssignments: {} } } }
-    seedProjectData('bridgeDefinitions', legacy)
-    expect(readStoredBridgeDefinitions()).toEqual(legacy)
+  it('returns the section value un-reconciled', () => {
+    seedProjectData('workspace', { bridges: [bridge] })
+    seedProjectData('bridgeDefinitions', { keyBy: 'bridgeId', selectedBridgeId: bridge.id, definitions: { [bridge.id]: assigned() } })
+    expect(readStoredBridgeDefinitions()).toMatchObject({ keyBy: 'bridgeId', definitions: { [bridge.id]: { girderFamilyId: 'GIRDER-1' } } })
   })
 
-  it('returns an empty object when absent and undefined for unreadable JSON', () => {
+  it('returns an empty object while the section has no value', () => {
     expect(readStoredBridgeDefinitions()).toEqual({})
-    seedRawProjectData('bridgeDefinitions', '{bad')
-    expect(readStoredBridgeDefinitions()).toBeUndefined()
   })
 })

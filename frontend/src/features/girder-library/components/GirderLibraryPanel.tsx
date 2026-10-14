@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Box, Component, Layers } from 'lucide-react'
 import { ParamSweepCard, HDim, VDim, type Dimension } from '../../../shared/ui/ParamSweepCard'
 import { BulbTeeGirderShape } from '../../../shared/ui/BulbTeeGirderShape'
@@ -6,6 +6,9 @@ import TabDetailPanel, { type DetailCategory } from '../../../shared/ui/TabDetai
 import { PRECAST_DIMENSIONS } from '../model/variants'
 import { publishFamilySelection } from '../../family-registry/model/registry'
 import { getPrecastGirderDefinition, savePrecastGirderDefinition } from '../../family-registry/model/familyRepository'
+import { GIRDER_LIBRARY_MODULE } from '../../family-registry/model/girderLibraryProjectModule'
+import type { GirderLibraryValue } from '../../family-registry/model/familyWire'
+import { useProjectModuleValue } from '../../../shared/project-file/useProjectModule'
 
 /**
  * Design System > Girder Library (2026-09-11, restructured 2026-09-13
@@ -58,17 +61,27 @@ import { getPrecastGirderDefinition, savePrecastGirderDefinition } from '../../f
  * to this fully-dimensioned reference drawing.
  */
 function PrecastGirderTab() {
-  const saved = typeof window !== 'undefined' ? getPrecastGirderDefinition<{ enabled?: boolean; dimensions?: Dimension[] } | null>(null) : null
-  const [enabled, setEnabled] = useState(saved?.enabled ?? false)
-  const [dimensions, setDimensions] = useState<Dimension[]>(saved?.dimensions ?? PRECAST_DIMENSIONS)
+  const stored = useProjectModuleValue(GIRDER_LIBRARY_MODULE)
+  const saved = Array.isArray(stored) ? null : stored
+  const enabled = saved?.enabled ?? false
+  const dimensions = saved?.dimensions ?? PRECAST_DIMENSIONS
 
   useEffect(() => {
-    savePrecastGirderDefinition({ enabled, dimensions })
+    const current = getPrecastGirderDefinition<GirderLibraryValue | null>(null)
+    const initial = { enabled: current?.enabled ?? false, dimensions: current?.dimensions ?? PRECAST_DIMENSIONS }
+    if (JSON.stringify(current) !== JSON.stringify(initial)) savePrecastGirderDefinition(initial)
     publishFamilySelection('GIRDER', 'PG-200')
-  }, [enabled, dimensions])
+  }, [])
+
+  function save(changes: Partial<GirderLibraryValue>) {
+    const current = getPrecastGirderDefinition<GirderLibraryValue | null>(null)
+    savePrecastGirderDefinition({ enabled: current?.enabled ?? false, dimensions: current?.dimensions ?? PRECAST_DIMENSIONS, ...changes })
+    publishFamilySelection('GIRDER', 'PG-200')
+  }
 
   function updateDimension(key: string, patch: Partial<Dimension>) {
-    setDimensions((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)))
+    const current = getPrecastGirderDefinition<GirderLibraryValue | null>(null)
+    save({ dimensions: (current?.dimensions ?? PRECAST_DIMENSIONS).map((d) => (d.key === key ? { ...d, ...patch } : d)) })
   }
 
   return (
@@ -84,7 +97,7 @@ function PrecastGirderTab() {
       <ParamSweepCard
         title="Precast Girder"
         enabled={enabled}
-        onToggleEnabled={setEnabled}
+        onToggleEnabled={(next) => save({ enabled: next })}
         diagram={<PrecastGirderDiagram />}
         dimensions={dimensions}
         onUpdateDimension={updateDimension}

@@ -1,44 +1,22 @@
 import { describe, expect, it } from 'vitest'
 
 /**
- * Browser-storage ratchet (BACKEND-DB-PERSISTENCE M5a).
+ * Browser-storage ratchet (BACKEND-DB-PERSISTENCE M5a, completed by M5c).
  *
- * Project data is moving from the browser to the backend. Until then only the files in ALLOWED_FILES may touch browser
- * storage or react to the cross-tab `storage` event. A new use elsewhere fails this test, and so does a stale entry
- * (a listed file that no longer matches), so the list can only shrink. Only production files are checked
- * (`*.test.*` and `src/test/**` are exempt). Comments are ignored.
+ * Project data lives on the backend (server sections, see src/shared/project-store). Production code must not touch browser
+ * storage, the File System Access API or the cross-tab `storage` event at all: both allow-lists are empty since M5c and a new
+ * use anywhere fails this test. The lists remain so that a deliberate exception would have to be named (and, being listed, must
+ * match, otherwise it is reported as stale). Only production files are checked (`*.test.*` and `src/test/**` are exempt). Comments are ignored.
  */
-export const ALLOWED_FILES: readonly string[] = [
-  '/src/app/App.tsx',
-  '/src/app/project-file/projectDataContract.ts',
-  '/src/app/project-file/projectFileService.ts',
-  '/src/app/project-file/recentProjects.ts',
-  '/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx',
-  '/src/features/bridge-definition/model/store.ts',
-  '/src/features/family-registry/hooks/useFamilyCatalog.ts',
-  '/src/features/family-registry/model/familyRepository.ts',
-  '/src/features/graph/family/graphRunValidity.ts',
-  '/src/features/graph/state/graphStore.ts',
-  '/src/features/graph/state/graphViewPreferences.ts',
-  '/src/features/preferred-span/components/PreferredSpanPanel.tsx',
-  '/src/features/project/model/projectWorkspace.ts',
-  '/src/features/system-assembly/components/SystemAssemblyPanel.tsx',
-  '/src/shared/persistence/legacyStorageMigration.ts',
-  '/src/shared/project-file/projectModuleStore.ts',
-  '/src/shared/project-file/useProjectModule.ts',
-]
+export const ALLOWED_FILES: readonly string[] = []
 
-/** Components that only listen for the cross-tab `storage` event (their reads already go through owner functions). */
-export const STORAGE_LISTENER_ONLY_FILES: readonly string[] = [
-  '/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx',
-  '/src/features/preferred-span/components/PreferredSpanPanel.tsx',
-  '/src/features/system-assembly/components/SystemAssemblyPanel.tsx',
-]
+/** Components that only listen for the cross-tab `storage` event (none since M5c). */
+export const STORAGE_LISTENER_ONLY_FILES: readonly string[] = []
 
 const SYMBOL = 'browser storage symbol'
 const STORAGE_LITERAL = "'storage' literal"
 const RULES: readonly { name: string; pattern: RegExp }[] = [
-  { name: SYMBOL, pattern: /\b(localStorage|sessionStorage|indexedDB|IDBDatabase|showOpenFilePicker|showSaveFilePicker|FileSystemFileHandle|StorageEvent)\b/ },
+  { name: SYMBOL, pattern: /\b(?:localStorage|sessionStorage|indexedDB|IDBDatabase|showOpenFilePicker|showSaveFilePicker|showDirectoryPicker|FileSystemHandle|FileSystemFileHandle|FileSystemDirectoryHandle|StorageEvent|caches|document\s*(?:\?\.|\.)\s*cookie|navigator\s*(?:\?\.|\.)\s*storage)\b/ },
   { name: STORAGE_LITERAL, pattern: /(['"`])storage\1/ },
 ]
 
@@ -90,16 +68,38 @@ describe('browser storage ratchet', () => {
     expect([...ALLOWED_FILES]).toEqual([...new Set(ALLOWED_FILES)].sort())
   })
 
-  it('lets the three listener-only components match only the storage-event literal', () => {
+  it('has no listener-only exception and no allowed file left', () => {
+    expect(ALLOWED_FILES).toEqual([])
+    expect(STORAGE_LISTENER_ONLY_FILES).toEqual([])
+    expect(found).toEqual({})
+  })
+
+  it('keeps the listener-only components to the storage-event literal when a deliberate exception is named', () => {
     for (const path of STORAGE_LISTENER_ONLY_FILES) expect({ path, rules: found[path] }).toEqual({ path, rules: [STORAGE_LITERAL] })
+  })
+})
+
+describe('retired project file format', () => {
+  const production = Object.entries(sources).filter(([path]) => isProduction(path)).map(([path, text]) => [path, stripComments(text)] as const)
+
+  it('leaves no .kopruq file extension in production code', () => {
+    expect(production.filter(([, code]) => /\.kopruq(?![-\w])/.test(code)).map(([path]) => path)).toEqual([])
+  })
+
+  it('leaves no kopruq.* browser-storage key literal in production code', () => {
+    expect(production.filter(([, code]) => /(['"`])kopruq\.[\w-]/.test(code)).map(([path]) => path)).toEqual([])
   })
 })
 
 describe('browser storage ratchet rules', () => {
   const uses = (text: string, path = '/src/features/x/y.ts') => findBrowserStorageUses({ [path]: text })[path] ?? []
 
-  it.each(['localStorage', 'sessionStorage', 'indexedDB', 'IDBDatabase', 'showOpenFilePicker', 'showSaveFilePicker', 'FileSystemFileHandle', 'StorageEvent'])('catches %s', (symbol) => {
+  it.each(['localStorage', 'sessionStorage', 'indexedDB', 'IDBDatabase', 'showOpenFilePicker', 'showSaveFilePicker', 'showDirectoryPicker', 'FileSystemHandle', 'FileSystemFileHandle', 'FileSystemDirectoryHandle', 'StorageEvent', 'caches'])('catches %s', (symbol) => {
     expect(uses(`const a = ${symbol}.x`)).toEqual([SYMBOL])
+  })
+
+  it.each(['document.cookie', 'document?.cookie', 'navigator.storage', 'navigator?.storage'])('catches %s', (access) => {
+    expect(uses(`const a = ${access}`)).toEqual([SYMBOL])
   })
 
   it('catches a symbol on a minified single line', () => {
@@ -117,6 +117,9 @@ describe('browser storage ratchet rules', () => {
     expect(uses("const k = familyStorageKey('PIER')")).toEqual([])
     expect(uses("const k = 'kopruq.storage'")).toEqual([])
     expect(uses('const a = localStorageKey')).toEqual([])
+    expect(uses('const a = mycaches')).toEqual([])
+    expect(uses('const a = document.cookieJar')).toEqual([])
+    expect(uses('const a = navigator.storageKey')).toEqual([])
   })
 
   it('ignores line and block comments', () => {

@@ -11,7 +11,7 @@ import { PROJECT_LIST_QUERY_KEY } from './useProjectList'
 
 /**
  * Session controller of the open project (BACKEND-DB-PERSISTENCE M5b): New / Open / Reload / Exit, the unsaved-writes gate and the
- * URL synchronisation. Not wired into the application yet (M5c).
+ * URL synchronisation. Wired into the application shell (`App.tsx`) in M5c.
  * - Must run inside a `QueryClientProvider` (it invalidates the project list after New).
  * - The URL is injected: `urlProjectId` is the id currently in the address bar, `setUrlProjectId` must change it synchronously
  *   (replace semantics). No router is imported here.
@@ -190,6 +190,8 @@ export function useProjectSessionController({ urlProjectId, setUrlProjectId }: P
   const reloadProject = useCallback(async () => {
     const projectId = sessionProjectId()
     if (projectId === null || activeProjectSession.getSnapshot().status !== 'conflict') return
+    // An unsaved-changes decision is open: Reload must not start a request underneath it (Cancel could not stop it).
+    if (pendingRef.current !== null) return
     restoreUrlBeforeSupersedingOpen()
     const request = start(null)
     setLoad({ kind: 'idle' })

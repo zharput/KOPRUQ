@@ -38,9 +38,9 @@ export default function SystemAssemblyPanel() {
   const [bearingFamilies, setBearingFamilies] = useState<BearingFamily[]>(readBearingFamilies)
   const [foundationFamilies, setFoundationFamilies] = useState<FoundationFamily[]>(readFoundationFamilies)
   const [selectedFoundationId, setSelectedFoundationId] = useState('')
-  useEffect(() => { const refresh = () => setPierCapFamilies(readPierCapFamilies()); window.addEventListener('storage', refresh); window.addEventListener('kopruq:pier-cap-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('kopruq:pier-cap-catalog-changed', refresh) } }, [])
-  useEffect(() => { const refresh = () => setBearingFamilies(readBearingFamilies()); window.addEventListener('storage', refresh); window.addEventListener('kopruq:bearing-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('kopruq:bearing-catalog-changed', refresh) } }, [])
-  useEffect(() => { const refresh = () => setFoundationFamilies(readFoundationFamilies()); window.addEventListener('storage', refresh); window.addEventListener('kopruq:foundation-catalog-changed', refresh); return () => { window.removeEventListener('storage', refresh); window.removeEventListener('kopruq:foundation-catalog-changed', refresh) } }, [])
+  useEffect(() => { const refresh = () => setPierCapFamilies(readPierCapFamilies()); window.addEventListener('kopruq:pier-cap-catalog-changed', refresh); return () => { window.removeEventListener('kopruq:pier-cap-catalog-changed', refresh) } }, [])
+  useEffect(() => { const refresh = () => setBearingFamilies(readBearingFamilies()); window.addEventListener('kopruq:bearing-catalog-changed', refresh); return () => { window.removeEventListener('kopruq:bearing-catalog-changed', refresh) } }, [])
+  useEffect(() => { const refresh = () => setFoundationFamilies(readFoundationFamilies()); window.addEventListener('kopruq:foundation-catalog-changed', refresh); return () => { window.removeEventListener('kopruq:foundation-catalog-changed', refresh) } }, [])
   const definition = kind === 'PIER' ? PIER_ASSEMBLY : ABUTMENT_ASSEMBLY
   const hasPierCapCatalog = pierCapFamilies.some((family) => generatePierCapVariants(family).length > 0)
   const usableBearings = bearingFamilies.filter((family) => family.enabled && bearingStatus(family) === 'VALID')

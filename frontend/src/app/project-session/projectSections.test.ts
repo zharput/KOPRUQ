@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProjectDataValidationError } from '../../shared/project-store/projectDataValidation'
 import { activeProjectSession, activeWriteQueue } from '../../shared/project-store/activeProject'
 import { BRIDGE_DEFINITIONS_SERVER_SECTION } from '../../features/bridge-definition/model/bridgeDefinitionServerSection'
@@ -24,6 +24,8 @@ const SECTIONS = [
 const readAll = () => JSON.stringify([...SECTIONS.map((section) => section.read()), GRAPH_SERVER_COLLECTION.list()])
 const SEISMIC = { a: '0.5', g: '9.81', t: '1', i: '1' }
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(() => { vi.useRealTimers(); resetActiveProject() })
 
 describe('prepareLoadedProject', () => {

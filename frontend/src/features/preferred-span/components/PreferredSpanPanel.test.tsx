@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import PreferredSpanPanel from './PreferredSpanPanel'
+import { activeWriteQueue } from '../../../shared/project-store/activeProject'
+import { flushProjectWrites } from '../../../test/projectSessionTestUtils'
 import { readProjectData, resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
 
 const dims = (max: number) => ({ dimensions: [{ key: 'H', label: 'H (cm)', min: 160, max, delta: 10 }] })
@@ -16,16 +18,29 @@ describe('Preferred Span rules', () => {
     render(<PreferredSpanPanel />)
     expect(screen.getByText('PG-H180')).toBeInTheDocument()
 
-    seedProjectData('girderLibrary', (dims(170)))
-    act(() => { window.dispatchEvent(new Event('storage')) })
+    act(() => seedProjectData('girderLibrary', dims(170))) // the girder section announces the change
     expect(screen.queryByText('PG-H180')).not.toBeInTheDocument()
     expect(screen.getByText(/1 rule\(s\) belong to variants that are not currently available/)).toBeInTheDocument()
     expect(storedRules().find((item) => item.girderVariantId === 'PG-H180')).toEqual(rule('PG-H180', 30, 40, 5, 35))
 
-    seedProjectData('girderLibrary', (dims(180)))
-    act(() => { window.dispatchEvent(new Event('storage')) })
+    act(() => seedProjectData('girderLibrary', dims(180))) // the girder section announces the change
     const row = screen.getByText('PG-H180').closest('tr')!
     expect(Array.from(row.querySelectorAll('input')).map((input) => input.value)).toEqual(['30', '40', '5'])
     expect((row.querySelector('select') as HTMLSelectElement).value).toBe('35')
+  })
+
+  it('keeps a user edit after the first-visit rules were discarded', async () => {
+    seedProjectData('girderLibrary', dims(170))
+    render(<PreferredSpanPanel />)
+    await act(async () => { activeWriteQueue.discard() })
+    expect(readProjectData('preferredSpanRules')).toBeNull()
+    expect(screen.getByText('PG-H170')).toBeInTheDocument()
+
+    const row = screen.getByText('PG-H170').closest('tr')!
+    fireEvent.change(row.querySelectorAll('input')[0], { target: { value: '22' } })
+    await flushProjectWrites()
+    const stored = storedRules()
+    expect(stored.map((item) => item.girderVariantId).sort()).toEqual(['PG-H160', 'PG-H170'])
+    expect(stored.find((item) => item.girderVariantId === 'PG-H170')?.minSpan).toBe(22)
   })
 })

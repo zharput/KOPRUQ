@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ComponentProps } from 'react'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../../shared/api/http'
 import { createFakeProjectApi, type FakeProjectApi } from '../../test/fakeProjectApi'
 import { installFakeProjectApi, resetActiveProject } from '../../test/projectSessionTestUtils'
@@ -10,6 +10,8 @@ import ProjectListDialog from './ProjectListDialog'
 import { formatUpdatedAt } from './projectDisplay'
 import { NEW_PROJECT_DOCUMENT_JSON } from './projectDocumentFixtures'
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(() => { cleanup(); resetActiveProject() })
 
 const doc = (projectId: string, name: string, updatedAt: string) => ({
@@ -77,6 +79,32 @@ describe('ProjectListDialog', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
     await userEvent.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalledTimes(2)
+  })
+
+  it('moves the focus into the dialog when it opens, also while a switch is busy', async () => {
+    const view = renderDialog({ busy: true })
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Kapat' })).toBeDisabled()
+    view.view.unmount()
+    renderDialog()
+    expect(await screen.findByRole('dialog')).toHaveFocus()
+  })
+
+  it('closes with Escape once the busy state has ended, with the focus still in the dialog', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    installFakeProjectApi(createFakeProjectApi())
+    const onClose = vi.fn()
+    const element = (busy: boolean) => <QueryClientProvider client={client}><ProjectListDialog open currentProjectId={null} busy={busy} onOpen={vi.fn()} onClose={onClose} /></QueryClientProvider>
+    const view = render(element(true))
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).not.toHaveBeenCalled()
+    view.rerender(element(false))
+    expect(screen.getByRole('dialog')).toHaveFocus()
+    await userEvent.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('does not close while a project switch is busy', async () => {

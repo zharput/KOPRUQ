@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { NEW_PROJECT_DOCUMENT_JSON } from '../../../app/project-session/projectDocumentFixtures'
+import { openTestProject } from '../../../test/projectSessionTestUtils'
 import { createEmptyGraph } from '../state/graphStore'
 import { clearSuccessfulGraphRuns, graphRunValidity, nodeRunValidity, recordSuccessfulGraphRun } from './graphRunValidity'
 
 describe('Graph run validity', () => {
-  beforeEach(() => { localStorage.clear(); clearSuccessfulGraphRuns() })
+  beforeEach(() => { clearSuccessfulGraphRuns() })
   it('starts INVALID and becomes VALID only after a successful run is recorded', () => {
     const graph = { ...createEmptyGraph('test', { bridgeId: 'bridge-1' }), nodes: [], connections: [] }
     expect(graphRunValidity(graph)).toBe('INVALID')
@@ -35,5 +37,13 @@ describe('Graph run validity', () => {
     expect(graphRunValidity(graph, { length: 'm', force: 'kN' })).toBe('VALID')
     expect(graphRunValidity(graph, { length: 'mm', force: 'kN' })).toBe('INVALID')
     expect(nodeRunValidity(graph, 'down', { length: 'mm', force: 'kN' })).toBe(false)
+  })
+  it('forgets successful runs when the project changes', () => {
+    const graph = chain(1)
+    recordSuccessfulGraphRun(graph)
+    expect(graphRunValidity(graph)).toBe('VALID')
+    openTestProject(NEW_PROJECT_DOCUMENT_JSON)
+    expect(graphRunValidity(graph)).toBe('INVALID')
+    expect(nodeRunValidity(graph, 'down')).toBe(false)
   })
 })

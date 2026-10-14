@@ -3,7 +3,7 @@ import { NEW_PROJECT_DOCUMENT_JSON } from '../app/project-session/projectDocumen
 import { applyPreparedProject, closeActiveProject, prepareLoadedProject, type PreparedProject } from '../app/project-session/projectSections'
 import { activeWriteQueue, setActiveProjectApi } from '../shared/project-store/activeProject'
 import { projectApi } from '../shared/project-store/projectApi'
-import { createFakeProjectApi, type FakeProjectApi } from './fakeProjectApi'
+import { createFakeProjectApi, type FakeProjectApi, type FakeRequest } from './fakeProjectApi'
 
 /** Makes the fake the API of the active project (queue PUTs and session layer). Returns the fake. */
 export function installFakeProjectApi(fake: FakeProjectApi = createFakeProjectApi()): FakeProjectApi {
@@ -29,3 +29,8 @@ export function resetActiveProject(): void {
 }
 
 export function flushProjectWrites(): Promise<void> { return activeWriteQueue.flush() }
+
+/** The PUT requests the fake received, optionally only those of one section path (`families/materials`, `graphs/<id>`, ...). */
+export function putRequests(fake: FakeProjectApi, path?: string): FakeRequest[] {
+  return fake.requests.filter((request) => request.method === 'PUT' && (path === undefined || request.path.endsWith(`/${path}`)))
+}

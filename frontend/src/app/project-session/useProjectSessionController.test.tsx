@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react'
 import { StrictMode, useState, type ReactNode } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, formatApiError } from '../../shared/api/http'
 import { activeProjectSession, activeWriteQueue, onProjectSwitch } from '../../shared/project-store/activeProject'
 import { INITIAL_PROJECT } from '../../features/project/model/projectWorkspaceModel'
@@ -19,6 +19,8 @@ const B = 'proj-b'
 const SEISMIC = { a: '0.5', g: '9.81', t: '1', i: '1' }
 const SEISMIC_SERVER = { a: '0.9', g: '9.81', t: '2', i: '1' }
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(() => { cleanup(); vi.useRealTimers(); resetActiveProject() })
 
 function setup(options: { url?: string | null; strict?: boolean; openA?: boolean; holdGet?: boolean } = {}) {
@@ -415,6 +417,33 @@ describe('Reload', () => {
     await act(async () => { await ctl().reloadProject() })
     expect(activeProjectSession.getSnapshot().status).toBe('conflict')
     expect(ctl().actionError).toBe('down')
+  })
+
+  it('sends no GET and keeps the pending choice when an unsaved-changes decision is open', async () => {
+    const ctx = setup({ openA: true })
+    ctx.fake.document(A)!.revision = 99
+    SEISMIC_SERVER_SECTION.write(SEISMIC)
+    await act(async () => { await ctx.ctl().openProject(B) })
+    expect(ctx.ctl().pendingSwitch).toMatchObject({ reason: 'open', target: B, canRetry: false })
+    expect(activeProjectSession.getSnapshot().status).toBe('conflict')
+    const count = ctx.fake.requests.length
+    await act(async () => { await ctx.ctl().reloadProject() })
+    expect(ctx.fake.requests).toHaveLength(count)
+    expect(ctx.ctl().pendingSwitch).toMatchObject({ reason: 'open', target: B })
+    expect(ctx.ctl().busy).toBe(false)
+  })
+
+  it('Cancel does not leave a Reload in flight (the choice stays closed and nothing is requested)', async () => {
+    const ctx = setup({ openA: true })
+    ctx.fake.document(A)!.revision = 99
+    SEISMIC_SERVER_SECTION.write(SEISMIC)
+    await act(async () => { await ctx.ctl().openProject(B) })
+    const count = ctx.fake.requests.length
+    await act(async () => { await ctx.ctl().reloadProject(); await ctx.ctl().resolvePendingSwitch('cancel') })
+    expect(ctx.fake.requests).toHaveLength(count)
+    expect(ctx.ctl().pendingSwitch).toBeNull()
+    expect(ctx.ctl().busy).toBe(false)
+    expect(activeProjectSession.getSnapshot()).toMatchObject({ projectId: A, status: 'conflict' })
   })
 })
 

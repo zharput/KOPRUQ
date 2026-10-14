@@ -1,20 +1,20 @@
-import { z } from 'zod'
-import { parseWithSchema } from '../../../shared/project-file/projectFileValidation'
-import { graphSchema } from './graphSchema'
 import type { GraphGroup, GraphParameterValue, KopruqConnection, KopruqGraph, KopruqNode } from '../domain/types'
 import { validateConnection } from '../engine/graphEngine'
 import { createNode, getNodeDefinition } from '../registry/nodeRegistry'
-import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
+import { onProjectSwitch } from '../../../shared/project-store/activeProject'
 import { readProjectUnits } from '../../project/model/projectWorkspace'
+import { GRAPH_SERVER_COLLECTION } from './graphServerCollection'
 
-export const GRAPH_DOCUMENTS_STORAGE_KEY = 'kopruq.graph.documents.v1'
-const STORAGE_KEY = GRAPH_DOCUMENTS_STORAGE_KEY
 const EVENT = 'kopruq:graph-store-changed'
 export type GraphDocuments = { activeGraphId: string; graphs: KopruqGraph[] }
 export type GraphStoreSnapshot = GraphDocuments & { canUndo: boolean; canRedo: boolean }
 const undo = new Map<string, KopruqGraph[]>(), redo = new Map<string, KopruqGraph[]>()
 const subscribers = new Set<() => void>()
-let documents: GraphDocuments | undefined
+// The graph documents are the server collection (one PUT per graph). Only the active graph id, a placeholder graph for a project
+// without graphs, the undo/redo history and the drag start live here, in memory; a project switch resets all of them.
+let activeGraphId: string | undefined
+let placeholder: KopruqGraph | undefined
+let documentsCache: { list: readonly KopruqGraph[]; activeGraphId: string | undefined; placeholder: KopruqGraph | undefined; value: GraphDocuments } | undefined
 let dragStart: KopruqGraph | undefined
 let snapshot: GraphStoreSnapshot | undefined
 
@@ -27,72 +27,65 @@ export function deserializeGraph(raw: string): KopruqGraph {
   if (graph.schemaVersion !== 1 || typeof graph.id !== 'string' || typeof graph.name !== 'string' || !Array.isArray(graph.nodes) || !Array.isArray(graph.connections)) throw new Error('Unsupported or invalid KOPRUQ graph document.')
   return graph
 }
-function readDocuments(): GraphDocuments {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as GraphDocuments | null
-    if (saved && Array.isArray(saved.graphs) && saved.graphs.every((graph) => graph.schemaVersion === 1 && Array.isArray(graph.nodes) && Array.isArray(graph.connections))) {
-      const graphs = saved.graphs.length ? saved.graphs : [createEmptyGraph()]
-      return { activeGraphId: graphs.some((graph) => graph.id === saved.activeGraphId) ? saved.activeGraphId : graphs[0].id, graphs }
-    }
-  } catch { /* start a new graph without discarding unrelated app state */ }
-  const graph = createEmptyGraph()
-  return { activeGraphId: graph.id, graphs: [graph] }
+function getDocuments(): GraphDocuments {
+  const list = GRAPH_SERVER_COLLECTION.list()
+  if (documentsCache && documentsCache.list === list && documentsCache.activeGraphId === activeGraphId && documentsCache.placeholder === placeholder) return documentsCache.value
+  let graphs: KopruqGraph[]
+  if (list.length > 0) graphs = [...list]
+  else { placeholder ??= createEmptyGraph(); graphs = [placeholder] }
+  const value = { activeGraphId: graphs.some((graph) => graph.id === activeGraphId) ? activeGraphId as string : graphs[0].id, graphs }
+  documentsCache = { list, activeGraphId, placeholder, value }
+  return value
 }
-function getDocuments() { return documents ??= readDocuments() }
 export function getGraphStoreSnapshot(): GraphStoreSnapshot {
-  if (!snapshot) {
-    const state = getDocuments()
-    snapshot = { ...state, canUndo: (undo.get(state.activeGraphId)?.length ?? 0) > 0, canRedo: (redo.get(state.activeGraphId)?.length ?? 0) > 0 }
-  }
-  return snapshot
+  if (!snapshot) refreshSnapshot()
+  return snapshot as GraphStoreSnapshot
 }
 function refreshSnapshot() {
   const state = getDocuments()
   snapshot = { ...state, canUndo: (undo.get(state.activeGraphId)?.length ?? 0) > 0, canRedo: (redo.get(state.activeGraphId)?.length ?? 0) > 0 }
 }
-function persist() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(getDocuments())) } catch { /* keep active in-memory graph */ }
-}
-export function persistGraphStore() { persist() }
-export function exportGraphDocuments(): GraphDocuments { return structuredClone(getDocuments()) }
-function assertGraphDocuments(next: unknown): GraphDocuments {
-  const value = next as Partial<GraphDocuments>
-  if (!value || !Array.isArray(value.graphs) || !value.graphs.length || !value.graphs.every((graph) => graph && graph.schemaVersion === 1 && typeof graph.id === 'string' && typeof graph.name === 'string' && Array.isArray(graph.nodes) && Array.isArray(graph.connections))) throw new Error('Invalid graph data.')
-  if (!value.graphs.some((graph) => graph.id === value.activeGraphId)) throw new Error('Active graph is missing.')
-  return value as GraphDocuments
-}
-/** Full validation of graph documents coming from a project file: graph level (existing messages) plus every node, connection and group. */
-export function validateGraphDocuments(next: unknown): GraphDocuments {
-  const value = assertGraphDocuments(next)
-  parseWithSchema(z.array(graphSchema), value.graphs, 'graph.graphs')
-  return value
-}
-export function importGraphDocuments(next: GraphDocuments) {
-  assertGraphDocuments(next) // shallow on purpose: rollback re-imports snapshots of what was already in storage
-  documents = structuredClone(next); undo.clear(); redo.clear(); notify()
-}
-export function resetGraphDocuments() { const graph = createEmptyGraph(); importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] }) }
 function notify() {
-  refreshSnapshot(); persist()
-  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'graph' } }))
+  refreshSnapshot()
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(EVENT))
   subscribers.forEach((listener) => listener())
 }
+// Every change of the collection (own write, server confirmation, hydrate, discard) refreshes the snapshot and notifies.
+let collectionNotified = false
+GRAPH_SERVER_COLLECTION.subscribe(() => { collectionNotified = true; notify() })
+// A project switch drops the in-memory state without notification; the collection is hydrated right after and notifies.
+onProjectSwitch(() => { undo.clear(); redo.clear(); dragStart = undefined; activeGraphId = undefined; placeholder = undefined; documentsCache = undefined; snapshot = undefined })
+/**
+ * Writes the whole graph list (only new or changed graphs are sent). false: no open project or a graph cannot be represented
+ * on the wire; nothing changes then. The active graph id is applied before the notification.
+ */
+function commit(graphs: KopruqGraph[], nextActiveGraphId = getDocuments().activeGraphId, history?: { id: string; undo: KopruqGraph[]; redo: KopruqGraph[] }): boolean {
+  const before = { activeGraphId, undo: history ? undo.get(history.id) : undefined, redo: history ? redo.get(history.id) : undefined }
+  activeGraphId = nextActiveGraphId
+  if (history) { undo.set(history.id, history.undo); redo.set(history.id, history.redo) }
+  collectionNotified = false
+  if (!GRAPH_SERVER_COLLECTION.write(graphs)) {
+    activeGraphId = before.activeGraphId
+    if (history) { if (before.undo) undo.set(history.id, before.undo); else undo.delete(history.id); if (before.redo) redo.set(history.id, before.redo); else redo.delete(history.id) }
+    return false
+  }
+  placeholder = undefined
+  if (!collectionNotified) notify()
+  return true
+}
 export function subscribeGraphStore(listener: () => void) {
   subscribers.add(listener)
-  if (typeof window !== 'undefined') {
-    const sync = () => { documents = readDocuments(); notify() }
-    window.addEventListener('storage', sync)
-    return () => { subscribers.delete(listener); window.removeEventListener('storage', sync) }
-  }
-  return () => subscribers.delete(listener)
+  return () => { subscribers.delete(listener) }
 }
 export function getActiveGraph() { const state = getDocuments(); return state.graphs.find((graph) => graph.id === state.activeGraphId) ?? state.graphs[0] }
-function replaceActiveGraph(next: KopruqGraph, history = true) {
+function replaceActiveGraph(next: KopruqGraph, history = true): boolean {
   const previous = getActiveGraph()
-  if (history && !dragStart) { if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] history commit'); undo.set(previous.id, [...(undo.get(previous.id) ?? []), structuredClone(previous)].slice(-100)); redo.set(previous.id, []) }
-  documents = { ...getDocuments(), graphs: getDocuments().graphs.map((graph) => graph.id === previous.id ? next : graph) }
-  notify()
+  const graphs = getDocuments().graphs.map((graph) => graph.id === previous.id ? next : graph)
+  if (history && !dragStart) {
+    if (graphDiagnosticsEnabled()) console.count('[graph diagnostics] history commit')
+    return commit(graphs, undefined, { id: previous.id, undo: [...(undo.get(previous.id) ?? []), structuredClone(previous)].slice(-100), redo: [] })
+  }
+  return commit(graphs)
 }
 export function addNode(type: string, position: { x: number; y: number }) {
   const definition = getNodeDefinition(type); if (!definition) return
@@ -172,19 +165,17 @@ export function undoGraph() {
   const current = getActiveGraph(), past = undo.get(current.id) ?? []
   if (!past.length) return
   const previous = past[past.length - 1]
-  undo.set(current.id, past.slice(0, -1)); redo.set(current.id, [...(redo.get(current.id) ?? []), structuredClone(current)])
-  documents = { ...getDocuments(), graphs: getDocuments().graphs.map((graph) => graph.id === current.id ? previous : graph) }; notify()
+  commit(getDocuments().graphs.map((graph) => graph.id === current.id ? previous : graph), undefined, { id: current.id, undo: past.slice(0, -1), redo: [...(redo.get(current.id) ?? []), structuredClone(current)] })
 }
 export function redoGraph() {
   const current = getActiveGraph(), future = redo.get(current.id) ?? []
   if (!future.length) return
   const next = future[future.length - 1]
-  redo.set(current.id, future.slice(0, -1)); undo.set(current.id, [...(undo.get(current.id) ?? []), structuredClone(current)])
-  documents = { ...getDocuments(), graphs: getDocuments().graphs.map((graph) => graph.id === current.id ? next : graph) }; notify()
+  commit(getDocuments().graphs.map((graph) => graph.id === current.id ? next : graph), undefined, { id: current.id, undo: [...(undo.get(current.id) ?? []), structuredClone(current)], redo: future.slice(0, -1) })
 }
-export function renameActiveGraph(name: string) { const graph = getActiveGraph(); documents = { ...getDocuments(), graphs: getDocuments().graphs.map((item) => item.id === graph.id ? { ...item, name } : item) }; notify() }
-export function createGraphDocument(name = 'Untitled Graph') { const graph = createEmptyGraph(name); documents = { ...getDocuments(), activeGraphId: graph.id, graphs: [...getDocuments().graphs, graph] }; notify(); return graph.id }
-export function selectGraphDocument(id: string) { if (!getDocuments().graphs.some((graph) => graph.id === id)) return; documents = { ...getDocuments(), activeGraphId: id }; notify() }
+export function renameActiveGraph(name: string) { const graph = getActiveGraph(); commit(getDocuments().graphs.map((item) => item.id === graph.id ? { ...item, name } : item)) }
+export function createGraphDocument(name = 'Untitled Graph') { const graph = createEmptyGraph(name); commit([...getDocuments().graphs, graph], graph.id); return graph.id }
+export function selectGraphDocument(id: string) { if (!getDocuments().graphs.some((graph) => graph.id === id)) return; activeGraphId = id; notify() }
 
 export function getGraphForBridge(bridgeId: string) {
   return getDocuments().graphs.find((graph) => graph.bridgeId === bridgeId)
@@ -195,8 +186,7 @@ export function selectOrCreateBridgeGraph(bridgeId: string, projectId?: string, 
   const existing = getGraphForBridge(bridgeId)
   if (existing) { selectGraphDocument(existing.id); return existing.id }
   const graph = createEmptyGraph(name, { bridgeId, ...(projectId ? { projectId } : {}) })
-  documents = { ...getDocuments(), activeGraphId: graph.id, graphs: [...getDocuments().graphs, graph] }
-  notify()
+  commit([...getDocuments().graphs, graph], graph.id)
   return graph.id
 }
 

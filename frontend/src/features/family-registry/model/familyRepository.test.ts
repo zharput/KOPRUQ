@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getFamilyRecord, graphFamilyAdapter, saveFamilyRecords } from './familyRepository'
-import { readProjectDataText, resetProjectData } from '../../../test/projectStoreTestUtils'
+import { readProjectData, resetProjectData } from '../../../test/projectStoreTestUtils'
 
 beforeEach(() => resetProjectData())
 
 describe('Family Repository', () => {
-  it('preserves existing catalog keys and resolves the current family by stable ID', () => {
+  it('stores the catalog in its server section and resolves the current family by stable ID', () => {
     const original = { id: 'P-01', name: 'Pier A', dimensions: [{ key: 'B', label: 'B (m)', min: 2 }] }
     expect(saveFamilyRecords('PIER', [original])).toBe(true)
     const ref = graphFamilyAdapter.getFamilyReference('PIER', 'P-01')
@@ -15,7 +15,7 @@ describe('Family Repository', () => {
     saveFamilyRecords('PIER', [updated])
     expect(getFamilyRecord('PIER', 'P-01')).toEqual(updated)
     expect(graphFamilyAdapter.resolve(ref)).toEqual(updated)
-    expect(readProjectDataText('families.PIER')).toContain('P-01')
+    expect(readProjectData('families.PIER')).toEqual([updated])
   })
 
   it('exposes editable and derived piled foundation parameters without duplicating values', () => {

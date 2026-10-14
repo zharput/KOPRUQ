@@ -2,17 +2,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
-import { buildProjectFile, projectFileText } from './project-file/projectFileService'
 import { INITIAL_PROJECT } from '../features/project/model/projectWorkspace'
 import { INITIAL_BRIDGES } from '../features/project/model/types'
 import { assignedAxis, axesFromSpans, createBridgeDefinition } from '../features/bridge-definition/model/store'
-import { createEmptyGraph, exportGraphDocuments, importGraphDocuments } from '../features/graph/state/graphStore'
-import { readProjectData, readProjectDataText, resetProjectData, seedProjectData } from '../test/projectStoreTestUtils'
+import { NEW_PROJECT_DOCUMENT_JSON } from './project-session/projectDocumentFixtures'
+import { createFakeProjectApi } from '../test/fakeProjectApi'
+import { installFakeProjectApi, openTestProject } from '../test/projectSessionTestUtils'
+import { readProjectData, resetProjectData, seedProjectData } from '../test/projectStoreTestUtils'
 vi.mock('../features/graph/ui/GraphWorkspace', () => ({ default: () => <div className="spn-workspace-layout"><aside aria-label="Node Library"><label htmlFor="search-nodes">Search nodes</label><input id="search-nodes" /></aside><main><h1>Graph Workspace</h1><input aria-label="Graph name" defaultValue="Untitled Graph" /><div className="spn-graph-flow" /></main><aside aria-label="Node Inspector">Node Inspector</aside></div> }))
 
 beforeEach(() => {
   window.history.pushState({}, '', '/')
   resetProjectData(['workspace', 'bridgeDefinitions', 'families.PIER', 'families.PIER_CAP', 'families.FOUNDATION', 'families.BEARING', 'graphDocuments'])
+  // A new project has no bridges (no seed); the tests that need bridge rows put them into the workspace explicitly.
+  seedProjectData('workspace', { project: INITIAL_PROJECT, bridges: INITIAL_BRIDGES })
 })
 
 describe('App workspace shell', () => {
@@ -278,76 +281,6 @@ describe('App workspace shell', () => {
     app.unmount()
   })
 
-  it('guards New Project with Save, Dont Save and Cancel modal outcomes', async () => {
-    const user = userEvent.setup(); render(<App />)
-    const properties = within(screen.getByRole('complementary', { name: 'Project Properties' }))
-    await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Dirty Project'); await user.click(properties.getByRole('button', { name: 'Save' }))
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); expect(screen.getByRole('dialog')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'CANCEL' })); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Dirty Project')
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ })); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Not defined')
-  })
-
-  it('opens the unsaved modal for Open and preserves state when the operation is cancelled', async () => {
-    const user = userEvent.setup(); render(<App />)
-    const properties = within(screen.getByRole('complementary', { name: 'Project Properties' }))
-    await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Open Guard'); await user.click(properties.getByRole('button', { name: 'Save' }))
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement; const file = new File(['not-json'], 'broken.kopruq', { type: 'application/json' }); await user.upload(input, file)
-    expect(screen.getByRole('dialog')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'CANCEL' })); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Open Guard')
-  })
-
-  it('uses Exit modal decisions and does not show a modal for a clean project', async () => {
-    const user = userEvent.setup(); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined); render(<App />)
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); expect(screen.queryByRole('dialog')).not.toBeInTheDocument(); expect(close).not.toHaveBeenCalled(); expect(screen.getByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'New Project' })); const properties = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Exit Guard'); await user.click(properties.getByRole('button', { name: 'Save' }))
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); expect(screen.getByRole('dialog')).toBeInTheDocument(); await user.click(screen.getByRole('button', { name: 'CANCEL' })); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Exit Guard')
-    close.mockRestore()
-  })
-
-  it('completes New Project after a successful controlled Save', async () => {
-    const user = userEvent.setup(); const writable = { write: vi.fn().mockResolvedValue(undefined), close: vi.fn().mockResolvedValue(undefined) }
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue({ createWritable: vi.fn().mockResolvedValue(writable) }) })
-    render(<App />); const properties = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Before New'); await user.click(properties.getByRole('button', { name: 'Save' }))
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(writable.write).toHaveBeenCalled(); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Not defined'); expect(JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project.name).toBe('')
-  })
-
-  it('opens a selected project through the Dont Save path without saving the old project', async () => {
-    const user = userEvent.setup(); render(<App />); const properties = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Old Project'); await user.click(properties.getByRole('button', { name: 'Save' }))
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement; const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); const file = new File([JSON.stringify({ format: 'KOPRUQ_PROJECT', schemaVersion: 1, applicationVersion: '1', projectState: { project: { ...JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project, name: 'Opened Project' }, bridges: [] }, bridgeDefinitions: { selectedBridgeId: null, definitions: {} }, graph: { activeGraphId: 'g', graphs: [{ id: 'g', name: 'g', schemaVersion: 1, nodes: [], connections: [] }] }, families: { PIER: [], PIER_CAP: [], FOUNDATION: [], BEARING: [], MATERIAL: [] }, modules: {} })], 'opened.kopruq', { type: 'application/json' }); await user.upload(input, file); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ })); await waitFor(() => expect(document.querySelector('.spn-project-name')).toHaveTextContent('Opened Project'))
-  })
-
-  it('keeps the pending operation and dirty project after Save failure', async () => {
-    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined); Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new Error('write denied')) }); render(<App />); const properties = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), 'Protected Project'); await user.click(properties.getByRole('button', { name: 'Save' }))
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: 'SAVE' })); await waitFor(() => expect(alert).toHaveBeenCalledWith('write denied')); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Protected Project'); expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*'); alert.mockRestore()
-  })
-
-  it('opens a new project only after Open + Save completes', async () => {
-    const user = userEvent.setup(); let release!: () => void; let pickerOpened = false
-    const writable = { write: vi.fn(() => new Promise<void>((resolve) => { release = resolve })), close: vi.fn().mockResolvedValue(undefined) }
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockImplementation(async () => { pickerOpened = true; return { createWritable: vi.fn().mockResolvedValue(writable) } }) })
-    render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Before Open'); await user.click(props.getByRole('button', { name: 'Save' }))
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement; const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); const openedFile = new File([JSON.stringify({ format: 'KOPRUQ_PROJECT', schemaVersion: 1, applicationVersion: '1', projectState: { project: { ...JSON.parse(localStorage.getItem('kopruq.project-workspace.v1') ?? '{}').project, name: 'Loaded After Save' }, bridges: [] }, bridgeDefinitions: { selectedBridgeId: null, definitions: {} }, graph: { activeGraphId: 'open-graph', graphs: [{ id: 'open-graph', name: 'Open Graph', schemaVersion: 1, nodes: [], connections: [] }] }, families: { PIER: [], PIER_CAP: [], FOUNDATION: [], BEARING: [], MATERIAL: [] }, modules: {} })], 'loaded.kopruq', { type: 'application/json' }); await user.upload(input, openedFile); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(pickerOpened).toBe(true); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Before Open'); release(); await waitFor(() => expect(document.querySelector('.spn-project-name')).toHaveTextContent('Loaded After Save'))
-  })
-
-  it('completes Exit + Save only after the controlled writer finishes', async () => {
-    const user = userEvent.setup(); let release!: () => void; const write = vi.fn(() => new Promise<void>((resolve) => { release = resolve })); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined)
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockResolvedValue({ createWritable: vi.fn().mockResolvedValue({ write, close: vi.fn() }) }) }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Exit Save'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(close).not.toHaveBeenCalled(); release(); await waitFor(() => expect(screen.getByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument()); expect(close).not.toHaveBeenCalled(); close.mockRestore()
-  })
-
-  it('executes Exit + Dont Save without invoking Save', async () => {
-    const user = userEvent.setup(); const picker = vi.fn(); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined); Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Exit Discard'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ })); expect(picker).not.toHaveBeenCalled(); expect(close).not.toHaveBeenCalled(); expect(screen.getByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument(); close.mockRestore()
-  })
-
-  it('preserves the dirty project when the Open picker is cancelled', async () => {
-    const user = userEvent.setup(); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Picker Cancel'); await user.click(props.getByRole('button', { name: 'Save' })); const input = document.querySelector('input[type="file"]') as HTMLInputElement; const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); await user.upload(input, []); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Picker Cancel'); expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*')
-  })
-
-  it('cancels New + Save silently (no error alert) when the save picker is cancelled', async () => {
-    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined); Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError')) }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'New Cancel'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(alert).not.toHaveBeenCalled(); expect(document.querySelector('.spn-project-name')).toHaveTextContent('New Cancel'); alert.mockRestore()
-  })
-
-  it('cancels Open + Save and Exit + Save when the save picker is cancelled', async () => {
-    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined); const close = vi.spyOn(window, 'close').mockImplementation(() => undefined); Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError')) }); render(<App />); const props = within(screen.getByRole('complementary', { name: 'Project Properties' })); await user.click(props.getByRole('button', { name: 'Edit Project' })); await user.type(props.getByLabelText('Project Name'), 'Actions Cancel'); await user.click(props.getByRole('button', { name: 'Save' })); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); const input = document.querySelector('input[type="file"]') as HTMLInputElement; await user.upload(input, new File(['{}'], 'trigger.kopruq')); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(close).not.toHaveBeenCalled(); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Actions Cancel'); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: '× Exit' })); await user.click(screen.getByRole('button', { name: 'SAVE' })); expect(close).not.toHaveBeenCalled(); expect(alert).not.toHaveBeenCalled(); alert.mockRestore(); close.mockRestore()
-  })
-
   it('opens the File dropdown with the shared navigation styling and all commands', async () => {
     const user = userEvent.setup(); render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
@@ -359,97 +292,23 @@ describe('App workspace shell', () => {
     expect(dropdown).toBeVisible()
     expect(dropdown).toHaveTextContent('New Project')
     expect(dropdown).toHaveTextContent('Open...')
-    expect(dropdown).toHaveTextContent('Save')
-    expect(dropdown).toHaveTextContent('Save As...')
     expect(dropdown).toHaveTextContent('Recent Projects')
     expect(dropdown).toHaveTextContent('Exit')
+    expect(dropdown).not.toHaveTextContent('Save')
     await user.click(file)
     expect(document.querySelector('.spn-file-dropdown')).not.toBeInTheDocument()
   })
 
-  it('closes the File dropdown on an outside click and renders recent projects inside it', async () => {
-    localStorage.setItem('kopruq.recent-projects.metadata.v1', JSON.stringify([{
-      id: 'project-a.kopruq', projectName: 'Project A', fileName: 'project-a.kopruq',
-      lastUsedAt: new Date().toISOString(), available: false,
-    }]))
+  it('closes the File dropdown on an outside click and renders the server projects inside it', async () => {
+    const fake = installFakeProjectApi(createFakeProjectApi())
+    openTestProject(NEW_PROJECT_DOCUMENT_JSON, fake)
+    fake.seed({ ...NEW_PROJECT_DOCUMENT_JSON, projectId: '7a1d0000-0000-4000-8000-000000000001', workspace: { ...NEW_PROJECT_DOCUMENT_JSON.workspace, project: { ...NEW_PROJECT_DOCUMENT_JSON.workspace.project, name: 'Project A' } } })
     const user = userEvent.setup(); render(<App />)
     const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
     await user.click(nav.getByRole('button', { name: /^File/ }))
-    await waitFor(() => expect(screen.getByText('project-a.kopruq')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Project A')).toBeInTheDocument())
     expect(document.querySelector('.spn-file-dropdown')).toBeVisible()
     await user.click(document.body)
     expect(document.querySelector('.spn-file-dropdown')).not.toBeInTheDocument()
-  })
-
-  it('shows a Save failure to the user but not a user cancellation', async () => {
-    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined); render(<App />)
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError')) })
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' }))
-    await new Promise((resolve) => setTimeout(resolve, 20)); expect(alert).not.toHaveBeenCalled()
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: vi.fn().mockRejectedValue(new Error('disk full')) })
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' }))
-    await waitFor(() => expect(alert).toHaveBeenCalledWith('disk full')); alert.mockRestore()
-  })
-
-  it('resets project modules on New Project and leaves the project clean', async () => {
-    const user = userEvent.setup()
-    seedProjectData('loads.seismic', { a: '0.3', g: 'A', t: 'Type 2', i: '1' })
-    seedProjectData('crossSection', { platformWidthM: 9, leftWalkwayM: 1, rightWalkwayM: 1, spaceOfGirderM: 2, numberOfGirders: 3 })
-    render(<App />)
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ }))
-    await waitFor(() => expect(readProjectDataText('loads.seismic')).toBeNull())
-    expect(readProjectDataText('crossSection')).toBeNull()
-    expect(nav.getByRole('button', { name: /File/ })).not.toHaveTextContent('*')
-  })
-
-  const makeDirtyProject = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
-    const properties = within(screen.getByRole('complementary', { name: 'Project Properties' }))
-    await user.click(properties.getByRole('button', { name: 'Edit Project' })); await user.type(properties.getByLabelText('Project Name'), name); await user.click(properties.getByRole('button', { name: 'Save' }))
-  }
-  it('keeps the project and its dirty mark when New Project reset fails after Dont Save', async () => {
-    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined)
-    const before = createEmptyGraph('Keep Graph'); importGraphDocuments({ activeGraphId: before.id, graphs: [before] })
-    render(<App />); await makeDirtyProject(user, 'Dirty Project')
-    const original = localStorage.setItem.bind(localStorage); let failOnce = true
-    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { if (key.includes('pier-cap') && failOnce) { failOnce = false; throw new Error('quota') } original(key, value) })
-    const nav = within(screen.getByRole('navigation', { name: 'Workspaces' })); await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
-    spy.mockRestore()
-    await waitFor(() => expect(alert).toHaveBeenCalled())
-    expect(document.querySelector('.spn-project-name')).toHaveTextContent('Dirty Project'); expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*')
-    expect(exportGraphDocuments().graphs.some((g) => g.name === 'Keep Graph')).toBe(true); alert.mockRestore()
-  })
-  it('detaches the file reference when the New Project rollback also fails, so Save opens the picker', async () => {
-    const user = userEvent.setup(); const alert = vi.spyOn(window, 'alert').mockImplementation(() => undefined)
-    const handle = { name: 'a.kopruq', createWritable: vi.fn().mockResolvedValue({ write: vi.fn(), close: vi.fn() }) }; const picker = vi.fn().mockResolvedValue(handle)
-    Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker })
-    render(<App />); const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' })); await waitFor(() => expect(picker).toHaveBeenCalledTimes(1))
-    await makeDirtyProject(user, 'Dirty Project')
-    const original = localStorage.setItem.bind(localStorage)
-    const spy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => { if (key.includes('pier-cap')) throw new Error('quota'); original(key, value) })
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /New Project/ })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
-    await waitFor(() => expect(alert).toHaveBeenCalled()); spy.mockRestore()
-    expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*')
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByText('Save', { selector: 'span' })); await waitFor(() => expect(picker).toHaveBeenCalledTimes(2)); alert.mockRestore()
-  })
-  it('keeps the project dirty after Dont Save when opening a broken file fails', async () => {
-    const user = userEvent.setup(); vi.spyOn(window, 'alert').mockImplementation(() => undefined)
-    render(<App />); await makeDirtyProject(user, 'Dirty Project')
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement; const nav = within(screen.getByRole('navigation', { name: 'Workspaces' }))
-    await user.click(nav.getByRole('button', { name: /^File/ })); await user.click(screen.getByRole('button', { name: /Open/ })); await user.upload(input, new File(['not json'], 'broken.kopruq', { type: 'application/json' })); await user.click(screen.getByRole('button', { name: /DON'T SAVE/ }))
-    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument())
-    expect(nav.getByRole('button', { name: /File/ })).toHaveTextContent('*'); expect(document.querySelector('.spn-project-name')).toHaveTextContent('Dirty Project')
-  })
-
-  it('opens an older project file without project.environment instead of crashing (AC9)', async () => {
-    const user = userEvent.setup()
-    const json = JSON.parse(projectFileText(buildProjectFile({ project: { ...INITIAL_PROJECT, name: 'Env Less' }, bridges: [] }, { selectedBridgeId: null, definitions: {} })))
-    delete json.projectState.project.environment
-    render(<App />)
-    await user.upload(document.querySelector('input[type="file"]') as HTMLInputElement, new File([JSON.stringify(json)], 'env-less.kopruq', { type: 'application/json' }))
-    await waitFor(() => expect(document.querySelector('.spn-project-name')).toHaveTextContent('Env Less'))
-    expect(readProjectData<{ project: { environment: unknown } }>('workspace')!.project.environment).toEqual({ terrainDatasetId: null, landXmlImportId: null })
   })
 })

@@ -1,10 +1,25 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { NEW_PROJECT_DOCUMENT_JSON } from '../../../app/project-session/projectDocumentFixtures'
+import { activeProjectSession } from '../../../shared/project-store/activeProject'
+import { createFakeProjectApi, type FakeProjectApi } from '../../../test/fakeProjectApi'
+import { flushProjectWrites, installFakeProjectApi, openTestProject, putRequests, resetActiveProject } from '../../../test/projectSessionTestUtils'
+import { readProjectData } from '../../../test/projectStoreTestUtils'
+import * as clipboardModule from './graphClipboard'
+import * as store from './graphStore'
+
+// The graph documents are the server collection of the open (test) project. A "reload" closes and reopens the project from what the fake backend stored.
+let fake: FakeProjectApi
+const documents = () => readProjectData<store.GraphDocuments>('graphDocuments')!
+async function reopenFromBackend() {
+  await flushProjectWrites()
+  openTestProject(fake.document(activeProjectSession.getSnapshot().projectId!))
+}
 
 describe('Graph document store', () => {
-  beforeEach(() => { localStorage.removeItem('kopruq.graph.documents.v1'); vi.resetModules() })
+  beforeEach(() => { fake = installFakeProjectApi(createFakeProjectApi()); openTestProject(NEW_PROJECT_DOCUMENT_JSON, fake) })
 
   it('creates one empty graph per bridge and reuses it by stable bridge id', async () => {
-    const { getGraphForBridge, getGraphStoreSnapshot, selectOrCreateBridgeGraph } = await import('./graphStore')
+    const { getGraphForBridge, getGraphStoreSnapshot, selectOrCreateBridgeGraph } = store
     const first = selectOrCreateBridgeGraph('bridge-1', 'project-1', 'VIA-01')
     const second = selectOrCreateBridgeGraph('bridge-1', 'project-1', 'VIA-01')
     expect(second).toBe(first)
@@ -12,8 +27,8 @@ describe('Graph document store', () => {
     expect(getGraphStoreSnapshot().graphs.filter(graph => graph.bridgeId === 'bridge-1')).toHaveLength(1)
   })
 
-  it('persists multiple documents and supports node edit undo/redo', async () => {
-    const { addNode, createGraphDocument, deleteNodes, getActiveGraph, getGraphStoreSnapshot, redoGraph, selectGraphDocument, undoGraph } = await import('./graphStore')
+  it('keeps multiple documents and supports node edit undo/redo', async () => {
+    const { addNode, createGraphDocument, deleteNodes, getActiveGraph, getGraphStoreSnapshot, redoGraph, selectGraphDocument, undoGraph } = store
     const firstId = createGraphDocument('Bridge Layout')
     const nodeId = addNode('input.number', { x: 40, y: 80 })!
     expect(getActiveGraph().nodes[0]).toMatchObject({ id: nodeId, type: 'input.number', parameters: { value: 0 } })
@@ -25,46 +40,48 @@ describe('Graph document store', () => {
     expect(getGraphStoreSnapshot().graphs.map((graph) => graph.name)).toEqual(['Untitled Graph', 'Bridge Layout', 'Pier Study'])
     selectGraphDocument(firstId)
     deleteNodes([nodeId])
-    const saved = JSON.parse(localStorage.getItem('kopruq.graph.documents.v1') ?? '{}')
-    expect(saved.graphs.find((graph: { id: string }) => graph.id === firstId).nodes).toHaveLength(0)
+    const saved = documents()
+    expect(saved.graphs.find((graph: { id: string }) => graph.id === firstId)!.nodes).toHaveLength(0)
     expect(saved.graphs.find((graph: { id: string }) => graph.id === secondId)).toBeDefined()
   })
 
-  it('persists Pier Cap authoring parameters and restores them without storing generated candidates',async()=>{
-    const {addNode,createGraphDocument,getActiveGraph,undoGraph,redoGraph}=await import('./graphStore')
+  it('stores Pier Cap authoring parameters and restores them without storing generated candidates',async()=>{
+    const {addNode,createGraphDocument,getActiveGraph,undoGraph,redoGraph} = store
     createGraphDocument('Pier Cap persistence')
     const id=addNode('substructure.pier-cap.t',{x:100,y:120})!
     const node=getActiveGraph().nodes.find(item=>item.id===id)!
     expect(node.parameters).toMatchObject({lengthValue:12,lengthUnit:'m',topWidthValue:3,stemWidthValue:1.5,totalHeightValue:2.5,flangeThicknessValue:.8,materialId:'C40/50'})
     expect(node.parameters).not.toHaveProperty('candidates')
-    const saved=JSON.parse(localStorage.getItem('kopruq.graph.documents.v1')??'{}')
-    expect(saved.graphs.at(-1).nodes.at(-1)).toEqual(node)
+    const saved=documents()
+    expect(saved.graphs.at(-1)!.nodes.at(-1)!).toEqual(node)
     undoGraph();expect(getActiveGraph().nodes).toHaveLength(0)
-    redoGraph();expect(getActiveGraph().nodes.at(-1)).toEqual(node)
+    redoGraph();expect(getActiveGraph().nodes.at(-1)!).toEqual(node)
   })
 
-  it('persists Foundation authoring values and connections, then regenerates derived data from saved inputs',async()=>{
-    const {addConnection,addNode,createGraphDocument,getActiveGraph,undoGraph,redoGraph}=await import('./graphStore')
+  it('stores Foundation authoring values and connections, then regenerates derived data from saved inputs',async()=>{
+    const {addConnection,addNode,createGraphDocument,getActiveGraph,undoGraph,redoGraph} = store
     createGraphDocument('Foundation persistence')
     const range=addNode('input.range',{x:0,y:0})!,foundation=addNode('substructure.foundation.piled',{x:300,y:0})!
     const edge={id:'foundation-count',sourceNodeId:range,sourcePortId:'values',targetNodeId:foundation,targetPortId:'pileCountX'}
     expect(addConnection(edge)).toBe(true)
     const current=getActiveGraph().nodes.find(item=>item.id===foundation)!
     expect(current.parameters).toMatchObject({pileDiameterValue:1.2,pileCountXValue:4,pileSpacingXValue:3.6,pileSpacingYValue:3.6,capHeightValue:2.5,materialId:'C40/50'})
-    const saved=JSON.parse(localStorage.getItem('kopruq.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
+    const saved=documents(),restored=saved.graphs.at(-1)!
     expect(restored.connections).toEqual([edge])
-    expect(restored.nodes.find((item:{id:string})=>item.id===foundation).parameters).toEqual(current.parameters)
-    expect(restored.nodes.find((item:{id:string})=>item.id===foundation).parameters).not.toHaveProperty('candidates')
+    expect(restored.nodes.find((item:{id:string})=>item.id===foundation)!.parameters).toEqual(current.parameters)
+    expect(restored.nodes.find((item:{id:string})=>item.id===foundation)!.parameters).not.toHaveProperty('candidates')
     undoGraph();expect(getActiveGraph().connections).toHaveLength(0)
     redoGraph();expect(getActiveGraph().connections).toEqual([edge])
-    vi.resetModules()
-    const reloaded=await import('./graphStore')
+    await reopenFromBackend()
+    const reloaded=store
+    expect(reloaded.getActiveGraph().connections).toEqual([]) // the active graph id is not stored: the first graph is active again
+    reloaded.selectGraphDocument(restored.id)
     expect(reloaded.getActiveGraph().connections).toEqual([edge])
     expect(reloaded.getActiveGraph().nodes.find(item=>item.id===foundation)?.parameters).toEqual(current.parameters)
   })
 
-  it('persists Elastomeric Bearing authoring values and wiring without storing generated candidates',async()=>{
-    const {addConnection,addNode,createGraphDocument,getActiveGraph,redoGraph,setNodeParameter,undoGraph}=await import('./graphStore')
+  it('stores Elastomeric Bearing authoring values and wiring without storing generated candidates',async()=>{
+    const {addConnection,addNode,createGraphDocument,getActiveGraph,redoGraph,setNodeParameter,undoGraph} = store
     createGraphDocument('Bearing persistence')
     const range=addNode('input.range',{x:0,y:0})!,bearing=addNode('substructure.bearing.elastomeric',{x:300,y:0})!,watch=addNode('output.watch',{x:600,y:0})!
     setNodeParameter(bearing,'kxValue',0)
@@ -72,20 +89,22 @@ describe('Graph document store', () => {
     expect(addConnection(edges[0])).toBe(true);expect(addConnection(edges[1])).toBe(true)
     const authoring=getActiveGraph().nodes.find(item=>item.id===bearing)!
     expect(authoring.parameters).toMatchObject({lengthXValue:.6,lengthXUnit:'m',widthYValue:.7,totalHeightValue:.15,kxValue:0,kxUnit:'kN/m',krxValue:100000,krxUnit:'kNm/rad'})
-    const saved=JSON.parse(localStorage.getItem('kopruq.graph.documents.v1')??'{}'),restored=saved.graphs.at(-1)
+    const saved=documents(),restored=saved.graphs.at(-1)!
     expect(restored.connections).toEqual(edges)
-    expect(restored.nodes.find((item:{id:string})=>item.id===bearing).parameters).toEqual(authoring.parameters)
+    expect(restored.nodes.find((item:{id:string})=>item.id===bearing)!.parameters).toEqual(authoring.parameters)
     expect(authoring.parameters).not.toHaveProperty('candidates')
     undoGraph();expect(getActiveGraph().connections).toEqual([edges[0]])
     redoGraph();expect(getActiveGraph().connections).toEqual(edges)
-    vi.resetModules()
-    const reloaded=await import('./graphStore')
+    await reopenFromBackend()
+    const reloaded=store
+    expect(reloaded.getActiveGraph().connections).toEqual([]) // the active graph id is not stored: the first graph is active again
+    reloaded.selectGraphDocument(restored.id)
     expect(reloaded.getActiveGraph().nodes.find(item=>item.id===bearing)?.parameters).toEqual(authoring.parameters)
     expect(reloaded.getActiveGraph().connections).toEqual(edges)
   })
 
   it('records one history entry for a connection and retains its ID across undo/redo', async () => {
-    const { addConnection, addNode, createGraphDocument, getActiveGraph, subscribeGraphStore, undoGraph, redoGraph } = await import('./graphStore')
+    const { addConnection, addNode, createGraphDocument, getActiveGraph, subscribeGraphStore, undoGraph, redoGraph } = store
     createGraphDocument('Connection Test')
     const numberId = addNode('input.number', { x: 0, y: 0 })!
     const watchId = addNode('output.watch', { x: 200, y: 0 })!
@@ -107,7 +126,7 @@ describe('Graph document store', () => {
   })
 
   it('replaces an occupied single-source input with one undoable connection operation', async () => {
-    const { addConnection, addNode, createGraphDocument, getActiveGraph, undoGraph, redoGraph } = await import('./graphStore')
+    const { addConnection, addNode, createGraphDocument, getActiveGraph, undoGraph, redoGraph } = store
     createGraphDocument('Replace Connection')
     const first = addNode('input.integer', { x: 0, y: 0 })!, second = addNode('input.integer', { x: 0, y: 100 })!, pier = addNode('substructure.pier.circular', { x: 240, y: 0 })!
     const original = { id: 'first-edge', sourceNodeId: first, sourcePortId: 'value', targetNodeId: pier, targetPortId: 'columns' }
@@ -122,7 +141,7 @@ describe('Graph document store', () => {
   })
 
   it('commits a pasted subgraph as one undoable GraphStore operation', async () => {
-    const { addNode, createGraphDocument, getActiveGraph, pasteGraphSelection, redoGraph, undoGraph } = await import('./graphStore')
+    const { addNode, createGraphDocument, getActiveGraph, pasteGraphSelection, redoGraph, undoGraph } = store
     createGraphDocument('Paste Test')
     const first = addNode('input.number', { x: 0, y: 0 })!
     const second = addNode('output.watch', { x: 200, y: 0 })!
@@ -143,7 +162,7 @@ describe('Graph document store', () => {
   })
 
   it('reconnects or disconnects one existing edge as one undoable transaction', async () => {
-    const { addConnection, addNode, createGraphDocument, getActiveGraph, reconnectConnection, undoGraph } = await import('./graphStore')
+    const { addConnection, addNode, createGraphDocument, getActiveGraph, reconnectConnection, undoGraph } = store
     createGraphDocument('Reconnect Test')
     const first = addNode('input.number', { x: 0, y: 0 })!, second = addNode('input.number', { x: 0, y: 100 })!, target = addNode('output.watch', { x: 220, y: 0 })!
     const original = { id: 'edge-reconnect', sourceNodeId: first, sourcePortId: 'value', targetNodeId: target, targetPortId: 'value' }
@@ -163,8 +182,8 @@ describe('Graph document store', () => {
   })
 
   it('survives twenty repeated 5-node subgraph pastes without identity collisions', async () => {
-    const { createGraphDocument, getActiveGraph, pasteGraphSelection } = await import('./graphStore')
-    const { cloneGraphSelection } = await import('./graphClipboard')
+    const { createGraphDocument, getActiveGraph, pasteGraphSelection } = store
+    const { cloneGraphSelection } = clipboardModule
     createGraphDocument('Paste Stress')
     const template = [
       { id: 'n', type: 'input.number', name: 'Number', position: { x: 0, y: 0 }, parameters: { value: 3 } },
@@ -193,7 +212,7 @@ describe('Graph document store', () => {
   })
 
   it('deletes a connection and can undo and redo the deletion', async () => {
-    const { addConnection, addNode, createGraphDocument, deleteConnections, getActiveGraph, undoGraph, redoGraph } = await import('./graphStore')
+    const { addConnection, addNode, createGraphDocument, deleteConnections, getActiveGraph, undoGraph, redoGraph } = store
     createGraphDocument('Delete Test')
     const sourceNodeId = addNode('input.integer', { x: 0, y: 0 })!
     const targetNodeId = addNode('output.watch', { x: 200, y: 0 })!
@@ -208,7 +227,7 @@ describe('Graph document store', () => {
   })
 
   it('does not mutate or record history for an invalid connection', async () => {
-    const { addConnection, addNode, createGraphDocument, getActiveGraph, getGraphStoreSnapshot } = await import('./graphStore')
+    const { addConnection, addNode, createGraphDocument, getActiveGraph, getGraphStoreSnapshot } = store
     createGraphDocument('Invalid Connection')
     const booleanId = addNode('input.boolean', { x: 0, y: 0 })!
     const multiplyId = addNode('math.multiply', { x: 200, y: 0 })!
@@ -221,7 +240,7 @@ describe('Graph document store', () => {
   })
 
   it('handles at least 50 committed connections across 80 graph nodes', async () => {
-    const { addConnection, addNode, createGraphDocument, getActiveGraph } = await import('./graphStore')
+    const { addConnection, addNode, createGraphDocument, getActiveGraph } = store
     const { validateGraph } = await import('../engine/graphEngine')
     createGraphDocument('Stress Test')
     const numbers = Array.from({ length: 50 }, (_, index) => addNode('input.number', { x: index * 20, y: 0 })!)
@@ -238,5 +257,47 @@ describe('Graph document store', () => {
     expect(graph.nodes).toHaveLength(80)
     expect(graph.connections).toHaveLength(50)
     expect(validateGraph(graph)).toEqual([])
+  })
+
+  it('writes only the graphs that changed, one PUT each, and never the active graph id or the undo history', async () => {
+    const { createGraphDocument, addNode, selectGraphDocument, undoGraph } = store
+    const first = createGraphDocument('First')
+    const second = createGraphDocument('Second')
+    addNode('input.number', { x: 0, y: 0 })
+    await flushProjectWrites()
+    const before = putRequests(fake).length
+    selectGraphDocument(first); undoGraph()
+    addNode('input.number', { x: 10, y: 10 })
+    await flushProjectWrites()
+    const sent = putRequests(fake).slice(before)
+    expect(sent.map((request) => request.path.split('/').slice(-2).join('/'))).toEqual([`graphs/${first}`])
+    expect(JSON.stringify(sent.map((request) => request.body))).not.toMatch(/activeGraphId|canUndo|undo/)
+    expect(second).not.toBe(first)
+  })
+
+  it('does not change anything and keeps no history when the project is closed', () => {
+    resetActiveProject()
+    const before = store.getGraphStoreSnapshot().graphs.length
+    expect(store.addNode('input.number', { x: 0, y: 0 })).toBeDefined()
+    expect(store.getGraphStoreSnapshot().canUndo).toBe(false)
+    expect(store.getActiveGraph().nodes).toHaveLength(0)
+    expect(store.getGraphStoreSnapshot().graphs).toHaveLength(before)
+    expect(putRequests(fake)).toHaveLength(0)
+  })
+
+  it('resets undo/redo, the active graph and an unsaved placeholder graph when the project changes', async () => {
+    store.createGraphDocument('Work')
+    store.addNode('input.number', { x: 0, y: 0 })
+    expect(store.getGraphStoreSnapshot().canUndo).toBe(true)
+    const activeBefore = store.getGraphStoreSnapshot().activeGraphId
+    await flushProjectWrites()
+    openTestProject(fake.document(activeProjectSession.getSnapshot().projectId!))
+    const snapshot = store.getGraphStoreSnapshot()
+    expect(snapshot.canUndo).toBe(false); expect(snapshot.canRedo).toBe(false)
+    expect(snapshot.activeGraphId).toBe(snapshot.graphs[0].id)
+    expect(snapshot.graphs.map((graph) => graph.id)).toContain(activeBefore)
+    openTestProject(NEW_PROJECT_DOCUMENT_JSON, fake)
+    expect(store.getGraphStoreSnapshot().graphs).toHaveLength(1) // an empty project shows one in-memory placeholder graph
+    expect(putRequests(fake).filter((request) => request.path.includes('/graphs/'))).toHaveLength(2) // nothing was written for the placeholder
   })
 })

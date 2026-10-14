@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseProjectData } from '../../../shared/project-store/projectDataValidation'
+import { parseProjectData, WireMappingError } from '../../../shared/project-store/projectDataValidation'
 import type { Lm1Parameters } from '../api/trafficLoadsService'
 import {
   SEISMIC_SECTION, SELF_WEIGHT_SECTION, TEMPERATURE_SECTION, TRAFFIC_LM1_SECTION, WIND_SECTION, WIND_SNAPSHOT_SECTION, loadsWireSchema, seismicToWire, selfWeightToWire,
@@ -8,7 +8,7 @@ import {
 } from './loadsWire'
 import type { WindCalculationSnapshot } from './windTypes'
 
-// Same data as SAMPLE_MODULES in app/project-file/projectModulesRoundTrip.test.ts
+// Example values of the six load sections
 const SEISMIC = { a: '0.2', g: 'C', t: 'Type 2', i: '1.2' }
 const WIND = { vb: '27', terrain: 'III', ze: '12' }
 const TEMPERATURE = { min: '-20', max: '40', t0: '10' }
@@ -67,6 +67,23 @@ describe('loads wire mapping', () => {
     const wire = windSnapshotToWire(noStatus); expect(wire.status).toBeNull()
     const back = windSnapshotFromWire(wire); expect(back).toEqual(noStatus); expect('status' in back).toBe(false); expect(back.result).toBeNull()
     expect(WIND_SNAPSHOT_SECTION.codec.fromWire(wire)).toEqual(noStatus)
+  })
+  it.each([
+    ['z0M', Number.POSITIVE_INFINITY], ['zminM', Number.NaN], ['kr', Number.NEGATIVE_INFINITY], ['cr', Number.NaN], ['vmMs', Number.POSITIVE_INFINITY],
+    ['turbulenceIntensity', Number.NaN], ['qpKNm2', Number.POSITIVE_INFINITY], ['bOverD', Number.NaN], ['cfx', Number.NEGATIVE_INFINITY], ['transverseKNm', Number.NaN],
+  ])('wind snapshot: a non-finite result.%s is refused locally with its field path (not sent, no misleading server error)', (field, bad) => {
+    const snapshot = { ...SNAPSHOT, result: { ...SNAPSHOT.result!, [field]: bad } }
+    expect(() => windSnapshotToWire(snapshot)).toThrow(WireMappingError)
+    expect(() => windSnapshotToWire(snapshot)).toThrow(`result.${field} - must be a finite number`)
+  })
+  it('wind snapshot: a non-number result field (string) and non-finite inputs are refused too', () => {
+    expect(() => windSnapshotToWire({ ...SNAPSHOT, result: { ...SNAPSHOT.result!, cfx: '1.3' as unknown as number } })).toThrow('result.cfx')
+    expect(() => windSnapshotToWire({ ...SNAPSHOT, inputs: { ...SNAPSHOT.inputs, deckWidthM: Number.NaN } })).toThrow('inputs.deckWidthM')
+    expect(() => windSnapshotToWire({ ...SNAPSHOT, inputs: { ...SNAPSHOT.inputs, drefM: Number.POSITIVE_INFINITY } })).toThrow('inputs.drefM')
+  })
+  it('wind snapshot: an absent transverse load (null) and a null result stay representable', () => {
+    expect(windSnapshotToWire({ ...SNAPSHOT, result: { ...SNAPSHOT.result!, status: 'INVALID', transverseKNm: null, missing: 'x' } }).result?.transverseKNm).toBeNull()
+    expect(windSnapshotToWire({ ...SNAPSHOT, result: null }).result).toBeNull()
   })
   it('strict schemas reject unknown keys, a wrong schemaVersion and a wrong provenance with the full path', () => {
     const snapshot = JSON.parse(JSON.stringify(windSnapshotToWire(SNAPSHOT)))

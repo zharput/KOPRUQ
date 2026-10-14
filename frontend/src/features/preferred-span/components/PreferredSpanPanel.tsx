@@ -61,12 +61,12 @@ export default function PreferredSpanPanel() {
 
   useEffect(() => {
     const refresh = () => setDimensions(dimensionsFromStorage())
-    window.addEventListener('storage', refresh)
-    return () => window.removeEventListener('storage', refresh)
+    window.addEventListener('kopruq:girder-catalog-changed', refresh)
+    return () => window.removeEventListener('kopruq:girder-catalog-changed', refresh)
   }, [])
 
   function updateRule(id: string, patch: Partial<PreferredSpanRule>) {
-    setRules((previous) => previous.map((rule) => rule.id === id ? { ...rule, ...patch } : rule))
+    setRules((previous) => ensureRules(previous, variants, type).map((rule) => rule.id === id ? { ...rule, ...patch } : rule))
   }
 
   return <div className="spn-workflow">

@@ -6,7 +6,7 @@ import type { GraphExecutionState, GraphValue, MaterialValue, KopruqGraph } from
 import { moveNodePositions, toReactFlowEdges, toReactFlowNodes, type FlowGraphNode } from '../adapters/reactFlowAdapter'
 import { executeGraph, validateConnection } from '../engine/graphEngine'
 import { getNodeDefinition } from '../registry/nodeRegistry'
-import { addConnection, addNode, beginMoveHistory, createGraphDocument, createGraphGroup, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, getGraphStoreSnapshot, moveGraphGroup, pasteGraphSelection, persistGraphStore, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, ungroupGraph, updateGraphGroup, updateNode, updatePositions } from '../state/graphStore'
+import { addConnection, addNode, beginMoveHistory, createGraphDocument, createGraphGroup, deleteConnections, deleteNodes, endMoveHistory, getActiveGraph, getGraphStoreSnapshot, moveGraphGroup, pasteGraphSelection, reconnectConnection, redoGraph, renameActiveGraph, selectGraphDocument, selectOrCreateBridgeGraph, setNodeParameter, undoGraph, ungroupGraph, updateGraphGroup, updateNode, updatePositions } from '../state/graphStore'
 import { useGraphStore } from '../state/useGraphStore'
 import { cloneGraphSelection, copyGraphSelection, sameGraphSelection, type GraphClipboard } from '../state/graphClipboard'
 import BaseNode from './BaseNode'
@@ -70,7 +70,6 @@ function GraphWorkspaceContent({ project, setProject }: { project: ProjectWorksp
     return () => { active = false }
   }, [selected?.id, selected?.parameters.materialId])
 
-  useEffect(() => { persistGraphStore() }, [])
   useEffect(() => { setStates({}); setErrors({}); setNodeOutputs({}); setResolvedInputs({}); setExecutedSignature(undefined); setLog([]) }, [graph.id])
   useEffect(() => { if (selectedNodeId !== null && !graph.nodes.some((node) => node.id === selectedNodeId)) { setSelectedNodeId(null); setSelectedNodeIds([]) } }, [graph.nodes, selectedNodeId])
   const onParameterChange = useCallback((id: string, key: string, value: number | boolean | string | number[]) => { setNodeParameter(id, key, value) }, [])

@@ -1,0 +1,104 @@
+ M docs/architecture.md
+ M docs/roadmap.md
+ M frontend/README.md
+ M frontend/src/app/App.test.tsx
+ M frontend/src/app/App.tsx
+ M frontend/src/app/layout/TopWorkspaceNav.test.tsx
+ M frontend/src/app/layout/TopWorkspaceNav.tsx
+ D frontend/src/app/project-file/projectDataContract.test.ts
+ D frontend/src/app/project-file/projectDataContract.ts
+ D frontend/src/app/project-file/projectFileFixtures.ts
+ D frontend/src/app/project-file/projectFileRealDefaults.test.tsx
+ D frontend/src/app/project-file/projectFileService.test.ts
+ D frontend/src/app/project-file/projectFileService.ts
+ D frontend/src/app/project-file/projectFileTypes.ts
+ D frontend/src/app/project-file/projectModuleRegistry.test.ts
+ D frontend/src/app/project-file/projectModules.test.ts
+ D frontend/src/app/project-file/projectModules.ts
+ D frontend/src/app/project-file/projectModulesRoundTrip.test.ts
+ D frontend/src/app/project-file/recentProjects.test.ts
+ D frontend/src/app/project-file/recentProjects.ts
+ D frontend/src/app/project-file/useProjectFile.test.tsx
+ D frontend/src/app/project-file/useProjectFile.ts
+ M frontend/src/app/project-session/ProjectListDialog.test.tsx
+ M frontend/src/app/project-session/ProjectListDialog.tsx
+ M frontend/src/app/project-session/projectSections.test.ts
+ M frontend/src/app/project-session/serverSectionInstances.test.ts
+ M frontend/src/app/project-session/useProjectList.test.tsx
+ M frontend/src/app/project-session/useProjectSessionController.test.tsx
+ M frontend/src/app/project-session/useProjectSessionController.ts
+ M frontend/src/app/styles/app/18-project-session.css
+ M frontend/src/features/bridge-definition/components/BridgeDefinitionWorkspace.tsx
+ M frontend/src/features/bridge-definition/model/bridgeDefinitionServerSection.ts
+ D frontend/src/features/bridge-definition/model/schema.ts
+ M frontend/src/features/bridge-definition/model/store.test.ts
+ M frontend/src/features/bridge-definition/model/store.ts
+ M frontend/src/features/family-registry/hooks/useFamilyCatalog.ts
+ M frontend/src/features/family-registry/model/familyRepository.test.ts
+ M frontend/src/features/family-registry/model/familyRepository.ts
+ D frontend/src/features/family-registry/model/familySchemas.ts
+ M frontend/src/features/family-registry/model/familyServerSections.ts
+ M frontend/src/features/family-registry/model/girderLibraryProjectModule.ts
+ M frontend/src/features/family-registry/model/registry.test.ts
+ M frontend/src/features/family-tables/components/FamilyResultsViewer.test.tsx
+ M frontend/src/features/girder-library/components/GirderLibraryPanel.tsx
+ M frontend/src/features/graph/family/familySnapshotStore.test.ts
+ M frontend/src/features/graph/family/familySnapshotStore.ts
+ M frontend/src/features/graph/family/graphRunValidity.test.ts
+ M frontend/src/features/graph/family/graphRunValidity.ts
+ D frontend/src/features/graph/state/graphSchema.ts
+ M frontend/src/features/graph/state/graphServerCollection.ts
+ M frontend/src/features/graph/state/graphStore.test.ts
+ M frontend/src/features/graph/state/graphStore.ts
+ M frontend/src/features/graph/state/graphViewPreferences.test.ts
+ M frontend/src/features/graph/state/graphViewPreferences.ts
+ M frontend/src/features/graph/ui/GraphWorkspace.tsx
+ M frontend/src/features/loads/components/wind/WindLoadsPanel.test.tsx
+ M frontend/src/features/loads/model/loadsProjectModules.ts
+ M frontend/src/features/loads/model/loadsServerSections.ts
+ M frontend/src/features/loads/model/loadsWire.test.ts
+ M frontend/src/features/loads/model/loadsWire.ts
+ M frontend/src/features/materials/components/MaterialsPanel.test.tsx
+ M frontend/src/features/materials/components/MaterialsPanel.tsx
+ M frontend/src/features/pier-families/components/PierFamiliesPanel.test.tsx
+ M frontend/src/features/pier-families/components/PierFamiliesPanel.tsx
+ M frontend/src/features/preferred-span/components/PreferredSpanPanel.test.tsx
+ M frontend/src/features/preferred-span/components/PreferredSpanPanel.tsx
+ M frontend/src/features/preferred-span/model/preferredSpanRulesProjectModule.ts
+ M frontend/src/features/preferred-span/model/preferredSpanServerSection.ts
+ D frontend/src/features/project/model/projectStateSchema.ts
+ M frontend/src/features/project/model/projectWorkspace.ts
+ M frontend/src/features/project/model/projectWorkspaceServerSection.ts
+ M frontend/src/features/superstructure-families/model/crossSectionProjectModule.ts
+ M frontend/src/features/superstructure-families/model/crossSectionServerSection.ts
+ M frontend/src/features/system-assembly/components/SystemAssemblyPanel.tsx
+ M frontend/src/main.tsx
+ D frontend/src/shared/persistence/legacyStorageMigration.ts
+ D frontend/src/shared/project-file/projectDataEvents.ts
+ M frontend/src/shared/project-file/projectFileValidation.ts
+ M frontend/src/shared/project-file/projectModuleStore.test.ts
+ M frontend/src/shared/project-file/projectModuleStore.ts
+ M frontend/src/shared/project-file/useProjectModule.test.tsx
+ M frontend/src/shared/project-file/useProjectModule.ts
+ M frontend/src/shared/project-store/activeProject.test.ts
+ M frontend/src/shared/project-store/useSaveStatus.test.tsx
+ D frontend/src/shared/ui/RecentFileAccessModal.tsx
+ M frontend/src/shared/ui/UnsavedChangesModal.tsx
+ M frontend/src/test/architecture/noBrowserStorage.test.ts
+ D frontend/src/test/architecture/sessionLayerUnwired.test.ts
+ M frontend/src/test/fakeProjectApi.test.ts
+ M frontend/src/test/projectSessionTestUtils.ts
+ M frontend/src/test/projectStoreTestUtils.ts
+ M frontend/src/test/setup.ts
+?? frontend/src/app/AppSession.test.tsx
+?? frontend/src/app/browserStorageRuntime.test.tsx
+?? frontend/src/app/project-session/realDefaultsWire.test.tsx
+?? frontend/src/app/project-session/sectionWrites.test.ts
+?? frontend/src/app/project-session/useBeforeUnloadWarning.ts
+?? frontend/src/app/project-session/useUrlProjectId.test.tsx
+?? frontend/src/app/project-session/useUrlProjectId.ts
+?? frontend/src/features/bridge-definition/model/bridgeDefinitionUiState.test.ts
+?? frontend/src/features/girder-library/components/GirderLibraryPanel.test.tsx
+?? frontend/src/features/project/hooks/
+?? frontend/src/shared/project-store/unsavedDrafts.test.ts
+?? frontend/src/shared/project-store/unsavedDrafts.ts

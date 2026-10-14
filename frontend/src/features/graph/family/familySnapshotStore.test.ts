@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { adaptGraphExecutionToFamilySnapshots, graphFingerprint } from './familyResults'
 import { clearFamilySnapshots, getFamilyAlternatives, getFamilySnapshot, getFamilySnapshots, markFamilySnapshotsStale, publishFamilySnapshots } from './familySnapshotStore'
 import type { GraphExecutionResult, KopruqGraph } from '../domain/types'
+import { NEW_PROJECT_DOCUMENT_JSON } from '../../../app/project-session/projectDocumentFixtures'
+import { openTestProject } from '../../../test/projectSessionTestUtils'
 
 const graph: KopruqGraph = { id: 'graph-1', bridgeId: 'bridge-1', name: 'Graph', schemaVersion: 1, nodes: [{ id: 'node-1', type: 'substructure.pier.rectangular', name: 'Pier', position: { x: 0, y: 0 }, parameters: {} }], connections: [] }
 const result: GraphExecutionResult = { values: { 'node-1': { candidates: [{ id: 'c-1', pierType: 'RECTANGULAR', geometry: {}, columnCount: 1, heightM: 1, material: { domainType: 'ConcreteMaterial', id: 'm', name: 'C', properties: {} } }] } }, resolvedInputs: {}, watchValues: {}, errors: {}, logs: [] }
@@ -67,4 +69,18 @@ describe('Family snapshot runtime store', () => {
       expect(getFamilySnapshots('bridge-1', 'graph-1')).toEqual(adaptGraphExecutionToFamilySnapshots(graph, result).map(item => ({ ...item, generatedAt: expect.any(String) })))
     })
   })
+
+  describe('project switch', () => {
+    it('drops every snapshot without a change notification when the project changes', () => {
+      publishFamilySnapshots(adaptGraphExecutionToFamilySnapshots(graph, result))
+      expect(getFamilySnapshots('bridge-1', 'graph-1')).not.toHaveLength(0)
+      const notified = vi.fn()
+      window.addEventListener('kopruq:family-snapshots-changed', notified)
+      openTestProject(NEW_PROJECT_DOCUMENT_JSON)
+      window.removeEventListener('kopruq:family-snapshots-changed', notified)
+      expect(getFamilySnapshots('bridge-1', 'graph-1')).toEqual([])
+      expect(notified).not.toHaveBeenCalled()
+    })
+  })
 })
+

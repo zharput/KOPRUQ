@@ -4,13 +4,12 @@ import { INITIAL_PROJECT } from '../../project/model/projectWorkspace'
 import FamilyResultsViewer from './FamilyResultsViewer'
 import { clearFamilySnapshots, getFamilySnapshots, publishFamilySnapshots } from '../../graph/family/familySnapshotStore'
 import { graphFingerprint, type FamilyCalculationSnapshot } from '../../graph/family/familyResults'
-import { importGraphDocuments } from '../../graph/state/graphStore'
 import type { KopruqGraph } from '../../graph/domain/types'
 import { resetProjectData, seedProjectData } from '../../../test/projectStoreTestUtils'
 
 const bridges = [{ id: 'bridge-1', no: 'VIA-01' }] as never
 const testGraph = (nodes: KopruqGraph['nodes'] = [{ id: 'n1', type: 'structural.girder.precast', name: 'Girder', position: { x: 0, y: 0 }, parameters: { tfValue: 1 } }]): KopruqGraph => ({ id: 'graph-1', bridgeId: 'bridge-1', name: 'G', schemaVersion: 1, nodes, connections: [] })
-const setGraph = (graph: KopruqGraph) => importGraphDocuments({ activeGraphId: graph.id, graphs: [graph] })
+const setGraph = (graph: KopruqGraph) => seedProjectData('graphDocuments', { activeGraphId: graph.id, graphs: [graph] })
 const snapshot = (freshness: FamilyCalculationSnapshot['freshness']): FamilyCalculationSnapshot => ({ snapshotId: 's', bridgeId: 'bridge-1', graphDocumentId: 'graph-1', sourceNodeId: 'n1', sourceNodeType: 'structural.girder.precast', sourceNodeName: 'Girder', familyCategory: 'GIRDER', graphFingerprint: graphFingerprint(testGraph(), INITIAL_PROJECT.units), candidates: [], generatedAt: '2026-01-01T00:00:00Z', freshness, executionStatus: 'SUCCESS', errors: [] })
 
 beforeEach(() => {

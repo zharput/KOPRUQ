@@ -1,7 +1,4 @@
-import { z } from 'zod'
 import { createProjectModule } from '../../../shared/project-file/projectModuleStore'
+import { CROSS_SECTION_SERVER_SECTION } from './crossSectionServerSection'
 
-const number = z.number()
-const crossSectionValuesSchema = z.object({ platformWidthM: number, leftWalkwayM: number, rightWalkwayM: number, spaceOfGirderM: number, numberOfGirders: number })
-
-export const CROSS_SECTION_VALUES_MODULE = createProjectModule('crossSectionValues', 'kopruq.superstructure.cross-section.v1', crossSectionValuesSchema)
+export const CROSS_SECTION_VALUES_MODULE = createProjectModule(CROSS_SECTION_SERVER_SECTION)

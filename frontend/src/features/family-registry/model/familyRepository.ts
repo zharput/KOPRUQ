@@ -1,49 +1,44 @@
 /**
- * Single access boundary for the existing project family catalogs.
- * Storage keys and payload shapes are intentionally preserved so current
- * projects and bridge familyId references remain backward compatible.
+ * Single access boundary for the project family catalogs. Since BACKEND-DB-PERSISTENCE M5c every catalog is a server section
+ * (`FAMILY_SERVER_SECTIONS`, `GIRDER_LIBRARY_SERVER_SECTION`): reads come from the section's in-memory mirror, writes go through the
+ * write queue. Nothing is stored in the browser. The `kopruq:*-catalog-changed` events are emitted from the section notifications.
  */
-import { PROJECT_DATA_CHANGED_EVENT } from '../../../shared/project-file/projectDataEvents'
+import { FAMILY_SERVER_SECTIONS, GIRDER_LIBRARY_SERVER_SECTION } from './familyServerSections'
 
 export type FamilyRepositoryCategory = 'PIER' | 'PIER_CAP' | 'FOUNDATION' | 'BEARING' | 'MATERIAL'
 export type FamilyRecord = { id: string; name?: string }
 export type FamilyParameterDescriptor = { key: string; label: string; dataType: 'number' | 'integer' | 'string' | 'boolean'; unit?: string; editable: boolean; derived: boolean }
 
-const CATALOGS: Record<FamilyRepositoryCategory, { key: string; event: string }> = {
-  PIER: { key: 'kopruq.project-design-system.pier-families', event: 'kopruq:pier-catalog-changed' },
-  PIER_CAP: { key: 'kopruq.project-design-system.pier-cap-families', event: 'kopruq:pier-cap-catalog-changed' },
-  FOUNDATION: { key: 'kopruq.project-design-system.foundation-families', event: 'kopruq:foundation-catalog-changed' },
-  BEARING: { key: 'kopruq.project-design-system.bearing-families', event: 'kopruq:bearing-catalog-changed' },
-  MATERIAL: { key: 'kopruq.project-design-system.material-assignments', event: 'kopruq:material-catalog-changed' },
+const CATALOG_EVENTS: Record<FamilyRepositoryCategory, string> = {
+  PIER: 'kopruq:pier-catalog-changed',
+  PIER_CAP: 'kopruq:pier-cap-catalog-changed',
+  FOUNDATION: 'kopruq:foundation-catalog-changed',
+  BEARING: 'kopruq:bearing-catalog-changed',
+  MATERIAL: 'kopruq:material-catalog-changed',
 }
+const GIRDER_CATALOG_EVENT = 'kopruq:girder-catalog-changed'
 
-export const FAMILY_CATEGORIES = Object.keys(CATALOGS) as FamilyRepositoryCategory[]
-/** localStorage key of a family catalog; the only place these keys are defined. */
-export function familyStorageKey(category: FamilyRepositoryCategory): string { return CATALOGS[category].key }
+export const FAMILY_CATEGORIES = Object.keys(CATALOG_EVENTS) as FamilyRepositoryCategory[]
 
-export const PRECAST_GIRDER_STORAGE_KEY = 'kopruq.girder-library.precast'
+// Every section change (own write, confirmation, hydrate, discard) is announced through the legacy catalog events for the non-hook consumers.
+for (const category of FAMILY_CATEGORIES) {
+  FAMILY_SERVER_SECTIONS[category].subscribe(() => { if (typeof window !== 'undefined') window.dispatchEvent(new Event(CATALOG_EVENTS[category])) })
+}
+GIRDER_LIBRARY_SERVER_SECTION.subscribe(() => { if (typeof window !== 'undefined') window.dispatchEvent(new Event(GIRDER_CATALOG_EVENT)) })
 
-/** Adapter over Girder Library's existing singleton payload; keeps its legacy shape and key. */
+/** The girder library payload; `fallback` when the section has no value (or holds the cleared `[]` form). */
 export function getPrecastGirderDefinition<T>(fallback: T): T {
-  try { return (JSON.parse(localStorage.getItem(PRECAST_GIRDER_STORAGE_KEY) ?? 'null') as T | null) ?? fallback } catch { return fallback }
+  const value = GIRDER_LIBRARY_SERVER_SECTION.read()
+  return value === undefined || Array.isArray(value) ? fallback : value as T
 }
+/** `[]` (the cleared library) is sent as null. false: no open project or the value cannot be sent. */
 export function savePrecastGirderDefinition(value: unknown): boolean {
-  try {
-    const text = JSON.stringify(value)
-    if (localStorage.getItem(PRECAST_GIRDER_STORAGE_KEY) === text) return true // unchanged: no event, so remount-time writes do not mark the project dirty
-    localStorage.setItem(PRECAST_GIRDER_STORAGE_KEY, text)
-    if (typeof window !== 'undefined') { window.dispatchEvent(new Event('kopruq:girder-catalog-changed')); window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'girder' } })) }
-    return true
-  } catch { return false }
+  return GIRDER_LIBRARY_SERVER_SECTION.write(value as Parameters<typeof GIRDER_LIBRARY_SERVER_SECTION.write>[0])
 }
 
 export function getFamilyRecords<T extends FamilyRecord>(category: FamilyRepositoryCategory, fallback: () => T[] = () => []): T[] {
-  if (typeof localStorage === 'undefined') return fallback()
-  try {
-    const value: unknown = JSON.parse(localStorage.getItem(CATALOGS[category].key) ?? 'null')
-    if (!Array.isArray(value)) return fallback()
-    return value as T[]
-  } catch { return fallback() }
+  const value = FAMILY_SERVER_SECTIONS[category].read()
+  return value === undefined ? fallback() : value as unknown as T[]
 }
 
 export function getFamilyRecord<T extends FamilyRecord>(category: FamilyRepositoryCategory, id: string, fallback?: () => T[]): T | undefined {
@@ -51,11 +46,7 @@ export function getFamilyRecord<T extends FamilyRecord>(category: FamilyReposito
 }
 
 export function saveFamilyRecords<T extends FamilyRecord>(category: FamilyRepositoryCategory, records: T[]): boolean {
-  try {
-    localStorage.setItem(CATALOGS[category].key, JSON.stringify(records))
-    if (typeof window !== 'undefined') { window.dispatchEvent(new Event(CATALOGS[category].event)); window.dispatchEvent(new CustomEvent(PROJECT_DATA_CHANGED_EVENT, { detail: { source: 'family' } })) }
-    return true
-  } catch { return false }
+  return (FAMILY_SERVER_SECTIONS[category].write as (next: unknown) => boolean)(records)
 }
 
 export function updateFamilyRecord<T extends FamilyRecord>(category: FamilyRepositoryCategory, id: string, update: (family: T) => T, fallback?: () => T[]): boolean {
@@ -70,11 +61,9 @@ export function deleteFamilyRecord<T extends FamilyRecord>(category: FamilyRepos
 
 export function subscribeFamilyRecords(category: FamilyRepositoryCategory, listener: () => void): () => void {
   if (typeof window === 'undefined') return () => undefined
-  const eventName = CATALOGS[category].event
+  const eventName = CATALOG_EVENTS[category]
   window.addEventListener(eventName, listener)
-  const onStorage = (event: StorageEvent) => { if (event.key === CATALOGS[category].key) listener() }
-  window.addEventListener('storage', onStorage)
-  return () => { window.removeEventListener(eventName, listener); window.removeEventListener('storage', onStorage) }
+  return () => { window.removeEventListener(eventName, listener) }
 }
 
 /** Graph stores category + familyId only; values are resolved on every read. */

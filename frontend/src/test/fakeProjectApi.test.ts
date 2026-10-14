@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CANONICAL_PROJECT_DOCUMENT_JSON, NEW_PROJECT_DOCUMENT_JSON } from '../app/project-session/projectDocumentFixtures'
 import { ApiError } from '../shared/api/http'
 import { activeProjectApi, activeProjectSession, activeSections } from '../shared/project-store/activeProject'
@@ -6,6 +6,8 @@ import { projectApi } from '../shared/project-store/projectApi'
 import { createFakeProjectApi } from './fakeProjectApi'
 import { closeTestProject, installFakeProjectApi, openTestProject, resetActiveProject } from './projectSessionTestUtils'
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(resetActiveProject)
 
 describe('fake project api', () => {

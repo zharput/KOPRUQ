@@ -1,11 +1,13 @@
+import { onProjectSwitch } from '../../../shared/project-store/activeProject'
 import type { KopruqGraph } from '../domain/types'
 import type { ProjectUnits } from '../domain/quantities'
 import { graphFingerprint, stableStringify, unitsFingerprint } from './familyResults'
 
 export type GraphRunValidity = 'VALID' | 'INVALID'
 type PersistedRun = { graphFingerprint: string; completedAt: string; nodeFingerprints?: Record<string, string> }
-const STORAGE_KEY = 'kopruq.graph.successful-runs.v1'
-function read(): Record<string, PersistedRun> { try { const value = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}'); return value && typeof value === 'object' ? value as Record<string, PersistedRun> : {} } catch { return {} } }
+// Successful runs live in memory only; they belong to the open project and are dropped when the project changes.
+let runs: Record<string, PersistedRun> = {}
+function read(): Record<string, PersistedRun> { return runs }
 function key(graph: Pick<KopruqGraph, 'bridgeId' | 'id'>) { return `${graph.bridgeId ?? ''}|${graph.id}` }
 export function currentEngineeringFingerprint(graph: KopruqGraph, units?: ProjectUnits) { return graphFingerprint(graph, units) }
 /**
@@ -20,7 +22,8 @@ function nodeFingerprint(graph: KopruqGraph, nodeId: string, units?: ProjectUnit
   const edges = graph.connections.filter(edge => upstream.has(edge.targetNodeId)).map(({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId }) => ({ id, sourceNodeId, sourcePortId, targetNodeId, targetPortId })).sort((a, b) => a.id.localeCompare(b.id))
   return stableStringify({ nodeId, nodes, edges, units: unitsFingerprint(units) })
 }
-export function recordSuccessfulGraphRun(graph: KopruqGraph, units?: ProjectUnits, fingerprint = currentEngineeringFingerprint(graph, units)) { const runs = read(); runs[key(graph)] = { graphFingerprint: fingerprint, completedAt: new Date().toISOString(), nodeFingerprints: Object.fromEntries(graph.nodes.map(node => [node.id, nodeFingerprint(graph, node.id, units)])) }; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(runs)) } catch { /* runtime remains valid */ }; return fingerprint }
+export function recordSuccessfulGraphRun(graph: KopruqGraph, units?: ProjectUnits, fingerprint = currentEngineeringFingerprint(graph, units)) { runs = { ...runs, [key(graph)]: { graphFingerprint: fingerprint, completedAt: new Date().toISOString(), nodeFingerprints: Object.fromEntries(graph.nodes.map(node => [node.id, nodeFingerprint(graph, node.id, units)])) } }; return fingerprint }
 export function graphRunValidity(graph: KopruqGraph, units?: ProjectUnits, fingerprint = currentEngineeringFingerprint(graph, units)): GraphRunValidity { return read()[key(graph)]?.graphFingerprint === fingerprint ? 'VALID' : 'INVALID' }
 export function nodeRunValidity(graph: KopruqGraph, nodeId: string, units?: ProjectUnits): boolean { const run = read()[key(graph)]; return Boolean(run?.nodeFingerprints?.[nodeId] && run.nodeFingerprints[nodeId] === nodeFingerprint(graph, nodeId, units)) }
-export function clearSuccessfulGraphRuns() { try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore storage failures */ } }
+export function clearSuccessfulGraphRuns() { runs = {} }
+onProjectSwitch(clearSuccessfulGraphRuns)

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { activeSections } from '../../shared/project-store/activeProject'
 import { GRAPH_SERVER_COLLECTION } from '../../features/graph/state/graphServerCollection'
 import { WORKSPACE_SERVER_SECTION } from '../../features/project/model/projectWorkspaceServerSection'
@@ -7,6 +7,8 @@ import { installFakeProjectApi, resetActiveProject } from '../../test/projectSes
 import { GRAPH_COLLECTION_DEFINITION, PROJECT_SECTION_DEFINITIONS } from './projectDocument'
 import './projectSections'
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(resetActiveProject)
 
 describe('server section instances', () => {

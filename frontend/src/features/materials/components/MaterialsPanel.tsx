@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { publishFamilySelection } from '../../family-registry/model/registry'
 import { getFamilyRecords, saveFamilyRecords } from '../../family-registry/model/familyRepository'
+import { useFamilyCatalog } from '../../family-registry/hooks/useFamilyCatalog'
 import { EN_CONCRETE_CLASS_IDS } from '../model/materialCatalog'
 
 /**
@@ -13,7 +14,7 @@ import { EN_CONCRETE_CLASS_IDS } from '../model/materialCatalog'
  * option list is the full EN 1992-1-1 Table 3.1 strength-class set, not
  * invented (same table `backend/analysis-api`'s `EurocodeConcrete`
  * already computes Ecm/fcm from). Defaults to the engineer's own given
- * class per element. Presentation/local state only - not wired into any
+ * class per element. The selection is stored in the project section, but is not wired into any
  * backend computation yet, same discipline as the rest of Project
  * Information.
  */
@@ -38,14 +39,19 @@ function readMaterials(): MaterialRow[] {
   const saved = getFamilyRecords<Partial<MaterialRow> & { id: string }>('MATERIAL')
   return INITIAL_MATERIALS.map((row) => ({ ...row, ...saved.find((item) => item.id === row.id) }))
 }
+const defaultMaterials = () => INITIAL_MATERIALS
 
 export default function MaterialsPanel() {
-  const [materials, setMaterials] = useState<MaterialRow[]>(readMaterials)
+  const [saved] = useFamilyCatalog<MaterialRow>('MATERIAL', defaultMaterials)
+  const materials = INITIAL_MATERIALS.map((row) => ({ ...row, ...saved.find((item) => item.id === row.id) }))
   // Writes through the repository (so the project becomes dirty) and only when the stored catalog differs, so a remount over an up-to-date store is silent.
-  useEffect(() => { if (JSON.stringify(materials) !== JSON.stringify(getFamilyRecords('MATERIAL'))) saveFamilyRecords('MATERIAL', materials) }, [materials])
+  useEffect(() => {
+    const initial = readMaterials()
+    if (JSON.stringify(initial) !== JSON.stringify(getFamilyRecords('MATERIAL'))) saveFamilyRecords('MATERIAL', initial)
+  }, [])
 
   function updateClass(no: number, concreteClass: string) {
-    setMaterials((prev) => prev.map((m) => (m.no === no ? { ...m, concreteClass } : m)))
+    saveFamilyRecords('MATERIAL', materials.map((m) => (m.no === no ? { ...m, concreteClass } : m)))
     publishFamilySelection('MATERIAL', `EN1992-1-1:${concreteClass}`)
   }
 

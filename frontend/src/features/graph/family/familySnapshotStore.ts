@@ -1,3 +1,4 @@
+import { onProjectSwitch } from '../../../shared/project-store/activeProject'
 import { currentFreshness, type FamilyCalculationSnapshot, type FamilyCategory, type SnapshotFreshness } from './familyResults'
 
 const snapshots = new Map<string, FamilyCalculationSnapshot>()
@@ -24,3 +25,5 @@ export function markFamilySnapshotsStale(bridgeId: string, graphDocumentId: stri
   if (changed) notify()
 }
 export function clearFamilySnapshots() { const hadSnapshots = snapshots.size > 0; snapshots.clear(); if (hadSnapshots) notify() }
+// Snapshots belong to the open project: a project switch drops them without a notification (the workspace is remounted by its epoch key).
+onProjectSwitch(() => { snapshots.clear() })

@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { resetActiveProject } from '../../test/projectSessionTestUtils'
 import { z } from 'zod'
 import {
   ACTIVE_PROJECT, activeProjectApi, activeProjectSession, activeSections, activeWriteQueue, createActiveCollection, createActiveSection, onProjectSwitch, setActiveProjectApi,
@@ -15,6 +16,8 @@ function fakeApi(): ProjectApi & { putSection: ReturnType<typeof vi.fn> } {
   return { ...projectApi, putSection } as unknown as ProjectApi & { putSection: ReturnType<typeof vi.fn> }
 }
 
+// The global test setup opens a project; this suite exercises the session layer from a closed one.
+beforeEach(() => resetActiveProject())
 afterEach(() => {
   activeWriteQueue.reset()
   activeProjectSession.end()

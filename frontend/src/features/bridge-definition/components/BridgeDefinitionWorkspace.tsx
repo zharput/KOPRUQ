@@ -66,7 +66,7 @@ export default function BridgeDefinitionWorkspace({ bridges, project, store, set
 
   useEffect(() => {
     const refresh = () => setCatalogs(readCatalogs())
-    const events = ['storage', 'kopruq:pier-catalog-changed', 'kopruq:pier-cap-catalog-changed', 'kopruq:foundation-catalog-changed', 'kopruq:bearing-catalog-changed']
+    const events = ['kopruq:pier-catalog-changed', 'kopruq:pier-cap-catalog-changed', 'kopruq:foundation-catalog-changed', 'kopruq:bearing-catalog-changed']
     events.forEach((event) => window.addEventListener(event, refresh))
     return () => events.forEach((event) => window.removeEventListener(event, refresh))
   }, [])

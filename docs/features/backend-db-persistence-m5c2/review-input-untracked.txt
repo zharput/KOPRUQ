@@ -1,0 +1,12 @@
+frontend/src/app/AppSession.test.tsx
+frontend/src/app/browserStorageRuntime.test.tsx
+frontend/src/app/project-session/realDefaultsWire.test.tsx
+frontend/src/app/project-session/sectionWrites.test.ts
+frontend/src/app/project-session/useBeforeUnloadWarning.ts
+frontend/src/app/project-session/useUrlProjectId.test.tsx
+frontend/src/app/project-session/useUrlProjectId.ts
+frontend/src/features/bridge-definition/model/bridgeDefinitionUiState.test.ts
+frontend/src/features/girder-library/components/GirderLibraryPanel.test.tsx
+frontend/src/features/project/hooks/useProjectState.ts
+frontend/src/shared/project-store/unsavedDrafts.test.ts
+frontend/src/shared/project-store/unsavedDrafts.ts

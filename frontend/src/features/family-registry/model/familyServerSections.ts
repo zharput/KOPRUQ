@@ -3,7 +3,7 @@ import type { ServerSection } from '../../../shared/project-store/serverSection'
 import { FAMILY_SECTIONS, GIRDER_LIBRARY_SECTION, type FamilyRecordOf } from './familyWire'
 import type { FamilyRepositoryCategory } from './familyRepository'
 
-/** Server section instances of the five family lists and the girder library (M5b: not wired into the application yet). */
+/** Server section instances of the five family lists and the girder library (the data store of the feature since M5c). */
 export const FAMILY_SERVER_SECTIONS: { [C in FamilyRepositoryCategory]: ServerSection<FamilyRecordOf<C>[]> } = {
   PIER: createActiveSection(FAMILY_SECTIONS.PIER),
   PIER_CAP: createActiveSection(FAMILY_SECTIONS.PIER_CAP),

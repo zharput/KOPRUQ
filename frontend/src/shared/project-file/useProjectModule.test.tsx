@@ -1,48 +1,43 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { z } from 'zod'
-import { createProjectModule } from './projectModuleStore'
-import { useProjectModule } from './useProjectModule'
+import { describe, expect, it } from 'vitest'
+import { SEISMIC_INPUTS_MODULE } from '../../features/loads/model/loadsProjectModules'
+import { useProjectModule, useProjectModuleValue } from './useProjectModule'
 
-const KEY = 'test.synthetic.hook'
-const MODULE = createProjectModule('hookSynthetic', KEY, z.object({ n: z.number() }))
-const FALLBACK = { n: 0 }
-
-beforeEach(() => localStorage.clear())
+const FALLBACK = { a: '0', g: '0', t: '0', i: '0' }
 
 describe('useProjectModule (generic)', () => {
-  it('returns the fallback when nothing is stored', () => {
-    const { result } = renderHook(() => useProjectModule(MODULE, FALLBACK))
+  it('returns the fallback when the section has no value', () => {
+    const { result } = renderHook(() => useProjectModule(SEISMIC_INPUTS_MODULE, FALLBACK))
     expect(result.current[0]).toBe(FALLBACK)
   })
 
-  it('reads a stored value', () => {
-    localStorage.setItem(KEY, JSON.stringify({ n: 5 }))
-    const { result } = renderHook(() => useProjectModule(MODULE, FALLBACK))
-    expect(result.current[0]).toEqual({ n: 5 })
+  it('reads a value that is already in the section', () => {
+    SEISMIC_INPUTS_MODULE.write({ a: '5', g: '1', t: '1', i: '1' })
+    const { result } = renderHook(() => useProjectModule(SEISMIC_INPUTS_MODULE, FALLBACK))
+    expect(result.current[0]).toEqual({ a: '5', g: '1', t: '1', i: '1' })
   })
 
   it('set writes a value and a functional update receives the previous value', () => {
-    const { result } = renderHook(() => useProjectModule(MODULE, FALLBACK))
-    act(() => result.current[1]({ n: 2 }))
-    expect(result.current[0]).toEqual({ n: 2 })
-    expect(JSON.parse(localStorage.getItem(KEY) as string)).toEqual({ n: 2 })
-    act(() => result.current[1](previous => ({ n: previous.n + 1 })))
-    expect(result.current[0]).toEqual({ n: 3 })
-  })
-
-  it('refreshes on a storage event', () => {
-    const { result } = renderHook(() => useProjectModule(MODULE, FALLBACK))
-    localStorage.setItem(KEY, JSON.stringify({ n: 9 }))
-    act(() => { window.dispatchEvent(new StorageEvent('storage', { key: KEY })) })
-    expect(result.current[0]).toEqual({ n: 9 })
+    const { result } = renderHook(() => useProjectModule(SEISMIC_INPUTS_MODULE, FALLBACK))
+    act(() => result.current[1]({ a: '2', g: '1', t: '1', i: '1' }))
+    expect(result.current[0]).toEqual({ a: '2', g: '1', t: '1', i: '1' })
+    expect(SEISMIC_INPUTS_MODULE.read()).toEqual({ a: '2', g: '1', t: '1', i: '1' })
+    act(() => result.current[1]((previous) => ({ ...previous, a: `${previous.a}3` })))
+    expect(result.current[0].a).toBe('23')
   })
 
   it('refreshes when the module is reset', () => {
-    localStorage.setItem(KEY, JSON.stringify({ n: 4 }))
-    const { result } = renderHook(() => useProjectModule(MODULE, FALLBACK))
-    expect(result.current[0]).toEqual({ n: 4 })
-    act(() => MODULE.reset())
+    SEISMIC_INPUTS_MODULE.write({ a: '4', g: '1', t: '1', i: '1' })
+    const { result } = renderHook(() => useProjectModule(SEISMIC_INPUTS_MODULE, FALLBACK))
+    expect(result.current[0].a).toBe('4')
+    act(() => SEISMIC_INPUTS_MODULE.reset())
     expect(result.current[0]).toBe(FALLBACK)
+  })
+
+  it('useProjectModuleValue returns undefined without a value and the stored value afterwards', () => {
+    const { result } = renderHook(() => useProjectModuleValue(SEISMIC_INPUTS_MODULE))
+    expect(result.current).toBeUndefined()
+    act(() => { SEISMIC_INPUTS_MODULE.write({ a: '1', g: '1', t: '1', i: '1' }) })
+    expect(result.current).toEqual({ a: '1', g: '1', t: '1', i: '1' })
   })
 })

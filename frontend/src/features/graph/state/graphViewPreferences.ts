@@ -1,16 +1,16 @@
+import { onProjectSwitch } from '../../../shared/project-store/activeProject'
+
 export type ConnectionStyle = 'smooth' | 'orthogonal'
 export interface GraphViewPreferences { connectionStyle: ConnectionStyle }
-const STORAGE_KEY = 'kopruq.graph.view-preferences.v1'
 export const DEFAULT_GRAPH_VIEW_PREFERENCES: GraphViewPreferences = { connectionStyle: 'smooth' }
 
-export function readGraphViewPreferences(): GraphViewPreferences {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null') as Partial<GraphViewPreferences> | null
-    return { connectionStyle: saved?.connectionStyle === 'orthogonal' ? 'orthogonal' : 'smooth' }
-  } catch { return DEFAULT_GRAPH_VIEW_PREFERENCES }
-}
+// View preferences live in memory only (never sent to the server) and return to the default when the project changes.
+let preferences: GraphViewPreferences = DEFAULT_GRAPH_VIEW_PREFERENCES
+onProjectSwitch(() => { preferences = DEFAULT_GRAPH_VIEW_PREFERENCES })
 
-export function writeGraphViewPreferences(preferences: GraphViewPreferences): boolean {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)); return true }
-  catch { return false }
+export function readGraphViewPreferences(): GraphViewPreferences { return preferences }
+
+export function writeGraphViewPreferences(next: GraphViewPreferences): boolean {
+  preferences = { connectionStyle: next.connectionStyle === 'orthogonal' ? 'orthogonal' : 'smooth' }
+  return true
 }

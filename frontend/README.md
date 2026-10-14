@@ -19,9 +19,12 @@ Component-based, domain/feature-sliced. Dependency direction is one-way
   barrel) is only counted, not enforced.
 
 There is no accepted exception: the test's allow-list is empty (g5). The
-project save/open layer lives in `app/project-file/`; each project module
-(id, localStorage key, zod schema) is defined by the owning feature, and
-`shared/project-file/` holds only generic, domain-free parts.
+project session layer (New / Open / Exit, save status, the unsaved-changes
+gate, the `?project=<id>` URL adapter) lives in `app/project-session/`; the
+project data itself is kept in server sections (`shared/project-store`), one
+per feature data store, created by the owning feature (`*ServerSection(s).ts`)
+and saved to the backend through a write queue - nothing is stored in the
+browser. `shared/project-file/` holds only generic, domain-free parts.
 
 - `src/app/` - app shell: `App.tsx`, `router.tsx` (React Router),
   `providers/` (TanStack Query client), `layout/` (`TopWorkspaceNav`),
@@ -36,10 +39,10 @@ project save/open layer lives in `app/project-file/`; each project module
 - `src/shared/` - domain-free UI primitives (`shared/ui`, including
   `WorkspaceLayout` and `ParamSweepCard`), helpers (`shared/lib`, e.g.
   `parameterSweep.ts`), the HTTP layer (`shared/api/http.ts`), and the
-  generic project-module mechanism (`shared/project-file`: events,
-  validation, `projectModuleStore`, `useProjectModule`). The project file
-  service, contract, registry and recent projects live in
-  `app/project-file`.
+  project-store infrastructure (`shared/project-store`: session, write
+  queue, server sections, project API) and the thin project-module views over
+  server sections (`shared/project-file`: `projectModuleStore`,
+  `useProjectModule`, validation helpers).
 - `src/test/` - Vitest setup (`jsdom`, `@testing-library/jest-dom`,
   explicit `afterEach(cleanup)`) and `architecture/` tests (layer rules,
   source-encoding guard).
@@ -116,7 +119,7 @@ in `frontend/.env.local`, such as `VITE_API_BASE=http://localhost:8081`.
 
 Vitest + React Testing Library. Coverage is a safety net, not exhaustive:
 domain generators and the graph registry (including a preview/executor
-parity matrix), project-file persistence, schema tests, component tests, and
+parity matrix), project session and server-section persistence, schema tests, component tests, and
 the architecture tests under `src/test/architecture/`. See
 `../docs/architecture.md` for what each round of work verified live in
 the browser (this project's actual functional-correctness check, not

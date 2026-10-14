@@ -2,7 +2,7 @@ package com.kopruq.layout.model;
 
 /**
  * A chainage range on an {@link com.kopruq.alignment.model.Alignment} where a
- * bridge crossing must be accommodated (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * bridge crossing must be accommodated (docs/site-layout-platform-analysis.md
  * section C). {@code crossingType} is free text for now (e.g. "River",
  * "Highway") - same discipline already used for
  * {@code bridge-core}'s {@code Pier.pierType}, not a closed enum until a

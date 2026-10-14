@@ -5,7 +5,7 @@ instruction (2026-09-10): review, propose, then stop for approval.
 
 ## 0. Relationship to the existing spec - this is not a new direction
 
-`docs/KOPRUQ_MASTER_SPEC.md` already named this scope, deliberately
+`docs/kopruq-master-spec.md` already named this scope, deliberately
 deferred:
 
 - Section 7 (Bridge Kernel) lists `Alignment`, `Terrain`, `Geotechnics`,

@@ -1,5 +1,5 @@
 /**
- * KOPRUQ's native analysis engine (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * KOPRUQ's native analysis engine (docs/site-layout-platform-analysis.md
  * addendum P): a linear-elastic 3D direct-stiffness-method solver for
  * frame elements + elastic-link elements, implementing the
  * {@code AnalysisEngine} port from {@code analysis-api}. No Spring, no

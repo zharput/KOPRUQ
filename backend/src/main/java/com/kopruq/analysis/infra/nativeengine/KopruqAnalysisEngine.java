@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * KOPRUQ's own native analysis engine (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * KOPRUQ's own native analysis engine (docs/site-layout-platform-analysis.md
  * addendum P): linear-elastic direct-stiffness method, 3D frame
  * elements + elastic-link elements. This is the FAST/primary tier of the
  * FAST/INTERMEDIATE/FINAL {@link AnalysisEngine} hierarchy - MIDAS NX

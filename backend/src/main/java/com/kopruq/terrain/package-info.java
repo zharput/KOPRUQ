@@ -1,7 +1,7 @@
 /**
  * Terrain domain - a triangulated surface (TIN) imported from a DTM
  * point file, queryable for elevation at (x,y). Reactivates the
- * TerrainModel design from docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * TerrainModel design from docs/site-layout-platform-analysis.md
  * sections C-F, deliberately deactivated by "addendum Q" until real
  * DTM data existed. TERRAIN-P01 (docs/roadmap.md): import + query +
  * mesh export only - no terrain-driven abutment/pier placement yet

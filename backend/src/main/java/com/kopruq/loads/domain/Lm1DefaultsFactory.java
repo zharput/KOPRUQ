@@ -11,7 +11,7 @@ import com.kopruq.loads.model.ParameterValue;
  * Builds LM1's code-default parameter set (TRAFFIC-P01, docs/roadmap.md)
  * - only the engineer-confirmed part is pre-filled: adjustment factors
  * default to 1.00 (base EN, no National Annex adjustment -
- * docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md's P07 scope-agreement round).
+ * docs/site-layout-platform-analysis.md's P07 scope-agreement round).
  * EN 1991-2 base LM1 values (4.3.2 / Table 4.2) are code defaults;
  * adjustment factors remain editable project values and default to 1.00.
  */

@@ -727,7 +727,7 @@ Her domain fazının kapanışı: tam build yeşil, 348 mimari dışı test, Ski
 - **A2:** `junit-bom` ve `spring-boot-dependencies` import sırası korunduğu sürece JUnit sürümü bugünküyle aynı kalır.
 - **A3:** Domain ve katman yerleşim kararları (§3.2–3.3) yazılım kararıdır ve mühendislik bilgisi gerektirmez. Mühendislik değeri, formül veya varsayılan değişmiyor.
 - **A4:** Paketler ve sınıflar dışında hiçbir şey adlandırılmaz. `spring.application.name=kopruq-api` ve `artifactId kopruq-backend` aynı kalır.
-- **A5:** `docs/architecture/backend-reference.md` ve `docs/ARCHITECTURE_AMENDMENT_V2.md` değişmez. İçerdikleri tarihli tespitler tarihsel kayıt olarak kalır.
+- **A5:** `docs/architecture/backend-reference.md` ve `docs/architecture-amendment-v2.md` değişmez. İçerdikleri tarihli tespitler tarihsel kayıt olarak kalır.
 
 ### Açık sorular (hiçbiri planı bloklamıyor; varsayılan karar yazılı)
 - **Q1:** Faz başına yerel checkpoint commit'ine izin var mı? Commit geri almayı (`git revert`) ve rename takibini kolaylaştırır. Varsayılan: commit yok; hata halinde uygulayıcı durur ve `blocked` raporlar.

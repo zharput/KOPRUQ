@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Validates the direct-stiffness implementation against textbook
- * closed-form results (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md addendum
+ * closed-form results (docs/site-layout-platform-analysis.md addendum
  * P's own "hand-worked reference case" validation discipline) - no
  * external solver to compare against yet, so these three cases exercise
  * bending (horizontal member), axial (vertical member) and the elastic

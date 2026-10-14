@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * rectangle section) - not invented data. Reaction sum (980 kN) and end
  * rotation (0.000817 rad) were independently hand-verified against
  * weight = 20*2*1*24.5 and theta = wL^3/(24*E*I) - see
- * docs/MIDAS_INTEGRATION_ANALYSIS.md.
+ * docs/midas-integration-analysis.md.
  */
 class MidasResultExtractorTest {
 

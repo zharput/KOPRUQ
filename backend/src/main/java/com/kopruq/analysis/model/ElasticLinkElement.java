@@ -2,7 +2,7 @@ package com.kopruq.analysis.model;
 
 /**
  * A two-node elastic-link (spring) element connecting {@code nodeI} to
- * {@code nodeJ} - e.g. an elastomeric bearing (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * {@code nodeJ} - e.g. an elastomeric bearing (docs/site-layout-platform-analysis.md
  * addendum P: "bearings as elastic-link elements"). Stiffness values act
  * along the GLOBAL axes (kx/ky/kz translational, krx/kry/krz
  * rotational) - a deliberate simplification: no local-axis rotation is

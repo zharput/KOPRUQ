@@ -8,7 +8,7 @@ import com.kopruq.layout.enums.FeasibilityStatus;
  * the alignment, and the resulting uniform span arrangement.
  *
  * <p>Deliberately excludes preliminary foundations, earthwork,
- * quantities, cost and carbon (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * quantities, cost and carbon (docs/site-layout-platform-analysis.md
  * section C names these) - each needs an engineer-approved estimation
  * method that does not exist yet; adding them now would mean inventing
  * one (spec section 22). Add each once its method is approved.

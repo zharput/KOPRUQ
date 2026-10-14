@@ -1,6 +1,6 @@
 /**
  * Alignment - converts between chainage-based positions and real-world
- * XYZ coordinates (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md section C, E,
+ * XYZ coordinates (docs/site-layout-platform-analysis.md section C, E,
  * addendum Q). Depends only on {@code spatial-core}. No Spring, no
  * solver, no site/terrain dependency.
  *

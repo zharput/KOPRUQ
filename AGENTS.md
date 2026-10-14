@@ -670,8 +670,8 @@ rules above; it does not replace the specifications in `docs/`.
   frontend. The backend is intentionally a modular monolith; `api` is the
   Spring boundary and domain modules must remain framework-independent.
 - Primary references, in reading order: `CLAUDE.md`,
-  `docs/KOPRUQ_MASTER_SPEC.md`, `docs/ARCHITECTURE_AMENDMENT_V2.md`,
-  `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md`, `docs/architecture.md`, and
+  `docs/kopruq-master-spec.md`, `docs/architecture-amendment-v2.md`,
+  `docs/site-layout-platform-analysis.md`, `docs/architecture.md`, and
   `docs/roadmap.md`.
 - `archive/` contains superseded C#/.NET/Avalonia generations. It is reference
   material only and is not an implementation dependency.

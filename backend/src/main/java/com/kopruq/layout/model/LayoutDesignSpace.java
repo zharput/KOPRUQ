@@ -1,7 +1,7 @@
 package com.kopruq.layout.model;
 
 /**
- * The ranges the layout engine searches within (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * The ranges the layout engine searches within (docs/site-layout-platform-analysis.md
  * section C) - the layout-generation analogue of {@code bridge-core}'s
  * {@code DesignSpace}. All lengths in meters (SI).
  *

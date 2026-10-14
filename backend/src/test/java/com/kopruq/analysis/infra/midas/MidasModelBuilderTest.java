@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Verifies {@link MidasModelBuilder} produces the same request shapes
  * verified live against MIDAS Civil NX on 2026-09-09 (20 m
  * simply-supported beam, self-weight only) - see
- * docs/MIDAS_INTEGRATION_ANALYSIS.md.
+ * docs/midas-integration-analysis.md.
  */
 class MidasModelBuilderTest {
 

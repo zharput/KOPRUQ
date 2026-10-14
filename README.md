@@ -227,9 +227,9 @@ Frontend'den API ve veritabanına ilerleyen manuel kabul adımları için [uçta
 
 | Belge | Konu |
 | --- | --- |
-| [Ana spesifikasyon](docs/KOPRUQ_MASTER_SPEC.md) | Domain ve mühendislik hedefleri; teknoloji kararları mimari ekle birlikte okunmalı |
-| [Mimari ek v2](docs/ARCHITECTURE_AMENDMENT_V2.md) | Java/React yığını ve harici sistem kararları |
-| [Saha ve yerleşim analizi](docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md) | Yerleşim değişkenleri, saha akışı ve native solver yönü |
+| [Ana spesifikasyon](docs/kopruq-master-spec.md) | Domain ve mühendislik hedefleri; teknoloji kararları mimari ekle birlikte okunmalı |
+| [Mimari ek v2](docs/architecture-amendment-v2.md) | Java/React yığını ve harici sistem kararları |
+| [Saha ve yerleşim analizi](docs/site-layout-platform-analysis.md) | Yerleşim değişkenleri, saha akışı ve native solver yönü |
 | [Mimari kayıt](docs/architecture.md) | Gerçekleşen geliştirmelerin tarihli açıklaması |
 | [Yol haritası](docs/roadmap.md) | Tamamlanan, ertelenen ve açık kilometre taşları |
 | [Backend referansı](docs/architecture/backend-reference.md) | Paket/layer kuralları ve hedef mimari |

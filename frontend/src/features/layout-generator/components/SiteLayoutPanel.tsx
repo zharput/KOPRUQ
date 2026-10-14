@@ -9,7 +9,7 @@ import { useGenerateLayouts } from '../hooks/useGenerateLayouts'
 import type { LayoutSeed } from '../model/types'
 
 /**
- * LAYOUT-P01 (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md sections D, G, M,
+ * LAYOUT-P01 (docs/site-layout-platform-analysis.md sections D, G, M,
  * addendum Q): one straight alignment, one bridge site, zero or more
  * no-pier zones, and the span search ranges -> candidate bridge layouts
  * (abutment/pier chainages, span arrangement), shown as a table -
@@ -89,7 +89,7 @@ export default function SiteLayoutPanel({ onUseLayout }: { onUseLayout: (seed: L
       <div className="spn-card">
         <h2 className="spn-card-title">Alignment & site</h2>
         <p className="spn-card-subtitle">
-          One straight alignment for now (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md SITE-P01) - no terrain, no
+          One straight alignment for now (docs/site-layout-platform-analysis.md SITE-P01) - no terrain, no
           pier/abutment height yet (addendum Q).
         </p>
         <div className="spn-field-grid">

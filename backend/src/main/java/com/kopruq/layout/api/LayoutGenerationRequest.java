@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * LAYOUT-P01 form fields (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md sections
+ * LAYOUT-P01 form fields (docs/site-layout-platform-analysis.md sections
  * M, addendum Q): one straight alignment, one bridge site, zero or more
  * no-pier zones, and the span search ranges. Mirrors
  * {@code KernelStateRequest}'s pattern of centralizing the request -&gt;

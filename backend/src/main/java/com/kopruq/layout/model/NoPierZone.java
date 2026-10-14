@@ -6,7 +6,7 @@ package com.kopruq.layout.model;
  *
  * <p>This is a deliberately simplified stand-in for the full
  * {@code ConstraintObject}/3D-exclusion-volume model described in
- * docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md section C - LAYOUT-P01's own
+ * docs/site-layout-platform-analysis.md section C - LAYOUT-P01's own
  * scope note (section M, addendum Q) asks for "one NoPierZone... not the
  * full ConstraintType enum". Since pier candidates are chainage-only for
  * now (no real XY/offset variation yet), a chainage range is sufficient

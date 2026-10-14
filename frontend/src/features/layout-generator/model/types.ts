@@ -4,7 +4,7 @@
  * a feasible BridgeLayoutAlternative, its bridge length and uniform span
  * length are carried over here rather than being retyped by hand - the
  * "bridge length is a design variable, not a fixed input" principle
- * (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md's non-negotiable principles),
+ * (docs/site-layout-platform-analysis.md's non-negotiable principles),
  * made real without a new backend endpoint: GenerateWorkflow's existing
  * KernelStateRequest just gets pre-filled with these two numbers, then
  * runs through the unchanged /api/alternatives flow.

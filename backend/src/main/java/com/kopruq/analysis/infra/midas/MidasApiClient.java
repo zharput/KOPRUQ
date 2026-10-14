@@ -20,7 +20,7 @@ import java.time.Duration;
  * <p>Requires MIDAS Civil NX to be open and API-connected (Apps &gt; API
  * &gt; API Settings &gt; Connect) on the machine identified by the
  * configured key - there is no headless/server mode (see
- * docs/MIDAS_INTEGRATION_ANALYSIS.md section 1).
+ * docs/midas-integration-analysis.md section 1).
  */
 public final class MidasApiClient implements MidasHttpClient {
 

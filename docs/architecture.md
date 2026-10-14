@@ -13,8 +13,8 @@ real** - a linear-elastic 3D direct-stiffness solver, verified against
 closed-form results and live-run on the engineer's own 5-span
 frame-bridge test case (KOPRUQ Fast Solver screen)** for the new
 polyglot stack - see `docs/roadmap.md`. This document describes the *shape* of the system as
-of `docs/ARCHITECTURE_AMENDMENT_V2.md`, now also being extended per
-`docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` (site/corridor/layout platform +
+of `docs/architecture-amendment-v2.md`, now also being extended per
+`docs/site-layout-platform-analysis.md` (site/corridor/layout platform +
 native analysis engine - engineer approved starting with its first
 roadmap step, `spatial-core`/`alignment`, on 2026-09-10; the rest of
 that document's proposal is implemented incrementally, module by
@@ -80,8 +80,8 @@ KOPRUQ/
 |   |-- optimization-service/        placeholder only
 |   `-- ai-service/                  placeholder only
 |-- docs/
-|   |-- KOPRUQ_MASTER_SPEC.md       authoritative spec (v1, kept verbatim)
-|   |-- ARCHITECTURE_AMENDMENT_V2.md  supersedes spec sections 3/4/12-14/19-20 tech choices
+|   |-- kopruq-master-spec.md       authoritative spec (v1, kept verbatim)
+|   |-- architecture-amendment-v2.md  supersedes spec sections 3/4/12-14/19-20 tech choices
 |   |-- architecture/backend-reference.md  the reference package layout (R1-R15)
 |   |-- architecture.md              this file
 |   `-- roadmap.md                   milestone status
@@ -173,7 +173,7 @@ the `@tauri-apps/cli` dependency were removed, `vite.config.ts` reverted.
 
 This does not affect MIDAS reachability at all: the MIDAS connection
 lives entirely in the backend's `midas-adapter` module (P06, still an
-empty skeleton - see `docs/MIDAS_INTEGRATION_ANALYSIS.md`), which the
+empty skeleton - see `docs/midas-integration-analysis.md`), which the
 frontend never talks to directly regardless of whether it's a browser tab
 or a native window - confirmed by the MIDAS-P01 round-trip test, which
 used plain HTTP calls with no frontend involved either way.
@@ -305,7 +305,7 @@ model doesn't have yet. No backend change - purely a rendering of what
 
 ## P06 MIDAS-P01 round trip (`backend/analysis-api`, `backend/midas-adapter`)
 
-Full research write-up: `docs/MIDAS_INTEGRATION_ANALYSIS.md`. Summary of
+Full research write-up: `docs/midas-integration-analysis.md`. Summary of
 what's actually built:
 
 `com.kopruq.analysis` (solver-independent - no MIDAS reference
@@ -397,7 +397,7 @@ doesn't exist until P07-P09 land.
 
 ## SITE-P01 spatial-core + alignment (`backend/spatial-core`, `backend/alignment`)
 
-First implementation step of `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md`
+First implementation step of `docs/site-layout-platform-analysis.md`
 (site/corridor/bridge-layout platform proposal, sections A-Q). Per that
 document's own roadmap (section L, step 1) and its "smallest first
 milestone" reasoning (section M, further narrowed by addendum Q): the
@@ -442,13 +442,13 @@ anything is built on top of it.
   `analysis-api`/`midas-adapter`/`api`.
 - **Not done yet, by design**: no REST endpoint, no frontend, no
   `TerrainModel`/`constraints`/`Corridor`/`BridgeLayoutEngine` (those are
-  later roadmap steps in `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` section
+  later roadmap steps in `docs/site-layout-platform-analysis.md` section
   L), no `kopruq-analysis-engine` (addendum P - a separate, unstarted
   roadmap item).
 
 ## LAYOUT-P01 bridge-layout engine (`backend/constraints`, `backend/bridge-layout`)
 
-Second implementation step of `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md`,
+Second implementation step of `docs/site-layout-platform-analysis.md`,
 following on from SITE-P01. Scope is the M/Q-narrowed LAYOUT-P01: one
 straight `Alignment`, one `BridgeSite`, one (or more) `NoPierZone`,
 walk candidate abutment (C1) positions and uniform span arrangements,
@@ -508,7 +508,7 @@ no-pier zone, return every candidate (feasible and rejected) as a
 
 Third step, same session: wired `BridgeLayoutEngine` to the frontend and
 replaced P10's flat sidebar with the grouped structure
-`docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` section K proposed - a smaller,
+`docs/site-layout-platform-analysis.md` section K proposed - a smaller,
 honest subset of it, not the full ~70-leaf tree (see that section's own
 "scaffold the groups first, add leaves incrementally" guidance).
 
@@ -714,7 +714,7 @@ piers) rather than a synthetic example.
     synchronous-submit-to-completion shape as `MidasCivilNxAnalysisEngine`
     (MIDAS-P01 precedent), in-memory job map.
 - **Validated against textbook closed-form results**
-  (`FrameSolverTest`, 3 tests, `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md`
+  (`FrameSolverTest`, 3 tests, `docs/site-layout-platform-analysis.md`
   addendum P's own "hand-worked reference case" discipline): a horizontal
   cantilever's tip deflection under self-weight vs. `wL^4/(8*E*Iy)`; a
   vertical column's axial shortening under self-weight vs.
@@ -2009,7 +2009,7 @@ Three small, independent asks from the engineer's own screenshots.
   replaces the disabled `shared/ui/ImportActionScreen` placeholder on
   this route only - Alignment keeps its own disabled placeholder,
   untouched). Terrain itself is still explicitly deactivated
-  (`docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` addendum Q - no
+  (`docs/site-layout-platform-analysis.md` addendum Q - no
   `TerrainModel`, pier/abutment heights stay external), so this screen
   only *ingests and summarizes* whatever DTM/point file is uploaded -
   it does not generate a surface, TIN, or contours, which would be real
@@ -2042,7 +2042,7 @@ milestone tightly: **DTM -> Java `TerrainModel` -> elevation query ->
 React Three Fiber mesh -> alignment overlay** - no satellite imagery,
 no 50-bridge corridor, no LOD, no automatic bridge-layout placement.
 Research (3 parallel Explore agents over backend/frontend/docs) found
-that `docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` sections C-F/L had already
+that `docs/site-layout-platform-analysis.md` sections C-F/L had already
 designed almost exactly this `TerrainModel`/coordinate/GIS architecture
 once, then deliberately deactivated it in "addendum Q" purely because
 no real DTM data existed yet - so this round **reactivates and extends
@@ -2166,7 +2166,7 @@ horizontal alignment, and a vertical profile together as one coherent,
 traceable dataset. Another research-then-plan-then-approve round (this
 time a single, lighter Explore pass, since most of the relevant code
 had just been built this same session): the research confirmed
-`docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md` had already anticipated exactly
+`docs/site-layout-platform-analysis.md` had already anticipated exactly
 this ("LandXML/DEM/TIN import each produce this [TerrainModel]") as a
 later, separate effort from the synthetic-TIN first milestone - so this
 round **extends** TERRAIN-P01's domain objects and the entire
@@ -2426,7 +2426,7 @@ approved, then implemented.
   not yet decided for the real `api` Spring Boot process.
 - `ModelMapping`, `AnalysisJobManager`/queueing/concurrency policy,
   result caching/fingerprinting, and engineering QA post-MIDAS are all
-  designed in `docs/MIDAS_INTEGRATION_ANALYSIS.md` but not built - next
+  designed in `docs/midas-integration-analysis.md` but not built - next
   MIDAS milestones, not yet scheduled against the P00-P12 numbering.
 
 ## Workspace shell, Phase 1 (`frontend/src/app/`, 2026-09-17)

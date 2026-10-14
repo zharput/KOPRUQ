@@ -3,7 +3,7 @@ package com.kopruq.analysis.api;
 import java.util.List;
 
 /**
- * KOPRUQ Fast Solver form fields (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md
+ * KOPRUQ Fast Solver form fields (docs/site-layout-platform-analysis.md
  * addendum P) - the engineer's own worked test case (2026-09-10):
  * a 5-span frame bridge, portal-frame piers (2 rectangular columns + cap
  * beam each), elastomeric bearings at every support, fixed column bases.

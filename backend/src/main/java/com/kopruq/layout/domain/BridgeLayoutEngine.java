@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * LAYOUT-P01 (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md sections D, G, M,
+ * LAYOUT-P01 (docs/site-layout-platform-analysis.md sections D, G, M,
  * addendum Q): generates candidate {@link BridgeLayoutAlternative}s for
  * one {@link BridgeSite}.
  *
@@ -25,7 +25,7 @@ import java.util.List;
  * arrangements whose C2 (last abutment) still fits inside the site;
  * evaluate every intermediate pier against every {@link NoPierZone}.
  * This is "reject early, reject cheap" at a small scale
- * (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md section J/G) - out-of-site
+ * (docs/site-layout-platform-analysis.md section J/G) - out-of-site
  * arrangements are never even constructed, constraint violations are
  * caught while walking, not in a separate pass.
  *

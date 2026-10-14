@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * LAYOUT-P01 (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md sections D, G, M,
+ * LAYOUT-P01 (docs/site-layout-platform-analysis.md sections D, G, M,
  * addendum Q): generates candidate bridge layouts for one straight
  * alignment / one bridge site / a set of no-pier zones, returned as a
  * flat table-ready list (feasible and rejected alternatives both

@@ -1,6 +1,6 @@
 /**
  * Bridge Layout Engine - LAYOUT-P01
- * (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md sections D, G, M, addendum Q).
+ * (docs/site-layout-platform-analysis.md sections D, G, M, addendum Q).
  * Depends on {@code alignment} and {@code constraints}. No Spring, no
  * solver.
  *

@@ -22,7 +22,7 @@ import java.util.UUID;
 
 /**
  * Imports a raw XYZ point file into a triangulated {@link TerrainModel}
- * (TERRAIN-P01, reactivating docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md's
+ * (TERRAIN-P01, reactivating docs/site-layout-platform-analysis.md's
  * "simple TIN" first implementation, deferred by addendum Q until real
  * DTM data existed).
  *

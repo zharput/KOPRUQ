@@ -123,7 +123,7 @@ Her katmanın görevi:
 
 ## KOPRUQ'a uyarlama (revizyon 2026-10-12)
 
-**Karar (2026-10-12):** Eski "api dışındaki her modül framework'süz, ayrı Maven modülü" kuralı kaldırıldı (CLAUDE.md ve `docs/ARCHITECTURE_AMENDMENT_V2.md` "Revision 2026-10-12"). KOPRUQ backend'i, referans gibi **tek Maven modülünden oluşan bir Spring Boot modüler monolith** olur. Klasör ve paket yapısı referansla aynıdır.
+**Karar (2026-10-12):** Eski "api dışındaki her modül framework'süz, ayrı Maven modülü" kuralı kaldırıldı (CLAUDE.md ve `docs/architecture-amendment-v2.md` "Revision 2026-10-12"). KOPRUQ backend'i, referans gibi **tek Maven modülünden oluşan bir Spring Boot modüler monolith** olur. Klasör ve paket yapısı referansla aynıdır.
 
 | | SPANOVA (referans) | KOPRUQ (hedef) |
 |---|---|---|

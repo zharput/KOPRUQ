@@ -24,7 +24,7 @@ import java.util.List;
  * network access, so it is unit-testable without a live MIDAS
  * connection. Every JSON shape below was verified against the
  * engineer's own running MIDAS Civil NX on 2026-09-09 (see
- * docs/MIDAS_INTEGRATION_ANALYSIS.md) - none of it is guessed.
+ * docs/midas-integration-analysis.md) - none of it is guessed.
  *
  * <p>MIDAS-P01 scope only: isotropic materials, solid-rectangle
  * ("Value"/"SB") sections, beam elements, translation/rotation

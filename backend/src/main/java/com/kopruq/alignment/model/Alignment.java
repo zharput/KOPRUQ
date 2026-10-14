@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Horizontal bridge/corridor alignment: converts between chainage-based
  * positions and real-world XYZ coordinates
- * (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md section C, E). This is the
+ * (docs/site-layout-platform-analysis.md section C, E). This is the
  * single most-depended-on primitive in the site/layout domain - every
  * {@link ChainagePosition} anywhere ultimately resolves through this
  * class.

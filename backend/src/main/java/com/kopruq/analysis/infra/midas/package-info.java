@@ -7,7 +7,7 @@
  * {@link com.kopruq.analysis.infra.midas.MidasCivilNxAnalysisEngine} (orchestrates all
  * three, implements analysis-api's {@code AnalysisEngine}) - verified
  * live against the engineer's own Civil NX, see
- * docs/MIDAS_INTEGRATION_ANALYSIS.md.
+ * docs/midas-integration-analysis.md.
  *
  * Not yet built: load combinations, moving loads, construction stages,
  * seismic, tendons, or wiring a real {@code BridgeAlternative} in -

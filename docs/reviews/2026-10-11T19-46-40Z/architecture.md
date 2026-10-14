@@ -5,7 +5,7 @@
 - **Kök:** `C:\Users\cemha\repos\KOPRUQ` · **HEAD:** `bdca6d8b5704392e36621f12d4d3cdd740d381c3` · **Parmak izi:** `cee2560eea5506ddecdb7edc45ca0f65f47d8b08829efe5b4bb1182c83fb5980` (232 dosya, hepsi metin; `target/` hariç)
 - **Mimari hedef:** `docs/architecture/backend-reference.md` (R1–R16 + "KOPRUQ'a uyarlama"); çakışmada CLAUDE.md geçerli.
 - **Analyzer:** yok, hiçbir şey çalıştırılmadı (`analyzers/README.md`). Bulgular kaynak okumasına dayanır.
-- **Bağlam:** workflow/config/project-context, `backend-reference.md`, `docs/roadmap.md` (625-694), `docs/architecture.md` (680-739 + arama), `docs/ARCHITECTURE_AMENDMENT_V2.md` (arama).
+- **Bağlam:** workflow/config/project-context, `backend-reference.md`, `docs/roadmap.md` (625-694), `docs/architecture.md` (680-739 + arama), `docs/architecture-amendment-v2.md` (arama).
 
 ## 1. Mimari harita
 

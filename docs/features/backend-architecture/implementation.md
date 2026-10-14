@@ -100,7 +100,7 @@ MVN=/c/Users/cemha/.m2/wrapper/dists/apache-maven-3.9.16/0daed3be3ebd1c706f0e69e
 
 ## Sapmalar ve sınırlamalar
 - **AC10 javadoc notu:** `RectangularSectionProperties.java:15` yorumundaki "SB" `analysis-engine` main'inde duruyor. Plan `analysis-engine` javadoc'larını kapsamıyordu, dokunmadım.
-- **Port javadoc'larında MIDAS adı:** `analysis-api` içinde `AnalysisElement`, `AnalysisResult`, `AnalysisStatus` ve diğerlerinde "MIDAS-P01 scope" ve `docs/MIDAS_INTEGRATION_ANALYSIS.md` referansları duruyor. Bunlar milestone adı ve doküman referansı; plan yalnızca kod/şekil kodlarını ve "solver session" birim ifadesini hedefliyordu.
+- **Port javadoc'larında MIDAS adı:** `analysis-api` içinde `AnalysisElement`, `AnalysisResult`, `AnalysisStatus` ve diğerlerinde "MIDAS-P01 scope" ve `docs/midas-integration-analysis.md` referansları duruyor. Bunlar milestone adı ve doküman referansı; plan yalnızca kod/şekil kodlarını ve "solver session" birim ifadesini hedefliyordu.
 - **Rename eşleşmesi:** Bu nedenle git, `FastSolverModelBuilder.java` için `fastsolver/api/` taşımasını son durumda `FrameBridgeModelBuilder`'a eşleştiriyor (risk §8 öngörmüştü; `--follow -M30%` kullanılabilir).
 - **A3 (bilinçli davranış farkı):** `AppliedLoadSummary` self-weight varken dikdörtgen olmayan kesitte `IllegalArgumentException` atar (eskiden sessiz 0). REST'ten erişilemez; `FastSolverContractTest` 1e-9 ile aynı kaldı.
 - **A4:** `LoadCaseKind.WIND` MIDAS eşlemesi doğrulanana kadar istisna atıyor; oturum birimi çağrısı eklenmedi. Birimin kN ve m olması gerektiği `MidasModelBuilder` javadoc'unda ve `docs/architecture.md` P07 notunda yazılı.

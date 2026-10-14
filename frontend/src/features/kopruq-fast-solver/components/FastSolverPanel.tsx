@@ -6,7 +6,7 @@ import { useFastSolver } from '../hooks/useFastSolver'
 import { requestErrorMessage } from '../../../shared/api/formErrors'
 
 /**
- * KOPRUQ Fast Solver (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md addendum P):
+ * KOPRUQ Fast Solver (docs/site-layout-platform-analysis.md addendum P):
  * the engineer's own worked test case (2026-09-10) - a 5-span frame
  * bridge, portal-frame piers (2 rectangular columns + cap beam each),
  * elastomeric bearings at every support, fixed column bases - run

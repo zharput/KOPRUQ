@@ -6,9 +6,9 @@ Guidance for Claude Code sessions working in this repository.
 
 KOPRUQ is a Computational & Generative Bridge Design platform, built
 incrementally with the engineer, milestone by milestone. The
-authoritative specification is `docs/KOPRUQ_MASTER_SPEC.md` - read it
+authoritative specification is `docs/kopruq-master-spec.md` - read it
 before making any architectural decision - **amended by
-`docs/ARCHITECTURE_AMENDMENT_V2.md`**, which replaces the original
+`docs/architecture-amendment-v2.md`**, which replaces the original
 C#/.NET/Avalonia stack with the polyglot architecture described below.
 Read both. `docs/architecture.md` and `docs/roadmap.md` record how the
 (amended) spec is being implemented and what is done so far.
@@ -60,7 +60,7 @@ Rust + VS Build Tools were installed for a Tauri desktop-shell attempt
 that was reverted - not needed for the current web-app frontend.
 
 **Primary analysis solver: MIDAS Civil NX**, not ALLPLAN. See
-`docs/ARCHITECTURE_AMENDMENT_V2.md` for why, and note that this
+`docs/architecture-amendment-v2.md` for why, and note that this
 project's own session history already has verified, working MIDAS MAPI
 calls (node/element/material/section creation, loads, running an
 analysis, pulling results) - real prior art for `midas-adapter`, unlike

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * KOPRUQ Fast Solver (docs/SITE_LAYOUT_PLATFORM_ANALYSIS.md addendum P):
+ * KOPRUQ Fast Solver (docs/site-layout-platform-analysis.md addendum P):
  * runs the engineer's frame-bridge test case through the native
  * analysis engine ({@link FastSolverService}) and returns reactions/displacements as a
  * flat, labelled table (same discipline as {@code AlternativeRow}/

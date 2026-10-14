@@ -1,6 +1,6 @@
 # Architecture Amendment v2 (2026-09-09)
 
-This amends `docs/KOPRUQ_MASTER_SPEC.md` sections 3, 4, 12-14 and 19-20.
+This amends `docs/kopruq-master-spec.md` sections 3, 4, 12-14 and 19-20.
 The master spec file itself is kept verbatim as the historical record of
 what was originally decided; this document is the current source of
 truth for the technology stack and adapter target. Everything else in

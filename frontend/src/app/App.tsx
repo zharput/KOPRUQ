@@ -116,6 +116,15 @@ function ProjectShell() {
   // Shortcuts must not open a dialog on top of the unsaved-changes decision, which locks the dialogs.
   const requestNew = () => { if (!dialogsLocked) setNewDialogOpen(true) }
   const requestOpenList = () => { if (!dialogsLocked) setListDialogOpen(true) }
+  // Ctrl+S on a stalled queue is a recovery path: error/rejected retry now (not while the unsaved-changes decision is open), a conflict cannot be retried, so its notification is shown again.
+  const saveNow = () => {
+    if (saveStatus.status === 'error' || saveStatus.status === 'rejected') { if (!sessionBusy) void session.retrySaves() }
+    else if (saveStatus.status === 'conflict') saveToast.reshow()
+    else void activeWriteQueue.flush().catch(() => undefined)
+  }
+  const retrySaves = () => { void session.retrySaves() }
+  const discardSaves = () => session.discardSaves()
+  const reloadProject = () => { if (mayLeave()) void session.reloadProject() }
 
   let body
   if (phase.kind === 'welcome') {
@@ -138,12 +147,16 @@ function ProjectShell() {
   return (
     <div className="spn-app-root">
       <TopWorkspaceNav
-        projectId={saveStatus.projectId} projectName={projectState.project.name} saveStatus={saveStatus} busy={sessionBusy}
+        projectId={saveStatus.projectId} projectName={projectState.project.name}
         onNew={requestNew} onOpenList={requestOpenList} onOpenProject={(projectId) => { if (mayLeave(projectId)) void session.openProject(projectId) }}
-        onExit={() => { if (mayLeave()) void session.exitProject() }} onSaveNow={() => { void activeWriteQueue.flush().catch(() => undefined) }}
-        onRetry={() => { void session.retrySaves() }} onDiscard={() => session.discardSaves()} onReload={() => { if (mayLeave()) void session.reloadProject() }}
+        onExit={() => { if (mayLeave()) void session.exitProject() }} onSaveNow={saveNow}
       />
-      {saveStatus.projectId !== null && <SaveToast toast={saveToast} />}
+      {saveStatus.projectId !== null && (
+        <SaveToast
+          toast={saveToast.toast} snapshot={saveStatus} busy={sessionBusy} onRetry={retrySaves} onDiscard={discardSaves} onReload={reloadProject}
+          onPause={saveToast.pause} onResume={saveToast.resume}
+        />
+      )}
       {session.actionError !== null && <div className="spn-session-banner" role="alert"><span>{session.actionError}</span><button type="button" className="spn-button-secondary" onClick={session.clearActionError}>Kapat</button></div>}
       {body}
       <NewProjectDialog open={newDialogOpen} busy={dialogsLocked} onCreate={createProject} onCancel={() => setNewDialogOpen(false)} />

@@ -1932,3 +1932,7 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 ## save-status-toast (2026-10-15)
 
 - [x] The persistent top-bar "Kaydedildi" label is removed; every server section write now shows a transient top-right toast (green "Kaydedildi", red "Kaydedilemedi", about 1.5 s). The persistent error/conflict block with Tekrar dene / Değişiklikleri at / Yeniden yükle stays. Frontend only; plan `docs/features/save-status-toast/`.
+
+## save-error-toast (2026-10-15)
+
+- [x] The persistent top-bar save-problem block (`SaveStatusIndicator`) is removed. A failed save now shows a red, 8 s notification (pauses on hover/focus) with Tekrar dene / Değişiklikleri at, or Yeniden yükle for a conflict. The write queue stays stalled after it disappears: every new edit (`WriteQueue.onHeldWrite`) and Ctrl+S bring it back (Ctrl+S retries error/rejected); the Exit/Open/New gate and the `beforeunload` warning are unchanged. Frontend only; plan `docs/features/save-error-toast/`.

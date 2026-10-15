@@ -5,6 +5,7 @@ import App from './App'
 import { CANONICAL_PROJECT_DOCUMENT_JSON, NEW_PROJECT_DOCUMENT_JSON } from './project-session/projectDocumentFixtures'
 import { ApiError } from '../shared/api/http'
 import { activeProjectSession, activeWriteQueue } from '../shared/project-store/activeProject'
+import { SAVE_ERROR_TOAST_MS } from './project-session/saveToastTracker'
 import { saveFamilyRecords } from '../features/family-registry/model/familyRepository'
 import { SEISMIC_INPUTS_MODULE } from '../features/loads/model/loadsProjectModules'
 import { readProjectState, writeProjectState } from '../features/project/model/projectWorkspace'
@@ -32,7 +33,15 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); resetActiveProject() })
 
 const topNav = () => within(document.querySelector('.spn-workspace-nav') as HTMLElement)
-const saveToast = () => document.querySelector('.spn-save-toast')
+const saveToast = () => document.querySelector('.spn-save-toast[data-kind="saved"]')
+// The failure toast is a role=alert named 'Kayıt bildirimi'; the action-error band is a role=alert as well, so the name tells them apart.
+const failedToastNode = () => screen.queryByRole('alert', { name: 'Kayıt bildirimi' })
+const failedToast = async () => within(await screen.findByRole('alert', { name: 'Kayıt bildirimi' }, { timeout: 3000 }))
+// The 8 s of the failure toast are covered with fake timers in useSaveToast.test; here the expiry is shortened so that "the toast is gone" can be reached.
+const shortenErrorToast = () => {
+  const real = globalThis.setTimeout
+  vi.spyOn(globalThis, 'setTimeout').mockImplementation(((handler: TimerHandler, ms?: number, ...args: unknown[]) => real(handler, ms === SAVE_ERROR_TOAST_MS ? 50 : ms, ...args)) as typeof setTimeout)
+}
 const fileButton = () => topNav().getByRole('button', { name: /^File/ })
 const search = () => new URLSearchParams(window.location.search).get('project')
 const names = (requests: { method: string; path: string }[]) => requests.map((request) => `${request.method} ${request.path.replace(/^(\/api\/projects)\/[^/]+/, '$1/{id}')}`)
@@ -200,8 +209,9 @@ describe('Writes, status and failures', () => {
     const workspace = fake.document(A)!.workspace as { project: { name: string } }
     workspace.project.name = 'Changed elsewhere'
     await renameProject(user, ' local')
-    const banner = topNav()
-    expect(await banner.findByText(/Çakışma/, undefined, { timeout: 3000 })).toBeInTheDocument()
+    const banner = await failedToast()
+    expect(banner.getByText(/Çakışma/)).toBeInTheDocument()
+    expect(topNav().queryByRole('alert')).not.toBeInTheDocument()
     const puts = putRequests(fake).length
     await renameProject(user, ' again')
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -209,7 +219,7 @@ describe('Writes, status and failures', () => {
     const gets = fake.requests.filter((request) => request.method === 'GET').length
     await user.click(banner.getByRole('button', { name: 'Yeniden yükle' }))
     await waitFor(() => expect(fake.requests.filter((request) => request.method === 'GET')).toHaveLength(gets + 1))
-    await waitFor(() => expect(banner.queryByRole('alert')).not.toBeInTheDocument())
+    await waitFor(() => expect(failedToastNode()).not.toBeInTheDocument())
     expect(screen.queryByText('Kaydedildi')).not.toBeInTheDocument()
     expect(readProjectState().project.name).toBe('Changed elsewhere')
     expect(activeProjectSession.getSnapshot().revision).toBe(99)
@@ -225,15 +235,15 @@ describe('Writes, status and failures', () => {
     fake.failNext('PUT', new ApiError({ status: 500, message: 'down', correlationId: 'corr-1' }))
     await renameProject(user, ' x')
     expect(unload()).toBe(true) // pending, not yet sent
-    const banner = topNav()
-    expect(await banner.findByText(/Kayıt hatası: down \(Ref: corr-1\)/, undefined, { timeout: 3000 })).toBeInTheDocument()
+    const banner = await failedToast()
+    expect(banner.getByText(/Kayıt hatası: down \(Ref: corr-1\)/)).toBeInTheDocument()
+    expect(topNav().queryByRole('alert')).not.toBeInTheDocument()
     expect(unload()).toBe(true)
-    expect(saveToast()).toHaveTextContent('Kaydedilemedi')
-    expect(saveToast()).toHaveAttribute('data-kind', 'failed')
+    expect(failedToastNode()).toHaveAttribute('data-kind', 'failed')
     expect(activeWriteQueue.pendingKeys()).toEqual(['workspace'])
     await user.click(banner.getByRole('button', { name: 'Tekrar dene' }))
     await waitFor(() => expect(saveToast()).toHaveTextContent('Kaydedildi'))
-    expect(banner.queryByRole('alert')).not.toBeInTheDocument()
+    expect(failedToastNode()).not.toBeInTheDocument()
     expect(unload()).toBe(false)
     expect(putRequests(fake, 'workspace')).toHaveLength(2)
   })
@@ -245,14 +255,14 @@ describe('Writes, status and failures', () => {
     await screen.findByRole('heading', { name: 'Project Overview' })
     fake.failNext('PUT', new ApiError({ status: 400, message: 'invalid', fieldErrors: [1, 2, 3, 4].map((n) => ({ field: `f${n}`, message: `bad ${n}` })) }))
     await renameProject(user, ' x')
-    const banner = topNav()
-    expect(await banner.findByText('Kayıt reddedildi', undefined, { timeout: 3000 })).toBeInTheDocument()
+    const banner = await failedToast()
+    expect(banner.getByText('Kayıt reddedildi')).toBeInTheDocument()
     for (const n of [1, 2, 3]) expect(banner.getByText(`f${n}: bad ${n}`)).toBeInTheDocument()
     expect(banner.queryByText('f4: bad 4')).not.toBeInTheDocument()
     expect(readProjectState().project.name).toBe('Corridor 7 x')
     await user.click(banner.getByRole('button', { name: 'Değişiklikleri at' }))
     await waitFor(() => expect(readProjectState().project.name).toBe('Corridor 7'))
-    expect(banner.queryByRole('alert')).not.toBeInTheDocument()
+    expect(failedToastNode()).not.toBeInTheDocument()
     expect(screen.queryByText('Kaydedildi')).not.toBeInTheDocument()
   })
 
@@ -266,6 +276,60 @@ describe('Writes, status and failures', () => {
     expect(saveToast()).toHaveAttribute('data-kind', 'saved')
     expect(topNav().queryByRole('status')).not.toBeInTheDocument()
     await waitFor(() => expect(saveToast()).toBeNull(), { timeout: 3000 })
+  })
+
+  it('brings the failure toast back on a new edit of the same key after it went away, without sending the edit', async () => {
+    const user = userEvent.setup()
+    shortenErrorToast()
+    fake.seed(CANONICAL_PROJECT_DOCUMENT_JSON)
+    await startAt(`/project?project=${A}`)
+    await screen.findByRole('heading', { name: 'Project Overview' })
+    fake.failNext('PUT', new ApiError({ status: 500, message: 'down' }))
+    await renameProject(user, ' x')
+    await failedToast()
+    await waitFor(() => expect(failedToastNode()).not.toBeInTheDocument())
+    expect(activeProjectSession.getSnapshot().status).toBe('error')
+    const puts = putRequests(fake).length
+    await renameProject(user, 'y')
+    expect(await failedToast()).toBeTruthy()
+    await new Promise((resolve) => setTimeout(resolve, 500))
+    expect(putRequests(fake)).toHaveLength(puts)
+    expect(activeProjectSession.getSnapshot().status).toBe('error')
+    expect(readProjectState().project.name).toBe('Corridor 7 xy')
+  })
+
+  it('Ctrl+S on a failed save retries it (one more PUT) and ends in the saved toast', async () => {
+    const user = userEvent.setup()
+    shortenErrorToast()
+    fake.seed(CANONICAL_PROJECT_DOCUMENT_JSON)
+    await startAt(`/project?project=${A}`)
+    await screen.findByRole('heading', { name: 'Project Overview' })
+    fake.failNext('PUT', new ApiError({ status: 500, message: 'down' }))
+    await renameProject(user, ' x')
+    await failedToast()
+    await waitFor(() => expect(failedToastNode()).not.toBeInTheDocument())
+    expect(putRequests(fake, 'workspace')).toHaveLength(1)
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true })
+    await waitFor(() => expect(putRequests(fake, 'workspace')).toHaveLength(2))
+    await waitFor(() => expect(saveToast()).toHaveTextContent('Kaydedildi'))
+    expect(failedToastNode()).not.toBeInTheDocument()
+  })
+
+  it('Ctrl+S on a conflict sends no request and shows the notification again', async () => {
+    const user = userEvent.setup()
+    shortenErrorToast()
+    fake.seed(CANONICAL_PROJECT_DOCUMENT_JSON)
+    await startAt(`/project?project=${A}`)
+    await screen.findByRole('heading', { name: 'Project Overview' })
+    fake.document(A)!.revision = 99
+    await renameProject(user, ' x')
+    await failedToast()
+    await waitFor(() => expect(failedToastNode()).not.toBeInTheDocument())
+    const requests = fake.requests.length
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true })
+    expect(await failedToast()).toBeTruthy()
+    expect(failedToastNode()).toHaveTextContent('Çakışma')
+    expect(fake.requests).toHaveLength(requests)
   })
 
   it('Ctrl+S sends pending writes at once and Ctrl+O / Ctrl+N open the list and the name dialog', async () => {
@@ -329,6 +393,17 @@ describe('Unsaved-changes gate', () => {
     expect(fake.requests.filter((request) => request.method === 'GET')).toHaveLength(1)
   })
 
+  it('Ctrl+S does not retry the failed save while the unsaved-changes decision is open', async () => {
+    const user = userEvent.setup()
+    await openWithStalledWrite(user)
+    const puts = putRequests(fake).length
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(putRequests(fake)).toHaveLength(puts)
+    expect(activeProjectSession.getSnapshot().status).toBe('error')
+    expect(screen.getByRole('dialog', { name: 'Kaydedilmemiş değişiklikler' })).toBeInTheDocument()
+  })
+
   it('TEKRAR DENE saves and then opens; DEĞİŞİKLİKLERİ AT opens without saving', async () => {
     const user = userEvent.setup()
     const retry = within(await openWithStalledWrite(user))
@@ -359,11 +434,29 @@ describe('Unsaved-changes gate', () => {
     await user.click(await screen.findByRole('button', { name: /Project B/ }))
     const modal = within(await screen.findByRole('dialog', { name: 'Kaydedilmemiş değişiklikler' }))
     expect(modal.getByRole('button', { name: 'TEKRAR DENE' })).toBeDisabled()
-    expect(topNav().getByRole('button', { name: 'Yeniden yükle' })).toBeDisabled()
+    expect((await failedToast()).getByRole('button', { name: 'Yeniden yükle' })).toBeDisabled()
     const gets = fake.requests.filter((request) => request.method === 'GET').length
     await user.click(modal.getByRole('button', { name: 'İPTAL' }))
     expect(fake.requests.filter((request) => request.method === 'GET')).toHaveLength(gets)
-    expect(topNav().getByRole('button', { name: 'Yeniden yükle' })).toBeEnabled()
+    expect((await failedToast()).getByRole('button', { name: 'Yeniden yükle' })).toBeEnabled()
+  })
+
+  it('Exit still asks about the stalled write after the failure toast is gone', async () => {
+    const user = userEvent.setup()
+    shortenErrorToast()
+    fake.seed(CANONICAL_PROJECT_DOCUMENT_JSON)
+    await startAt(`/project?project=${A}`)
+    await screen.findByRole('heading', { name: 'Project Overview' })
+    fake.failNext('PUT', new ApiError({ status: 500, message: 'down' }))
+    SEISMIC_INPUTS_MODULE.write({ a: '0.9', g: '1', t: '1', i: '1' })
+    await failedToast()
+    await waitFor(() => expect(failedToastNode()).not.toBeInTheDocument())
+    await user.click(fileButton())
+    await user.click(screen.getByRole('button', { name: '× Exit' }))
+    const modal = within(await screen.findByRole('dialog', { name: 'Kaydedilmemiş değişiklikler' }))
+    expect(modal.getByRole('button', { name: 'TEKRAR DENE' })).toBeEnabled()
+    await user.click(modal.getByRole('button', { name: 'İPTAL' }))
+    expect(activeProjectSession.getSnapshot().projectId).toBe(A)
   })
 
   it('Exit goes through the gate and removes the project parameter', async () => {
@@ -524,7 +617,7 @@ describe('Unsaved Pier starter draft', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
     fake.document(NEW_PROJECT_DOCUMENT_JSON.projectId)!.revision = 99
     SEISMIC_INPUTS_MODULE.write({ a: '0.9', g: '1', t: '1', i: '1' })
-    const reload = await topNav().findByRole('button', { name: 'Yeniden yükle' }, { timeout: 3000 })
+    const reload = (await failedToast()).getByRole('button', { name: 'Yeniden yükle' })
     const gets = fake.requests.filter((request) => request.method === 'GET').length
     await user.click(reload)
     expect(confirm).toHaveBeenCalledTimes(1)

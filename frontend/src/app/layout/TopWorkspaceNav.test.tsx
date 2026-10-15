@@ -9,9 +9,6 @@ import { NEW_PROJECT_DOCUMENT_JSON } from '../project-session/projectDocumentFix
 import { shortProjectId } from '../project-session/projectDisplay'
 import { createFakeProjectApi, type FakeProjectApi } from '../../test/fakeProjectApi'
 import { installFakeProjectApi } from '../../test/projectSessionTestUtils'
-import type { ProjectSessionSnapshot } from '../../shared/project-store/projectSession'
-
-const IDLE: ProjectSessionSnapshot = { epoch: 1, projectId: 'p-1', revision: 1, status: 'idle', pendingCount: 0, failedKey: null, lastError: null }
 
 function projectDoc(projectId: string, name: string, updatedAt: string) {
   const base = NEW_PROJECT_DOCUMENT_JSON
@@ -25,18 +22,19 @@ function renderNav(props: Partial<ComponentProps<typeof TopWorkspaceNav>> = {}, 
 }
 
 describe('TopWorkspaceNav file menu', () => {
-  it('shows the project name ("Untitled" for an empty name) and no persistent save status while idle', () => {
-    const view = renderNav({ projectId: 'p-1', projectName: 'Test Köprüsü', saveStatus: IDLE })
+  it('shows the project name ("Untitled" for an empty name) and no save status element', () => {
+    const view = renderNav({ projectId: 'p-1', projectName: 'Test Köprüsü' })
     expect(screen.getAllByText('Test Köprüsü')).toHaveLength(2)
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     view.unmount()
-    renderNav({ projectId: 'p-1', projectName: '  ', saveStatus: IDLE })
+    renderNav({ projectId: 'p-1', projectName: '  ' })
     expect(screen.getAllByText('Untitled')).toHaveLength(2)
   })
 
-  it('shows neither a project name nor a save status without an open project, and disables Exit', async () => {
+  it('shows no project name without an open project, and disables Exit', async () => {
     const user = userEvent.setup()
-    renderNav({ projectId: null, saveStatus: { ...IDLE, projectId: null } })
+    renderNav({ projectId: null })
     expect(document.querySelector('.spn-active-project')).not.toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /^File/ }))

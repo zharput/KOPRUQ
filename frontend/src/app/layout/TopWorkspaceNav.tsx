@@ -3,33 +3,25 @@ import { confirmDiscardDrafts } from '../../shared/project-store/unsavedDrafts'
 import { useEffect, useState } from 'react'
 import { ChevronRight, Clock3, FilePlus2, FileText, FolderOpen, LogOut } from 'lucide-react'
 import { PRIMARY_WORKSPACES, legacyWorkspaceFromPath, workspaceFromPath } from '../workspaces/registry'
-import SaveStatusIndicator from '../project-session/SaveStatusIndicator'
 import { displayProjectName, formatUpdatedAt, shortProjectId } from '../project-session/projectDisplay'
 import { useProjectList } from '../project-session/useProjectList'
-import type { ProjectSessionSnapshot } from '../../shared/project-store/projectSession'
 
 const RECENT_PROJECT_COUNT = 5
 
 type Props = {
-  /** The open project; without one the project name and the save status are not shown. */
+  /** The open project; without one the project name is not shown. */
   projectId?: string | null
   projectName?: string
-  saveStatus?: ProjectSessionSnapshot
-  /** A session action is running or waiting for a decision: the save-status buttons are disabled. */
-  busy?: boolean
   onNew?: () => void
   onOpenList?: () => void
   onOpenProject?: (projectId: string) => void
   onExit?: () => void
   /** Ctrl+S: saves what is pending now. */
   onSaveNow?: () => void
-  onRetry?: () => void
-  onDiscard?: () => void
-  onReload?: () => void
 }
 
 /** Must run inside a `QueryClientProvider` (the File menu lists the server projects while it is open). */
-export default function TopWorkspaceNav({ projectId = null, projectName = '', saveStatus, busy = false, onNew, onOpenList, onOpenProject, onExit, onSaveNow, onRetry, onDiscard, onReload }: Props) {
+export default function TopWorkspaceNav({ projectId = null, projectName = '', onNew, onOpenList, onOpenProject, onExit, onSaveNow }: Props) {
   const { pathname, search } = useLocation()
   const [open, setOpen] = useState(false)
   const active = workspaceFromPath(pathname) ?? legacyWorkspaceFromPath(pathname)
@@ -51,7 +43,6 @@ export default function TopWorkspaceNav({ projectId = null, projectName = '', sa
   const recentProjects = recent.data?.slice(0, RECENT_PROJECT_COUNT) ?? []
   return <header className="spn-workspace-nav" aria-label="Primary workspaces">
     {projectId !== null && <div className="spn-active-project" title={shownName}><strong>{shownName}</strong><small>{shownName}</small></div>}
-    {saveStatus && <SaveStatusIndicator status={saveStatus} busy={busy} onRetry={() => onRetry?.()} onDiscard={() => onDiscard?.()} onReload={() => onReload?.()} />}
     <nav className="spn-workspace-nav-items" aria-label="Workspaces">
       <div className="spn-file-menu" onClick={e => e.stopPropagation()}>
         <button type="button" className={`spn-workspace-nav-item${open ? ' active' : ''}`} aria-expanded={open} onClick={() => setOpen(!open)}><FileText size={20} strokeWidth={1.45} aria-hidden="true" /><span>File</span></button>

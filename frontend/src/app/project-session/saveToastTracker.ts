@@ -1,12 +1,15 @@
 import type { ProjectSessionSnapshot, SaveStatus } from '../../shared/project-store/projectSession'
 
-/** How long a save toast stays on screen. */
+/** How long a success toast stays on screen. */
 export const SAVE_TOAST_MS = 1500
+/** How long a failure toast (it carries buttons) stays on screen; hovering or focusing it pauses the timer. */
+export const SAVE_ERROR_TOAST_MS = 8000
 
 export type SaveToastKind = 'saved' | 'failed'
 
 const PROBLEMS: readonly SaveStatus[] = ['error', 'rejected', 'conflict']
-const isProblem = (status: SaveStatus) => PROBLEMS.includes(status)
+export const isSaveProblem = (status: SaveStatus) => PROBLEMS.includes(status)
+const isProblem = isSaveProblem
 
 /**
  * Turns the stream of session snapshots into toast events. Pure and stateful: feed it every snapshot in order.

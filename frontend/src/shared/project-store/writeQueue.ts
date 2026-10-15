@@ -24,6 +24,9 @@ import type { ProjectSession, SaveStatus } from './projectSession'
  * - The queue is bound to the session `epoch` (every `begin`/`end`, also of the same project id): on a change it resets itself (no
  *   callbacks) and responses still in flight are ignored. Writes made by an earlier session listener during `begin` first reset the
  *   old epoch, so subscription order does not drop them. `dispose()` unsubscribes.
+ * - `onHeldWrite(listener)`: called for every `enqueue` that is only collected because the queue is stalled, and for every
+ *   `reportLocalRejection` on an already stalled queue (also when the snapshot does not change, e.g. a newer value of an already pending
+ *   key), so the UI can remind the user that the edit is not being sent.
  * - A throwing `onConfirmed`/`onDiscarded` (e.g. a failing UI listener) is caught and logged with `console.error`; the queue goes on.
  */
 export const SAVE_DEBOUNCE_MS = 300
@@ -57,6 +60,8 @@ export interface WriteQueue {
   /** Resets, then stops observing the session. A disposed queue no longer touches the session and `enqueue` throws. */
   dispose(): void
   pendingKeys(): string[]
+  /** Calls `listener` for every `enqueue` accepted while the queue is stalled (collected, not sent). Returns the unsubscribe function. */
+  onHeldWrite(listener: () => void): () => void
 }
 
 export function createWriteQueue(options: WriteQueueOptions): WriteQueue {
@@ -71,6 +76,7 @@ export function createWriteQueue(options: WriteQueueOptions): WriteQueue {
   let inFlightDropped = false
   let disposed = false
   let boundEpoch = session.getSnapshot().epoch
+  const heldListeners = new Set<() => void>()
   let failures: { key: string | null; error: unknown; status: SaveStatus }[] = []
 
   const stalled = () => failures.length > 0
@@ -179,12 +185,17 @@ export function createWriteQueue(options: WriteQueueOptions): WriteQueue {
       if (session.getSnapshot().projectId === null) throw new Error('No active project')
       const index = pending.findIndex((entry) => entry.key === write.key)
       if (index >= 0) { pending[index] = write; pending = pending.filter((entry, i) => i === index || entry.key !== write.key) } else pending.push(write)
-      if (stalled()) { publish(); return }
+      if (stalled()) { publish(); for (const listener of [...heldListeners]) guard(listener); return }
       publish()
       clearTimer()
       timer = setTimeout(() => { timer = null; startNext() }, debounceMs)
     },
-    reportLocalRejection(key, error) { syncEpoch(); stall(key, error, 'rejected') },
+    reportLocalRejection(key, error) {
+      syncEpoch()
+      const wasStalled = stalled()
+      stall(key, error, 'rejected')
+      if (wasStalled) for (const listener of [...heldListeners]) guard(listener)
+    },
     flush,
     async retry() {
       if (!stalled()) return
@@ -215,9 +226,13 @@ export function createWriteQueue(options: WriteQueueOptions): WriteQueue {
     },
     dispose() {
       if (disposed) return
-      queue.reset(); disposed = true; unsubscribe()
+      queue.reset(); disposed = true; heldListeners.clear(); unsubscribe()
     },
     pendingKeys() { return [...(inFlight ? [inFlight.key] : []), ...pending.map((entry) => entry.key)] },
+    onHeldWrite(listener) {
+      heldListeners.add(listener)
+      return () => { heldListeners.delete(listener) }
+    },
   }
   const unsubscribe = session.subscribe(syncEpoch)
   return queue

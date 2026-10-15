@@ -18,4 +18,4 @@
 - Proje adı ve birim, **Kaydedildi** bildirimi sonrasında Exit/Open ve tam sayfa yenilemesinde korunur.
 - Dosya seçici veya `.kopruq` dışa aktarımı beklenmez.
 
-**Kanıt:** Proje ID'si, POST/PUT/GET durumları ve revizyonları, yeniden açma öncesi/sonrası ekran görüntüsü. **Sonuç:** PASS ama birşeyi değiştirdiğim zaman kaydediliyor diyor sonrasında kaydedildi diyor ama kaydedildi yazısı yokolmuyor. Bu tasarımıda begenmedim birşey değiştiğinde "Yeşil renkli bir kaydedildi diye bir modal cıkmalı sağ veya sol tepe sonrasında bu modal 1-2 sn sonra yokolmalı, eğer bir sebebten dolayı kaydedilemez ise aynı sekilde kırmızı renkli kaydedilemedi modalı cıkıp yok olmalı.
+**Kanıt:** Proje ID'si, POST/PUT/GET durumları ve revizyonları, yeniden açma öncesi/sonrası ekran görüntüsü. **Sonuç:** PASS

@@ -18,4 +18,4 @@
 - Graph ve Family doğrudan URL/yeni yüklemede aynı projeyle doğru ekrana döner; `?project=<id>` korunur ve geri/ileri gezinme çalışır.
 - Console'da bu adımlardan kaynaklanan yakalanmamış hata yoktur. Placeholder görünen bir çalışma alanı tek başına hata sayılmaz.
 
-**Kanıt:** Sağlık yanıtı, URL'ler, Console ekran görüntüsü. **Sonuç:** `PASS / FAIL / BLOCKED` — Not:
+**Kanıt:** Sağlık yanıtı, URL'ler, Console ekran görüntüsü. **Sonuç:** PASS(herhangi hata rastlanmadı).

@@ -118,7 +118,7 @@ function SectionRoute({
     )
   }
   if (active === 'kopruq-fast-solver') return <FastSolverPanel />
-  if (active === 'loads') return <LoadsPanel crossSectionValues={crossSectionValues} />
+  if (active === 'loads') return <LoadsPanel crossSectionValues={crossSectionValues} projectUnits={project.units} />
   if (active === 'materials') return <MaterialsPanel />
   if (active === 'system-assembly') return <SystemAssemblyPanel />
   if (active === 'cost-database') return <CostDatabasePanel />

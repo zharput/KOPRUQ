@@ -934,6 +934,34 @@ class ProjectLoadGraphApiContractTest extends ContractTestSupport {
         assertEquals(List.of("projectId", "name", "revision", "createdAt", "updatedAt"), keysOf(summary));
     }
 
+    /** Project units are a display preference only: changing them must not touch any (canonical) load section. */
+    @Test
+    void workspaceUnitChange_leavesEveryLoadSectionUnchanged() throws Exception {
+        String id = createProject();
+        for (int i = 0; i < LOADS.length; i++) {
+            written(put(id, LOADS[i], envelope((long) i, LOADS[i].value())));
+        }
+        JsonNode before = doc(id);
+        ObjectNode ws = (ObjectNode) before.get("workspace").deepCopy();
+        ObjectNode units = (ObjectNode) ws.at("/project/units");
+        units.put("force", "tonf");
+        units.put("length", "mm");
+        units.put("temperature", "F");
+
+        written(putPath(id, "/workspace", envelope((long) LOADS.length, ws.toString())));
+
+        JsonNode after = doc(id);
+        assertEquals("tonf", after.at("/workspace/project/units/force").asText());
+        assertEquals("mm", after.at("/workspace/project/units/length").asText());
+        assertEquals("F", after.at("/workspace/project/units/temperature").asText());
+        for (String key : List.of("seismic", "wind", "temperature", "selfWeight", "trafficLm1", "windSnapshot")) {
+            assertEquals(before.at("/loads/" + key), after.at("/loads/" + key), key);
+        }
+        for (Section s : LOADS) {
+            assertEquals(parse(s.value()), after.at(s.pointer()), s.name());
+        }
+    }
+
     @Test
     void m3Writes_leaveWorkspaceAndM2SectionsAlone() throws Exception {
         String id = createProject();

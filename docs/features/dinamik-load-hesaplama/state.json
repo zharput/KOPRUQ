@@ -1,8 +1,12 @@
 {
   "schema_version": 1,
   "slug": "dinamik-load-hesaplama",
-  "status": "planning",
-  "review": "not_requested",
+  "status": "implemented",
+  "review": "completed",
   "created_at": "2026-10-15T16:20:27.029222+00:00",
-  "updated_at": "2026-10-15T16:20:27.029235+00:00"
+  "updated_at": "2026-10-15T17:18:16.167999+00:00",
+  "approved_plan_sha256": "9ee55ee58077650b8666ba1378fdbca1bbbecf00be32d8edc6ed3a1882ad1e86",
+  "baseline_head": "b7255da1593d58c61358f68c69d82548574bbc90",
+  "approved_at": "2026-10-15T16:49:11.760783+00:00",
+  "reviewed_at": "2026-10-15T17:18:16.167987+00:00"
 }

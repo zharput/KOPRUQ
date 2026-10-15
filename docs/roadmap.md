@@ -1936,3 +1936,7 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 ## save-error-toast (2026-10-15)
 
 - [x] The persistent top-bar save-problem block (`SaveStatusIndicator`) is removed. A failed save now shows a red, 8 s notification (pauses on hover/focus) with Tekrar dene / Değişiklikleri at, or Yeniden yükle for a conflict. The write queue stays stalled after it disappears: every new edit (`WriteQueue.onHeldWrite`) and Ctrl+S bring it back (Ctrl+S retries error/rejected); the Exit/Open/New gate and the `beforeunload` warning are unchanged. Frontend only; plan `docs/features/save-error-toast/`.
+
+## dinamik-load-hesaplama (2026-10-15)
+
+- [x] Loads tabs (Self Weight & Permanent, Traffic, Wind, Temperature; Seismic note) follow the project Force/Length/Temperature units at the display/input boundary; storage and backend requests stay canonical SI. Derived units (kN/m, kN/m2, kN/m3 with the Length denominator), Length-based rounding rule (m 4, cm 3, mm 1 decimal / 4 significant digits for derived values), `DecimalInput` `format` prop, `UnitTextInput`. Backend: javadoc and contract test only. Manual scenario `docs/e2e/19-yuk-birimleri.md`; plan `docs/features/dinamik-load-hesaplama/`.

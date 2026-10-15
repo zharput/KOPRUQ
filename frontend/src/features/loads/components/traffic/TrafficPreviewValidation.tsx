@@ -1,4 +1,6 @@
 import type { Lm1Parameters, NotionalLaneResult, TrafficValidationResult } from '../../api/trafficLoadsService'
+import type { ProjectUnits } from '../../../graph/domain/quantities'
+import { formatLoad } from '../../model/loadUnits'
 
 /**
  * Traffic > Preview & Validation - a read-only summary of the resolved
@@ -11,11 +13,13 @@ export default function TrafficPreviewValidation({
   notionalLanes,
   lm1,
   validation,
+  projectUnits,
 }: {
   carriagewayM: number
   notionalLanes: NotionalLaneResult | undefined
   lm1: Lm1Parameters
   validation: TrafficValidationResult | undefined
+  projectUnits?: ProjectUnits
 }) {
   const allFactors = [...lm1.tandemSystem, ...lm1.udl, lm1.remainingAreaUdl]
   const overridesCount = allFactors.reduce(
@@ -39,11 +43,11 @@ export default function TrafficPreviewValidation({
           </tr>
           <tr>
             <td>Carriageway width</td>
-            <td>{carriagewayM.toFixed(2)} m</td>
+            <td>{formatLoad(carriagewayM, 'length', projectUnits)}</td>
           </tr>
           <tr>
             <td>Notional lanes</td>
-            <td>{notionalLanes ? `${notionalLanes.lanes.length} lane(s), remaining area ${notionalLanes.remainingAreaWidthM.toFixed(2)} m` : '—'}</td>
+            <td>{notionalLanes ? `${notionalLanes.lanes.length} lane(s), remaining area ${formatLoad(notionalLanes.remainingAreaWidthM, 'length', projectUnits)}` : '—'}</td>
           </tr>
           <tr>
             <td>Active load models</td>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toDisplayValue, toInternalValue, convertQuantity, formatDisplayValue, formatQuantity, makeQuantity, quantityFromCanonical } from './quantities'
+import { getUnit, getDisplayUnit, toDisplayValue, toInternalValue, convertQuantity, formatDisplayValue, formatQuantity, makeQuantity, quantityFromCanonical } from './quantities'
 
 describe('central unit conversion engine', () => {
   it.each([
@@ -24,5 +24,12 @@ describe('central unit conversion engine', () => {
     expect(quantityFromCanonical(q.value, q.quantityKind, 'm')).toBe(2)
     expect(formatQuantity(q)).toBe('2000.00 mm')
     expect(() => makeQuantity(2, 'stress', 'm')).toThrow('invalid for stress')
+  })
+  it('converts tonf (9.80665 kN) and kgf (0.00980665 kN) to and from canonical kN', () => {
+    expect(getUnit('tonf')!.toCanonical(1)).toBeCloseTo(9.80665, 12)
+    expect(getUnit('tonf')!.fromCanonical(9.80665)).toBeCloseTo(1, 12)
+    expect(getUnit('kgf')!.toCanonical(1000)).toBeCloseTo(9.80665, 12)
+    expect(getUnit('kgf')!.fromCanonical(0.00980665)).toBeCloseTo(1, 12)
+    expect(getDisplayUnit('Force', { force: 'tonf' }).label).toBe('tonf')
   })
 })

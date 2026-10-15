@@ -13,6 +13,7 @@ import UniformTemperaturePanel from './temperature/UniformTemperaturePanel'
 import WindLoadsPanel from './wind/WindLoadsPanel'
 import SeismicPanel from './seismic/SeismicPanel'
 import type { WindCalculationSnapshot } from '../model/windTypes'
+import type { ProjectUnits } from '../../graph/domain/quantities'
 
 /**
  * PROJECT > Loads (revised 2026-09-11): a top row of tabs, one per load
@@ -48,12 +49,12 @@ import type { WindCalculationSnapshot } from '../model/windTypes'
  * different, future module), per the engineer's explicit scope.
  */
 
-export default function LoadsPanel({ crossSectionValues, windLoads, setWindLoads }: { crossSectionValues: CrossSectionValues; windLoads?: WindCalculationSnapshot | null; setWindLoads?: (snapshot: WindCalculationSnapshot | null) => void }) {
+export default function LoadsPanel({ crossSectionValues, windLoads, setWindLoads, projectUnits }: { crossSectionValues: CrossSectionValues; windLoads?: WindCalculationSnapshot | null; setWindLoads?: (snapshot: WindCalculationSnapshot | null) => void; projectUnits?: ProjectUnits }) {
   const categories: DetailCategory[] = [
-    { label: 'Self Weight & Permanent', icon: Anchor, content: <SelfWeightPermanent crossSectionValues={crossSectionValues} /> },
-    { label: 'Traffic', icon: Car, content: <TrafficLoadsPanel crossSectionValues={crossSectionValues} /> },
-    { label: 'Temperature', icon: Thermometer, content: <UniformTemperaturePanel /> },
-    { label: 'Wind', icon: Wind, content: <WindLoadsPanel deckWidthM={crossSectionValues.platformWidthM} snapshot={windLoads ?? null} onSnapshot={(snapshot) => setWindLoads?.(snapshot)} /> },
+    { label: 'Self Weight & Permanent', icon: Anchor, content: <SelfWeightPermanent crossSectionValues={crossSectionValues} projectUnits={projectUnits} /> },
+    { label: 'Traffic', icon: Car, content: <TrafficLoadsPanel crossSectionValues={crossSectionValues} projectUnits={projectUnits} /> },
+    { label: 'Temperature', icon: Thermometer, content: <UniformTemperaturePanel projectUnits={projectUnits} /> },
+    { label: 'Wind', icon: Wind, content: <WindLoadsPanel deckWidthM={crossSectionValues.platformWidthM} snapshot={windLoads ?? null} onSnapshot={(snapshot) => setWindLoads?.(snapshot)} projectUnits={projectUnits} /> },
     {
       label: 'Seismic',
       icon: Waves,

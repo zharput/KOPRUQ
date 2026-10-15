@@ -18,26 +18,35 @@ import { useState } from 'react'
  * from `focused` during render (raw typed text while focused, the
  * formatted `value` otherwise), not synchronized via `useEffect`.
  */
+const DEFAULT_FORMAT = (v: number) => v.toFixed(2)
+
+/**
+ * `format` (optional) replaces the default 2-decimal display, e.g. for
+ * values shown in a converted unit with a unit-dependent precision. It
+ * receives the `value` prop as given (already in the displayed unit).
+ */
 export default function DecimalInput({
   value,
   onChange,
   className = 'spn-input spn-input-number',
+  format = DEFAULT_FORMAT,
 }: {
   value: number
   onChange: (value: number) => void
   className?: string
+  format?: (value: number) => string
 }) {
   const [focused, setFocused] = useState(false)
-  const [text, setText] = useState(value.toFixed(2))
+  const [text, setText] = useState(format(value))
 
   return (
     <input
       type="text"
       inputMode="decimal"
       className={className}
-      value={focused ? text : value.toFixed(2)}
+      value={focused ? text : format(value)}
       onFocus={() => {
-        setText(value.toFixed(2))
+        setText(format(value))
         setFocused(true)
       }}
       onChange={(e) => {

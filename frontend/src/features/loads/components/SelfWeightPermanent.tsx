@@ -3,6 +3,8 @@ import { SELF_WEIGHT_INPUTS_MODULE } from '../model/loadsProjectModules'
 import DecimalInput from '../../../shared/ui/DecimalInput'
 import type { CrossSectionValues } from '../../superstructure-families'
 import { carriagewayWidthM } from '../../superstructure-families'
+import type { ProjectUnits } from '../../graph/domain/quantities'
+import { formatLoad, formatLoadValue, loadFormatter, loadUnit, type LoadQuantity } from '../model/loadUnits'
 
 /**
  * Loads > Self Weight & Permanent (2026-09-13, engineer's own
@@ -46,6 +48,11 @@ import { carriagewayWidthM } from '../../superstructure-families'
  * enterable" at a glance. `DecimalInput` (`shared/ui`) handles the
  * "show 2 decimals but don't fight the user mid-keystroke" formatting
  * for the editable decimal terms.
+ *
+ * <p>**Units**: inputs and results are stored canonical (kN, m, kN/m,
+ * kN/m3); `projectUnits` only changes what is shown/typed (see
+ * `model/loadUnits.ts` for the conversion and the Length-based rounding
+ * rule). The calculation below always runs on the canonical values.
  */
 interface SelfWeightInputs {
   asphaltThicknessM: number
@@ -85,7 +92,7 @@ const INITIAL_SELF_WEIGHT_INPUTS: SelfWeightInputs = {
   soundPanelUnitLoadKNm: 1.0,
 }
 
-export default function SelfWeightPermanent({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
+export default function SelfWeightPermanent({ crossSectionValues, projectUnits }: { crossSectionValues: CrossSectionValues; projectUnits?: ProjectUnits }) {
   const [inputs, setInputs] = useProjectModule(SELF_WEIGHT_INPUTS_MODULE, INITIAL_SELF_WEIGHT_INPUTS)
 
   function update<K extends keyof SelfWeightInputs>(key: K, value: number) {
@@ -110,7 +117,7 @@ export default function SelfWeightPermanent({ crossSectionValues }: { crossSecti
     <div className="spn-card">
       <h2 className="spn-card-title">Self Weight & Permanent</h2>
       <p className="spn-card-subtitle">
-        Permanent-load breakdown, kN/m. Grayed-out fields (Concrete Self Weight, and the width terms in Asphalt/
+        Permanent-load breakdown, {loadUnit('lineLoad', projectUnits).label}. Grayed-out fields (Concrete Self Weight, and the width terms in Asphalt/
         Kaldırım) are computed live from Superstructure Families &gt; Precast - editing a walkway or platform width
         there updates the results here.
       </p>
@@ -119,96 +126,103 @@ export default function SelfWeightPermanent({ crossSectionValues }: { crossSecti
         <div className="spn-formula-row">
           <span className="spn-formula-label">Concrete Self Weight</span>
           <span className="spn-formula-eq">=</span>
-          <input className="spn-input spn-input-number spn-formula-input spn-input-passive" value="25.00" readOnly />
-          <span className="spn-formula-unit">kN/m&sup3;</span>
+          <input className="spn-input spn-input-number spn-formula-input spn-input-passive" value={formatLoadValue(25, 'unitWeight', projectUnits)} readOnly />
+          <span className="spn-formula-unit">{loadUnit('unitWeight', projectUnits).label}</span>
         </div>
 
         <FormulaRow
           label="Asphalt"
           terms={[
-            { value: inputs.asphaltThicknessM, kind: 'decimal', onChange: (v) => update('asphaltThicknessM', v), unit: 'm' },
-            { value: carriagewayM, kind: 'passive', unit: 'm' },
-            { value: inputs.asphaltUnitWeightKNm3, kind: 'decimal', onChange: (v) => update('asphaltUnitWeightKNm3', v), unit: 'kN/m³' },
+            { value: inputs.asphaltThicknessM, kind: 'decimal', onChange: (v) => update('asphaltThicknessM', v), quantity: 'length' },
+            { value: carriagewayM, kind: 'passive', quantity: 'length' },
+            { value: inputs.asphaltUnitWeightKNm3, kind: 'decimal', onChange: (v) => update('asphaltUnitWeightKNm3', v), quantity: 'unitWeight' },
           ]}
+          units={projectUnits}
           result={asphaltResult}
         />
 
         <FormulaRow
           label="Sidewalk"
           terms={[
-            { value: inputs.sidewalkThicknessM, kind: 'decimal', onChange: (v) => update('sidewalkThicknessM', v), unit: 'm' },
+            { value: inputs.sidewalkThicknessM, kind: 'decimal', onChange: (v) => update('sidewalkThicknessM', v), quantity: 'length' },
             {
               value: sidewalkWidthM,
               kind: 'passive',
-              unit: 'm',
-              display: `${crossSectionValues.leftWalkwayM.toFixed(2)} + ${crossSectionValues.rightWalkwayM.toFixed(2)}`,
+              quantity: 'length',
+              display: `${formatLoadValue(crossSectionValues.leftWalkwayM, 'length', projectUnits)} + ${formatLoadValue(crossSectionValues.rightWalkwayM, 'length', projectUnits)}`,
             },
-            { value: inputs.sidewalkUnitWeightKNm3, kind: 'decimal', onChange: (v) => update('sidewalkUnitWeightKNm3', v), unit: 'kN/m³' },
+            { value: inputs.sidewalkUnitWeightKNm3, kind: 'decimal', onChange: (v) => update('sidewalkUnitWeightKNm3', v), quantity: 'unitWeight' },
           ]}
+          units={projectUnits}
           result={sidewalkResult}
         />
 
         <FormulaRow
           label="Precast facia"
           terms={[
-            { value: inputs.faciaCount, kind: 'integer', onChange: (v) => update('faciaCount', v), unit: '' },
-            { value: inputs.faciaWidthM, kind: 'decimal', onChange: (v) => update('faciaWidthM', v), unit: 'm' },
-            { value: inputs.faciaThicknessM, kind: 'decimal', onChange: (v) => update('faciaThicknessM', v), unit: 'm' },
-            { value: inputs.faciaUnitWeightKNm3, kind: 'decimal', onChange: (v) => update('faciaUnitWeightKNm3', v), unit: 'kN/m³' },
+            { value: inputs.faciaCount, kind: 'integer', onChange: (v) => update('faciaCount', v) },
+            { value: inputs.faciaWidthM, kind: 'decimal', onChange: (v) => update('faciaWidthM', v), quantity: 'length' },
+            { value: inputs.faciaThicknessM, kind: 'decimal', onChange: (v) => update('faciaThicknessM', v), quantity: 'length' },
+            { value: inputs.faciaUnitWeightKNm3, kind: 'decimal', onChange: (v) => update('faciaUnitWeightKNm3', v), quantity: 'unitWeight' },
           ]}
+          units={projectUnits}
           result={faciaResult}
         />
 
         <FormulaRow
           label="Guardrail"
           terms={[
-            { value: inputs.guardrailCount, kind: 'integer', onChange: (v) => update('guardrailCount', v), unit: '' },
-            { value: inputs.guardrailUnitLoadKNm, kind: 'decimal', onChange: (v) => update('guardrailUnitLoadKNm', v), unit: 'kN/m' },
+            { value: inputs.guardrailCount, kind: 'integer', onChange: (v) => update('guardrailCount', v) },
+            { value: inputs.guardrailUnitLoadKNm, kind: 'decimal', onChange: (v) => update('guardrailUnitLoadKNm', v), quantity: 'lineLoad' },
           ]}
+          units={projectUnits}
           result={guardrailResult}
         />
 
         <FormulaRow
           label="Pedestrian railing"
           terms={[
-            { value: inputs.pedestrianRailingCount, kind: 'integer', onChange: (v) => update('pedestrianRailingCount', v), unit: '' },
+            { value: inputs.pedestrianRailingCount, kind: 'integer', onChange: (v) => update('pedestrianRailingCount', v) },
             {
               value: inputs.pedestrianRailingUnitLoadKNm,
               kind: 'decimal',
               onChange: (v) => update('pedestrianRailingUnitLoadKNm', v),
-              unit: 'kN/m',
+              quantity: 'lineLoad',
             },
           ]}
+          units={projectUnits}
           result={pedestrianRailingResult}
         />
 
         <FormulaRow
           label="Protective fence"
           terms={[
-            { value: inputs.protectiveFenceCount, kind: 'integer', onChange: (v) => update('protectiveFenceCount', v), unit: '' },
+            { value: inputs.protectiveFenceCount, kind: 'integer', onChange: (v) => update('protectiveFenceCount', v) },
             {
               value: inputs.protectiveFenceUnitLoadKNm,
               kind: 'decimal',
               onChange: (v) => update('protectiveFenceUnitLoadKNm', v),
-              unit: 'kN/m',
+              quantity: 'lineLoad',
             },
           ]}
+          units={projectUnits}
           result={protectiveFenceResult}
         />
 
         <FormulaRow
           label="Sound panel"
           terms={[
-            { value: inputs.soundPanelCount, kind: 'integer', onChange: (v) => update('soundPanelCount', v), unit: '' },
-            { value: inputs.soundPanelUnitLoadKNm, kind: 'decimal', onChange: (v) => update('soundPanelUnitLoadKNm', v), unit: 'kN/m' },
+            { value: inputs.soundPanelCount, kind: 'integer', onChange: (v) => update('soundPanelCount', v) },
+            { value: inputs.soundPanelUnitLoadKNm, kind: 'decimal', onChange: (v) => update('soundPanelUnitLoadKNm', v), quantity: 'lineLoad' },
           ]}
+          units={projectUnits}
           result={soundPanelResult}
         />
 
         <div className="spn-formula-row spn-formula-total">
           <span className="spn-formula-label">TOTAL</span>
           <span className="spn-formula-eq">=</span>
-          <span className="spn-formula-result">{total.toFixed(2)} kN/m</span>
+          <span className="spn-formula-result">{formatLoad(total, 'lineLoad', projectUnits)}</span>
         </div>
       </div>
     </div>
@@ -219,11 +233,12 @@ interface Term {
   value: number
   kind: 'decimal' | 'integer' | 'passive'
   onChange?: (value: number) => void
-  unit: string
+  /** Dimension of a canonical value; omitted for dimensionless counts. */
+  quantity?: LoadQuantity
   display?: string
 }
 
-function FormulaRow({ label, terms, result }: { label: string; terms: Term[]; result: number }) {
+function FormulaRow({ label, terms, result, units }: { label: string; terms: Term[]; result: number; units?: ProjectUnits }) {
   return (
     <div className="spn-formula-row">
       <span className="spn-formula-label">{label}</span>
@@ -234,8 +249,9 @@ function FormulaRow({ label, terms, result }: { label: string; terms: Term[]; re
           {term.kind === 'decimal' && (
             <DecimalInput
               className="spn-input spn-input-number spn-formula-input"
-              value={term.value}
-              onChange={(v) => term.onChange?.(v)}
+              value={term.quantity ? loadUnit(term.quantity, units).toDisplay(term.value) : term.value}
+              onChange={(v) => term.onChange?.(term.quantity ? Number(loadUnit(term.quantity, units).toCanonical(v).toPrecision(15)) : v)}
+              format={term.quantity ? loadFormatter(term.quantity, units) : undefined}
             />
           )}
           {term.kind === 'integer' && (
@@ -249,16 +265,16 @@ function FormulaRow({ label, terms, result }: { label: string; terms: Term[]; re
           {term.kind === 'passive' && (
             <input
               className="spn-input spn-input-number spn-formula-input spn-input-passive"
-              style={term.display ? { width: 104 } : undefined}
-              value={term.display ?? term.value.toFixed(2)}
+              style={term.display ? { width: 136 } : undefined}
+              value={term.display ?? (term.quantity ? formatLoadValue(term.value, term.quantity, units) : term.value.toFixed(2))}
               readOnly
             />
           )}
-          {term.unit && <span className="spn-formula-unit">{term.unit}</span>}
+          {term.quantity && <span className="spn-formula-unit">{loadUnit(term.quantity, units).label}</span>}
         </span>
       ))}
       <span className="spn-formula-eq">=</span>
-      <span className="spn-formula-result">{result.toFixed(2)} kN/m</span>
+      <span className="spn-formula-result">{formatLoad(result, 'lineLoad', units)}</span>
     </div>
   )
 }

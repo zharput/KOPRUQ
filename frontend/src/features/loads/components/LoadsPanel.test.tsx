@@ -28,11 +28,11 @@ describe('Loads project-scoped state', () => {
   it('keeps a Self Weight edit when switching to Traffic and back', async () => {
     const user = userEvent.setup(); renderLoads()
     const asphaltThickness = () => document.querySelector('.spn-formula-input:not(.spn-input-passive)') as HTMLInputElement
-    expect(asphaltThickness().value).toBe('0.10')
+    expect(asphaltThickness().value).toBe('0.1000')
     fireEvent.change(asphaltThickness(), { target: { value: '0.2' } })
     await user.click(screen.getByRole('tab', { name: /Traffic/ }))
     await user.click(screen.getByRole('tab', { name: /Self Weight/ }))
-    expect(asphaltThickness().value).toBe('0.20')
+    expect(asphaltThickness().value).toBe('0.2000')
   })
   it('keeps an LM1 alpha override when switching Loads tabs', async () => {
     const user = userEvent.setup(); renderLoads()

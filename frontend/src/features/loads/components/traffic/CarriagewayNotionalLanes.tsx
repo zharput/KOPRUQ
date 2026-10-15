@@ -1,6 +1,8 @@
 import type { CrossSectionValues } from '../../../superstructure-families'
 import { HDim } from '../../../../shared/ui/ParamSweepCard'
 import type { NotionalLaneResult } from '../../api/trafficLoadsService'
+import type { ProjectUnits } from '../../../graph/domain/quantities'
+import { formatLoad, formatLoadValue, loadUnit } from '../../model/loadUnits'
 
 /**
  * Traffic > Carriageway & Notional Lanes - deck width and walkways are
@@ -17,12 +19,16 @@ export default function CarriagewayNotionalLanes({
   carriagewayM,
   notionalLanes,
   isLoading,
+  projectUnits,
 }: {
   crossSectionValues: CrossSectionValues
   carriagewayM: number
   notionalLanes: NotionalLaneResult | undefined
   isLoading: boolean
+  projectUnits?: ProjectUnits
 }) {
+  const lengthLabel = loadUnit('length', projectUnits).label
+  const len = (m: number) => formatLoadValue(m, 'length', projectUnits)
   return (
     <div className="spn-card">
       <h2 className="spn-card-title">Carriageway & Notional Lanes</h2>
@@ -34,24 +40,24 @@ export default function CarriagewayNotionalLanes({
 
       <div className="spn-field-grid">
         <div className="spn-field">
-          <span>Deck (platform) width (m)</span>
-          <input className="spn-input spn-input-passive" value={crossSectionValues.platformWidthM.toFixed(2)} readOnly style={{ marginTop: 4 }} />
+          <span>Deck (platform) width ({lengthLabel})</span>
+          <input className="spn-input spn-input-passive" value={len(crossSectionValues.platformWidthM)} readOnly style={{ marginTop: 4 }} />
         </div>
         <div className="spn-field">
-          <span>Left walkway (m)</span>
-          <input className="spn-input spn-input-passive" value={crossSectionValues.leftWalkwayM.toFixed(2)} readOnly style={{ marginTop: 4 }} />
+          <span>Left walkway ({lengthLabel})</span>
+          <input className="spn-input spn-input-passive" value={len(crossSectionValues.leftWalkwayM)} readOnly style={{ marginTop: 4 }} />
         </div>
         <div className="spn-field">
-          <span>Right walkway (m)</span>
-          <input className="spn-input spn-input-passive" value={crossSectionValues.rightWalkwayM.toFixed(2)} readOnly style={{ marginTop: 4 }} />
+          <span>Right walkway ({lengthLabel})</span>
+          <input className="spn-input spn-input-passive" value={len(crossSectionValues.rightWalkwayM)} readOnly style={{ marginTop: 4 }} />
         </div>
         <div className="spn-field">
-          <span>Carriageway width - computed (m)</span>
-          <input className="spn-input spn-input-passive" value={carriagewayM.toFixed(2)} readOnly style={{ marginTop: 4 }} />
+          <span>Carriageway width - computed ({lengthLabel})</span>
+          <input className="spn-input spn-input-passive" value={len(carriagewayM)} readOnly style={{ marginTop: 4 }} />
         </div>
       </div>
 
-      <CarriagewayDiagram carriagewayM={carriagewayM} notionalLanes={notionalLanes} />
+      <CarriagewayDiagram carriagewayM={carriagewayM} notionalLanes={notionalLanes} projectUnits={projectUnits} />
 
       <h3 style={{ marginTop: 18, marginBottom: 8, fontSize: 13.5 }}>Notional lanes</h3>
       {isLoading && <p className="spn-card-subtitle">Resolving...</p>}
@@ -60,19 +66,19 @@ export default function CarriagewayNotionalLanes({
           <thead>
             <tr>
               <th>Lane</th>
-              <th>Width (m)</th>
+              <th>Width ({lengthLabel})</th>
             </tr>
           </thead>
           <tbody>
             {notionalLanes.lanes.map((lane) => (
               <tr key={lane.number}>
                 <td>Lane {lane.number}</td>
-                <td>{lane.widthM.toFixed(2)}</td>
+                <td>{len(lane.widthM)}</td>
               </tr>
             ))}
             <tr>
               <td>Remaining area</td>
-              <td>{notionalLanes.remainingAreaWidthM.toFixed(2)}</td>
+              <td>{len(notionalLanes.remainingAreaWidthM)}</td>
             </tr>
           </tbody>
         </table>
@@ -84,9 +90,11 @@ export default function CarriagewayNotionalLanes({
 function CarriagewayDiagram({
   carriagewayM,
   notionalLanes,
+  projectUnits,
 }: {
   carriagewayM: number
   notionalLanes: NotionalLaneResult | undefined
+  projectUnits?: ProjectUnits
 }) {
   const x0 = 40
   const x1 = 600
@@ -100,7 +108,7 @@ function CarriagewayDiagram({
   }>(
     (acc, lane) => {
       const widthPx = lane.widthM * pixelsPerMeter
-      acc.boxes.push({ x: acc.cursorX, width: widthPx, label: `Lane ${lane.number}: ${lane.widthM.toFixed(2)} m` })
+      acc.boxes.push({ x: acc.cursorX, width: widthPx, label: `Lane ${lane.number}: ${formatLoad(lane.widthM, 'length', projectUnits)}` })
       return { boxes: acc.boxes, cursorX: acc.cursorX + widthPx }
     },
     { boxes: [], cursorX: x0 },
@@ -109,7 +117,7 @@ function CarriagewayDiagram({
 
   return (
     <svg viewBox="0 0 640 130" width="100%" style={{ maxWidth: 640, marginTop: 6 }}>
-      <HDim x1={x0} x2={x1} y={16} label={`Carriageway: ${carriagewayM.toFixed(2)} m`} />
+      <HDim x1={x0} x2={x1} y={16} label={`Carriageway: ${formatLoad(carriagewayM, 'length', projectUnits)}`} />
       {laneBoxes.map((box, i) => (
         <g key={i}>
           <rect

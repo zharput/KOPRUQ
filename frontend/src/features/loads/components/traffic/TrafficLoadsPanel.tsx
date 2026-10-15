@@ -8,6 +8,7 @@ import { carriagewayWidthM } from '../../../superstructure-families'
 import { useLm1Defaults } from '../../hooks/useLm1Defaults'
 import { useResolveTraffic } from '../../hooks/useResolveTraffic'
 import type { Lm1Parameters } from '../../api/trafficLoadsService'
+import type { ProjectUnits } from '../../../graph/domain/quantities'
 import TrafficGeneral from './TrafficGeneral'
 import CarriagewayNotionalLanes from './CarriagewayNotionalLanes'
 import Lm1Panel from './Lm1Panel'
@@ -29,7 +30,7 @@ import TrafficPlaceholder from './TrafficPlaceholder'
 /** Stable 'nothing stored' fallback for useProjectModule (undefined when no override has been saved). */
 const NO_LM1_OVERRIDE = undefined as unknown as Lm1Parameters
 
-export default function TrafficLoadsPanel({ crossSectionValues }: { crossSectionValues: CrossSectionValues }) {
+export default function TrafficLoadsPanel({ crossSectionValues, projectUnits }: { crossSectionValues: CrossSectionValues; projectUnits?: ProjectUnits }) {
   const { data: lm1Defaults } = useLm1Defaults(3)
   const [storedLm1, storeLm1] = useProjectModule(TRAFFIC_LM1_MODULE, NO_LM1_OVERRIDE)
   // Project override wins; otherwise the backend's code defaults are shown without being written into the project.
@@ -58,13 +59,14 @@ export default function TrafficLoadsPanel({ crossSectionValues }: { crossSection
           carriagewayM={carriagewayM}
           notionalLanes={resolved?.notionalLanes}
           isLoading={isResolving}
+          projectUnits={projectUnits}
         />
       ),
     },
     {
       label: 'LM1',
       content: lm1 ? (
-        <Lm1Panel lm1={lm1} onChange={setLm1} resolved={resolved?.lm1} defaults={lm1Defaults} />
+        <Lm1Panel lm1={lm1} onChange={setLm1} resolved={resolved?.lm1} defaults={lm1Defaults} projectUnits={projectUnits} />
       ) : (
         <p className="spn-card-subtitle">Loading...</p>
       ),
@@ -100,6 +102,7 @@ export default function TrafficLoadsPanel({ crossSectionValues }: { crossSection
           notionalLanes={resolved?.notionalLanes}
           lm1={lm1}
           validation={resolved?.validation}
+          projectUnits={projectUnits}
         />
       ) : (
         <p className="spn-card-subtitle">Loading...</p>

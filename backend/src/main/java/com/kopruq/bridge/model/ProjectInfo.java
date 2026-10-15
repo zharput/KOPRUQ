@@ -64,7 +64,10 @@ public record ProjectInfo(
         Objects.requireNonNull(lastModified, "lastModified");
     }
 
-    /** Unit labels as entered (not interpreted or converted). */
+    /**
+     * Unit labels as entered (not interpreted or converted). They are display preferences only: load inputs are
+     * stored in canonical SI (kN, m, kN/m, kN/m2, kN/m3, degrees Celsius) regardless of these values.
+     */
     public record Units(String length, String force, String moment, String stress, String mass, String temperature) {
         public Units {
             Objects.requireNonNull(length, "length");

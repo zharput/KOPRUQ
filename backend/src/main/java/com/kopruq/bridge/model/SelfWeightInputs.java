@@ -3,6 +3,7 @@ package com.kopruq.bridge.model;
 /**
  * Self-weight / permanent-load inputs. Field names are the frontend ones: thicknesses and widths in metres
  * ({@code ...M}), unit weights in kN/m3, unit loads in kN/m; counts are unitless. Values pass through untouched.
+ * They are always canonical SI: the project's unit preferences only change how the frontend shows and edits them.
  */
 public record SelfWeightInputs(double asphaltThicknessM, double asphaltUnitWeightKNm3, double sidewalkThicknessM,
         double sidewalkUnitWeightKNm3, double faciaCount, double faciaWidthM, double faciaThicknessM,

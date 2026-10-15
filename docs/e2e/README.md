@@ -1,6 +1,6 @@
 # KOPRUQ manuel uçtan uca test rehberi
 
-Bu klasör, **yazılım davranışını** tarayıcıdan başlayıp gerekiyorsa API ve veritabanına kadar kontrol etmek içindir. `01`–`05` proje oturumu ve Graph/Family akışını, `06`–`11` frontend → backend işlemlerini, `12`–`16` diğer ekranları, `17` desteklenmeyen özellikleri, `18` eşzamanlı kayıt çakışmasını kapsar. **Her numaralı dosyada tek bir senaryo vardır.** Bunlar otomatik Playwright testleri değil, adım adım uygulanacak manuel kabul testleridir; mevcut otomatik testler Vitest/JUnit altındadır.
+Bu klasör, **yazılım davranışını** tarayıcıdan başlayıp gerekiyorsa API ve veritabanına kadar kontrol etmek içindir. `01`–`05` proje oturumu ve Graph/Family akışını, `06`–`11` frontend → backend işlemlerini, `12`–`16` diğer ekranları, `17` desteklenmeyen özellikleri, `18` eşzamanlı kayıt çakışmasını, `19` yük birimi gösterimini kapsar. **Her numaralı dosyada tek bir senaryo vardır.** Bunlar otomatik Playwright testleri değil, adım adım uygulanacak manuel kabul testleridir; mevcut otomatik testler Vitest/JUnit altındadır.
 
 ## Başlamadan önce
 
@@ -32,6 +32,7 @@ Bu klasör, **yazılım davranışını** tarayıcıdan başlayıp gerekiyorsa A
 | 16 | [Cost Database](16-maliyet-tablosu.md) | Excel görüntüleme ve bilinen sınır |
 | 17 | [Desteklenmeyen özellikler](17-desteklenmeyen-ozellikler.md) | Boş alanların sahte sonuç üretmemesi |
 | 18 | [Eşzamanlı düzenleme çakışması](18-proje-revizyon-cakismasi.md) | 409, uyarı ve sunucudan yeniden yükleme |
+| 19 | [Yük birimleri](19-yuk-birimleri.md) | Force/Length/Temperature tercihinin Loads ekranlarında görünümü |
 
 ## Sonucu nasıl kaydetmeli?
 

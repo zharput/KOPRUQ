@@ -259,10 +259,12 @@
 .family-workspace-shell .family-parameters-panel > .family-parameters-table-wrap {
   display:block;
   min-width:0;
+  overflow-x:auto;
 }
 .family-workspace-shell .family-parameters-table-wrap > .spn-family-parameters {
   display:table !important;
   width:100% !important;
+  min-width:800px;
   margin:0 !important;
   table-layout:fixed !important;
   border-collapse:collapse;
@@ -284,9 +286,9 @@
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(n+3),
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(n+3) { text-align:center !important; }
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:first-child,
-.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:first-child { width:8% !important; text-align:left !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:first-child { width:22% !important; text-align:left !important; }
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(2),
-.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(2) { width:42% !important; text-align:left !important; }
+.family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(2) { width:28% !important; text-align:left !important; }
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(3),
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters td:nth-child(3) { width:12% !important; }
 .family-workspace-shell .family-parameters-table-wrap .spn-family-parameters th:nth-child(4),

@@ -75,42 +75,6 @@ function PierSchematic({ node, candidates, previewInputs, connected, projectUnit
   const kind = node.type.split('.').at(-1) ?? 'rectangular'
   if (kind === 'rectangular') return <RectangularPierSchematic node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
   return <PierFamilySchematic kind={kind} node={node} candidates={candidates} previewInputs={previewInputs} connected={connected} projectUnits={projectUnits} />
-  const dimensions: Record<string, { key: string; port: string; fallback: string }> = {
-    circular: { key: 'D', port: 'diameter', fallback: 'D' },
-    rectangular: { key: 'B', port: 'width', fallback: 'B' }, oval: { key: 'B', port: 'width', fallback: 'B' },
-    box: { key: 'B', port: 'outerWidth', fallback: 'B' }, h_section: { key: 'B', port: 'width', fallback: 'B' },
-  }
-  const b = dimensionValue(node, candidates, previewInputs, connected, dimensions[kind]?.port ?? 'width', dimensions[kind]?.key ?? 'B', projectUnits)
-  const d = kind === 'circular' ? b : dimensionValue(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D', projectUnits)
-  const wx = dimensionValue(node, candidates, previewInputs, connected, 'wallThicknessX', 'wx', projectUnits)
-  const wy = dimensionValue(node, candidates, previewInputs, connected, 'wallThicknessY', 'wy', projectUnits)
-  const wxMetres = representativeMetres(node, candidates, previewInputs, connected, 'wallThicknessX', 'wx')
-  const wyMetres = representativeMetres(node, candidates, previewInputs, connected, 'wallThicknessY', 'wy')
-  const tw = dimensionValue(node, candidates, previewInputs, connected, 'w', 'w', projectUnits)
-  const tf = dimensionValue(node, candidates, previewInputs, connected, 'ft', 'ft', projectUnits)
-  const height = dimensionValue(node, candidates, previewInputs, connected, 'height', 'height', projectUnits)
-  const B = representativeMetres(node, candidates, previewInputs, connected, dimensions[kind]?.port ?? 'width', dimensions[kind]?.key ?? 'B')
-  const D = kind === 'circular' ? B : representativeMetres(node, candidates, previewInputs, connected, kind === 'box' ? 'outerDepth' : 'depth', 'D')
-  const max = Math.max(B ?? 0, D ?? 0, 0.01), scale = 112 / max
-  const w = kind === 'h_section' ? clamp((B ?? max) * scale, 1, 112) : clamp((B ?? max) * scale, 34, 112), h = kind === 'h_section' ? clamp((D ?? max) * scale, 1, 112) : clamp((D ?? max) * scale, 34, 112), cx = 150, cy = 88
-  const circleRadius = clamp(w / 2, 18, 56)
-  const shape = kind === 'circular'
-    ? <circle className="engineering-outline" cx={cx} cy={cy} r={circleRadius} />
-    : kind === 'oval'
-      ? <rect className="engineering-outline" x={cx - w / 2} y={cy - h / 2} width={w} height={h} rx={Math.min(w, h) / 2} />
-      : kind === 'box'
-        ? <g className="engineering-outline"><rect x={cx - w / 2} y={cy - h / 2} width={w} height={h} /><rect className="engineering-void" x={cx - Math.max(4, w / 2 - wallPixels(wyMetres ?? .3, scale, w))} y={cy - Math.max(4, h / 2 - wallPixels(wxMetres ?? .3, scale, h))} width={Math.max(8, w - 2 * wallPixels(wyMetres ?? .3, scale, w))} height={Math.max(8, h - 2 * wallPixels(wxMetres ?? .3, scale, h))} /></g>
-        : kind === 'h_section'
-          ? <HSection cx={cx} cy={cy} width={w} height={h} web={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'w','w')??0) * scale)} flange={Math.max(0, (representativeMetres(node,candidates,previewInputs,connected,'ft','ft')??0) * scale)} />
-          : <rect className="engineering-outline" x={cx - w / 2} y={cy - h / 2} width={w} height={h} />
-  const label = kind === 'circular' ? `Ø = ${b}` : `B = ${b}`
-  const aria = `${kind.replace('_', ' ')} pier schematic. ${label}; ${kind !== 'circular' ? `D = ${d}; ` : ''}Bridge Axis.`
-  return <SchematicCard className="engineering-schematic-single"><svg viewBox="0 0 300 250" role="img" aria-label={aria}>
-    {shape}
-    {kind === 'circular' && <><CenterLine x1={cx - 44} y1={cy} x2={cx + 44} y2={cy} /><DimensionHorizontal x1={cx - circleRadius} x2={cx + circleRadius} y={cy + circleRadius + 12} toY={cy + circleRadius} label={`Ø = ${b}`} /></>}
-    {kind !== 'circular' && <><DimensionHorizontal x1={cx - w / 2} x2={cx + w / 2} y={20} toY={cy - h / 2} label={`B = ${b}`} /><DimensionVertical y1={cy - h / 2} y2={cy + h / 2} x={232} toX={cx + w / 2} label={`D = ${d}`} />{(kind === 'box' || kind === 'h_section') && <text className="engineering-dimension" x="150" y="177" textAnchor="middle">{kind === 'box' ? `wx = ${wx} · wy = ${wy}` : `w = ${tw}   ft = ${tf}`}</text>}</>}
-    <BridgeAxis y={201} /><text className="engineering-dimension" x="150" y="239" textAnchor="middle">Pier Height = {height}</text>
-  </svg></SchematicCard>
 }
 
 function PierFamilySchematic({ kind, node, candidates, previewInputs, connected, projectUnits }: Omit<Props, 'schema' | 'connections'> & { connected: Set<string>; kind: string }) {
@@ -318,7 +282,6 @@ function candidateProperty(item:GraphValue,key:string):number|undefined {if(type
 function inputValues(value:GraphValue|undefined):number[]{if(value===undefined)return[];const values=Array.isArray(value)?value:[value];return values.flatMap(item=>{if(typeof item==='number')return Number.isFinite(item)?[item]:[];if(typeof item==='object'&&item!==null&&'quantityKind'in item&&item.quantityKind==='length')return[item.value];return[]})}
 function formatInputLength(value:GraphValue|undefined,units?:ProjectUnitPreferences){return displayRange(inputValues(value),units)}
 function planRect(ax:number,ay:number,x:number,y:number,maxW:number,maxH:number){const ratio=clamp(ax/Math.max(ay,.0001),.55,1.8),w=maxW*Math.sqrt(ratio/1.8),h=maxH*Math.sqrt(1.8/ratio);return{x:x+(maxW-w)/2,y:y+(maxH-h)/2,w,h}}
-function wallPixels(metres:number,scale:number,limit:number){return clamp(metres*scale,6,limit*.22)}
 function clamp(value:number,min:number,max:number){return Math.max(min,Math.min(max,value))}
 
 function SchematicCard({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -331,4 +294,3 @@ function SchematicCard({ children, className }: { children: React.ReactNode; cla
 function DimensionHorizontal({x1,x2,y,toY,label,compact=false}:{x1:number;x2:number;y:number;toY:number;label:string;compact?:boolean}){const mid=(x1+x2)/2,top=y-(compact?7:6);return <g className="engineering-dimension-line"><path d={`M${x1} ${toY}v${y-toY} M${x2} ${toY}v${y-toY} M${x1} ${y}H${x2}`} /><path d={`M${x1-3} ${y+3}l6 -6 M${x2-3} ${y+3}l6 -6`} /><text className="engineering-dimension" x={mid} y={top} textAnchor="middle">{label}</text></g>}
 function DimensionVertical({y1,y2,x,toX,label,compact=false}:{y1:number;y2:number;x:number;toX:number;label:string;compact?:boolean}){const mid=(y1+y2)/2;return <g className="engineering-dimension-line"><path d={`M${toX} ${y1}H${x} M${toX} ${y2}H${x} M${x} ${y1}V${y2}`} /><path d={`M${x-3} ${y1+3}l6 -6 M${x-3} ${y2+3}l6 -6`} /><text className={`engineering-dimension${compact?' is-compact':''}`} x={x+5} y={mid} textAnchor="start" dominantBaseline="middle">{label}</text></g>}
 function BridgeAxis({y}:{y:number}){return <g className="engineering-axis"><path d={`M48 ${y}H252`} /><text x="150" y={y+12} textAnchor="middle">Bridge Axis</text></g>}
-function CenterLine({x1,y1,x2,y2}:{x1:number;y1:number;x2:number;y2:number}){return <path className="engineering-centerline" d={`M${x1} ${y1}H${x2} M${(x1+x2)/2} ${y1-38}V${y2+38}`} />}

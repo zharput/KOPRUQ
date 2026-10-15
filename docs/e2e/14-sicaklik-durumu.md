@@ -10,7 +10,7 @@
 2. Yalnızca **Effective Minimum Temperature** alanına `0` yazın. Network'te `/api/temperature/uniform/resolve` isteğinin yanıtını not edin; eksik alanlar için UI `INVALID` veya açık eksik parametre durumu göstermeli.
 3. **Effective Maximum Temperature = 20**, **Initial Temperature = 10** girin. Güncel API yanıtını bekleyin.
 4. Sonuç `VALID` ise ekrandaki contraction/expansion alanlarının o yanıtla eşleştiğini; **Details** bölümünde kullanılan girişlerin gösterildiğini kontrol edin. Sonuç `INVALID` ise gerekçeyi kaydedin; eski geçerli sonucu yeni giriş için göstermemeli.
-5. Üst çubukta **Kaydedildi** durumunu bekleyin. Network'te `PUT /api/projects/<id>/loads/temperature` isteğini kontrol edin; sayfayı yenileyince üç girdi geri gelmeli. Hesap sonucunun kendisini kalıcı mühendislik sonucu olarak beklemeyin.
+5. Sağ üstte yeşil **Kaydedildi** bildirimini bekleyin. Network'te `PUT /api/projects/<id>/loads/temperature` isteğini kontrol edin; sayfayı yenileyince üç girdi geri gelmeli. Hesap sonucunun kendisini kalıcı mühendislik sonucu olarak beklemeyin.
 
 ## Geçme ölçütü
 

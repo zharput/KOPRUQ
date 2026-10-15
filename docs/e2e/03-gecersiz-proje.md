@@ -6,7 +6,7 @@
 
 ## Adımlar
 
-1. 02'deki projenin üst çubukta **Kaydedildi** durumunda olduğunu doğrulayın ve proje adını not edin.
+1. 02'deki projenin üst çubukta bekleyen yazma ya da hata bloğu bulunmadığını (kalıcı bir durum yazısı yoktur) doğrulayın ve proje adını not edin.
 2. Aynı sekmede `http://localhost:5173/project?project=<bulunmayan-uuid>` adresine gidin. Network'te `GET /api/projects/<bulunmayan-uuid>` yanıtını kaydedin.
 3. **Proje açılamadı** ekranında hata metnini, **Tekrar dene**, **Proje listesi** ve **Yeni proje** seçeneklerini kontrol edin. **Tekrar dene** aynı bulunmayan proje için başarılı açılış gibi davranmamalı.
 4. **Proje listesi** ile 02'deki projeyi açın. Önceki adı ve `mm` birimini doğrulayın; URL'de yeniden doğru `?project=<id>` görünmeli.

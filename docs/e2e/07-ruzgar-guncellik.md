@@ -8,11 +8,11 @@
 
 1. **Loads** (`/loads`) → **Wind** açın. `Basic Wind Velocity, vb = 27`, `Terrain Category = II`, `Reference Height, ze = 10` girin.
 2. **Calculate Wind** seçin. Network'te `POST /api/wind-loads/resolve` isteğini ve yanıtın `status` alanını not edin.
-   Hesap başarılı dönerse `PUT /api/projects/<id>/loads/wind-snapshot` gövdesinde `result` bulunduğunu ve üst çubukta **Kaydedildi** durumuna geçildiğini de kontrol edin.
+   Hesap başarılı dönerse `PUT /api/projects/<id>/loads/wind-snapshot` gövdesinde `result` bulunduğunu ve sağ üstte yeşil **Kaydedildi** bildiriminin çıktığını da kontrol edin.
 3. Sonuç `VALID` ise **Wind Actions** ve **Details** değerlerinin göründüğünü kontrol edin. `INVALID` ise eksik/uygunsuz girdi mesajını kaydedin; sessizce sıfır sonuç gösterilmemeli.
 4. `vb` değerini `28` yapın, **Calculate Wind** basmayın. `STALE` rozetini ve önceki sayısal sonucun gizlendiğini kontrol edin.
 5. **Calculate Wind** tekrar seçin. Yeni istek sonrası `STALE` kalkmalı; sonuç veya açık hata güncel girdilere ait olmalı.
-6. Başarılı hesap ve **Kaydedildi** sonrasında sayfayı yenileyin. Aynı girdiler ve saklanan rüzgâr sonucu geri gelmeli; hesap tekrar yapılmadan eski girdiyle eşleşmeyen sonuç `VALID` görünmemeli.
+6. Başarılı hesap ve yeşil **Kaydedildi** bildirimi sonrasında sayfayı yenileyin. Aynı girdiler ve saklanan rüzgâr sonucu geri gelmeli; hesap tekrar yapılmadan eski girdiyle eşleşmeyen sonuç `VALID` görünmemeli.
 
 ## Geçme ölçütü
 

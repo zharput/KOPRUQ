@@ -5,8 +5,7 @@ type Props = { status: ProjectSessionSnapshot; busy?: boolean; onRetry(): void; 
 
 export default function SaveStatusIndicator({ status, busy = false, onRetry, onDiscard, onReload }: Props) {
   if (status.projectId === null) return null
-  if (status.status === 'idle') return <span className="spn-session-status" data-status="idle" role="status">Kaydedildi</span>
-  if (status.status === 'saving') return <span className="spn-session-status" data-status="saving" role="status">Kaydediliyor…</span>
+  // Idle and saving show nothing: a completed save is announced by the transient SaveToast.
   const problem = describeSaveProblem(status)
   if (!problem) return null
   return (

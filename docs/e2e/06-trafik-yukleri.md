@@ -11,7 +11,7 @@
 3. İlk `α` alanına `1.1` yazıp **Enter** basın veya alandan çıkın. Aynı satırdaki etkin değerin ve override sayısının güncellendiğini kontrol edin; Network'te yeni `resolve` isteği görünmeli.
 4. Aynı satırın **EN default** düğmesine basın. Alanın varsayılana dönmesini ve override sayısının önceki seviyeye inmesini kontrol edin.
 5. **LM2** sekmesine geçin. `NOT IMPLEMENTED` bilgisinin görünmesini; hesaplama, etkinleştirme veya sahte sonuç düğmesi bulunmamasını kontrol edin.
-6. İlk `α` alanına yeniden `1.1` yazın. **Kaydedildi** durumundan sonra Network'te `PUT /api/projects/<id>/loads/traffic-lm1` isteğini kontrol edin; sayfayı yenileyip seçimin aynı projede korunduğunu doğrulayın.
+6. İlk `α` alanına yeniden `1.1` yazın. Yeşil **Kaydedildi** bildiriminden sonra Network'te `PUT /api/projects/<id>/loads/traffic-lm1` isteğini kontrol edin; sayfayı yenileyip seçimin aynı projede korunduğunu doğrulayın.
 
 ## Geçme ölçütü
 

@@ -8,7 +8,7 @@
 
 1. `/materials` açın. **Concrete - by structural element** tablosundaki ilk satırın (**Drilled piles**) Concrete Class değerini not edin.
 2. Bu satırda farklı bir seçenek seçin; örneğin `C35/45`. Başka bir satırın değişmediğini kontrol edin.
-3. Network'te `PUT /api/projects/<id>/families/materials` isteğini ve **Kaydedildi** durumunu kontrol edin. `GET /api/projects/<id>` yanıtındaki `families.materials` bölümünde seçilen satırı doğrulayın.
+3. Network'te `PUT /api/projects/<id>/families/materials` isteğini ve yeşil **Kaydedildi** bildirimini kontrol edin. `GET /api/projects/<id>` yanıtındaki `families.materials` bölümünde seçilen satırı doğrulayın.
 4. **File → Exit**, ardından **File → Open...** ile aynı projeyi açın ve `/materials` ekranına dönün. Seçim yenilemeden sonra da korunmalı.
 5. Network'te bu UI değişikliği için malzeme yeterlilik hesabı isteği oluşmadığını kontrol edin; görülen proje bölümü yazması hesap sonucu değildir.
 

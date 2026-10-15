@@ -11,7 +11,7 @@
 3. **Family** (`/family-tables`) ekranında aynı köprüyü ve **Steel Girder** ailesini seçin. Kaynak, aday listesi, kesit önizlemesi ve durum rozetini kontrol edin.
 4. Graph'a dönüp aynı düğümde örneğin **Girder Height** değerini küçük bir miktar değiştirin; **Run** basmadan Family'ye dönün.
 5. Önceki sonucun `STALE` olarak işaretlendiğini, güncel mühendislik sonucu gibi sunulmadığını kontrol edin. Graph'ta tekrar **Run** yapıp Family'ye dönün.
-6. Üst çubuk **Kaydedildi** durumundayken sayfayı yenileyin. Graph düğümü ve parametresi geri gelmeli. Family'deki Run adaylarının otomatik geri gelmesini beklemeyin; hesap anlık görüntüleri bu sürümde bellektedir, gerektiğinde Graph'ı yeniden çalıştırın.
+6. Yeşil **Kaydedildi** bildirimi göründükten ve üst çubukta bekleyen yazma kalmadıktan sonra sayfayı yenileyin. Graph düğümü ve parametresi geri gelmeli. Family'deki Run adaylarının otomatik geri gelmesini beklemeyin; hesap anlık görüntüleri bu sürümde bellektedir, gerektiğinde Graph'ı yeniden çalıştırın.
 
 ## Geçme ölçütü
 

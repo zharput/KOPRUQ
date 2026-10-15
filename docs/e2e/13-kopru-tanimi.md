@@ -10,7 +10,7 @@
 2. **Selected span lengths** alanına `30, 40, 50` yazın. **Selected total span length** değerini ve aks tablosunu kontrol edin.
 3. **Axis Definition** bölümüne geçin. A1, P1, P2, A2 için zincirleme konumların sırasıyla `0`, `30`, `70`, `120 m` olduğunu kontrol edin. Bu, girilen sayıların basit kümülatif toplamıdır.
 4. Bridge Overview'de **Plan** ve **Profile** modlarına geçin; görünüm değişmeli. Arazi yüklenmediyse **3D** modunda gerçek arazi varmış gibi sahte yüzey beklemeyin.
-5. Network'te `PUT /api/projects/<id>/bridge-definitions` isteğini ve **Kaydedildi** durumunu kontrol edin. Sayfayı yenileyin veya **File → Exit** ardından **Open...** ile aynı projeyi açın. Açıklıklar ve türetilen aks konumları korunmalı; son seçili aks ya da Plan/Profile modu sıfırlanabilir, bunlar arayüz durumudur.
+5. Network'te `PUT /api/projects/<id>/bridge-definitions` isteğini ve yeşil **Kaydedildi** bildirimini kontrol edin. Sayfayı yenileyin veya **File → Exit** ardından **Open...** ile aynı projeyi açın. Açıklıklar ve türetilen aks konumları korunmalı; son seçili aks ya da Plan/Profile modu sıfırlanabilir, bunlar arayüz durumudur.
 
 ## Geçme ölçütü
 

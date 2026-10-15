@@ -25,10 +25,10 @@ function renderNav(props: Partial<ComponentProps<typeof TopWorkspaceNav>> = {}, 
 }
 
 describe('TopWorkspaceNav file menu', () => {
-  it('shows the project name ("Untitled" for an empty name) and the save status of the open project', () => {
+  it('shows the project name ("Untitled" for an empty name) and no persistent save status while idle', () => {
     const view = renderNav({ projectId: 'p-1', projectName: 'Test Köprüsü', saveStatus: IDLE })
     expect(screen.getAllByText('Test Köprüsü')).toHaveLength(2)
-    expect(screen.getByRole('status')).toHaveTextContent('Kaydedildi')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
     view.unmount()
     renderNav({ projectId: 'p-1', projectName: '  ', saveStatus: IDLE })
     expect(screen.getAllByText('Untitled')).toHaveLength(2)

@@ -21,14 +21,15 @@ describe('SaveStatusIndicator', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('shows Kaydedildi and Kaydediliyor… as status', () => {
-    setup({ status: 'idle' })
-    expect(screen.getByRole('status')).toHaveTextContent('Kaydedildi')
+  it('renders nothing while idle', () => {
+    const { container } = render(<SaveStatusIndicator status={snapshot({ status: 'idle' })} onRetry={vi.fn()} onDiscard={vi.fn()} onReload={vi.fn()} />)
+    expect(container).toBeEmptyDOMElement()
+    expect(screen.queryByRole('status')).toBeNull()
   })
 
-  it('shows saving', () => {
-    setup({ status: 'saving', pendingCount: 1 })
-    expect(screen.getByRole('status')).toHaveTextContent('Kaydediliyor…')
+  it('renders nothing while saving', () => {
+    const { container } = render(<SaveStatusIndicator status={snapshot({ status: 'saving', pendingCount: 1 })} onRetry={vi.fn()} onDiscard={vi.fn()} onReload={vi.fn()} />)
+    expect(container).toBeEmptyDOMElement()
   })
 
   it('shows an error with retry and discard', async () => {

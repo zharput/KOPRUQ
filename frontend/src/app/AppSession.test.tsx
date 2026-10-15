@@ -32,6 +32,7 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks(); resetActiveProject() })
 
 const topNav = () => within(document.querySelector('.spn-workspace-nav') as HTMLElement)
+const saveToast = () => document.querySelector('.spn-save-toast')
 const fileButton = () => topNav().getByRole('button', { name: /^File/ })
 const search = () => new URLSearchParams(window.location.search).get('project')
 const names = (requests: { method: string; path: string }[]) => requests.map((request) => `${request.method} ${request.path.replace(/^(\/api\/projects)\/[^/]+/, '$1/{id}')}`)
@@ -49,7 +50,7 @@ async function renameProject(user: ReturnType<typeof userEvent.setup>, suffix: s
 const navigateTo = (url: string) => act(() => { window.history.pushState({}, '', url); window.dispatchEvent(new PopStateEvent('popstate')) })
 
 describe('Welcome and New', () => {
-  it('sends no request on the Welcome screen; New asks for a name, creates the project with one POST and shows it saved', async () => {
+  it('sends no request on the Welcome screen; New asks for a name, creates the project with one POST and shows it without a save toast', async () => {
     const user = userEvent.setup()
     await startAt('/')
     expect(await screen.findByRole('main', { name: 'KOPRUQ Welcome' })).toBeInTheDocument()
@@ -70,9 +71,11 @@ describe('Welcome and New', () => {
     expect(await screen.findByRole('heading', { name: 'Project Overview' })).toBeInTheDocument()
     const nav = topNav()
     expect(nav.getAllByText('Test Köprüsü').length).toBeGreaterThan(0)
-    expect(nav.getByRole('status')).toHaveTextContent('Kaydedildi')
+    expect(nav.queryByRole('status')).not.toBeInTheDocument()
+    expect(saveToast()).toBeNull()
     await new Promise((resolve) => setTimeout(resolve, 1000))
     expect(fake.requests).toHaveLength(1)
+    expect(saveToast()).toBeNull()
   })
 
   it('requests the project list only when the File menu opens', async () => {
@@ -164,6 +167,7 @@ describe('Open, loading and load errors', () => {
     await waitFor(() => expect(activeProjectSession.getSnapshot().projectId).toBe('00000006-0000-4000-8000-000000000000'))
     expect(search()).toBe('00000006-0000-4000-8000-000000000000')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(saveToast()).toBeNull()
   })
 })
 
@@ -175,12 +179,14 @@ describe('Writes, status and failures', () => {
     await user.click(await screen.findByRole('button', { name: '+ Add bridge' }))
     await user.type(screen.getByPlaceholderText('e.g. VIA-13'), 'VIA-13')
     await user.click(screen.getByRole('button', { name: 'Save' }))
-    await waitFor(() => expect(topNav().getByRole('status')).toHaveTextContent('Kaydediliyor…'))
     await flushProjectWrites()
     const puts = putRequests(fake)
     expect(puts.map((request) => request.path.split('/').slice(-1)[0])).toEqual(['workspace', 'bridge-definitions'])
     expect(puts.map((request) => (request.body as { expectedRevision: number }).expectedRevision)).toEqual([17, 18])
-    expect(topNav().getByRole('status')).toHaveTextContent('Kaydedildi')
+    expect(topNav().queryByRole('status')).not.toBeInTheDocument()
+    await waitFor(() => expect(saveToast()).toHaveTextContent('Kaydedildi'))
+    expect(saveToast()).toHaveAttribute('data-kind', 'saved')
+    await waitFor(() => expect(saveToast()).toBeNull(), { timeout: 3000 })
     openTestProject(fake.document(A))
     expect(readProjectState().bridges.map((bridge) => bridge.no)).toContain('VIA-13')
   })
@@ -203,7 +209,8 @@ describe('Writes, status and failures', () => {
     const gets = fake.requests.filter((request) => request.method === 'GET').length
     await user.click(banner.getByRole('button', { name: 'Yeniden yükle' }))
     await waitFor(() => expect(fake.requests.filter((request) => request.method === 'GET')).toHaveLength(gets + 1))
-    await waitFor(() => expect(banner.getByRole('status')).toHaveTextContent('Kaydedildi'))
+    await waitFor(() => expect(banner.queryByRole('alert')).not.toBeInTheDocument())
+    expect(screen.queryByText('Kaydedildi')).not.toBeInTheDocument()
     expect(readProjectState().project.name).toBe('Changed elsewhere')
     expect(activeProjectSession.getSnapshot().revision).toBe(99)
   })
@@ -221,9 +228,12 @@ describe('Writes, status and failures', () => {
     const banner = topNav()
     expect(await banner.findByText(/Kayıt hatası: down \(Ref: corr-1\)/, undefined, { timeout: 3000 })).toBeInTheDocument()
     expect(unload()).toBe(true)
+    expect(saveToast()).toHaveTextContent('Kaydedilemedi')
+    expect(saveToast()).toHaveAttribute('data-kind', 'failed')
     expect(activeWriteQueue.pendingKeys()).toEqual(['workspace'])
     await user.click(banner.getByRole('button', { name: 'Tekrar dene' }))
-    await waitFor(() => expect(banner.getByRole('status')).toHaveTextContent('Kaydedildi'))
+    await waitFor(() => expect(saveToast()).toHaveTextContent('Kaydedildi'))
+    expect(banner.queryByRole('alert')).not.toBeInTheDocument()
     expect(unload()).toBe(false)
     expect(putRequests(fake, 'workspace')).toHaveLength(2)
   })
@@ -242,7 +252,20 @@ describe('Writes, status and failures', () => {
     expect(readProjectState().project.name).toBe('Corridor 7 x')
     await user.click(banner.getByRole('button', { name: 'Değişiklikleri at' }))
     await waitFor(() => expect(readProjectState().project.name).toBe('Corridor 7'))
-    expect(banner.getByRole('status')).toHaveTextContent('Kaydedildi')
+    expect(banner.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText('Kaydedildi')).not.toBeInTheDocument()
+  })
+
+  it('shows the green toast for a Units & Preferences change and removes it again', async () => {
+    const user = userEvent.setup()
+    fake.seed(CANONICAL_PROJECT_DOCUMENT_JSON)
+    await startAt(`/project/units?project=${A}`)
+    await user.selectOptions(await screen.findByLabelText('Length'), 'mm')
+    await waitFor(() => expect(putRequests(fake, 'workspace')).toHaveLength(1))
+    await waitFor(() => expect(saveToast()).toHaveTextContent('Kaydedildi'))
+    expect(saveToast()).toHaveAttribute('data-kind', 'saved')
+    expect(topNav().queryByRole('status')).not.toBeInTheDocument()
+    await waitFor(() => expect(saveToast()).toBeNull(), { timeout: 3000 })
   })
 
   it('Ctrl+S sends pending writes at once and Ctrl+O / Ctrl+N open the list and the name dialog', async () => {
@@ -257,6 +280,16 @@ describe('Writes, status and failures', () => {
     expect(await screen.findByRole('dialog', { name: 'Proje aç' })).toBeInTheDocument()
     fireEvent.keyDown(window, { key: 'n', ctrlKey: true })
     expect(await screen.findByRole('dialog', { name: 'Yeni proje' })).toBeInTheDocument()
+  })
+
+  it('Ctrl+S without pending writes sends nothing and shows no toast', async () => {
+    fake.seed(CANONICAL_PROJECT_DOCUMENT_JSON)
+    await startAt(`/project?project=${A}`)
+    await screen.findByRole('heading', { name: 'Project Overview' })
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(putRequests(fake)).toHaveLength(0)
+    expect(saveToast()).toBeNull()
   })
 
   it('has no Save, Save As, file picker or recent-file access prompt', async () => {
@@ -345,6 +378,7 @@ describe('Unsaved-changes gate', () => {
     expect(putRequests(fake, 'loads/seismic')).toHaveLength(1)
     expect(search()).toBeNull()
     expect(activeProjectSession.getSnapshot().projectId).toBeNull()
+    expect(saveToast()).toBeNull()
   })
 })
 

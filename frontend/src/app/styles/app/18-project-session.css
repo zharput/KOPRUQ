@@ -1,4 +1,4 @@
-/* Project session layer (BACKEND-DB-PERSISTENCE M5b). Only new .spn-session-* selectors; no existing rule is touched. */
+/* Project session layer (BACKEND-DB-PERSISTENCE M5b). New .spn-session-* and .spn-save-toast* selectors only; no existing rule is touched. */
 .spn-session-dialog-wide { width: min(560px, calc(100vw - 32px)); }
 .spn-session-list { list-style: none; margin: 0; padding: 0; max-height: 50vh; overflow-y: auto; display: grid; gap: 6px; }
 .spn-session-list-row { display: grid; width: 100%; gap: 2px; padding: 8px 10px; text-align: left; color: inherit; background: var(--surface-1); border: 1px solid var(--border); }
@@ -10,6 +10,9 @@
 .spn-session-field input { padding: 6px 8px; color: inherit; background: var(--bg-page); border: 1px solid var(--border); }
 .spn-session-status { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
 .spn-session-status[data-status='error'], .spn-session-status[data-status='rejected'], .spn-session-status[data-status='conflict'] { color: #d97878; }
-.spn-session-status[data-status='saving'] { color: #7899b8; }
 .spn-session-screen { min-height: calc(100vh - 72px); display: grid; place-content: center; justify-items: center; gap: 12px; padding: 32px; text-align: center; background: var(--bg-page); }
 .spn-session-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 12px; color: #d97878; background: var(--surface-1); border-bottom: 1px solid var(--border); }
+.spn-save-toast-region { position: fixed; top: 88px; right: 16px; z-index: 1500; pointer-events: none; }
+.spn-save-toast { padding: 8px 14px; font-size: 13px; color: var(--text-primary); background: var(--surface-1); border: 1px solid var(--border); box-shadow: 0 6px 18px #0006; }
+.spn-save-toast[data-kind='saved'] { color: #6fbf8a; border-color: #6fbf8a; }
+.spn-save-toast[data-kind='failed'] { color: #d97878; border-color: #d97878; }

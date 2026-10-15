@@ -10,7 +10,7 @@
 2. `agR = 0.2`, `γI = 1` girin; Ground Type ve Spectrum Type varsayılanlarını koruyun. Network'te `/api/seismic/spectrum` yanıtının `status` alanını kaydedin.
 3. Sonuç `VALID` ise grafik/Details görünümünün geldiğini; `INVALID` ise boş grafik ve açık uyarı gösterildiğini kontrol edin.
 4. `agR` alanını silin. Önceki geçerli spektrum yeni eksik giriş için gösterilmemeli. Tekrar `0.2` girince güncel yanıt görüntülenmeli.
-5. Üst çubukta **Kaydedildi** durumunu bekleyin. Network'te `PUT /api/projects/<id>/loads/seismic` isteğini kontrol edin; sayfayı yenileyince girdiler geri gelmeli. Hesap eğrisinin ayrıca sunucuda saklanmasını beklemeyin.
+5. Sağ üstte yeşil **Kaydedildi** bildirimini bekleyin. Network'te `PUT /api/projects/<id>/loads/seismic` isteğini kontrol edin; sayfayı yenileyince girdiler geri gelmeli. Hesap eğrisinin ayrıca sunucuda saklanmasını beklemeyin.
 
 ## Geçme ölçütü
 

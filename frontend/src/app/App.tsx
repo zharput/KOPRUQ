@@ -11,6 +11,8 @@ import WorkspacePage from './workspaces/WorkspacePage'
 import NewProjectDialog from './project-session/NewProjectDialog'
 import ProjectListDialog from './project-session/ProjectListDialog'
 import ProjectLoadScreen from './project-session/ProjectLoadScreen'
+import SaveToast from './project-session/SaveToast'
+import { useSaveToast } from './project-session/useSaveToast'
 import { useBeforeUnloadWarning } from './project-session/useBeforeUnloadWarning'
 import { useProjectSessionController } from './project-session/useProjectSessionController'
 import { useUrlProjectId } from './project-session/useUrlProjectId'
@@ -71,6 +73,7 @@ function ProjectShell() {
   const { urlProjectId, setUrlProjectId } = useUrlProjectId()
   const session = useProjectSessionController({ urlProjectId, setUrlProjectId })
   useBeforeUnloadWarning()
+  const saveToast = useSaveToast()
 
   const projectState = useProjectState()
   useEffect(() => { window.dispatchEvent(new Event('kopruq:project-units-changed')) }, [projectState])
@@ -140,6 +143,7 @@ function ProjectShell() {
         onExit={() => { if (mayLeave()) void session.exitProject() }} onSaveNow={() => { void activeWriteQueue.flush().catch(() => undefined) }}
         onRetry={() => { void session.retrySaves() }} onDiscard={() => session.discardSaves()} onReload={() => { if (mayLeave()) void session.reloadProject() }}
       />
+      {saveStatus.projectId !== null && <SaveToast toast={saveToast} />}
       {session.actionError !== null && <div className="spn-session-banner" role="alert"><span>{session.actionError}</span><button type="button" className="spn-button-secondary" onClick={session.clearActionError}>Kapat</button></div>}
       {body}
       <NewProjectDialog open={newDialogOpen} busy={dialogsLocked} onCreate={createProject} onCancel={() => setNewDialogOpen(false)} />

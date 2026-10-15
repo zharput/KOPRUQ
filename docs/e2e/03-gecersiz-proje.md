@@ -17,4 +17,4 @@
 - Hata ekranından kayıtlı proje tekrar açılır ve daha önce kaydedilen değerleri taşır.
 - Bu senaryo bozuk `.kopruq` dosyasını test etmez; dosya içe aktarma bu sürümde yoktur.
 
-**Kanıt:** 404 yanıtı, hata ekranı, yeniden açılan proje ID'si ve değerleri. **Sonuç:** `PASS / FAIL / BLOCKED` — Not:
+**Kanıt:** 404 yanıtı, hata ekranı, yeniden açılan proje ID'si ve değerleri. **Sonuç:** PASS

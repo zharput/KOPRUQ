@@ -223,6 +223,8 @@ Backend testleri varsayılan olarak PostgreSQL uyumlu H2 test yapılandırmasın
 
 Frontend'den API ve veritabanına ilerleyen manuel kabul adımları için [uçtan uca test rehberine](docs/e2e/README.md) bakın. Her dosya bir senaryo içerir; mühendislik doğrulaması gereken sonuçlar ayrıca işaretlenmiştir.
 
+Aynı 19 senaryonun otomatik karşılığı Playwright ile `frontend/e2e/` altındadır. Backend ve PostgreSQL ayaktayken (yalnız yerel/test veritabanı; her çalıştırma kalıcı `E2E-...` projeleri bırakır ve silme API'si yoktur): `cd frontend`, bir kerelik `npm.cmd run test:e2e:install`, ardından `npm.cmd run test:e2e`. Ayrıntılar, eşleme tablosu ve otomatikleştirilmeyen adımlar [e2e README](docs/e2e/README.md#otomatik-çalıştırma-playwright) dosyasındadır.
+
 ## Belgeler ve sınırlar
 
 | Belge | Konu |

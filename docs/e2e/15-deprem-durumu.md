@@ -6,7 +6,7 @@
 
 ## Adımlar
 
-1. `/loads` → **Seismic** açın. `Reference PGA, agR` ve `Importance Factor, γI` boşken sonuç grafiğinde geçerli hesap eğrisi olmamalı.
+1. `/loads` → **Seismic** açın. `Reference PGA, agR` boşken sonuç grafiğinde geçerli hesap eğrisi olmamalı. (`Importance Factor, γI` yeni projede varsayılan olarak zaten `1` dolu gelir; "boş" durumu yalnızca agR için geçerlidir.)
 2. `agR = 0.2`, `γI = 1` girin; Ground Type ve Spectrum Type varsayılanlarını koruyun. Network'te `/api/seismic/spectrum` yanıtının `status` alanını kaydedin.
 3. Sonuç `VALID` ise grafik/Details görünümünün geldiğini; `INVALID` ise boş grafik ve açık uyarı gösterildiğini kontrol edin.
 4. `agR` alanını silin. Önceki geçerli spektrum yeni eksik giriş için gösterilmemeli. Tekrar `0.2` girince güncel yanıt görüntülenmeli.

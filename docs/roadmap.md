@@ -1048,7 +1048,7 @@ requirement that nothing already working breaks (see
       correctly. TanStack Table/Recharts/Radix Dialog installed but not
       force-applied anywhere (no current table needs sorting/filtering,
       no chartable data exists yet, no dialog exists) - explicitly
-      deferred, not silently dropped. Playwright e2e also deferred (needs
+      deferred, not silently dropped. Playwright e2e also deferred (closed 2026-10-16 by playwright-e2e-all; needs
       its own browser-install step). No engineering content, values, or
       behavior changed - only structure, navigation, and form plumbing.
 
@@ -1940,3 +1940,8 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 ## dinamik-load-hesaplama (2026-10-15)
 
 - [x] Loads tabs (Self Weight & Permanent, Traffic, Wind, Temperature; Seismic note) follow the project Force/Length/Temperature units at the display/input boundary; storage and backend requests stay canonical SI. Derived units (kN/m, kN/m2, kN/m3 with the Length denominator), Length-based rounding rule (m 4, cm 3, mm 1 decimal / 4 significant digits for derived values), `DecimalInput` `format` prop, `UnitTextInput`. Backend: javadoc and contract test only. Manual scenario `docs/e2e/19-yuk-birimleri.md`; plan `docs/features/dinamik-load-hesaplama/`.
+
+## playwright-e2e-all (2026-10-16)
+
+- [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run leaves 19 persistent `E2E-` projects because the API has no DELETE). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
+- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container); a CI job for the suite; a DELETE API for test projects.

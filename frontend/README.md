@@ -67,10 +67,19 @@ npm test              # vitest run
 npm run test:watch  # vitest, watch mode
 npm run lint          # oxlint
 npm run preview      # serve the production build locally
+npm run test:e2e:install   # one-time: install Chromium for Playwright
+npm run test:e2e           # Playwright e2e (needs the backend and PostgreSQL running)
+npm run test:e2e:headed    # same, with a visible browser (also test:e2e:ui, test:e2e:report)
 ```
 
 On Windows PowerShell, use `npm.cmd` if execution policy blocks the
 `npm.ps1` shim.
+
+## Playwright e2e
+
+`e2e/` holds one Playwright spec per manual scenario in `../docs/e2e` (`NN-<name>.spec.ts`, Chromium only, one worker because all specs share one real database). `e2e/support/` has the shared helpers: fixtures (diagnostics collector, section-write tracker, save-toast recorder, project reader), project/navigation/bridge/graph/file helpers, `scenarioData.ts` (values written in the scenario documents, each with its source step) and `evidence.ts` (screenshots as report attachments). `playwright.config.ts` starts or reuses only the Vite dev server; the backend and PostgreSQL must already run (`e2e/global-setup.ts` stops the run with a Turkish message when `http://localhost:8080/actuator/health` is not `UP`). Vitest does not collect `e2e/**`; `tsc -b` type-checks it through `tsconfig.e2e.json`.
+
+Every spec creates its own `E2E-NN-...` project through the UI. The API has no DELETE, so each run leaves 19 persistent projects: use a local/test database only (Compose `postgres-test` profile recommended). Expected 4xx responses are allowed per test with a reason; any other `pageerror`, `console.error`, 4xx/5xx API response or dialog fails the spec. Environment: `E2E_BASE_URL` (default `http://localhost:5173`, the only CORS origin) and `E2E_API_BASE` (default `http://localhost:8080`). The mapping from scenario to spec and the steps that stay manual are in `../docs/e2e/README.md`.
 
 ## Local backend and database
 

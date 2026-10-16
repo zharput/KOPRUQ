@@ -14,8 +14,7 @@ import java.util.List;
  * one {@code sections} entry, {@code elements}, {@code supports}, one
  * {@code loadCases} entry and its matching {@code selfWeights} entry are
  * populated - no load combinations, construction stages, moving loads,
- * tendons or seismic yet (see docs/midas-integration-analysis.md for the
- * full staged plan).
+ * tendons or seismic yet.
  *
  * <p>{@code elasticLinks}/{@code uniformLoads} added for the native
  * {@code kopruq-analysis-engine} (docs/site-layout-platform-analysis.md

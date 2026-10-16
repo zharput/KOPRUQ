@@ -29,10 +29,11 @@ class BridgeAlternativeTest {
     }
 
     @Test
-    void canBeFullyConstructed_withoutAnyMidasOrExternalType() {
-        // This is P01's stated success criterion (spec section 20,
-        // adapted for architecture amendment v2): "A bridge can be
-        // represented independently of MIDAS."
+    void canBeFullyConstructed_withoutAnySolverOrExternalType() {
+        // This is P01's stated success criterion (spec section 20):
+        // "A bridge can be represented independently of ALLPLAN."
+        // The external solver was later removed (2026-10-16, see docs/roadmap.md);
+        // the criterion is read as solver-independence.
         var alt = makeAlternative();
 
         assertEquals(2, alt.spanLayout().spanCount());

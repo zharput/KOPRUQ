@@ -19,12 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * KOPRUQ's own native analysis engine (docs/site-layout-platform-analysis.md
  * addendum P): linear-elastic direct-stiffness method, 3D frame
  * elements + elastic-link elements. This is the FAST/primary tier of the
- * FAST/INTERMEDIATE/FINAL {@link AnalysisEngine} hierarchy - MIDAS NX
- * ({@code midas-adapter}) stays the FINAL, post-selection verification
- * tier, never called during generation/optimization.
+ * FAST/INTERMEDIATE/FINAL {@link AnalysisEngine} hierarchy. The FINAL
+ * tier is not defined (see docs/roadmap.md, solver-removal entry).
  *
- * <p>Same synchronous-submit shape as {@code MidasCivilNxAnalysisEngine}
- * (MIDAS-P01 precedent) - {@link #submit} runs the full solve to
+ * <p>Synchronous-submit shape - {@link #submit} runs the full solve to
  * completion before returning, storing the outcome for
  * {@link #getStatus}/{@link #getResults}.
  */

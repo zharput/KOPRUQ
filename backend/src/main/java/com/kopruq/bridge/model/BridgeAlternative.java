@@ -7,9 +7,9 @@ import java.util.UUID;
  * One concrete bridge configuration: a single point in the design space
  * (Computational Mode, spec section 6.A), or one output of Generative
  * Mode (spec section 6.B). This is the type that satisfies P01's
- * success criterion: "a bridge can be represented independently of
- * MIDAS" (spec section 20, adapted from the original "independently of
- * ALLPLAN" per architecture amendment v2).
+ * success criterion: "A bridge can be represented independently of
+ * ALLPLAN." (spec section 20). The external solver was later removed
+ * (2026-10-16, see docs/roadmap.md); the criterion is read as solver-independence.
  *
  * <p>{@code deck}, {@code pier} and {@code foundation} are nullable, not
  * required: P03's own generation scope will be "span-layout and girder

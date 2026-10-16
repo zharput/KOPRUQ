@@ -7,7 +7,7 @@
 ## Adımlar
 
 1. `/optimization` açın. Çalışma alanı iskeleti/placeholder görünmeli; Pareto sonucu veya hesaplanmış optimum gibi bir çıktı olmamalı.
-2. `/bim-export` açın. MIDAS/ALLPLAN/IFC teslim işlemi tamamlanmış gibi çalışan bir dışa aktarma veya sonuç göstermemeli.
+2. `/bim-export` açın. ALLPLAN/IFC teslim işlemi tamamlanmış gibi çalışan bir dışa aktarma veya sonuç göstermemeli.
 3. `/loads` → **Traffic** → **LM2** açın. `NOT IMPLEMENTED` durumunu kontrol edin.
 4. `/bridge-definition/assembly/validation` açın. Projede köprü yoksa yalnızca "Add a bridge in Project > Bridge Information…" boş durumu görünür; bu beklenen davranıştır. Köprü ekledikten sonra sayfayı tekrar açın. Envanter yapılandırması ile gerçek mühendislik doğrulamasının ayrıldığını; “Engineering validation: Not implemented” bilgisini kontrol edin.
 

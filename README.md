@@ -30,8 +30,7 @@ flowchart LR
     G -. mühendislik entegrasyonu bekliyor .-> M
     M --> N[KOPRUQ Fast Solver]
     N -. planlanan aşamalar .-> O[Optimizasyon ve Pareto]
-    O -. planlanan aşamalar .-> V[MIDAS NX ile yüksek doğruluklu doğrulama]
-    V -. planlanan aşamalar .-> D[BIM ve teslim çıktıları]
+    O -. planlanan aşamalar .-> D[BIM ve teslim çıktıları]
 ```
 
 Bu şema bir tam otomasyon iddiası değildir: yerleşim sonucundan yapısal alternatif formuna bir seçim aktarımı vardır; arazi verisi henüz yerleşim motorunu sürmez. Fast Solver ayrı bir giriş/model kurma ve çözüm akışı olarak çalışır. Graph/Family adayları da bugün doğrulanmış analiz veya tasarım sonucu sayılmaz.
@@ -45,10 +44,10 @@ Bu şema bir tam otomasyon iddiası değildir: yerleşim sonucundan yapısal alt
 | Yerleşim ve alternatifler | Düz güzergâh, saha aralığı ve `NoPierZone` için uygun/reddedilen yerleşimler; seçilen yerleşimle yapısal alternatif formunun doldurulması | Yerleşim araması henüz genel 3B saha/jeoteknik problemi çözmüyor |
 | Yapı aileleri | Üstyapı, kiriş, ayak, başlık, temel, mesnet ve malzeme çalışma alanları; Graph düğümleri, aday listeleri ve teknik kesit önizlemeleri | Aday önizlemesi ve Graph hesapları nihai tasarım kontrolü veya backend solver doğrulaması değildir |
 | Yükler | LM1 ve trafik yük grupları, rüzgâr, sıcaklık ve deprem servisleri; giriş doğrulama ve kaynak/override izleri | LM2 görünür fakat `NOT_IMPLEMENTED`; onaysız mühendislik katsayıları veya kuralları üretilemez |
-| Analiz | Doğrusal elastik 3B çerçeve Fast Solver, model kurma, mesnet tepkileri ve deplasmanlar; MIDAS model/sonuç alışverişi adaptöründe test edilmiş round trip | MIDAS NX'te canlı analiz yürütüp sonucu `BridgeAlternative` ile ilişkilendiren P07 tamamlanmadı |
+| Analiz | Doğrusal elastik 3B çerçeve Fast Solver, model kurma, mesnet tepkileri ve deplasmanlar | Analiz sonucunu `BridgeAlternative` ile ilişkilendiren P07 tamamlanmadı; MIDAS entegrasyonu 2026-10-16'da kaldırıldı (MIDAS-REMOVE), nihai doğrulama katmanı tanımsız |
 | Kalıcılık | Backend'de PostgreSQL + JPA + Flyway; arazi, LandXML içe aktarma ve `Project` agregası için depo adaptörleri | Köprü projesini kaydeden bir API/use case, hesap sonuçlarının kalıcılığı ve tarayıcı dosyasından sunucuya geçiş yok |
 
-**Henüz tamamlanmayan ana aşamalar:** miktar/maliyet/karbon hesabı, çok amaçlı optimizasyon ve Pareto, üretim AI servisi, MIDAS NX analiz entegrasyonu ve BIM teslim akışı. Optimizasyon/AI servis dizinleri şu anda yer tutucudur. Arayüzdeki boş çalışma alanları bu kabiliyetlerin var olduğu anlamına gelmez.
+**Henüz tamamlanmayan ana aşamalar:** miktar/maliyet/karbon hesabı, çok amaçlı optimizasyon ve Pareto, üretim AI servisi, analiz entegrasyonu (P07) ve BIM teslim akışı. Optimizasyon/AI servis dizinleri şu anda yer tutucudur. Arayüzdeki boş çalışma alanları bu kabiliyetlerin var olduğu anlamına gelmez.
 
 ## Sistem mimarisi
 
@@ -64,10 +63,9 @@ flowchart TB
     APP --> IMPORT[LandXML / XYZ adaptörleri]
     APP --> DB[(PostgreSQL)]
     IMPORT --> DB
-    APP -. doğrulama entegrasyonu bekliyor .-> MIDAS[MIDAS Civil NX adaptörü]
 ```
 
-Backend **Java 21 / Spring Boot 3.5 ile tek Maven modüllü bir modular monolith** yapısındadır. Domain sınırları `com.kopruq.<domain>` paketleriyle ve [ArchitectureTests](backend/src/test/java/com/kopruq/architecture/ArchitectureTests.java) ile korunur. Her domain ihtiyaç duyduğu `api`, `application`, `domain`, `model`, `enums` ve `infra` alt paketlerini kullanır. `model` ve `domain` katmanları Spring/JPA veya REST tiplerine bağlı değildir. MIDAS kodları yalnızca analiz adaptöründedir.
+Backend **Java 21 / Spring Boot 3.5 ile tek Maven modüllü bir modular monolith** yapısındadır. Domain sınırları `com.kopruq.<domain>` paketleriyle ve [ArchitectureTests](backend/src/test/java/com/kopruq/architecture/ArchitectureTests.java) ile korunur. Her domain ihtiyaç duyduğu `api`, `application`, `domain`, `model`, `enums` ve `infra` alt paketlerini kullanır. `model` ve `domain` katmanları Spring/JPA veya REST tiplerine bağlı değildir. Çözücüye özgü kod yalnızca analiz `infra` paketlerindedir.
 
 Frontend; `app` (kabuk ve yönlendirme), `features` (özellik ekranları ve modelleri) ve `shared` (ortak UI, HTTP ve proje dosyası) katmanlarından oluşur. Ana gezinmede Project, Graph, Family, Loads ve diğer çalışma alanları vardır. Graph düğümleri ile Family sonuçları tarayıcı tarafındaki aday/önizleme akışını oluşturur; backend Fast Solver farklı bir mühendislik hizmetidir. [Frontend README](frontend/README.md) katman kurallarını ve istisnalarını açıklar.
 
@@ -106,7 +104,6 @@ flowchart LR
     ENGINE --> RESULT[Tepkiler / deplasmanlar / durum]
     ALT -. otomatik model indirgeme bekliyor .-> FRAME
     RESOLVE -. yük aktarımı ayrı kapsam .-> FRAME
-    RESULT -. P07 bekliyor .-> VERIFY[MIDAS NX doğrulaması]
 ```
 
 Kural motorunun altyapısı ve deterministik alternatif üretimi vardır; onaylanmış kapsamlı tasarım kuralları henüz eklenmemiştir. Trafik yük grupları, EN 1990 yük birleşimlerinden ayrı tutulur. Fast Solver sonuçları, alternatif üretim ekranındaki satırlar için otomatik hesaplanmış değerler değildir.
@@ -154,7 +151,7 @@ KOPRUQ/
 │       ├── rules/            Kural altyapısı
 │       ├── loads/            Trafik ve çevresel yükler
 │       ├── materials/        Malzeme servisleri
-│       ├── analysis/         Port, model kurucu, native solver, MIDAS adaptörü
+│       ├── analysis/         Port, model kurucu, native solver
 │       └── shared/           Yapılandırma, hata ve doğrulama
 ├── frontend/src/
 │   ├── app/                  Kabuk, yönlendirme, çalışma alanları ve stiller

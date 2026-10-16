@@ -1,3 +1,5 @@
+> **Note (2026-10-16):** references to MIDAS NX as the FINAL verification tier are superseded by MIDAS-REMOVE (2026-10-16); see `docs/roadmap.md`. The text below is not rewritten.
+
 # KOPRUQ Site/Corridor & Bridge Layout Platform - Architecture Analysis
 
 Status: **analysis only, no code written.** Per the engineer's own

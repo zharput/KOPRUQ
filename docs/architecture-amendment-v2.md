@@ -1,3 +1,5 @@
+> **Note (2026-10-16):** MIDAS-specific content in this document is superseded by MIDAS-REMOVE (2026-10-16); see `docs/roadmap.md`. The text below is not rewritten.
+
 # Architecture Amendment v2 (2026-09-09)
 
 This amends `docs/kopruq-master-spec.md` sections 3, 4, 12-14 and 19-20.

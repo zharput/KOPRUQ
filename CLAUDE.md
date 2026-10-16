@@ -28,7 +28,6 @@ engineer decided to move to this stack.
 | Rules domain | `com.kopruq.rules` (package) | Deterministic feasibility, explainable results |
 | Generative domain | `com.kopruq.generative` (package) | Design-space combination, alternative identity |
 | Analysis port | `com.kopruq.analysis` (package) | Port/interface; solver adapters in its `infra` |
-| MIDAS NX Adapter | an `infra` package (e.g. `com.kopruq.analysis.infra.midas`) | All MIDAS-specific code lives only here |
 | Optimization Service | `services/optimization-service` | Python/FastAPI - not implemented until after P01 |
 | AI Service | `services/ai-service` | Python/FastAPI - not implemented until after P01 |
 
@@ -59,12 +58,9 @@ system installer registry, added to `~/.bashrc` PATH for Git Bash).
 Rust + VS Build Tools were installed for a Tauri desktop-shell attempt
 that was reverted - not needed for the current web-app frontend.
 
-**Primary analysis solver: MIDAS Civil NX**, not ALLPLAN. See
-`docs/architecture-amendment-v2.md` for why, and note that this
-project's own session history already has verified, working MIDAS MAPI
-calls (node/element/material/section creation, loads, running an
-analysis, pulling results) - real prior art for `midas-adapter`, unlike
-the ALLPLAN Tcl/API which was never verified.
+**MIDAS removed 2026-10-16 (MIDAS-REMOVE):** the analysis port and the
+native solver remain; future solver adapters go behind the same port. See
+`docs/roadmap.md`.
 
 ## The working method (spec section 24) - this is not optional
 
@@ -98,9 +94,9 @@ the ALLPLAN Tcl/API which was never verified.
 ## Architectural rules (spec sections 3, 21; amendment v2)
 
 - The bridge domain (and rules/generative domains) must never reference
-  MIDAS, ALLPLAN, SCIA, or any solver/BIM-specific type. External
+  MIDAS (removed), ALLPLAN, SCIA, or any solver/BIM-specific type. External
   systems are reached only through adapters in `infra` packages behind a
-  port (MIDAS today, future SCIA).
+  port (future SCIA).
 - All internal engineering lengths/quantities use SI units,
   unambiguously.
 - Business rules live in the owning domain `model` (or a `domain`

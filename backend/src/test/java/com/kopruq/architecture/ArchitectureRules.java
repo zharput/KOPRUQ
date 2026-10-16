@@ -331,7 +331,7 @@ final class ArchitectureRules {
                 continue;
             }
             boolean solverAdapter = from.isDomain() && from.owner().equals("analysis") && from.layer().equals("infra")
-                    && (from.sub().equals("nativeengine") || from.sub().equals("midas"));
+                    && from.sub().equals("nativeengine");
             for (String imported : imports(file.getValue())) {
                 if (imported.startsWith("java.")) {
                     continue;
@@ -361,9 +361,6 @@ final class ArchitectureRules {
         if (from.isDomain() && from.owner().equals("analysis") && from.layer().equals("infra")) {
             if (from.sub().equals("nativeengine")) {
                 return false;
-            }
-            if (from.sub().equals("midas")) {
-                return imported.startsWith("com.fasterxml.jackson.");
             }
         }
         boolean frameworkAllowed = from.owner().equals("root")
@@ -408,16 +405,8 @@ final class ArchitectureRules {
                 continue;
             }
             boolean inAnalysisInfra = from.owner().equals("analysis") && from.layer().equals("infra");
-            boolean inMidas = inAnalysisInfra && from.sub().equals("midas");
             boolean composition = from.owner().equals("shared.config");
             for (String imported : imports(file.getValue())) {
-                Location to = importLocation(imported);
-                if (to != null && to.owner().equals("analysis") && to.layer().equals("infra") && to.sub().equals("midas")
-                        && !inMidas && !composition) {
-                    violations.add(file.getKey() + ": imports MIDAS type " + imported
-                            + " (MIDAS-specific code lives only in com.kopruq.analysis.infra.midas)");
-                    continue;
-                }
                 String lower = imported.toLowerCase(Locale.ROOT);
                 if ((lower.contains("midas") || lower.contains("scia") || lower.contains("allplan"))
                         && !inAnalysisInfra && !composition) {

@@ -143,7 +143,7 @@ backend/src/main/java/com/kopruq/
     domain/       birden fazla modeli kullanan framework'süz domain servisleri/algoritmalar
     model/        iş kurallarını ve invariant'ları taşıyan domain modelleri
     enums/        domain enum'ları
-    infra/        adapter'lar (dosya, solver/MIDAS, ileride kalıcılık)
+    infra/        adapter'lar (dosya, solver adapter, ileride kalıcılık)
   shared/
     config/  exception/  quantity/  validation/
 ```
@@ -156,7 +156,7 @@ Bir domain'de ihtiyaç olmayan alt paket açılmaz.
 | R3 model/domain → application/api/Spring yok (Test) | **Aynen.** Spring `api`, `application`, `infra`, `shared.config` paketlerinde serbest. `model` ve `domain` paketleri `org.springframework.`, `..application..`, `..api..` import etmez. Ayrıca bridge/rules/generative domain'leri MIDAS/SCIA/ALLPLAN tiplerine bağımlı olamaz (CLAUDE.md). |
 | R4 algoritma izin listesi (Test) | Aynen; referanstaki `ArchitectureTests` deseniyle paket bazlı import izin listesi. Domain sınırları Maven modülleriyle değil, bu testlerle korunur. |
 | R5 iş kuralı modelde/domain'de | Aynen. |
-| R6 port application'da, uygulama infra'da | Aynen. Analiz portu `analysis` domain'inde, MIDAS adapter'ı `analysis/infra/...` altında. Port tipleri solver'a özgü kavram taşımaz. |
+| R6 port application'da, uygulama infra'da | Aynen. Analiz portu `analysis` domain'inde, solver adapter'ları `analysis/infra/...` altında. Port tipleri solver'a özgü kavram taşımaz. |
 | R7 framework'süz hata sözleşmesi + tek handler | Aynen: `shared/exception` (kodlu istisna + `ApiExceptionHandler`). |
 | R8 Bean Validation + domain Checks | `spring-boot-starter-validation` eklenmesi milestone onayı ister (CLAUDE.md). Domain invariant'ları modellerde kalır. |
 | R9 SI birimler | Aynen; `shared/quantity` uygun yer. |

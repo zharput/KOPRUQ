@@ -37,19 +37,16 @@ flowchart LR
         DOMAIN[Domain and model layers<br/>invariants, rules, generation, calculations]
         MEMORY[(PostgreSQL via JPA)]
         NATIVE[Native fast solver]
-        MIDAS[MIDAS Civil NX adapter]
 
         API --> APP
         API --> DOMAIN
         APP --> DOMAIN
         APP --> MEMORY
         APP --> NATIVE
-        APP -. solver port .-> MIDAS
     end
 
     Client -->|HTTP /api| API
     Client -->|GET /actuator/health| API
-    MIDAS -. high-fidelity verification;<br/>not exposed through REST yet .-> MidasNx[MIDAS Civil NX]
 ```
 
 The dependency direction is:
@@ -59,8 +56,8 @@ engineering domain -> engineering rules -> calculation / solver
                    -> results -> visualization -> AI explanation
 ```
 
-The bridge, rules, generative, and analysis models do not depend on MIDAS,
-ALLPLAN, SCIA, Three.js, or a vendor file format. LandXML and MIDAS-specific
+The bridge, rules, generative, and analysis models do not depend on
+ALLPLAN, SCIA, Three.js, or a vendor file format. LandXML-specific
 concepts remain inside their adapter boundaries.
 
 ### Layering rules
@@ -134,8 +131,7 @@ com.kopruq
 |   |-- domain            # Frame-bridge model construction
 |   |-- model             # Solver-independent analysis model
 |   `-- infra
-|       |-- nativeengine  # Linear-elastic 3D direct-stiffness solver
-|       `-- midas         # MIDAS Civil NX adapter
+|       `-- nativeengine  # Linear-elastic 3D direct-stiffness solver
 `-- shared
     |-- config            # Bean wiring, CORS, correlation IDs
     |-- exception         # One REST error contract
@@ -254,12 +250,10 @@ flowchart LR
     Request[AnalysisRequest]
     Port[AnalysisEngine port]
     Native[KopruqAnalysisEngine]
-    Midas[MidasCivilNxAnalysisEngine]
     Result[AnalysisResult]
 
     Input --> Builder --> Request --> Port
     Port --> Native --> Result
-    Port -. verification adapter .-> Midas --> Result
 ```
 
 | Model | Responsibility |
@@ -272,9 +266,9 @@ flowchart LR
 | `AnalysisJob` / `AnalysisResult` | Job status plus reactions, displacements, and an optional failure message. |
 | `FrameBridgeInput` / `FrameBridgeModel` | Validated portal-frame bridge input and its solver-ready model/report labels. |
 
-The native engine performs linear-elastic 3D direct-stiffness analysis. The
-MIDAS adapter implements the same port, but full REST execution, result
-association, and post-selection verification workflow are not implemented.
+The native engine performs linear-elastic 3D direct-stiffness analysis. Result
+association and a post-selection verification workflow are not implemented
+(MIDAS removed 2026-10-16, MIDAS-REMOVE; future solver adapters use the same port).
 
 ## Project workflow
 
@@ -723,7 +717,7 @@ The suite includes:
 - layout and generative termination checks;
 - terrain/TIN and Bentley LandXML topology tests;
 - load, material, and provenance behavior;
-- native solver validation and MIDAS mapping contracts;
+- native solver validation;
 - controller and end-to-end REST contract tests;
 - exact endpoint-inventory tests;
 - persistence round trips (terrain, LandXML import, project workspace and
@@ -745,8 +739,8 @@ The suite includes:
 - Traffic load groups are visible but undefined; LM2 remains
   `NOT_IMPLEMENTED` and is not fabricated.
 - Project load inputs are not automatically assembled into structural analysis.
-- MIDAS Civil NX mapping/round-trip components exist, but P07 analysis
-  execution and result association are not complete or exposed through REST.
+- P07 analysis execution and result association are not complete or exposed
+  through REST (MIDAS removed 2026-10-16; P07 to be redefined).
 - Quantities, cost, carbon, Pareto optimization, production AI orchestration,
   additional solver adapters, and delivery/BIM workflows remain future work.
 

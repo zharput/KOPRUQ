@@ -1,13 +1,12 @@
 package com.kopruq.analysis.enums;
 
 /**
- * MIDAS-P01 scope: only the terminal states a synchronous round trip
- * actually produces. MIDAS's own {@code /doc/anal} call was verified to
- * block until the analysis finishes (~10s for a trivial model), so there
- * is no genuine intermediate state to report yet - the richer status set
- * from docs/midas-integration-analysis.md (QUEUED, BUILDING_MODEL,
- * SUBMITTED, RUNNING, EXTRACTING_RESULTS, ...) is for the later
- * {@code AnalysisJobManager}, once batched/queued jobs are real.
+ * P01 scope: only the terminal states a synchronous round trip
+ * actually produces. The current engines run synchronously to
+ * completion, so there is no genuine intermediate state to report yet -
+ * a richer status set (QUEUED, BUILDING_MODEL, SUBMITTED, RUNNING,
+ * EXTRACTING_RESULTS, ...) is for a later {@code AnalysisJobManager},
+ * once batched/queued jobs are real.
  */
 public enum AnalysisStatus {
     RUNNING,

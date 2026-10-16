@@ -1,6 +1,6 @@
 # KOPRUQ Architecture
 
-Status: **P06's MIDAS-P01 round trip + real VIA-35 model done; P10's UI
+Status: **MIDAS integration removed (MIDAS-REMOVE, 2026-10-16); P10's UI
 shell also done, out of milestone order; SITE-P01's `spatial-core` +
 `alignment` modules done; LAYOUT-P01 done end-to-end (`constraints` +
 `bridge-layout` + REST endpoint + Layout Generator frontend screen) and
@@ -39,7 +39,7 @@ are not assigned by name. Graph-store history remains keyed by Graph document
 ID, so switching bridges does not share undo/redo state.
 
 KOPRUQ has its own independent **Bridge Core**. It must never depend on
-MIDAS, ALLPLAN, SCIA, a specific FEM solver, or a specific BIM format.
+MIDAS (removed), ALLPLAN, SCIA, a specific FEM solver, or a specific BIM format.
 External engineering applications are reached only through adapter
 modules.
 
@@ -50,9 +50,8 @@ modules.
                        |
        +---------------+---------------+
        |               |               |
-    MIDAS NX          SCIA           ALLPLAN
-    Adapter          (future)        (future, if wanted)
-  (backend/midas-adapter)
+    SCIA             ALLPLAN
+   (future)        (future, if wanted)
 ```
 
 ## Repository / module structure
@@ -73,7 +72,7 @@ KOPRUQ/
 |       |         loads (traffic + environmental) materials        layout (bridge-layout + constraints)
 |       |         bridge (bridge-core)            rules            generative
 |       |         analysis (analysis-api port in application, model-builder in domain,
-|       |                   native engine in infra/nativeengine, MIDAS adapter in infra/midas)
+|       |                   native engine in infra/nativeengine)
 |       |-- main/resources/application.properties
 |       `-- test/java/com/kopruq/    each test beside its subject; architecture/ and contract/
 |-- services/                       Python, deferred to after P01
@@ -117,9 +116,8 @@ What `ArchitectureTests` enforce (a rule that cannot fail proves nothing, so eac
 T1 every main package is `com.kopruq.<domain>/{api,application,domain,model,enums,infra[.sub]}`, `com.kopruq.shared.*` or
 `com.kopruq` (only `KopruqApplication`); T2 `model`/`domain`/`enums` import no Spring, jakarta (persistence included), Hibernate, lombok,
 application, api, infra or `shared.config`; T3 their imports stay on an allow-list; T4 the domain edges equal the pinned graph
-(an unused pinned edge is a violation too); T5 external imports only where allowed (`infra.nativeengine` java.* only,
-`infra.midas` java.* plus Jackson); T6 MIDAS/SCIA/ALLPLAN types only under `analysis.infra` (`com.kopruq.analysis.infra.midas`
-reachable only from itself and `shared.config`); T7 exactly 12 `@RestController` classes, only in `<domain>.api`; T8 no
+(an unused pinned edge is a violation too); T5 external imports only where allowed (`infra.nativeengine` java.* only);
+T6 MIDAS/SCIA/ALLPLAN vendor types only under `analysis.infra` (generic substring guard, kept after MIDAS-REMOVE); T7 exactly 12 `@RestController` classes, only in `<domain>.api`; T8 no
 `@CrossOrigin`, no controller builds collaborators with `new`; T9 `application` does not import `api`; T10 `pom.xml` has no
 `<modules>`, packaging `jar` and exactly the approved eleven dependencies (the original six plus Spring Data JPA, Flyway core/PostgreSQL, the PostgreSQL driver and H2 for tests); T11 JPA, Spring Data and Hibernate imports occur only in `<domain>.infra.persistence`.
 
@@ -127,7 +125,7 @@ Rule evaluation decision (BACKEND-ARCHITECTURE Faz 6, assumption A1): the rule e
 generation. `EvaluatedAlternativeGenerator` runs every alternative through the `RuleEngine`, so `generative -> rules` is a
 used edge. No rule is approved yet, so every alternative is feasible and nothing changed in the REST response.
 
-The MIDAS adapter (`analysis.infra.midas`) is wired by `shared.config.CoreConfiguration`; `bridge-layout` and `bridge-core` do
+The native engine (`analysis.infra.nativeengine`) is wired by `shared.config.CoreConfiguration`; `bridge-layout` and `bridge-core` do
 not depend on each other yet - the seam between them (`StructuralAlternativeBuilder`, per the analysis document section C)
 is a later milestone.
 
@@ -140,18 +138,15 @@ com.kopruq.<domain>
   domain/         framework-free services/algorithms spanning several models
   model/          framework-free models that own their business rules and invariants
   enums/          domain enums
-  infra/          port implementations (terrain, landxml, bridge: persistence/ JPA adapters; analysis: nativeengine/, midas/)
+  infra/          port implementations (terrain, landxml, bridge: persistence/ JPA adapters; analysis: nativeengine/)
 com.kopruq.shared/{config,exception,validation}   composition root, single error contract, field checks
 ```
 
-### Analysis port units and the MIDAS notes for P07
+### Analysis port units
 
 The `analysis-api` port is in m / kN (kN/m2, kN/m3, t/m3, rad, 1/degC, kN/m, kN*m/rad) and uses KOPRUQ enums
-(`MaterialKind.CONCRETE`, `LoadCaseKind.DEAD|WIND`); the MIDAS codes are in `midas-adapter`'s `MidasVocabulary`.
-For P07: (1) `LoadCaseKind.WIND` is refused by the adapter (`UnsupportedOperationException`) until its MIDAS code is
-verified on a live session; (2) the adapter does not set the MIDAS session unit, so the session must already be in
-kN and m - verify or add the unit call live; (3) the model-builder module is where the MIDAS path should get its
-`AnalysisRequest` from (the same builder as the native engine).
+(`MaterialKind.CONCRETE`, `LoadCaseKind.DEAD|WIND`). The MIDAS adapter and its vocabulary were removed (MIDAS-REMOVE);
+future solver adapters take their `AnalysisRequest` from the same model-builder as the native engine.
 
 **Do not add a dependency ahead of the milestone that needs it.** If you
 find yourself wiring a new module edge or a new frontend->backend call
@@ -171,7 +166,7 @@ way). Later the same session, the engineer reconsidered and confirmed:
 **frontend is a plain React + Vite web app** - `frontend/src-tauri/` and
 the `@tauri-apps/cli` dependency were removed, `vite.config.ts` reverted.
 
-This does not affect MIDAS reachability at all: the MIDAS connection
+This does not affect MIDAS reachability at all (superseded by MIDAS-REMOVE 2026-10-16): the MIDAS connection
 lives entirely in the backend's `midas-adapter` module (P06, still an
 empty skeleton - see `docs/midas-integration-analysis.md`), which the
 frontend never talks to directly regardless of whether it's a browser tab
@@ -190,7 +185,7 @@ C#/Avalonia build without change: plain `double` fields, always meters,
 always named with an explicit `M` suffix (`totalLengthM`, `depthM`,
 `spacingM`, ...). No dedicated `Length`/`Quantity` value type - revisit
 only if a real need appears (e.g. a unit conversion at the MIDAS
-adapter's boundary).
+adapter's boundary; superseded by MIDAS-REMOVE 2026-10-16).
 
 ## P01 domain model (`backend/bridge-core`)
 
@@ -3353,3 +3348,14 @@ Plan: `docs/features/playwright-e2e-all/`. Playwright now runs the 19 manual sce
 - **What stays manual.** Scenario 05 step 9 (negative check on another bridge), 08 step 6 (restarting the backend; the spec substitutes a reload and a mesh GET from a fresh request context, which does not prove a restart) and 11 step 3 (backend log search). The mapping table is in `docs/e2e/README.md`.
 - **Findings recorded in the specs (code vs. scenario text, nothing was changed).** The 05 "not connected" error and ERROR label appear only after a Run; 15 starts with importance factor `1`, not empty; 11 has no "Min span / Max span" labels and the 400 body has no `violations` key; 19 steps 3-4 are inconsistent about the unit order; a 200 INVALID wind result is also saved as a snapshot; 17 needs a bridge for the Validation table; a new project also persists an unassigned "Untitled Graph"; navigating to `/bridge-alternatives` drops `?project` for a moment before the session restores it.
 - **Side effects.** Each full run leaves 19 persistent `E2E-` projects because the API has no DELETE; use a local/test database only.
+
+## MIDAS-REMOVE (2026-10-16)
+
+MIDAS Civil NX integration was removed permanently. Deleted: `com.kopruq.analysis.infra.midas` (adapter, vocabulary,
+model builder, result extractor, HTTP client) and its tests; the MIDAS-specific allowances in `ArchitectureRules`
+(T5 Jackson allowance, T6 MIDAS import branch); the MIDAS frontend navigation/placeholder entries and the `MIDAS` item
+in BIM / Export. Kept: the solver-independent `AnalysisEngine` port, `analysis.model.*`, the native solver
+(`KopruqAnalysisEngine`), the Fast Solver REST behaviour, and the generic vendor-type guard (T6 substring check for
+midas/scia/allplan). The old URL `/midas-nx-final-verification` falls back to the `project` workspace. No REST contract,
+data or migration change. `docs/midas-integration-analysis.md` is archived as a historical reference. Earlier sections of
+this document that describe MIDAS are historical records and are not rewritten.

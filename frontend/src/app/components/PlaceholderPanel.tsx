@@ -35,7 +35,6 @@ const MILESTONE_BY_SECTION: Partial<Record<SectionId, string>> = {
   'model-reduction': 'not started',
   'analysis-queue': 'not started - KOPRUQ Fast Solver runs synchronously to completion today, nothing to queue yet',
   'opensees-verification': 'the INTERMEDIATE solver tier named in the analysis document section B - not requested/started',
-  'midas-nx-final-verification': 'MIDAS NX is kept as the post-selection, high-fidelity verification tier (addendum P) - not wired to a UI screen yet',
   results: 'P08-P09 (quantities, cost, CO2, Pareto results)',
   'layout-optimization': 'the first of three separate optimization levels (analysis document section B/16) - not started',
   'structural-optimization': 'P09 (generative multi-objective optimization)',

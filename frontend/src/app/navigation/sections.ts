@@ -98,7 +98,6 @@ export type SectionId =
   | 'analysis-queue'
   | 'results'
   | 'opensees-verification'
-  | 'midas-nx-final-verification'
   | 'layout-optimization'
   | 'structural-optimization'
   | 'bridge-optimization'
@@ -218,7 +217,6 @@ export const SIDEBAR_GROUPS: NavGroup[] = [
       { id: 'analysis-queue', label: 'Analysis Queue' },
       { id: 'results', label: 'Results' },
       { id: 'opensees-verification', label: 'OpenSees Verification' },
-      { id: 'midas-nx-final-verification', label: 'MIDAS NX Final Verification' },
     ],
   },
   {

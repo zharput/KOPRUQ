@@ -23,7 +23,7 @@ export const WORKSPACES: WorkspaceDefinition[] = [
   { id: 'analysis', label: 'Analysis', Icon: ChartNoAxesCombined, leftHeading: 'Analysis', items: ['FEM Model', 'Loads', 'Load Combinations', 'Solver', 'Design Checks'], centerHeading: 'Analysis Workspace', rightHeading: 'Analysis Properties', rightDetails: ['Analysis model', 'Solver settings', 'Design checks'] },
   { id: 'optimization', label: 'Optimization', Icon: GitBranch, leftHeading: 'Optimization', items: ['Design Variables', 'Objectives', 'Constraints', 'Algorithms'], centerHeading: 'Optimization Workspace', rightHeading: 'Optimization Properties', rightDetails: ['Design variables', 'Objectives', 'Constraints'] },
   { id: 'results', label: 'Results', Icon: Boxes, leftHeading: 'Results', items: ['Analysis Results', 'Design Checks', 'Alternatives', 'Reports'], centerHeading: 'Results Workspace', rightHeading: 'Result Details', rightDetails: ['Results will appear here'] },
-  { id: 'bim-export', label: 'BIM / Export', Icon: Waypoints, leftHeading: 'BIM / Export', items: ['Allplan', 'MIDAS', 'IFC', 'Excel', 'Reports'], centerHeading: 'BIM / Export Workspace', rightHeading: 'Export Settings', rightDetails: ['Target format', 'Export options'] },
+  { id: 'bim-export', label: 'BIM / Export', Icon: Waypoints, leftHeading: 'BIM / Export', items: ['Allplan', 'IFC', 'Excel', 'Reports'], centerHeading: 'BIM / Export Workspace', rightHeading: 'Export Settings', rightDetails: ['Target format', 'Export options'] },
 ]
 
 /** Workspaces exposed as primary navigation; Bridge Definition remains routable internally during migration. */
@@ -39,7 +39,7 @@ const LEGACY_WORKSPACE: Partial<Record<string, WorkspaceId>> = {
   alignment: 'bridge-definition', 'terrain-dtm': 'bridge-definition', 'gis-satellite': 'project', geotechnical: 'project', 'hydrology-hydraulic': 'project', constraints: 'bridge-definition', 'system-assembly': 'family-tables',
   materials: 'family-tables', 'superstructure-families': 'family-tables', 'girder-library': 'family-tables', 'preferred-span-families': 'family-tables', 'pier-families': 'family-tables', 'pier-cap-families': 'family-tables', 'abutment-families': 'family-tables', 'foundation-families': 'family-tables', 'bearing-families': 'family-tables', 'standardization-rules': 'family-tables',
   'load-combinations': 'loads', 'bridge-inventory': 'project', 'bridge-site': 'bridge-definition', 'layout-generator': 'graph', 'layout-alternatives': 'graph', 'selected-layout': 'graph', 'bridge-superstructure': 'bridge-definition', 'bridge-piers': 'bridge-definition', 'bridge-abutments': 'bridge-definition', 'bridge-bearings': 'bridge-definition', 'bridge-foundations': 'bridge-definition', 'bridge-alternatives': 'graph',
-  'model-reduction': 'analysis', 'kopruq-fast-solver': 'analysis', 'analysis-queue': 'analysis', 'opensees-verification': 'analysis', 'midas-nx-final-verification': 'analysis',
+  'model-reduction': 'analysis', 'kopruq-fast-solver': 'analysis', 'analysis-queue': 'analysis', 'opensees-verification': 'analysis',
   'layout-optimization': 'optimization', 'structural-optimization': 'optimization', 'bridge-optimization': 'optimization', 'corridor-optimization': 'optimization', standardization: 'optimization', 'pareto-explorer': 'optimization', reports: 'bim-export', '3d-visualization': 'bridge-definition', settings: 'project', help: 'project',
 }
 

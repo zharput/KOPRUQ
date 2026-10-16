@@ -1,3 +1,5 @@
+> **Note (2026-10-16):** MIDAS-specific content in this document is superseded by MIDAS-REMOVE (2026-10-16); see `docs/roadmap.md`. The text below is not rewritten.
+
 > This is the authoritative master specification for KOPRUQ. Maintain
 > `CLAUDE.md`, `architecture.md` and `roadmap.md` as living project
 > documents derived from it. Do not change fundamental architectural

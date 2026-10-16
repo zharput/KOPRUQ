@@ -160,7 +160,7 @@ class ArchitectureTests {
         assertEquals(1, ArchitectureRules.locationViolations(one("com.kopruq.api.terrain.api")).size());
         assertEquals(1, ArchitectureRules.locationViolations(one("com.kopruq.midas")).size());
         assertEquals(List.of(), ArchitectureRules.locationViolations(one("com.kopruq.bridge.model")));
-        assertEquals(List.of(), ArchitectureRules.locationViolations(one("com.kopruq.analysis.infra.midas")));
+        assertEquals(List.of(), ArchitectureRules.locationViolations(one("com.kopruq.analysis.infra.nativeengine")));
         assertEquals(List.of(), ArchitectureRules.locationViolations(one("com.kopruq.shared.exception")));
         assertEquals(List.of(), ArchitectureRules.locationViolations(
                 files("com/kopruq/KopruqApplication.java", src("com.kopruq"),
@@ -225,25 +225,24 @@ class ArchitectureTests {
         assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.bridge.model", "org.springframework.stereotype.Component")).size());
         assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.shared.validation", "org.springframework.http.HttpStatus")).size());
         assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.nativeengine", "com.fasterxml.jackson.databind.ObjectMapper")).size());
-        assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.midas", "org.springframework.stereotype.Component")).size());
-        assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.midas", "com.kopruq.materials.domain.EurocodeConcrete")).size());
-        assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.nativeengine", "com.kopruq.analysis.infra.midas.MidasApiClient")).size());
+        assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.nativeengine", "org.springframework.stereotype.Component")).size());
+        assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.nativeengine", "com.kopruq.materials.domain.EurocodeConcrete")).size());
+        assertEquals(1, ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.nativeengine", "com.vendor.midas.Api")).size());
         assertEquals(List.of(), ArchitectureRules.externalImportViolations(one("com.kopruq.bridge.api", "org.springframework.web.bind.annotation.RestController", "com.fasterxml.jackson.annotation.JsonProperty")));
         assertEquals(List.of(), ArchitectureRules.externalImportViolations(one("com.kopruq.terrain.infra", "org.springframework.stereotype.Repository")));
         assertEquals(List.of(), ArchitectureRules.externalImportViolations(one("com.kopruq.shared.config", "org.springframework.context.annotation.Bean")));
-        assertEquals(List.of(), ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.midas", "com.fasterxml.jackson.databind.ObjectMapper", "com.kopruq.analysis.model.AnalysisNode", "com.kopruq.analysis.application.AnalysisEngine", "java.net.http.HttpClient")));
         assertEquals(List.of(), ArchitectureRules.externalImportViolations(one("com.kopruq.analysis.infra.nativeengine", "java.util.List", "com.kopruq.analysis.enums.MaterialKind")));
     }
 
     @Test
-    void t6_midasAndOtherSolverTypes_outsideAnalysisInfra_areCaught() {
-        assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.analysis.api", "com.kopruq.analysis.infra.midas.MidasApiClient")).size());
-        assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.bridge.model", "com.kopruq.analysis.infra.midas.MidasVocabulary")).size());
+    void t6_solverVendorTypes_outsideAnalysisInfra_areCaught() {
+        assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.analysis.api", "com.vendor.midas.Api")).size());
+        assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.bridge.model", "com.vendor.midas.Api")).size());
         assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.rules.domain", "com.vendor.scia.Engine")).size());
         assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.generative.domain", "com.vendor.allplan.Api")).size());
-        assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.analysis.infra.nativeengine", "com.kopruq.analysis.infra.midas.MidasApiClient")).size());
-        assertEquals(List.of(), ArchitectureRules.solverViolations(one("com.kopruq.analysis.infra.midas", "com.kopruq.analysis.infra.midas.MidasApiClient")));
-        assertEquals(List.of(), ArchitectureRules.solverViolations(one("com.kopruq.shared.config", "com.kopruq.analysis.infra.midas.MidasCivilNxAnalysisEngine")));
+        assertEquals(1, ArchitectureRules.solverViolations(one("com.kopruq.rules.domain", "com.vendor.midas.Api")).size());
+        assertEquals(List.of(), ArchitectureRules.solverViolations(one("com.kopruq.analysis.infra.nativeengine", "com.vendor.midas.Api")));
+        assertEquals(List.of(), ArchitectureRules.solverViolations(one("com.kopruq.shared.config", "com.vendor.midas.Api")));
         assertEquals(List.of(), ArchitectureRules.solverViolations(one("com.kopruq.analysis.application", "com.kopruq.analysis.model.AnalysisNode")));
     }
 
@@ -291,7 +290,7 @@ class ArchitectureTests {
         assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.model", "jakarta.persistence.Entity")).size());
         assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.application", "org.springframework.data.jpa.repository.JpaRepository")).size());
         assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.bridge.api", "org.hibernate.annotations.Type")).size());
-        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.analysis.infra.midas", "jakarta.persistence.Id")).size());
+        assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.analysis.infra.nativeengine", "jakarta.persistence.Id")).size());
         assertEquals(1, ArchitectureRules.persistenceImportViolations(one("com.kopruq.shared.config", "jakarta.persistence.EntityManager")).size());
         // clean: the persistence adapter package, and non-persistence framework imports elsewhere
         assertEquals(List.of(), ArchitectureRules.persistenceImportViolations(

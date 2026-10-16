@@ -1,3 +1,5 @@
+> **ARCHIVED / superseded** - MIDAS integration removed 2026-10-16 (MIDAS-REMOVE); kept as a historical reference of verified MAPI behaviour.
+
 # MIDAS Civil NX Integration Analysis (pre-P06/P07)
 
 Status: **analysis only - no production code written yet.** This document

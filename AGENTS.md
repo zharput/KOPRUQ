@@ -52,8 +52,8 @@ and automation layer above these systems.
 
 Conceptually:
 
-Engineer → KOPRUQ → Generate / Analyze / Check / Optimize → OpenSees /
-MIDAS Civil NX → ALLPLAN Civil → Final BIM / Drawings / Documentation
+Engineer → KOPRUQ → Generate / Analyze / Check / Optimize → OpenSees →
+ALLPLAN Civil → Final BIM / Drawings / Documentation
 
 ## 2. Existing Development Context
 
@@ -142,7 +142,7 @@ Constraints ├── SpanLayout ├── Superstructure ├── Pier ├─�
 Foundation ├── Bearing ├── ExpansionJoint ├── Materials ├── Loads ├──
 ConstructionStages └── DesignCriteria
 
-External formats such as LandXML, MIDAS, OpenSees, ALLPLAN and IFC must
+External formats such as LandXML, OpenSees, ALLPLAN and IFC must
 be treated through adapters/import/export layers.
 
 Do not allow vendor-specific concepts to leak into Bridge Core.
@@ -412,8 +412,7 @@ Foundation stiffness affects global analysis and may require iteration.
 
 Use a solver abstraction: IAnalysisEngine.
 
-Implementations: - KopruqFastSolver - OpenSeesAdapter -
-MidasCivilNxAdapter
+Implementations: - KopruqFastSolver - OpenSeesAdapter
 
 Future adapters may include SCIA, SOFiSTiK and others.
 
@@ -444,8 +443,8 @@ terms where required.
 
 ## 32. Solver Validation
 
-KOPRUQ reduced models must be validated against OpenSees and MIDAS
-Civil NX.
+KOPRUQ reduced models must be validated against OpenSees.
+The final verification tier is not defined (MIDAS removed, MIDAS-REMOVE 2026-10-16).
 
 Compare: - T1/T2/T3 - reactions - pier M/V - bearing forces - bearing
 movements - deck displacement - foundation actions
@@ -688,7 +687,7 @@ rules above; it does not replace the specifications in `docs/`.
    domain -> rules -> calculation/solver -> results -> visualization -> AI
    explanation. React state, SVGs, AI output, and vendor formats are never the
    source of engineering truth.
-2. KOPRUQ owns a solver-independent bridge model. MIDAS, OpenSees, LandXML,
+2. KOPRUQ owns a solver-independent bridge model. OpenSees, LandXML,
    IFC, and ALLPLAN concepts enter through adapters/import/export boundaries.
 3. The product workflow is project/site -> bridge layout -> structural system
    -> analysis -> design -> optimization -> verification -> delivery.
@@ -698,9 +697,9 @@ rules above; it does not replace the specifications in `docs/`.
    related site variables are generated layout variables, not merely hand-typed
    inputs. `BridgeLayoutEngine` produces traceable alternatives with feasibility
    and rejection reasons.
-6. KOPRUQ's native fast solver is the screening engine. MIDAS Civil NX is a
-   post-selection/high-fidelity verification adapter, not the generator's
-   domain model or primary optimization engine.
+6. KOPRUQ's native fast solver is the screening engine. The final verification tier is not defined (MIDAS removed, MIDAS-REMOVE 2026-10-16); future
+   solver adapters must not become the generator's domain model or primary
+   optimization engine.
 7. Terrain is engineering data. LandXML is an anti-corruption import format;
    it must map through DTOs into `TerrainModel`, alignment, and profile models.
    Valid Bentley/InRoads `Pnts` + `Faces` topology is authoritative and must not
@@ -736,8 +735,6 @@ rules above; it does not replace the specifications in `docs/`.
 - `analysis-api` and `analysis-engine`: solver port/domain types and native
   linear-elastic 3D direct-stiffness fast solver with frame elements, elastic
   links, reactions, displacements, member forces, and modal-related support.
-- `midas-adapter`: verified model/result exchange round trip; full analysis
-  integration and complete BridgeAlternative wiring remain future work.
 - `traffic-loads`: EN 1991-2 road-bridge traffic foundation including LM1,
   notional lanes, factors/groups, temperature, wind, and seismic service
   infrastructure; follow existing provenance patterns.
@@ -779,7 +776,7 @@ rules above; it does not replace the specifications in `docs/`.
 
 - Foundation through P05/P06-era functionality is implemented on the current
   Java/React stack: domain model, REST kernel, alternative generation, rules
-  infrastructure, preview UI, and MIDAS-P01 round trip.
+  infrastructure, preview UI. (MIDAS integration was removed 2026-10-16.)
 - SITE-P01, LAYOUT-P01, native fast solver, TERRAIN-P01, LANDXML-P01, and
   TRAFFIC-P01 are recorded as end-to-end complete in `docs/roadmap.md` and
   `docs/architecture.md`.
@@ -795,7 +792,7 @@ rules above; it does not replace the specifications in `docs/`.
 
 ## Explicitly incomplete / do not imply completion
 
-- MIDAS NX analysis execution/result association (P07) is not complete.
+- Analysis execution/result association (P07; MIDAS removed, to be redefined) is not complete.
 - Quantities, cost, carbon, generative multi-objective optimization/Pareto,
   production AI orchestration, and additional solver adapters are not complete.
 - Terrain-driven bridge/pier/abutment 3D geometry, satellite/orthophoto,
@@ -808,7 +805,7 @@ rules above; it does not replace the specifications in `docs/`.
 
 - Backend modules contain unit and controller tests for bridge core, alignment,
   layout generation, generative alternatives, rules, analysis API/solver,
-  MIDAS mapping/round trip, terrain/TIN queries, Bentley production terrain,
+  terrain/TIN queries, Bentley production terrain,
   traffic loads, and API endpoints. The test inventory is visible under each
   module's `src/test/java`.
 - Frontend Vitest coverage exists for app behavior, project-file persistence,

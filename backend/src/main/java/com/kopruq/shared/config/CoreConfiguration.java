@@ -80,7 +80,7 @@ public class CoreConfiguration {
         return new KopruqAnalysisEngine();
     }
 
-    /** The native engine is named explicitly, so a second AnalysisEngine bean (MIDAS, P07) cannot make this ambiguous. */
+    /** The native engine is named explicitly, so a future second AnalysisEngine bean cannot make this ambiguous. */
     @Bean
     public FastSolverService fastSolverService(KopruqAnalysisEngine kopruqAnalysisEngine) {
         return new FastSolverService(kopruqAnalysisEngine);

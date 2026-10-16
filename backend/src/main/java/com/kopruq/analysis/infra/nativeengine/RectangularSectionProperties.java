@@ -12,7 +12,7 @@ import com.kopruq.analysis.model.SolidRectangleSection;
  *
  * <p>Convention: {@link SolidRectangleSection#heightM()} is the
  * dimension along the element's local z-axis, {@code widthM} along local
- * y (matches this project's existing MIDAS "SB" section convention).
+ * y (historically matched the removed external solver's convention).
  *
  * <p>Only {@link SolidRectangleSection} is supported so far - LAYOUT-P01's
  * test bridge only uses rectangular sections (deck, columns, cap beam).

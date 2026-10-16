@@ -123,9 +123,11 @@ public class CoreConfiguration {
 
     @Bean
     public ProjectService projectService(ProjectRepository projectRepository,
-            ProjectContentRepository projectContentRepository, TransactionOperations transactionOperations,
+            ProjectContentRepository projectContentRepository, TerrainRepository terrainRepository,
+            LandXmlImportRepository landXmlImportRepository, TransactionOperations transactionOperations,
             Clock clock) {
-        return new ProjectService(projectRepository, projectContentRepository, transactionOperations, clock);
+        return new ProjectService(projectRepository, projectContentRepository, terrainRepository,
+                landXmlImportRepository, transactionOperations, clock);
     }
 
     @Bean

@@ -13,6 +13,9 @@ interface GraphDocumentJpaRepository extends JpaRepository<GraphDocumentEntity, 
 
     List<GraphDocumentEntity> findByProjectIdOrderByOrdinalAsc(UUID projectId);
 
+    /** Derived delete: loads and removes each graph, so nodes, connections and groups go with it. */
+    void deleteByProjectId(UUID projectId);
+
     Optional<GraphDocumentEntity> findByProjectIdAndGraphId(UUID projectId, String graphId);
 
     /** The highest ordinal of the project's graphs, or -1 when it has none. */

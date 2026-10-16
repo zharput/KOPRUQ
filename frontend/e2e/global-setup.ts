@@ -6,7 +6,7 @@ export default async function globalSetup(): Promise<void> {
     `Backend sağlık kontrolü başarısız: ${HEALTH_URL}`,
     'Backend ve PostgreSQL ayakta olmadan e2e testleri çalıştırılamaz.',
     'Kök dizinde start-dev.bat çalıştırın veya kök README.md "Ayrı süreçler" bölümündeki adımları izleyin.',
-    'UYARI: Testler sunucuda kalıcı E2E-... projeleri oluşturur (silme API\'si yok); yalnızca yerel/test veritabanı (önerilen: postgres-test profili) kullanın.',
+    'UYARI: Testler E2E-... projeleri oluşturur ve teardown\'da DELETE /api/projects/{id} ile siler; uç ad koruması olmadan her projeyi siler, bu yüzden yalnızca yerel/test veritabanı (önerilen: postgres-test profili) kullanın.',
   ].join('\n')
   let status: unknown
   try {

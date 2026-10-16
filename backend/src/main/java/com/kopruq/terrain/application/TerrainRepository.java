@@ -14,6 +14,9 @@ public interface TerrainRepository {
 
     Optional<TerrainModel> findById(String id);
 
-    /** Removes a terrain; used internally to undo a partially completed import (no endpoint exposes it). */
+    /**
+     * Removes a terrain with its source, boundary and breaklines; used to undo a partially completed import and when
+     * the last project that references the terrain is deleted.
+     */
     void deleteById(String id);
 }

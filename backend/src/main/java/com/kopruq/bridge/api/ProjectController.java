@@ -8,6 +8,7 @@ import com.kopruq.bridge.model.ProjectWorkspace;
 import com.kopruq.shared.exception.FieldViolation;
 import com.kopruq.shared.exception.InvalidRequestException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Stored projects: list, create, read, and revision-checked replacement of the workspace. Request bodies are read
+ * Stored projects: list, create, read, delete, and revision-checked replacement of the workspace. Request bodies are read
  * strictly (unknown fields are rejected) and validated structurally; the revision rule is in the domain
  * ({@code Project}) and the flow in {@link ProjectService}. CORS comes from the central policy.
  */
@@ -55,6 +56,13 @@ public class ProjectController {
     @GetMapping("/{projectId}")
     public ProjectDocumentResponse get(@PathVariable UUID projectId) {
         return ProjectDocumentResponse.from(projects.document(projectId));
+    }
+
+    /** Deletes the project and its content (204); 404 {@code PROJECT_NOT_FOUND} for an unknown id. */
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<Void> delete(@PathVariable UUID projectId) {
+        projects.delete(projectId);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{projectId}/workspace")

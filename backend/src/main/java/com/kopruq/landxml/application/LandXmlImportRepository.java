@@ -1,5 +1,6 @@
 package com.kopruq.landxml.application;
 
+import java.util.List;
 import java.util.Optional;
 import com.kopruq.landxml.model.LandXmlImportResult;
 
@@ -14,4 +15,13 @@ public interface LandXmlImportRepository {
     LandXmlImportResult save(LandXmlImportResult result);
 
     Optional<LandXmlImportResult> findById(String id);
+
+    /** The id of the terrain the import refers to, without loading the terrain; empty when the import is unknown. */
+    Optional<String> findTerrainId(String id);
+
+    /** The ids of every import that refers to the given terrain. */
+    List<String> findIdsByTerrainId(String terrainId);
+
+    /** Removes an import with its warnings, alignment elements and profile points; no-op when unknown. */
+    void deleteById(String id);
 }

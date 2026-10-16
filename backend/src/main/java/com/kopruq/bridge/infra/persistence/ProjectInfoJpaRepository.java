@@ -6,4 +6,8 @@ import java.util.UUID;
 
 /** Spring Data access to {@link ProjectInfoEntity}; used only by {@link JpaProjectContentRepository}. */
 interface ProjectInfoJpaRepository extends JpaRepository<ProjectInfoEntity, UUID> {
+
+    boolean existsByEnvironmentTerrainDatasetId(String terrainDatasetId);
+
+    boolean existsByEnvironmentLandXmlImportId(String landXmlImportId);
 }

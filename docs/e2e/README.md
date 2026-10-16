@@ -47,7 +47,7 @@ Bu senaryolar bir **mühendislik onayı** vermez. Yazılımcı olarak birimlerin
 **Ön koşullar**
 
 1. [Başlamadan önce](#başlamadan-önce) adımları: `.env`, Docker Desktop, `frontend/` içinde `npm.cmd install`.
-2. Backend ve PostgreSQL ayakta olmalıdır (`start-dev.bat` veya kök README "Ayrı süreçler"). Testler **kalıcı kayıtlar** oluşturur: her çalıştırma `E2E-NN-<yyyyMMdd-HHmmss>-<4 hex>` adlı projeler bırakır ve projeleri silen bir API yoktur. Yalnızca yerel/test veritabanı kullanın; önerilen: Compose `postgres-test` profili (port 5433).
+2. Backend ve PostgreSQL ayakta olmalıdır (`start-dev.bat` veya kök README "Ayrı süreçler"). Testler `E2E-NN-<yyyyMMdd-HHmmss>-<4 hex>` adlı projeler oluşturur ve her testin teardown'unda (`projectCleanup` fixture'ı, `frontend/e2e/support/fixtures.ts`) oluşturduğu projeleri `DELETE /api/projects/{id}` ile siler; test başarısız olsa da silme yapılır. Silme ucu ad koruması olmadan her projeyi (bağlı terrain/LandXML satırları başka proje tarafından kullanılmıyorsa onlarla birlikte) siler ve kimlik doğrulaması yoktur; bu yüzden yalnızca yerel/test veritabanı kullanın; önerilen: Compose `postgres-test` profili (port 5433). Teardown 204 ve 404 dışındaki yanıtta düşer (405: backend jar'ı DELETE ucunu içermiyor, güncelleyin). Bu özellikten önce birikmiş `E2E-` projeleri otomatik silinmez.
 3. Bir kerelik tarayıcı kurulumu: `npm.cmd run test:e2e:install` (yalnız Chromium indirir).
 
 **Komutlar** (`frontend/` içinde, PowerShell'de `npm.cmd`)

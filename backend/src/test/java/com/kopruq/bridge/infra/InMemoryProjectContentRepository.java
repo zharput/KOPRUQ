@@ -86,6 +86,23 @@ public class InMemoryProjectContentRepository implements ProjectContentRepositor
         });
     }
 
+    @Override
+    public void deleteAll(UUID projectId) {
+        contents.remove(projectId);
+    }
+
+    @Override
+    public boolean isTerrainReferenced(String terrainId) {
+        return contents.values().stream().map(ProjectContent::workspace).filter(w -> w != null)
+                .anyMatch(w -> terrainId.equals(w.project().environment().terrainDatasetId()));
+    }
+
+    @Override
+    public boolean isLandXmlImportReferenced(String importId) {
+        return contents.values().stream().map(ProjectContent::workspace).filter(w -> w != null)
+                .anyMatch(w -> importId.equals(w.project().environment().landXmlImportId()));
+    }
+
     /** A graph keeps its position when replaced, a new one is appended (as the real adapter does). */
     private static List<GraphDocument> upsert(List<GraphDocument> graphs, GraphDocument graph) {
         List<GraphDocument> result = new ArrayList<>(graphs);

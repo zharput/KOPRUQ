@@ -27,6 +27,11 @@ class GraphContentStore {
                 .toList();
     }
 
+    void deleteAll(UUID projectId) {
+        graphs.deleteByProjectId(projectId);
+        graphs.flush();
+    }
+
     void replace(UUID projectId, GraphDocument graph) {
         GraphDocumentEntity existing = graphs.findByProjectIdAndGraphId(projectId, graph.id()).orElse(null);
         int ordinal;

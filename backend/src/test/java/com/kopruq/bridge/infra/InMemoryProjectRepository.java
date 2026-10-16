@@ -32,6 +32,11 @@ public class InMemoryProjectRepository implements ProjectRepository {
     }
 
     @Override
+    public void delete(UUID id) {
+        stored.remove(id);
+    }
+
+    @Override
     public List<ProjectSummary> findSummaries() {
         return stored.values().stream()
                 .map(p -> new ProjectSummary(p.getId(), p.getProjectName(), p.getRevision(), p.getCreatedUtc(),

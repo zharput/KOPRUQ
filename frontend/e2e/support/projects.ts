@@ -6,7 +6,7 @@ import { settleWrites, waitForSectionPut, type SectionPut, type WriteTracker } f
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-/** `E2E-<NN>-<yyyyMMdd-HHmmss>-<4 hex>`; projects stay in the database (the API has no DELETE), the prefix marks them as test data. */
+/** `E2E-<NN>-<yyyyMMdd-HHmmss>-<4 hex>`; the `projectCleanup` fixture deletes the project (DELETE /api/projects/{id}) in teardown; the prefix marks it as test data. */
 export function uniqueProjectName(scenario: string): string {
   const d = new Date()
   const stamp = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`

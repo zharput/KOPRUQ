@@ -7,13 +7,22 @@ import com.kopruq.bridge.model.Girder;
 import com.kopruq.bridge.model.Project;
 import com.kopruq.bridge.model.Span;
 import com.kopruq.bridge.model.SpanLayout;
+import com.kopruq.landxml.application.LandXmlImportRepository;
+import com.kopruq.landxml.domain.LandXmlImportService;
+import com.kopruq.landxml.enums.CoordinateOrder;
+import com.kopruq.landxml.model.LandXmlImportResult;
 import com.kopruq.shared.exception.RevisionConflictException;
+import com.kopruq.terrain.application.TerrainRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.support.TransactionOperations;
 
+import java.io.InputStream;
+import java.time.Clock;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.kopruq.bridge.DesignSystemFixtures.crossSection;
@@ -23,6 +32,7 @@ import static com.kopruq.bridge.LoadGraphFixtures.seismic;
 import static com.kopruq.bridge.LoadGraphFixtures.trafficLm1;
 import static com.kopruq.bridge.WorkspaceFixtures.row;
 import static com.kopruq.bridge.WorkspaceFixtures.workspace;
+import static com.kopruq.bridge.WorkspaceFixtures.workspaceWithEnvironment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -36,6 +46,16 @@ class ProjectServiceIntegrationTest {
     ProjectRepository projects;
     @Autowired
     JdbcTemplate jdbc;
+    @Autowired
+    ProjectContentRepository contents;
+    @Autowired
+    TerrainRepository terrains;
+    @Autowired
+    LandXmlImportRepository imports;
+    @Autowired
+    TransactionOperations transactions;
+    @Autowired
+    Clock clock;
 
     @Test
     void workspacePut_keepsBridgeDesignSpaceAlternativesAndSelection() {
@@ -180,5 +200,63 @@ class ProjectServiceIntegrationTest {
 
         assertEquals(0, jdbc.queryForObject("select count(*) from graph_document where project_id = ?",
                 Integer.class, created.projectId()));
+    }
+
+    @Test
+    void delete_failingStep_rollsBackTheProjectItsContentAndTheSharedRows() throws Exception {
+        LandXmlImportResult stored;
+        try (InputStream in = getClass().getResourceAsStream("/landxml/sample.landxml")) {
+            stored = new LandXmlImportService().commit(in, "p1", "sample.landxml", "Local", "Existing Ground",
+                    "Main Alignment", CoordinateOrder.FIRST_Y_SECOND_X);
+        }
+        terrains.save(stored.terrain());
+        imports.save(stored);
+        UUID id = service.create(workspaceWithEnvironment("atomic", stored.terrain().id(), stored.id())).projectId();
+        service.replace(id, 0, seismic());
+        service.replace(id, 1, graph("g-1"));
+
+        LandXmlImportRepository failingDelete = new LandXmlImportRepository() {
+            @Override
+            public LandXmlImportResult save(LandXmlImportResult result) {
+                return imports.save(result);
+            }
+
+            @Override
+            public Optional<LandXmlImportResult> findById(String importId) {
+                return imports.findById(importId);
+            }
+
+            @Override
+            public Optional<String> findTerrainId(String importId) {
+                return imports.findTerrainId(importId);
+            }
+
+            @Override
+            public List<String> findIdsByTerrainId(String terrainId) {
+                return imports.findIdsByTerrainId(terrainId);
+            }
+
+            @Override
+            public void deleteById(String importId) {
+                throw new IllegalStateException("injected failure");
+            }
+        };
+        ProjectService failing = new ProjectService(projects, contents, terrains, failingDelete, transactions, clock);
+
+        assertThrows(IllegalStateException.class, () -> failing.delete(id));
+
+        assertEquals(1, jdbc.queryForObject("select count(*) from project where id = ?", Integer.class, id));
+        assertEquals(1, jdbc.queryForObject("select count(*) from project_info where project_id = ?", Integer.class, id));
+        assertEquals(1, jdbc.queryForObject("select count(*) from load_seismic_input where project_id = ?", Integer.class, id));
+        assertEquals(1, jdbc.queryForObject("select count(*) from graph_document where project_id = ?", Integer.class, id));
+        assertEquals(1, jdbc.queryForObject("select count(*) from terrain where id = ?", Integer.class,
+                stored.terrain().id()));
+        assertEquals(1, jdbc.queryForObject("select count(*) from landxml_import where id = ?", Integer.class,
+                stored.id()));
+
+        service.delete(id);
+
+        assertEquals(0, jdbc.queryForObject("select count(*) from terrain where id = ?", Integer.class,
+                stored.terrain().id()));
     }
 }

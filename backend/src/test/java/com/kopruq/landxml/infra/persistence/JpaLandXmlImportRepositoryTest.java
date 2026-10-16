@@ -43,6 +43,8 @@ class JpaLandXmlImportRepositoryTest {
     TerrainRepository terrains;
     @Autowired
     EntityManager em;
+    @Autowired
+    org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     private static LandXmlImportResult importSample(String alignmentName) throws IOException {
         try (InputStream in = JpaLandXmlImportRepositoryTest.class.getResourceAsStream("/landxml/sample.landxml")) {
@@ -167,5 +169,31 @@ class JpaLandXmlImportRepositoryTest {
         em.flush();
 
         assertThrows(RuntimeException.class, () -> terrains.deleteById(result.terrain().id()));
+    }
+
+    @Test
+    void findTerrainId_findIdsByTerrainId_andDeleteById() throws IOException {
+        LandXmlImportResult result = importSample("Main Alignment");
+        saveAndReload(result);
+        String terrainId = result.terrain().id();
+
+        assertEquals(java.util.Optional.of(terrainId), imports.findTerrainId(result.id()));
+        assertEquals(java.util.Optional.empty(), imports.findTerrainId("unknown"));
+        assertEquals(List.of(result.id()), imports.findIdsByTerrainId(terrainId));
+        assertEquals(List.of(), imports.findIdsByTerrainId("unknown"));
+
+        imports.deleteById(result.id());
+        em.flush();
+        em.clear();
+
+        assertTrue(imports.findById(result.id()).isEmpty());
+        assertEquals(List.of(), imports.findIdsByTerrainId(terrainId));
+        assertEquals(0, jdbc.queryForObject("select count(*) from landxml_alignment_element where import_id = ?",
+                Integer.class, result.id()));
+        assertEquals(0, jdbc.queryForObject("select count(*) from landxml_import_warning where import_id = ?",
+                Integer.class, result.id()));
+        assertEquals(0, jdbc.queryForObject("select count(*) from landxml_profile_pvi where import_id = ?",
+                Integer.class, result.id()));
+        imports.deleteById(result.id()); // unknown id is a no-op
     }
 }

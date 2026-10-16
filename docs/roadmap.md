@@ -1943,8 +1943,14 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 
 ## playwright-e2e-all (2026-10-16)
 
-- [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run leaves 19 persistent `E2E-` projects because the API has no DELETE). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
-- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container); a CI job for the suite; a DELETE API for test projects.
+- [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run left 19 persistent `E2E-` projects until e2e-test-data-cleanup added the DELETE API). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
+- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container); a CI job for the suite.
+
+## e2e-test-data-cleanup (2026-10-16)
+
+- [x] `DELETE /api/projects/{projectId}` (204; 404 `PROJECT_NOT_FOUND`): deletes the project, all its content and the terrain dataset / LandXML import it names when no other project uses them; one transaction, no new Flyway migration. Always enabled, no name guard, no authentication; CORS unchanged. Endpoint inventory is 42; `bridge` may depend on `terrain` and `landxml` (application ports).
+- [x] e2e `projectCleanup` auto fixture deletes the projects each test created (also after failures); docs updated (`backend/README.md`, `docs/e2e/README.md`, `docs/architecture.md`).
+- [ ] Not done (out of scope): one-off cleanup of `E2E-` projects accumulated earlier; terrain/import rows no project references any more; a frontend delete UI; a delete guard (property flag, name prefix, confirmation header) or authentication; a CI job.
 
 ## MIDAS-REMOVE (2026-10-16)
 

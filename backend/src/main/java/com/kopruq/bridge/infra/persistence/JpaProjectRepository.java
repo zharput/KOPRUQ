@@ -41,6 +41,12 @@ public class JpaProjectRepository implements ProjectRepository {
     }
 
     @Override
+    public void delete(UUID id) {
+        jpa.findById(id).ifPresent(jpa::delete);
+        jpa.flush();
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<ProjectSummary> findSummaries() {
         return jpa.findSummaries();

@@ -181,7 +181,7 @@ const TOAST_RECORDER = () => {
   new MutationObserver((mutations) => { for (const m of mutations) m.addedNodes.forEach(record) }).observe(document, { childList: true, subtree: true })
 }
 
-type Fixtures = { diagnostics: Diagnostics; writes: WriteTracker; projectApi: ProjectReader; toastRecorder: void }
+type Fixtures = { diagnostics: Diagnostics; writes: WriteTracker; projectApi: ProjectReader; toastRecorder: void; projectCleanup: void }
 
 export const test = base.extend<Fixtures>({
   toastRecorder: [async ({ context }, provide) => {
@@ -199,6 +199,31 @@ export const test = base.extend<Fixtures>({
     await provide(writes)
   }, { auto: true }],
   projectApi: async ({ request }, provide) => { await provide(createReader(request)) },
+  /**
+   * Deletes every project this test created (any POST /api/projects 201 seen by the browser context, also second pages), even when the
+   * test failed. 204 and 404 are fine; any other status fails the teardown with an explicit message. Uses the API request context
+   * (no Origin header, so the DELETE is not subject to the browser CORS policy).
+   */
+  projectCleanup: [async ({ context, request }, provide) => {
+    const created: Promise<string | null>[] = []
+    context.on('response', (response: Response) => {
+      const req = response.request()
+      if (req.method() !== 'POST' || response.status() !== 201 || !response.url().startsWith(E2E_API_BASE)) return
+      if (new URL(response.url()).pathname !== '/api/projects') return
+      created.push(response.json().then((body: { projectId?: string }) => body.projectId ?? null, () => null))
+    })
+    await provide()
+    const ids = [...new Set((await Promise.all(created)).filter((id): id is string => id !== null))]
+    const failures: string[] = []
+    for (const id of ids) {
+      const response = await request.delete(`${E2E_API_BASE}/api/projects/${id}`)
+      if (response.status() === 204 || response.status() === 404) continue
+      failures.push(response.status() === 405
+        ? `DELETE /api/projects/${id} -> 405: backend DELETE ucunu desteklemiyor, jar güncel mi?`
+        : `DELETE /api/projects/${id} -> ${response.status()}`)
+    }
+    expect(failures, 'Teardown: e2e projeleri silinemedi').toEqual([])
+  }, { auto: true }],
 })
 
 export { expect }

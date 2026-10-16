@@ -71,7 +71,7 @@ final class ArchitectureRules {
             Map.entry("loads", Set.of()),
             Map.entry("materials", Set.of()),
             Map.entry("layout", Set.of("alignment", "geometry")),
-            Map.entry("bridge", Set.of()),
+            Map.entry("bridge", Set.of("terrain", "landxml")),
             Map.entry("rules", Set.of("bridge")),
             Map.entry("generative", Set.of("bridge", "rules")),
             Map.entry("analysis", Set.of("materials")));

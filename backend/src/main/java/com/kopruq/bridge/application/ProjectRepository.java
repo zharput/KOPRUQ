@@ -24,4 +24,7 @@ public interface ProjectRepository {
 
     /** One summary per stored project, in no particular order. */
     List<ProjectSummary> findSummaries();
+
+    /** Removes the project aggregate (bridge, design space, alternatives); no-op when the id is unknown. */
+    void delete(UUID id);
 }

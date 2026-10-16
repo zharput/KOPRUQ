@@ -62,6 +62,20 @@ class LandXmlImportUseCaseTest {
             public Optional<LandXmlImportResult> findById(String id) {
                 return Optional.empty();
             }
+
+            @Override
+            public Optional<String> findTerrainId(String id) {
+                return Optional.empty();
+            }
+
+            @Override
+            public java.util.List<String> findIdsByTerrainId(String terrainId) {
+                return java.util.List.of();
+            }
+
+            @Override
+            public void deleteById(String id) {
+            }
         };
         List<String> savedTerrainIds = new ArrayList<>();
         var recordingTerrains = new com.kopruq.terrain.application.TerrainRepository() {

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * BACKEND-REMEDIATION Faz 0b: pins the exact set of application REST
  * endpoints. The 21 original ones, the 4 project endpoints approved for backend-db-persistence M1 and the 9 design-system
  * endpoints approved for M2, and the 7 load-input and graph
- * endpoints approved for M3 (41 in total).
+ * endpoints approved for M3 (41 in total) and the project delete endpoint of e2e-test-data-cleanup (42 in total).
  */
 class EndpointInventoryContractTest extends ContractTestSupport {
 
@@ -67,6 +67,7 @@ class EndpointInventoryContractTest extends ContractTestSupport {
                 "POST /api/projects",
                 "GET /api/projects/{projectId}",
                 "PUT /api/projects/{projectId}/workspace",
+                "DELETE /api/projects/{projectId}",
                 // backend-db-persistence M2
                 "PUT /api/projects/{projectId}/bridge-definitions",
                 "PUT /api/projects/{projectId}/families/piers",

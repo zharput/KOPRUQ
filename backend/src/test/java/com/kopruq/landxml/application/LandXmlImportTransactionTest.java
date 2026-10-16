@@ -58,6 +58,20 @@ class LandXmlImportTransactionTest {
             public Optional<LandXmlImportResult> findById(String id) {
                 return Optional.empty();
             }
+
+            @Override
+            public Optional<String> findTerrainId(String id) {
+                return Optional.empty();
+            }
+
+            @Override
+            public java.util.List<String> findIdsByTerrainId(String terrainId) {
+                return java.util.List.of();
+            }
+
+            @Override
+            public void deleteById(String id) {
+            }
         };
     }
 

@@ -6,6 +6,7 @@ import com.kopruq.terrain.application.TerrainRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -31,6 +32,24 @@ public class JpaLandXmlImportRepository implements LandXmlImportRepository {
         entity.apply(result);
         jpa.saveAndFlush(entity);
         return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<String> findTerrainId(String id) {
+        return jpa.findById(id).map(LandXmlImportEntity::getTerrainId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> findIdsByTerrainId(String terrainId) {
+        return jpa.findByTerrainId(terrainId).stream().map(LandXmlImportEntity::getId).toList();
+    }
+
+    @Override
+    public void deleteById(String id) {
+        jpa.findById(id).ifPresent(jpa::delete);
+        jpa.flush();
     }
 
     @Override

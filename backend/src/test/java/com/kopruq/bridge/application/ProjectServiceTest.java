@@ -2,7 +2,13 @@ package com.kopruq.bridge.application;
 
 import com.kopruq.bridge.infra.InMemoryProjectContentRepository;
 import com.kopruq.bridge.infra.InMemoryProjectRepository;
+import com.kopruq.geometry.model.Point3D;
+import com.kopruq.landxml.infra.InMemoryLandXmlImportRepository;
+import com.kopruq.landxml.model.LandXmlImportResult;
 import com.kopruq.shared.exception.ResourceNotFoundException;
+import com.kopruq.terrain.enums.TerrainStatus;
+import com.kopruq.terrain.infra.InMemoryTerrainRepository;
+import com.kopruq.terrain.model.TerrainModel;
 import com.kopruq.shared.exception.RevisionConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +23,7 @@ import java.util.UUID;
 
 import static com.kopruq.bridge.WorkspaceFixtures.row;
 import static com.kopruq.bridge.WorkspaceFixtures.workspace;
+import static com.kopruq.bridge.WorkspaceFixtures.workspaceWithEnvironment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,6 +57,8 @@ class ProjectServiceTest {
 
     private InMemoryProjectRepository projects;
     private InMemoryProjectContentRepository contents;
+    private InMemoryTerrainRepository terrains;
+    private InMemoryLandXmlImportRepository imports;
     private MovableClock clock;
     private ProjectService service;
 
@@ -58,7 +67,110 @@ class ProjectServiceTest {
         projects = new InMemoryProjectRepository();
         contents = new InMemoryProjectContentRepository();
         clock = new MovableClock();
-        service = new ProjectService(projects, contents, TransactionOperations.withoutTransaction(), clock);
+        terrains = new InMemoryTerrainRepository();
+        imports = new InMemoryLandXmlImportRepository();
+        service = new ProjectService(projects, contents, terrains, imports,
+                TransactionOperations.withoutTransaction(), clock);
+    }
+
+    // ------------------------------------------------------------------ delete
+
+    private String storeTerrain() {
+        String id = UUID.randomUUID().toString();
+        terrains.save(new TerrainModel(id, "p", null, null, null, new Point3D(0, 0, 0), new Point3D(1, 1, 1), 0, 1,
+                List.of(), List.of(), new Point3D(0, 0, 0), 1, TerrainStatus.IMPORTED));
+        return id;
+    }
+
+    private String storeImport(String terrainId) {
+        String id = UUID.randomUUID().toString();
+        imports.save(new LandXmlImportResult(id, terrains.findById(terrainId).orElseThrow(), null, null, List.of()));
+        return id;
+    }
+
+    private UUID createProject(String name, String terrainId, String importId) {
+        return service.create(workspaceWithEnvironment(name, terrainId, importId)).projectId();
+    }
+
+    @Test
+    void delete_removesTheProjectAndItsContent() {
+        UUID id = createProject("p", null, null);
+
+        service.delete(id);
+
+        assertTrue(projects.findById(id).isEmpty());
+        assertNull(contents.load(id).workspace());
+        assertEquals(List.of(), service.list());
+    }
+
+    @Test
+    void delete_unknownProject_isNotFound() {
+        var e = assertThrows(ResourceNotFoundException.class, () -> service.delete(UUID.randomUUID()));
+        assertEquals("PROJECT_NOT_FOUND", e.code());
+    }
+
+    @Test
+    void delete_unsharedTerrainAndImport_areRemoved() {
+        String terrain = storeTerrain();
+        String imp = storeImport(terrain);
+        UUID a = createProject("a", terrain, imp);
+
+        service.delete(a);
+
+        assertTrue(terrains.findById(terrain).isEmpty());
+        assertTrue(imports.findById(imp).isEmpty());
+    }
+
+    @Test
+    void delete_sharedTerrainAndImport_stayUntilTheLastProjectGoes() {
+        String terrain = storeTerrain();
+        String imp = storeImport(terrain);
+        UUID a = createProject("a", terrain, imp);
+        UUID b = createProject("b", terrain, imp);
+
+        service.delete(a);
+        assertTrue(terrains.findById(terrain).isPresent());
+        assertTrue(imports.findById(imp).isPresent());
+
+        service.delete(b);
+        assertTrue(terrains.findById(terrain).isEmpty());
+        assertTrue(imports.findById(imp).isEmpty());
+    }
+
+    @Test
+    void delete_terrainReachedOnlyThroughAnotherProjectsImport_stays() {
+        String terrain = storeTerrain();
+        String imp = storeImport(terrain);
+        UUID a = createProject("a", terrain, null);
+        createProject("b", null, imp);
+
+        service.delete(a);
+
+        assertTrue(terrains.findById(terrain).isPresent());
+        assertTrue(imports.findById(imp).isPresent());
+    }
+
+    @Test
+    void delete_unreferencedImportOfTheTerrain_isRemovedBeforeTheTerrain() {
+        String terrain = storeTerrain();
+        String orphanImport = storeImport(terrain);
+        UUID a = createProject("a", terrain, null);
+
+        service.delete(a);
+
+        assertTrue(imports.findById(orphanImport).isEmpty());
+        assertTrue(terrains.findById(terrain).isEmpty());
+    }
+
+    @Test
+    void delete_danglingReferences_stillSucceedsAndTouchesNothingElse() {
+        String other = storeTerrain();
+        UUID a = createProject("a", UUID.randomUUID().toString(), UUID.randomUUID().toString());
+
+        service.delete(a);
+
+        assertTrue(projects.findById(a).isEmpty());
+        assertTrue(terrains.findById(other).isPresent());
     }
 
     @Test

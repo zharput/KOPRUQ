@@ -16,4 +16,13 @@ public interface ProjectContentRepository {
 
     /** Replaces the stored section with the given one (whole-section replacement). */
     void replace(UUID projectId, ProjectSection section);
+
+    /** Removes every stored section and row of the project (workspace, design system, loads, graphs). */
+    void deleteAll(UUID projectId);
+
+    /** True when any stored project still names the terrain dataset in its workspace environment. */
+    boolean isTerrainReferenced(String terrainId);
+
+    /** True when any stored project still names the LandXML import in its workspace environment. */
+    boolean isLandXmlImportReferenced(String importId);
 }

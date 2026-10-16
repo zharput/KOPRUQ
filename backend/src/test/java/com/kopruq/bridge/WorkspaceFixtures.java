@@ -15,13 +15,18 @@ public final class WorkspaceFixtures {
     }
 
     public static ProjectInfo info(String name) {
+        return info(name, null, null);
+    }
+
+    /** Like {@link #info(String)} with the environment references (terrain dataset id, LandXML import id). */
+    public static ProjectInfo info(String name, String terrainDatasetId, String landXmlImportId) {
         return new ProjectInfo(name, "PRJ-01", "client", "designer", "country", "region", "type", "status",
                 "start", "target", "description çğıöşü", "locS", "locE", "crs", "family",
                 "concrete", "steel", "composite", "seismic", "geo", "traffic",
                 new ProjectInfo.Units("u1", "u2", "u3", "u4", "u5", "u6"),
                 new ProjectInfo.Coordinate("c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"),
                 new ProjectInfo.Criteria("k1", "k2", "k3", "k4", "k5", "k6"),
-                new ProjectInfo.Environment(null, null), "modified");
+                new ProjectInfo.Environment(terrainDatasetId, landXmlImportId), "modified");
     }
 
     public static BridgeInventoryRow row(String id) {
@@ -33,6 +38,11 @@ public final class WorkspaceFixtures {
     public static BridgeInventoryRow rowWithoutDepths(String id) {
         return new BridgeInventoryRow(id, "no-" + id, "km", "crossing", 1.0, 2.0, "t", "s",
                 BridgeInventoryType.CANTILEVER_BRIDGE, List.of(), null, "a note", InventoryPierShape.OVAL);
+    }
+
+    public static ProjectWorkspace workspaceWithEnvironment(String name, String terrainDatasetId,
+            String landXmlImportId) {
+        return new ProjectWorkspace(info(name, terrainDatasetId, landXmlImportId), List.of());
     }
 
     public static ProjectWorkspace workspace(String name, BridgeInventoryRow... rows) {

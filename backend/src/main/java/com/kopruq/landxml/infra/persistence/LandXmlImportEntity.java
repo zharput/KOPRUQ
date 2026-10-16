@@ -82,6 +82,10 @@ class LandXmlImportEntity {
         }
     }
 
+    String getId() {
+        return id;
+    }
+
     String getTerrainId() {
         return terrainId;
     }

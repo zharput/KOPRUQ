@@ -362,6 +362,18 @@ are not automatically assembled into an analysis request.
    replaces one section using the current `expectedRevision` and returns the
    next revision. A stale revision returns `409 PROJECT_REVISION_CONFLICT`.
 
+4. `DELETE /api/projects/{projectId}` deletes the project and every row that
+   belongs to it in one transaction and returns `204` with an empty body
+   (`404 PROJECT_NOT_FOUND` for an unknown id). The terrain dataset and LandXML
+   import named in the workspace `environment` are deleted too, with their child
+   rows, but only when no remaining project refers to them (directly, or through
+   an import of that terrain); a dangling reference is skipped. The endpoint is
+   always enabled, has no name guard and no authentication, and is not part of
+   the CORS policy (browser preflight for `DELETE` stays rejected; the e2e suite
+   calls it from the Playwright API context). A concurrent `PUT` that adds a
+   reference to the same terrain while its last project is deleted can leave a
+   dangling reference (references are not foreign keys and are not locked).
+
 The frontend now uses these database-backed projects. The old browser-local
 project storage and `.kopruq` file workflow are no longer active.
 
@@ -394,6 +406,7 @@ All application endpoints are under `/api`. The exact set is pinned by
 | `POST` | `/api/projects` | Create a project from `{ "workspace": WorkspaceDto }`; returns a project document at revision `0`. |
 | `GET` | `/api/projects/{projectId}` | Read the project document, including workspace, design system, loads, and graphs. |
 | `PUT` | `/api/projects/{projectId}/workspace` | Replace the workspace and bridge inventory. |
+| `DELETE` | `/api/projects/{projectId}` | Delete the project, all its content and its unshared terrain/LandXML import; `204`, or `404 PROJECT_NOT_FOUND`. |
 | `PUT` | `/api/projects/{projectId}/bridge-definitions` | Replace bridge definitions. |
 | `PUT` | `/api/projects/{projectId}/families/piers` | Replace the pier family catalog. |
 | `PUT` | `/api/projects/{projectId}/families/pier-caps` | Replace the pier-cap family catalog. |

@@ -95,6 +95,29 @@ public class JpaProjectContentRepository implements ProjectContentRepository {
         }
     }
 
+    @Override
+    public void deleteAll(UUID projectId) {
+        graphs.deleteAll(projectId);
+        loadInputs.deleteAll(projectId);
+        designSystem.deleteAll(projectId);
+        rows.deleteByProjectId(projectId);
+        rows.flush();
+        infos.findById(projectId).ifPresent(infos::delete);
+        infos.flush();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isTerrainReferenced(String terrainId) {
+        return infos.existsByEnvironmentTerrainDatasetId(terrainId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isLandXmlImportReferenced(String importId) {
+        return infos.existsByEnvironmentLandXmlImportId(importId);
+    }
+
     private void replaceWorkspace(UUID projectId, ProjectWorkspace workspace) {
         ProjectInfoEntity entity = infos.findById(projectId).orElseGet(() -> new ProjectInfoEntity(projectId));
         entity.apply(workspace.project());

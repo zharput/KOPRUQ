@@ -12,5 +12,7 @@ interface ProjectSectionPresenceJpaRepository extends JpaRepository<ProjectSecti
 
     boolean existsByProjectIdAndSection(UUID projectId, StoredSection section);
 
+    void deleteByProjectId(UUID projectId);
+
     void deleteByProjectIdAndSection(UUID projectId, StoredSection section);
 }

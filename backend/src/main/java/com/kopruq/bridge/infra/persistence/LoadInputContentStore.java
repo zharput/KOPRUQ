@@ -81,6 +81,24 @@ class LoadInputContentStore {
                 .toList();
     }
 
+    /** Removes every load section of the project, including its presence rows. */
+    void deleteAll(UUID projectId) {
+        deleteOne(projectId, seismic);
+        deleteOne(projectId, wind);
+        deleteOne(projectId, temperature);
+        deleteOne(projectId, selfWeight);
+        deleteOne(projectId, windSnapshots);
+        lm1.deleteByProjectId(projectId);
+        lm1.flush();
+        presence.deleteByProjectId(projectId);
+        presence.flush();
+    }
+
+    private <E> void deleteOne(UUID projectId, JpaRepository<E, UUID> repository) {
+        repository.findById(projectId).ifPresent(repository::delete);
+        repository.flush();
+    }
+
     // ------------------------------------------------------------------ replace
 
     void replace(UUID projectId, SeismicInputsSection section) {

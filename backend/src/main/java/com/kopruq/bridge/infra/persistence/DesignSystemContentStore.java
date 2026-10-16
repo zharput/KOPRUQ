@@ -107,6 +107,22 @@ class DesignSystemContentStore {
                 bearingCatalog, materialCatalog, girderLibrary, rules, crossSection);
     }
 
+    /** Removes every design-system section of the project, including its presence rows. */
+    void deleteAll(UUID projectId) {
+        definitions.deleteByProjectId(projectId);
+        piers.deleteByProjectId(projectId);
+        pierCaps.deleteByProjectId(projectId);
+        foundations.deleteByProjectId(projectId);
+        bearings.deleteByProjectId(projectId);
+        materials.deleteByProjectId(projectId);
+        spanRules.deleteByProjectId(projectId);
+        girderLibraries.findById(projectId).ifPresent(girderLibraries::delete);
+        crossSections.findById(projectId).ifPresent(crossSections::delete);
+        definitions.flush();
+        presence.deleteByProjectId(projectId);
+        presence.flush();
+    }
+
     // ------------------------------------------------------------------ replace
 
     void replace(UUID projectId, BridgeDefinitions section) {

@@ -33,4 +33,4 @@
 - Yenileme Graph tanımını (düğümler, bağlantı, parametre) korur; Run sonucu sunucuda kalıcı bir mühendislik sonucu olarak sunulmaz.
 - Kesit önizlemesinin görünmesi mühendislik yeterliliği veya solver doğrulaması anlamına gelmez; bu senaryoda yalnızca veri ve güncellik akışı geçer.
 
-**Kanıt:** Bağlantı öncesi `ERROR` ve sonrası başarılı düğüm ekran görüntüsü, Run log'u, aday satırı, değişiklik öncesi/sonrası rozet. **Sonuç:** `PASS / FAIL / BLOCKED` — Not:
+**Kanıt:** Bağlantı öncesi `ERROR` ve sonrası başarılı düğüm ekran görüntüsü, Run log'u, aday satırı, değişiklik öncesi/sonrası rozet. **Sonuç:** PASS

@@ -1,4 +1,4 @@
-# 06 — Trafik yükleri: LM1 override ve LM2 durumu
+ # 06 — Trafik yükleri: LM1 override ve LM2 durumu
 
 **Amaç:** Frontend girdisinin trafik API'sine gitmesini, kaynak bilgisinin değişmesini ve LM2'nin pasif kalmasını kontrol etmek.
 

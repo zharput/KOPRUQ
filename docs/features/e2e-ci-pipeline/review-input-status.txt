@@ -1,0 +1,7 @@
+ M README.md
+ M backend/README.md
+ M docs/architecture.md
+ M docs/e2e/README.md
+ M docs/roadmap.md
+?? .github/
+?? docs/features/e2e-ci-pipeline/

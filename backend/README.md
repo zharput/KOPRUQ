@@ -701,6 +701,8 @@ Run all backend tests:
 mvn -B -f backend/pom.xml test
 ```
 
+CI (`.github/workflows/ci.yml`) runs `mvn -B -f backend/pom.xml package` on every push and pull request, so this suite runs on H2 there.
+
 Tests run on in-memory H2 (PostgreSQL mode); no Docker is needed. To run the same suite against a
 real PostgreSQL 17 (throw-away container on port 5433):
 

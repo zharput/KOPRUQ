@@ -1,0 +1,88 @@
+diff --git a/README.md b/README.md
+index b6cf95b..2cab605 100644
+--- a/README.md
++++ b/README.md
+@@ -220,7 +220,9 @@ Backend testleri varsayılan olarak PostgreSQL uyumlu H2 test yapılandırmasın
+ 
+ Frontend'den API ve veritabanına ilerleyen manuel kabul adımları için [uçtan uca test rehberine](docs/e2e/README.md) bakın. Her dosya bir senaryo içerir; mühendislik doğrulaması gereken sonuçlar ayrıca işaretlenmiştir.
+ 
+-Aynı 19 senaryonun otomatik karşılığı Playwright ile `frontend/e2e/` altındadır. Backend ve PostgreSQL ayaktayken (yalnız yerel/test veritabanı; her çalıştırma kalıcı `E2E-...` projeleri bırakır ve silme API'si yoktur): `cd frontend`, bir kerelik `npm.cmd run test:e2e:install`, ardından `npm.cmd run test:e2e`. Ayrıntılar, eşleme tablosu ve otomatikleştirilmeyen adımlar [e2e README](docs/e2e/README.md#otomatik-çalıştırma-playwright) dosyasındadır.
++Aynı 19 senaryonun otomatik karşılığı Playwright ile `frontend/e2e/` altındadır. Backend ve PostgreSQL ayaktayken (yalnız yerel/test veritabanı; spec'ler oluşturdukları projeleri `projectCleanup` fixture'ı ile `DELETE /api/projects/{id}` üzerinden siler, yine de geliştirme veritabanına karşı koşmayın): `cd frontend`, bir kerelik `npm.cmd run test:e2e:install`, ardından `npm.cmd run test:e2e`. Ayrıntılar, eşleme tablosu ve otomatikleştirilmeyen adımlar [e2e README](docs/e2e/README.md#otomatik-çalıştırma-playwright) dosyasındadır.
++
++**CI.** `.github/workflows/ci.yml`, her push'ta, her pull request'te ve elle (`workflow_dispatch`) üç job çalıştırır: `backend` (`mvn -B -f backend/pom.xml package`, testler H2'de), `frontend` (`npm ci`, `lint`, `test`, `build`) ve `e2e` (backend job'ının derlediği jar'ı geçici bir `postgres-test` PostgreSQL'ine karşı başlatır, ardından `npm run test:e2e`). Veritabanı parolası her çalıştırmada rastgele üretilir ve maskelenir; GitHub secret'ı gerekmez. Hata durumunda Playwright raporu, `test-results/`, backend ve PostgreSQL logları artifact olarak 7 gün saklanır.
+ 
+ ## Belgeler ve sınırlar
+ 
+diff --git a/backend/README.md b/backend/README.md
+index 7cb08bd..64610fb 100644
+--- a/backend/README.md
++++ b/backend/README.md
+@@ -701,6 +701,8 @@ Run all backend tests:
+ mvn -B -f backend/pom.xml test
+ ```
+ 
++CI (`.github/workflows/ci.yml`) runs `mvn -B -f backend/pom.xml package` on every push and pull request, so this suite runs on H2 there.
++
+ Tests run on in-memory H2 (PostgreSQL mode); no Docker is needed. To run the same suite against a
+ real PostgreSQL 17 (throw-away container on port 5433):
+ 
+diff --git a/docs/architecture.md b/docs/architecture.md
+index e04d20f..db55831 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -3369,3 +3369,12 @@ in BIM / Export. Kept: the solver-independent `AnalysisEngine` port, `analysis.m
+ midas/scia/allplan). The old URL `/midas-nx-final-verification` falls back to the `project` workspace. No REST contract,
+ data or migration change. `docs/midas-integration-analysis.md` is archived as a historical reference. Earlier sections of
+ this document that describe MIDAS are historical records and are not rewritten.
++
++## CI pipeline (feature e2e-ci-pipeline, 2026-10-20)
++
++Plan: `docs/features/e2e-ci-pipeline/`. One workflow, `.github/workflows/ci.yml`, triggered by `push` (all branches), `pull_request` and `workflow_dispatch`; `permissions: contents: read`; concurrency group per workflow and ref with `cancel-in-progress`; no GitHub secret is used.
++
++- **Jobs.** `backend` (`ubuntu-latest`, Microsoft JDK 21, Maven cache, `mvn -B -f backend/pom.xml package` on H2, uploads the jar as artifact `backend-jar`), `frontend` (Node 24, npm cache, `npm ci`, `lint`, `test`, `build`) and `e2e` (`needs: backend`, same commit's jar, no rebuild).
++- **e2e database.** The repository's `postgres-test` Compose profile (`postgres:17`, tmpfs, port 5433, healthcheck) is reused rather than a service container, because the password is generated in a step (`openssl rand -hex 24`, masked with `::add-mask::`, passed through `GITHUB_ENV`). The jar is started in the background with `DB_URL=jdbc:postgresql://localhost:5433/kopruq_test`, `DB_USERNAME=kopruq`; the job waits (max 120 s) for `/actuator/health` `UP` and fails if the Java process dies. Flyway plus `ddl-auto=validate` therefore also runs against PostgreSQL there.
++- **Artifacts.** On failure only, 7 days: Playwright report, test results, backend and PostgreSQL logs, surefire reports. Browsers are installed with `npm run test:e2e:install -- --with-deps`; they are not cached.
++- **Limits.** Action versions are pinned to major tags (checkout v7, setup-java v6, setup-node v7, upload-artifact v7, download-artifact v8), not SHAs. `retries` stays 0 in `playwright.config.ts`. Backend tests do not run against PostgreSQL in CI. No change under `backend/**` or `frontend/**`.
+diff --git a/docs/e2e/README.md b/docs/e2e/README.md
+index 55ab054..948dd99 100644
+--- a/docs/e2e/README.md
++++ b/docs/e2e/README.md
+@@ -63,6 +63,8 @@ Bu senaryolar bir **mühendislik onayı** vermez. Yazılımcı olarak birimlerin
+ 
+ Vite dev sunucusu 5173'te çalışıyorsa yeniden kullanılır, çalışmıyorsa Playwright `--strictPort` ile başlatır. Backend sağlık adresi (`http://localhost:8080/actuator/health`) `UP` değilse hiçbir test çalışmadan Türkçe bir hata ile durulur. Ortam değişkenleri: `E2E_BASE_URL` (varsayılan `http://localhost:5173`; CORS yalnız bu kaynağa izin verdiği için değiştirmeyin), `E2E_API_BASE` (varsayılan `http://localhost:8080`; çalışan bir Vite örneği yeniden kullanılıyorsa onun `VITE_API_BASE` değerini değiştirmez). Hata durumunda `test-results/` (ekran görüntüsü, video, trace) ve `playwright-report/` oluşur; ikisi de git'e girmez.
+ 
++**CI.** `.github/workflows/ci.yml` içindeki `e2e` job'ı bu paketi her push ve pull request'te çalıştırır: `docker compose --profile postgres-test up -d --wait postgres-test` ile geçici PostgreSQL (5433, tmpfs) başlatılır; `DB_PASSWORD` o çalıştırma için `openssl rand` ile üretilip maskelenir (secret yok); backend'in `backend` job'ında derlenen jar'ı `DB_URL=jdbc:postgresql://localhost:5433/kopruq_test` ile başlatılır, sağlık adresi `UP` olunca `npm run test:e2e` koşar. Başarısız çalıştırmada `playwright-report`, `playwright-test-results` ve `e2e-logs` (backend ve PostgreSQL logu) artifact'ları 7 gün saklanır.
++
+ **Kurallar.** Her spec kendi projesini arayüzden oluşturur ve başka spec'e ya da sıraya bağlı değildir. Yazmalar `PUT /api/projects/<id>/...` yanıtı ve gövdesiyle beklenir (yeşil "Kaydedildi" bildirimi 1,5 sn yaşadığı için yalnız ek kanıttır); spec'lerde sabit bekleme yoktur. Her spec sonunda yakalanmamış `pageerror`, izin verilmemiş `console.error`, izin verilmemiş 4xx/5xx API yanıtı ve beklenmeyen dialog olmadığını denetler. Beklenen hata yanıtları yalnız ilgili testte gerekçeyle izinlidir (03: bulunmayan proje 404, 07: simüle edilen 400, 11: bozuk JSON 400, 18: revizyon çakışması 409) ve test raporunda not olarak görünür.
+ 
+ ### Senaryo → spec → manuel kalan adımlar
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index 24866e7..7435db3 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -1944,13 +1944,13 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
+ ## playwright-e2e-all (2026-10-16)
+ 
+ - [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run left 19 persistent `E2E-` projects until e2e-test-data-cleanup added the DELETE API). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
+-- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container); a CI job for the suite.
++- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container). The CI job for the suite is covered by e2e-ci-pipeline (below).
+ 
+ ## e2e-test-data-cleanup (2026-10-16)
+ 
+ - [x] `DELETE /api/projects/{projectId}` (204; 404 `PROJECT_NOT_FOUND`): deletes the project, all its content and the terrain dataset / LandXML import it names when no other project uses them; one transaction, no new Flyway migration. Always enabled, no name guard, no authentication; CORS unchanged. Endpoint inventory is 42; `bridge` may depend on `terrain` and `landxml` (application ports).
+ - [x] e2e `projectCleanup` auto fixture deletes the projects each test created (also after failures); docs updated (`backend/README.md`, `docs/e2e/README.md`, `docs/architecture.md`).
+-- [ ] Not done (out of scope): one-off cleanup of `E2E-` projects accumulated earlier; terrain/import rows no project references any more; a frontend delete UI; a delete guard (property flag, name prefix, confirmation header) or authentication; a CI job.
++- [ ] Not done (out of scope): one-off cleanup of `E2E-` projects accumulated earlier; terrain/import rows no project references any more; a frontend delete UI; a delete guard (property flag, name prefix, confirmation header) or authentication. (The CI job is covered by e2e-ci-pipeline, below.)
+ 
+ ## MIDAS-REMOVE (2026-10-16)
+ 
+@@ -1958,3 +1958,9 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
+ - [x] Frontend MIDAS navigation, placeholder and BIM / Export item removed; legacy URL falls back to `project`.
+ - [x] Living docs updated (CLAUDE.md, AGENTS.md, READMEs, architecture); spec/amendment/analysis documents carry superseded notes.
+ - [ ] P06 retired; P07 to be redefined with the engineer (no engineering content added). Final verification tier: not defined.
++
++## e2e-ci-pipeline (2026-10-20)
++
++- [x] `.github/workflows/ci.yml`: `backend` (`mvn -B -f backend/pom.xml package`), `frontend` (`npm ci`, lint, test, build) and `e2e` (`npm run test:e2e` against the built jar and a throw-away `postgres-test` PostgreSQL with a generated, masked password) on every push, pull request and manual dispatch. No secrets, no application or dependency change; failure-only artifacts (7 days). Plan `docs/features/e2e-ci-pipeline/`.
++- [ ] Verify on GitHub (user): one green push run and one green pull request run.
++- [ ] Not done (out of scope): SHA-pinned actions, Playwright browser cache, retries, backend tests on PostgreSQL, deployment/release.

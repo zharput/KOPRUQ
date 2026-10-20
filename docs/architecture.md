@@ -3369,3 +3369,12 @@ in BIM / Export. Kept: the solver-independent `AnalysisEngine` port, `analysis.m
 midas/scia/allplan). The old URL `/midas-nx-final-verification` falls back to the `project` workspace. No REST contract,
 data or migration change. `docs/midas-integration-analysis.md` is archived as a historical reference. Earlier sections of
 this document that describe MIDAS are historical records and are not rewritten.
+
+## CI pipeline (feature e2e-ci-pipeline, 2026-10-20)
+
+Plan: `docs/features/e2e-ci-pipeline/`. One workflow, `.github/workflows/ci.yml`, triggered by `push` (all branches), `pull_request` and `workflow_dispatch`; `permissions: contents: read`; concurrency group per workflow and ref with `cancel-in-progress`; no GitHub secret is used.
+
+- **Jobs.** `backend` (`ubuntu-latest`, Microsoft JDK 21, Maven cache, `mvn -B -f backend/pom.xml package` on H2, uploads the jar as artifact `backend-jar`), `frontend` (Node 24, npm cache, `npm ci`, `lint`, `test`, `build`) and `e2e` (`needs: backend`, same commit's jar, no rebuild).
+- **e2e database.** The repository's `postgres-test` Compose profile (`postgres:17`, tmpfs, port 5433, healthcheck) is reused rather than a service container, because the password is generated in a step (`openssl rand -hex 24`, masked with `::add-mask::`, passed through `GITHUB_ENV`). The jar is started in the background with `DB_URL=jdbc:postgresql://localhost:5433/kopruq_test`, `DB_USERNAME=kopruq`; the job waits (max 120 s) for `/actuator/health` `UP` and fails if the Java process dies. Flyway plus `ddl-auto=validate` therefore also runs against PostgreSQL there.
+- **Artifacts.** On failure only, 7 days: Playwright report, test results, backend and PostgreSQL logs, surefire reports. Browsers are installed with `npm run test:e2e:install -- --with-deps`; they are not cached.
+- **Limits.** Action versions are pinned to major tags (checkout v7, setup-java v6, setup-node v7, upload-artifact v7, download-artifact v8), not SHAs. `retries` stays 0 in `playwright.config.ts`. Backend tests do not run against PostgreSQL in CI. No change under `backend/**` or `frontend/**`.

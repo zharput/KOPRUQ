@@ -220,7 +220,9 @@ Backend testleri varsayılan olarak PostgreSQL uyumlu H2 test yapılandırmasın
 
 Frontend'den API ve veritabanına ilerleyen manuel kabul adımları için [uçtan uca test rehberine](docs/e2e/README.md) bakın. Her dosya bir senaryo içerir; mühendislik doğrulaması gereken sonuçlar ayrıca işaretlenmiştir.
 
-Aynı 19 senaryonun otomatik karşılığı Playwright ile `frontend/e2e/` altındadır. Backend ve PostgreSQL ayaktayken (yalnız yerel/test veritabanı; her çalıştırma kalıcı `E2E-...` projeleri bırakır ve silme API'si yoktur): `cd frontend`, bir kerelik `npm.cmd run test:e2e:install`, ardından `npm.cmd run test:e2e`. Ayrıntılar, eşleme tablosu ve otomatikleştirilmeyen adımlar [e2e README](docs/e2e/README.md#otomatik-çalıştırma-playwright) dosyasındadır.
+Aynı 19 senaryonun otomatik karşılığı Playwright ile `frontend/e2e/` altındadır. Backend ve PostgreSQL ayaktayken (yalnız yerel/test veritabanı; spec'ler oluşturdukları projeleri `projectCleanup` fixture'ı ile `DELETE /api/projects/{id}` üzerinden siler, yine de geliştirme veritabanına karşı koşmayın): `cd frontend`, bir kerelik `npm.cmd run test:e2e:install`, ardından `npm.cmd run test:e2e`. Ayrıntılar, eşleme tablosu ve otomatikleştirilmeyen adımlar [e2e README](docs/e2e/README.md#otomatik-çalıştırma-playwright) dosyasındadır.
+
+**CI.** `.github/workflows/ci.yml`, her push'ta, her pull request'te ve elle (`workflow_dispatch`) üç job çalıştırır: `backend` (`mvn -B -f backend/pom.xml package`, testler H2'de), `frontend` (`npm ci`, `lint`, `test`, `build`) ve `e2e` (backend job'ının derlediği jar'ı geçici bir `postgres-test` PostgreSQL'ine karşı başlatır, ardından `npm run test:e2e`). Veritabanı parolası her çalıştırmada rastgele üretilir ve maskelenir; GitHub secret'ı gerekmez. Hata durumunda Playwright raporu, `test-results/`, backend ve PostgreSQL logları artifact olarak 7 gün saklanır.
 
 ## Belgeler ve sınırlar
 

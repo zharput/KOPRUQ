@@ -1944,13 +1944,13 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 ## playwright-e2e-all (2026-10-16)
 
 - [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run left 19 persistent `E2E-` projects until e2e-test-data-cleanup added the DELETE API). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
-- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container); a CI job for the suite.
+- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container). The CI job for the suite is covered by e2e-ci-pipeline (below).
 
 ## e2e-test-data-cleanup (2026-10-16)
 
 - [x] `DELETE /api/projects/{projectId}` (204; 404 `PROJECT_NOT_FOUND`): deletes the project, all its content and the terrain dataset / LandXML import it names when no other project uses them; one transaction, no new Flyway migration. Always enabled, no name guard, no authentication; CORS unchanged. Endpoint inventory is 42; `bridge` may depend on `terrain` and `landxml` (application ports).
 - [x] e2e `projectCleanup` auto fixture deletes the projects each test created (also after failures); docs updated (`backend/README.md`, `docs/e2e/README.md`, `docs/architecture.md`).
-- [ ] Not done (out of scope): one-off cleanup of `E2E-` projects accumulated earlier; terrain/import rows no project references any more; a frontend delete UI; a delete guard (property flag, name prefix, confirmation header) or authentication; a CI job.
+- [ ] Not done (out of scope): one-off cleanup of `E2E-` projects accumulated earlier; terrain/import rows no project references any more; a frontend delete UI; a delete guard (property flag, name prefix, confirmation header) or authentication. (The CI job is covered by e2e-ci-pipeline, below.)
 
 ## MIDAS-REMOVE (2026-10-16)
 
@@ -1958,3 +1958,9 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 - [x] Frontend MIDAS navigation, placeholder and BIM / Export item removed; legacy URL falls back to `project`.
 - [x] Living docs updated (CLAUDE.md, AGENTS.md, READMEs, architecture); spec/amendment/analysis documents carry superseded notes.
 - [ ] P06 retired; P07 to be redefined with the engineer (no engineering content added). Final verification tier: not defined.
+
+## e2e-ci-pipeline (2026-10-20)
+
+- [x] `.github/workflows/ci.yml`: `backend` (`mvn -B -f backend/pom.xml package`), `frontend` (`npm ci`, lint, test, build) and `e2e` (`npm run test:e2e` against the built jar and a throw-away `postgres-test` PostgreSQL with a generated, masked password) on every push, pull request and manual dispatch. No secrets, no application or dependency change; failure-only artifacts (7 days). Plan `docs/features/e2e-ci-pipeline/`.
+- [ ] Verify on GitHub (user): one green push run and one green pull request run.
+- [ ] Not done (out of scope): SHA-pinned actions, Playwright browser cache, retries, backend tests on PostgreSQL, deployment/release.

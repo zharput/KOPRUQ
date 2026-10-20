@@ -123,7 +123,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
       </p>
 
       <div className="spn-formula-rows">
-        <div className="spn-formula-row">
+        <div className="spn-formula-row" data-testid="self-weight-row-concrete">
           <span className="spn-formula-label">Concrete Self Weight</span>
           <span className="spn-formula-eq">=</span>
           <input className="spn-input spn-input-number spn-formula-input spn-input-passive" value={formatLoadValue(25, 'unitWeight', projectUnits)} readOnly />
@@ -131,6 +131,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         </div>
 
         <FormulaRow
+          testKey="asphalt"
           label="Asphalt"
           terms={[
             { value: inputs.asphaltThicknessM, kind: 'decimal', onChange: (v) => update('asphaltThicknessM', v), quantity: 'length' },
@@ -142,6 +143,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         />
 
         <FormulaRow
+          testKey="sidewalk"
           label="Sidewalk"
           terms={[
             { value: inputs.sidewalkThicknessM, kind: 'decimal', onChange: (v) => update('sidewalkThicknessM', v), quantity: 'length' },
@@ -158,6 +160,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         />
 
         <FormulaRow
+          testKey="facia"
           label="Precast facia"
           terms={[
             { value: inputs.faciaCount, kind: 'integer', onChange: (v) => update('faciaCount', v) },
@@ -170,6 +173,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         />
 
         <FormulaRow
+          testKey="guardrail"
           label="Guardrail"
           terms={[
             { value: inputs.guardrailCount, kind: 'integer', onChange: (v) => update('guardrailCount', v) },
@@ -180,6 +184,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         />
 
         <FormulaRow
+          testKey="pedestrianRailing"
           label="Pedestrian railing"
           terms={[
             { value: inputs.pedestrianRailingCount, kind: 'integer', onChange: (v) => update('pedestrianRailingCount', v) },
@@ -195,6 +200,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         />
 
         <FormulaRow
+          testKey="protectiveFence"
           label="Protective fence"
           terms={[
             { value: inputs.protectiveFenceCount, kind: 'integer', onChange: (v) => update('protectiveFenceCount', v) },
@@ -210,6 +216,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
         />
 
         <FormulaRow
+          testKey="soundPanel"
           label="Sound panel"
           terms={[
             { value: inputs.soundPanelCount, kind: 'integer', onChange: (v) => update('soundPanelCount', v) },
@@ -219,10 +226,10 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
           result={soundPanelResult}
         />
 
-        <div className="spn-formula-row spn-formula-total">
+        <div className="spn-formula-row spn-formula-total" data-testid="self-weight-row-total">
           <span className="spn-formula-label">TOTAL</span>
           <span className="spn-formula-eq">=</span>
-          <span className="spn-formula-result">{formatLoad(total, 'lineLoad', projectUnits)}</span>
+          <span className="spn-formula-result" data-testid="self-weight-result-total">{formatLoad(total, 'lineLoad', projectUnits)}</span>
         </div>
       </div>
     </div>
@@ -238,9 +245,9 @@ interface Term {
   display?: string
 }
 
-function FormulaRow({ label, terms, result, units }: { label: string; terms: Term[]; result: number; units?: ProjectUnits }) {
+function FormulaRow({ testKey, label, terms, result, units }: { testKey: string; label: string; terms: Term[]; result: number; units?: ProjectUnits }) {
   return (
-    <div className="spn-formula-row">
+    <div className="spn-formula-row" data-testid={`self-weight-row-${testKey}`}>
       <span className="spn-formula-label">{label}</span>
       <span className="spn-formula-eq">=</span>
       {terms.map((term, i) => (
@@ -274,7 +281,7 @@ function FormulaRow({ label, terms, result, units }: { label: string; terms: Ter
         </span>
       ))}
       <span className="spn-formula-eq">=</span>
-      <span className="spn-formula-result">{formatLoad(result, 'lineLoad', units)}</span>
+      <span className="spn-formula-result" data-testid={`self-weight-result-${testKey}`}>{formatLoad(result, 'lineLoad', units)}</span>
     </div>
   )
 }

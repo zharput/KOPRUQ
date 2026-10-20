@@ -131,6 +131,7 @@ export default function SiteLayoutPanel({ onUseLayout }: { onUseLayout: (seed: L
         <h2 className="spn-card-title">Span search space</h2>
         <RangeField
           label="Span length (m)"
+          testId="layout-span-length"
           registerMin={register('minSpanM', { valueAsNumber: true })}
           registerMax={register('maxSpanM', { valueAsNumber: true })}
           error={errors.maxSpanM?.message ?? errors.minSpanM?.message}
@@ -238,20 +239,21 @@ function Field({
 }
 
 function RangeField({
-  label, registerMin, registerMax, error,
+  label, registerMin, registerMax, error, testId,
 }: {
   label: string
   registerMin: UseFormRegisterReturn
   registerMax: UseFormRegisterReturn
   error?: string
+  testId?: string
 }) {
   return (
-    <div className="spn-range-field">
+    <div className="spn-range-field" data-testid={testId}>
       <span className="spn-range-label">{label}</span>
       <div className="spn-range-inputs">
-        <input type="number" {...registerMin} className="spn-input" />
+        <input type="number" {...registerMin} className="spn-input" data-testid={testId ? `${testId}-min` : undefined} />
         <span className="spn-range-dash">-</span>
-        <input type="number" {...registerMax} className="spn-input" />
+        <input type="number" {...registerMax} className="spn-input" data-testid={testId ? `${testId}-max` : undefined} />
       </div>
       {error && <span className="spn-error" style={{ fontSize: 11 }}>{error}</span>}
     </div>

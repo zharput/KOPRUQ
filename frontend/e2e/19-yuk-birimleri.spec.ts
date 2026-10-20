@@ -13,7 +13,7 @@ import type { Page } from '@playwright/test'
 import { jsonOf } from './support/api.ts'
 import { attachScreenshot } from './support/evidence.ts'
 import { expect, test } from './support/fixtures.ts'
-import { openLoadsTab, openTrafficSubTab, rowInputValues, selfWeightRow, setProjectUnit, trafficPanel, type UnitDimension } from './support/navigation.ts'
+import { openLoadsTab, openTrafficSubTab, rowInputValues, selfWeightResult, selfWeightRow, setProjectUnit, temperatureResultCells, trafficPanel, type UnitDimension } from './support/navigation.ts'
 import { createProjectViaUi, gotoInProject, uniqueProjectName } from './support/projects.ts'
 import { KN_PER_TONF, SEISMIC, UNITS_DOC } from './support/scenarioData.ts'
 import { expectNoPutDuring, settleWrites, type WriteTracker } from './support/writes.ts'
@@ -28,11 +28,12 @@ type TemperatureResult = { status: string; effectiveMinimumC: number | null; eff
 const signedFixed = (value: number, label: string) => `${value > 0 ? '+' : ''}${(Object.is(value, -0) ? 0 : value).toFixed(2)} ${label}`
 
 async function selfWeightSignature(page: Page) {
-  await expect(page.locator('.spn-formula-row').first()).toBeVisible()
-  return page.locator('.spn-formula-row').evaluateAll((rows) => rows.map((row) => ({
-    label: row.querySelector('.spn-formula-label')?.textContent ?? '',
+  const rows = page.locator('[data-testid^="self-weight-row-"]')
+  await expect(rows.first()).toBeVisible()
+  return rows.evaluateAll((els) => els.map((row) => ({
+    key: (row.getAttribute('data-testid') ?? '').replace('self-weight-row-', ''),
     inputs: Array.from(row.querySelectorAll('input')).map((input) => (input as HTMLInputElement).value),
-    result: row.querySelector('.spn-formula-result')?.textContent ?? null,
+    result: row.querySelector('[data-testid^="self-weight-result-"]')?.textContent ?? null,
   })))
 }
 
@@ -52,14 +53,14 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
   const toLoads = () => nav.getByRole('link', { name: 'Loads', exact: true }).click()
 
   await gotoInProject(page, writes, projectId, '/loads')
-  const guardrail = selfWeightRow(page, 'Guardrail')
-  const asphalt = selfWeightRow(page, 'Asphalt')
-  const concrete = selfWeightRow(page, 'Concrete Self Weight')
+  const guardrail = selfWeightRow(page, 'guardrail')
+  const asphalt = selfWeightRow(page, 'asphalt')
+  const concrete = selfWeightRow(page, 'concrete')
   const card = page.locator('.spn-card').filter({ has: page.getByRole('heading', { name: 'Self Weight & Permanent' }) }).last()
 
   let initialSignature: Awaited<ReturnType<typeof selfWeightSignature>> = []
   await test.step('1. Varsayılan birimler (kN, m, °C)', async () => {
-    await expect(guardrail.locator('.spn-formula-result')).toHaveText(UNITS_DOC.defaults.guardrailResult)
+    await expect(selfWeightResult(page, 'guardrail')).toHaveText(UNITS_DOC.defaults.guardrailResult)
     expect((await rowInputValues(guardrail))[1]).toBe(UNITS_DOC.defaults.guardrailUnitLoad)
     await expect(card).toContainText('kN/m³')
     initialSignature = await selfWeightSignature(page)
@@ -68,7 +69,7 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
 
   await test.step('2. Force = tonf; Mass değişimi Loads değerlerini değiştirmez', async () => {
     await changeUnit('force', 'tonf')
-    await expect(guardrail.locator('.spn-formula-result')).toHaveText(UNITS_DOC.tonf.guardrailResult)
+    await expect(selfWeightResult(page, 'guardrail')).toHaveText(UNITS_DOC.tonf.guardrailResult)
     expect((await rowInputValues(guardrail))[1]).toBe(UNITS_DOC.tonf.guardrailUnitLoad)
     expect(await rowInputValues(concrete)).toEqual([UNITS_DOC.tonf.concreteUnitWeight])
     expect((await rowInputValues(asphalt))[2]).toBe(UNITS_DOC.tonf.asphaltUnitWeight)
@@ -83,7 +84,7 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
     await changeUnit('length', 'mm')
     expect((await rowInputValues(asphalt))[0]).toBe(UNITS_DOC.mm.asphaltThickness)
     expect((await rowInputValues(asphalt))[2], 'Birim ağırlık mm³ biçimi: 4 anlamlı hane').toMatch(/^\d\.\d{3}e-\d+$/)
-    await expect(guardrail.locator('.spn-formula-result')).toHaveText(UNITS_DOC.mm.guardrailResult)
+    await expect(selfWeightResult(page, 'guardrail')).toHaveText(UNITS_DOC.mm.guardrailResult)
     await expect(card).toContainText('tonf/mm³')
     await attachScreenshot(testInfo, page, '19-3-mm')
     await changeUnit('length', 'cm')
@@ -116,16 +117,16 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
     await openLoadsTab(page, 'Traffic')
     await openTrafficSubTab(page, 'LM1')
     const panel = trafficPanel(page)
-    const tandemRow = panel.locator('table').nth(0).locator('tbody tr').first()
-    const udlRow = panel.locator('table').nth(1).locator('tbody tr').first()
+    const tandemRow = panel.getByTestId('lm1-row-tandemSystem-0')
+    const udlRow = panel.getByTestId('lm1-row-udl-0')
     const alphas = async () => [await tandemRow.locator('input').inputValue(), await udlRow.locator('input').inputValue()]
     const alphaBefore = await alphas()
     const tandem = (defaults.tandemSystem[0].characteristicValue.value / KN_PER_TONF).toFixed(2)
     const udl = (defaults.udl[0].characteristicValue.value / KN_PER_TONF).toFixed(4)
-    await expect(tandemRow.locator('td').nth(1)).toHaveText(tandem)
-    await expect(tandemRow.locator('td').nth(4)).toHaveText('tonf')
-    await expect(udlRow.locator('td').nth(1)).toHaveText(udl)
-    await expect(udlRow.locator('td').nth(4)).toHaveText('tonf/m²')
+    await expect(panel.getByTestId('lm1-base-tandemSystem-0')).toHaveText(tandem)
+    await expect(panel.getByTestId('lm1-unit-tandemSystem-0')).toHaveText('tonf')
+    await expect(panel.getByTestId('lm1-base-udl-0')).toHaveText(udl)
+    await expect(panel.getByTestId('lm1-unit-udl-0')).toHaveText('tonf/m²')
     // Belge değerleri (adım 4): 300 kN -> 30.59 tonf, UDL -> 0.9177 tonf/m²; yukarıdaki türetilmiş değerle de uyumlu olmalı.
     expect(tandem).toBe(UNITS_DOC.lm1.tandem)
     expect(udl).toBe(UNITS_DOC.lm1.udl)
@@ -176,7 +177,7 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
     expect(sent.effectiveMaximumTemperatureC).toBeCloseTo(40, 6)
     expect(sent.initialTemperatureC).toBeCloseTo(10, 6)
     const body = await jsonOf<TemperatureResult>(response)
-    const cells = page.locator('table.spn-table tbody tr td:nth-child(2), table.spn-table tbody tr td:nth-child(3)')
+    const cells = temperatureResultCells(page)
     const expectDeltas = async (factor: number, label: string) => {
       if (body.status !== 'VALID' || body.contractionC === null || body.expansionC === null) return
       const c = signedFixed(body.contractionC * factor, label)

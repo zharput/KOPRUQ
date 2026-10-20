@@ -62,9 +62,8 @@ test('09 Yerleşim seçimini yapısal alternatiflere aktar', async ({ page, diag
     await expect(page.getByText(`${chosen.bridgeLengthM} m total, ${chosen.spanLengthM} m spans`)).toBeVisible()
     const length = page.locator('label.spn-field').filter({ has: page.locator('span', { hasText: /^Bridge Length \(m\)$/ }) }).locator('input')
     expect(Number(await length.inputValue())).toBeCloseTo(chosen.bridgeLengthM, 6)
-    const span = page.locator('.spn-range-field').filter({ has: page.locator('.spn-range-label', { hasText: /^Span \(m\)$/ }) }).locator('input')
-    expect(Number(await span.nth(0).inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
-    expect(Number(await span.nth(1).inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
+    expect(Number(await page.getByTestId('generate-span-min').inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
+    expect(Number(await page.getByTestId('generate-span-max').inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
   })
 
   await test.step('5. GENERATE ALTERNATIVES: kernel-state ve alternatives', async () => {

@@ -6,21 +6,21 @@ export function libraryButton(page: Page, label: string): Locator {
 }
 
 /** All nodes currently on the canvas. */
-export const canvasNodes = (page: Page): Locator => page.locator('.react-flow__node:not(.react-flow__node-graphGroup)')
+export const canvasNodes = (page: Page): Locator => page.locator('[data-testid^="graph-node-"]')
 
 /** Adds a node from the library and waits until the canvas shows one more node; returns the new node's React Flow id. */
 export async function addLibraryNode(page: Page, label: string): Promise<string> {
-  const before = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id') ?? ''))
+  const before = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => (node.getAttribute('data-testid') ?? '').replace('graph-node-', '')))
   await libraryButton(page, label).click()
   await expect(canvasNodes(page)).toHaveCount(before.length + 1)
-  const after = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id') ?? ''))
+  const after = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => (node.getAttribute('data-testid') ?? '').replace('graph-node-', '')))
   const added = after.find((id) => !before.includes(id))
   if (!added) throw new Error(`"${label}" düğmesi yeni bir düğüm eklemedi.`)
   return added
 }
 
-/** Node root by React Flow id. */
-export const nodeById = (page: Page, id: string): Locator => page.locator(`.react-flow__node[data-id="${id}"]`)
+/** Node root by React Flow id (`graph-node-<id>` on the React Flow wrapper, set through `domAttributes`). */
+export const nodeById = (page: Page, id: string): Locator => page.getByTestId(`graph-node-${id}`)
 
 /**
  * Drags from the source handle to the target handle with real mouse events (React Flow connects on mouseup over a handle).

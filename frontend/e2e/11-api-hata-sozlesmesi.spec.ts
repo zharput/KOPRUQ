@@ -37,8 +37,8 @@ test('11 API hata sözleşmesi ve correlation ID', async ({ page, diagnostics, w
 
   await test.step('4. Layout formu: min span > max span -> alan hatası', async () => {
     await gotoInProject(page, writes, projectId, '/layout-generator')
-    const range = page.locator('.spn-range-field').filter({ has: page.locator('.spn-range-label', { hasText: /^Span length \(m\)$/ }) })
-    const [minInput, maxInput] = [range.locator('input').nth(0), range.locator('input').nth(1)]
+    const range = page.getByTestId('layout-span-length')
+    const [minInput, maxInput] = [page.getByTestId('layout-span-length-min'), page.getByTestId('layout-span-length-max')]
     const max = Number(await maxInput.inputValue())
     expect(Number.isFinite(max)).toBe(true)
     await minInput.fill(String(max + 1))

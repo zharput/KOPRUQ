@@ -44,12 +44,11 @@ test('06 Trafik yükleri: LM1 override ve LM2 durumu', async ({ page, diagnostic
   })
 
   await openTrafficSubTab(page, 'LM1')
-  const alphaInput = trafficPanel(page).getByRole('textbox', { name: / α$/ }).first()
+  const alphaInput = trafficPanel(page).getByTestId('lm1-row-tandemSystem-0').getByRole('textbox')
   await expect(alphaInput).toBeVisible()
   const alphaLabel = (await alphaInput.getAttribute('aria-label')) ?? ''
   const rowLabel = alphaLabel.replace(/ α$/, '')
-  const row = trafficPanel(page).locator('tr').filter({ has: page.getByRole('textbox', { name: alphaLabel, exact: true }) })
-  const effective = row.locator('td').nth(3)
+  const effective = trafficPanel(page).getByTestId('lm1-effective-tandemSystem-0')
   const resetButton = page.getByRole('button', { name: `Reset ${rowLabel} α to EN default`, exact: true })
 
   await expect(effective).not.toHaveText('—')

@@ -24,13 +24,15 @@ test('15 Deprem spektrumu giriş durumu', async ({ page, diagnostics, writes, pr
 
   const agR = page.getByLabel('Reference PGA, agR')
   const gamma = page.getByLabel('Importance Factor, γI')
-  const curve = page.locator('.recharts-line-curve')
+  const chart = page.getByTestId('seismic-spectrum-chart')
+  const curve = chart.locator('.recharts-line-curve')
   const spectrumCalls = () => diagnostics.apiCalls({ method: 'POST', url: '/api/seismic/spectrum' }).length
 
   await test.step('1. agR boş: istek ve eğri yok', async () => {
     await expect(agR).toHaveValue('')
     await expect(page.getByLabel('Ground Type')).toHaveValue('B')
     await expect(page.getByLabel('Spectrum Type')).toHaveValue('Type 1')
+    await expect(chart).toBeVisible()
     await expect(curve).toHaveCount(0)
     expect(spectrumCalls()).toBe(0)
   })

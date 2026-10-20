@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "slug": "e2e-testid-stabilization",
+  "status": "implemented",
+  "review": "completed",
+  "created_at": "2026-10-20T09:20:21.978827+00:00",
+  "updated_at": "2026-10-20T09:47:46.442792+00:00",
+  "approved_plan_sha256": "f48c8ea82b096c76a034c6d507836fe0b16e793940e8013c4d7dd69cfbfde89b",
+  "baseline_head": "e06e7a03b8b1520d514c60a52bd511f5f6cbec35",
+  "approved_at": "2026-10-20T09:30:46.972193+00:00",
+  "reviewed_at": "2026-10-20T09:47:46.442780+00:00"
+}

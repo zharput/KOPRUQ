@@ -46,9 +46,23 @@ export async function openTrafficSubTab(page: Page, label: TrafficSubTab): Promi
   await page.locator('.spn-traffic-workspace').getByRole('tab', { name: label, exact: true }).click()
 }
 
-/** One row of the Self Weight & Permanent formula list (label exactly as shown, e.g. "Guardrail", "TOTAL"). */
-export function selfWeightRow(page: Page, label: string): Locator {
-  return page.locator('.spn-formula-row').filter({ has: page.locator('.spn-formula-label', { hasText: new RegExp(`^${label}$`) }) })
+/** The four Uniform Temperature result cells in DOM order: concrete contraction/expansion, steel contraction/expansion. */
+export function temperatureResultCells(page: Page): Locator {
+  return page.locator(
+    '[data-testid="temperature-concrete-contraction"], [data-testid="temperature-concrete-expansion"], [data-testid="temperature-steel-contraction"], [data-testid="temperature-steel-expansion"]',
+  )
+}
+
+export type SelfWeightKey = 'concrete' | 'asphalt' | 'sidewalk' | 'facia' | 'guardrail' | 'pedestrianRailing' | 'protectiveFence' | 'soundPanel' | 'total'
+
+/** One row of the Self Weight & Permanent formula list (stable key, e.g. 'guardrail', 'total'). */
+export function selfWeightRow(page: Page, key: SelfWeightKey): Locator {
+  return page.getByTestId(`self-weight-row-${key}`)
+}
+
+/** Result cell of a Self Weight row (every row except 'concrete' has one). */
+export function selfWeightResult(page: Page, key: Exclude<SelfWeightKey, 'concrete'>): Locator {
+  return page.getByTestId(`self-weight-result-${key}`)
 }
 
 /** Current values of all `input` elements of a row (display text as shown to the engineer). */

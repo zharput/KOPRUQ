@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "bgts-context-engine": {
+      "command": "C:\\Users\\cemha\\repos\\bgts-context-engine\\.venv\\Scripts\\bce.exe",
+      "args": [
+        "serve-mcp",
+        "--env-file",
+        "C:\\Users\\cemha\\repos\\bgts-context-engine\\.env"
+      ],
+      "env": {
+        "PYTHONUTF8": "1",
+        "BCE_AGENT_MODE": "hint"
+      }
+    }
+  }
+}

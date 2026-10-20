@@ -1,0 +1,23 @@
+ M docs/architecture.md
+ M docs/e2e/README.md
+ M docs/roadmap.md
+ M frontend/e2e/06-trafik-yukleri.spec.ts
+ M frontend/e2e/07-ruzgar-guncellik.spec.ts
+ M frontend/e2e/09-yerlesim-alternatif.spec.ts
+ M frontend/e2e/11-api-hata-sozlesmesi.spec.ts
+ M frontend/e2e/12-malzeme-katalogu.spec.ts
+ M frontend/e2e/14-sicaklik-durumu.spec.ts
+ M frontend/e2e/15-deprem-durumu.spec.ts
+ M frontend/e2e/19-yuk-birimleri.spec.ts
+ M frontend/e2e/support/graph.ts
+ M frontend/e2e/support/navigation.ts
+ M frontend/src/features/bridge-alternatives/components/GenerateWorkflow.tsx
+ M frontend/src/features/graph/adapters/reactFlowAdapter.ts
+ M frontend/src/features/layout-generator/components/SiteLayoutPanel.tsx
+ M frontend/src/features/loads/components/SelfWeightPermanent.tsx
+ M frontend/src/features/loads/components/seismic/SeismicPanel.tsx
+ M frontend/src/features/loads/components/temperature/UniformTemperaturePanel.tsx
+ M frontend/src/features/loads/components/traffic/Lm1Panel.tsx
+ M frontend/src/features/loads/components/wind/WindLoadsPanel.tsx
+ M frontend/src/features/materials/components/MaterialsPanel.tsx
+?? docs/features/e2e-testid-stabilization/

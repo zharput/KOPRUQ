@@ -8,7 +8,7 @@
  */
 import { jsonOf } from './support/api.ts'
 import { expect, test } from './support/fixtures.ts'
-import { openLoadsTab } from './support/navigation.ts'
+import { openLoadsTab, temperatureResultCells } from './support/navigation.ts'
 import { createProjectViaUi, gotoInProject, reloadSettled, uniqueProjectName } from './support/projects.ts'
 import { TEMPERATURE } from './support/scenarioData.ts'
 import { settleWrites, waitForSectionPut } from './support/writes.ts'
@@ -38,7 +38,7 @@ test('14 Sıcaklık servisinin giriş ve sonuç durumu', async ({ page, diagnost
   const minInput = page.getByLabel('Effective Minimum Temperature, Te,min')
   const maxInput = page.getByLabel('Effective Maximum Temperature, Te,max')
   const t0Input = page.getByLabel('Initial Temperature, T0')
-  const resultCells = page.locator('table.spn-table tbody tr td:nth-child(2), table.spn-table tbody tr td:nth-child(3)')
+  const resultCells = temperatureResultCells(page)
   const resolveCalls = () => diagnostics.apiCalls({ method: 'POST', url: '/api/temperature/uniform/resolve' }).length
 
   await test.step('1. Boş alanlar: istek yok, hücreler —', async () => {

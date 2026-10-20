@@ -1,0 +1,1 @@
+Roadmap’te listelenen, yapısal seçicilerle erişilen elemanlara data-testid / aria-label eklemek (Materials satır select’leri, Layout/Generate aralık girdileri, Self Weight formül satırları, Wind/Temperature sonuç hücreleri, LM1 tablo hücreleri, graph node kökü, Seismic grafik kutusu).

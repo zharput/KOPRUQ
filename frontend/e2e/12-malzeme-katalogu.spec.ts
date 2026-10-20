@@ -14,14 +14,18 @@ import type { Page } from '@playwright/test'
 
 type MaterialRow = { id: string; concreteClass: string }
 
-async function readRows(page: Page): Promise<{ element: string; concreteClass: string }[]> {
-  const rows = page.locator('table.spn-table tbody tr')
+async function readRows(page: Page): Promise<{ id: string; element: string; concreteClass: string }[]> {
+  const rows = page.locator('[data-testid^="materials-row-"]')
   await expect(rows).toHaveCount(8)
   return rows.evaluateAll((trs) => trs.map((tr) => ({
+    id: (tr.getAttribute('data-testid') ?? '').replace('materials-row-', ''),
     element: tr.querySelectorAll('td')[1].textContent ?? '',
-    concreteClass: (tr.querySelector('select') as HTMLSelectElement).value,
+    concreteClass: (tr.querySelector('[data-testid^="materials-concrete-class-"]') as HTMLSelectElement).value,
   })))
 }
+
+const byId = <T extends { id: string }>(rows: T[], id: string) => rows.find((r) => r.id === id)
+const exceptDrilledPiles = <T extends { id: string }>(rows: T[]) => rows.filter((r) => r.id !== 'DRILLED_PILES')
 
 test('12 Malzeme seçimi sunucu projesine kaydediliyor mu', async ({ page, diagnostics, writes, projectApi }) => {
   const name = uniqueProjectName('12')
@@ -29,21 +33,21 @@ test('12 Malzeme seçimi sunucu projesine kaydediliyor mu', async ({ page, diagn
   await gotoInProject(page, writes, projectId, '/materials')
 
   const before = await readRows(page)
-  expect(before[0].element).toBe('Drilled piles')
-  expect(before[0].concreteClass).not.toBe(MATERIAL_CHOICE)
+  await expect(page.getByTestId('materials-row-DRILLED_PILES')).toContainText('Drilled piles')
+  expect(byId(before, 'DRILLED_PILES')?.concreteClass).not.toBe(MATERIAL_CHOICE)
 
   await test.step('2-3. Drilled piles -> C35/45 ve PUT families/materials', async () => {
     const savedBefore = await savedToastCount(page)
     const put = waitForSectionPut<MaterialRow[]>(page, projectId, 'families/materials', {
       predicate: (r) => Array.isArray(r.value) && r.value.some((m) => m.id === 'DRILLED_PILES' && m.concreteClass === MATERIAL_CHOICE),
     })
-    await page.locator('table.spn-table tbody tr').first().locator('select').selectOption(MATERIAL_CHOICE)
+    await page.getByTestId('materials-concrete-class-DRILLED_PILES').selectOption(MATERIAL_CHOICE)
     await put
     await settleWrites(writes)
     await expect.poll(() => savedToastCount(page)).toBeGreaterThan(savedBefore)
     const after = await readRows(page)
-    expect(after[0].concreteClass).toBe(MATERIAL_CHOICE)
-    expect(after.slice(1), 'Diğer 7 satır değişmez').toEqual(before.slice(1))
+    expect(byId(after, 'DRILLED_PILES')?.concreteClass).toBe(MATERIAL_CHOICE)
+    expect(exceptDrilledPiles(after), 'Diğer 7 satır değişmez').toEqual(exceptDrilledPiles(before))
     const stored = (await projectApi.getProject(projectId)).families.materials
     expect(stored.find((m) => m.id === 'DRILLED_PILES')?.concreteClass).toBe(MATERIAL_CHOICE)
   })
@@ -54,7 +58,7 @@ test('12 Malzeme seçimi sunucu projesine kaydediliyor mu', async ({ page, diagn
     await openProjectViaFileMenu(page, name, projectId)
     await gotoInProject(page, writes, projectId, '/materials')
     const reopened = await readRows(page)
-    expect(reopened[0].concreteClass).toBe(MATERIAL_CHOICE)
+    expect(byId(reopened, 'DRILLED_PILES')?.concreteClass).toBe(MATERIAL_CHOICE)
   })
 
   await test.step('5. Hesap/solver isteği yok', () => {

@@ -70,11 +70,12 @@ export default function MaterialsPanel() {
           </thead>
           <tbody>
             {materials.map((row) => (
-              <tr key={row.no}>
+              <tr key={row.no} data-testid={`materials-row-${row.id}`}>
                 <td>{row.no}</td>
                 <td>{row.element}</td>
                 <td>
                   <select
+                    data-testid={`materials-concrete-class-${row.id}`}
                     className="spn-input"
                     value={row.concreteClass}
                     onChange={(e) => updateClass(row.no, e.target.value)}

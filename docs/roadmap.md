@@ -1944,7 +1944,7 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 ## playwright-e2e-all (2026-10-16)
 
 - [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run left 19 persistent `E2E-` projects until e2e-test-data-cleanup added the DELETE API). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
-- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container). The CI job for the suite is covered by e2e-ci-pipeline (below).
+- [x] Done in e2e-testid-stabilization (below; `aria-label` part deliberately not done): `data-testid` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container). The CI job for the suite is covered by e2e-ci-pipeline (below).
 
 ## e2e-test-data-cleanup (2026-10-16)
 
@@ -1964,3 +1964,8 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
 - [x] `.github/workflows/ci.yml`: `backend` (`mvn -B -f backend/pom.xml package`), `frontend` (`npm ci`, lint, test, build) and `e2e` (`npm run test:e2e` against the built jar and a throw-away `postgres-test` PostgreSQL with a generated, masked password) on every push, pull request and manual dispatch. No secrets, no application or dependency change; failure-only artifacts (7 days). Plan `docs/features/e2e-ci-pipeline/`.
 - [ ] Verify on GitHub (user): one green push run and one green pull request run.
 - [ ] Not done (out of scope): SHA-pinned actions, Playwright browser cache, retries, backend tests on PostgreSQL, deployment/release.
+
+## e2e-testid-stabilization (2026-10-20)
+
+- [x] `data-testid` added to the elements listed in the follow-up above (Materials rows/selects, Layout/Generate span ranges, Self Weight rows/results, Wind and Temperature result cells, LM1 cells, graph node root via `domAttributes`, Seismic chart); specs 06, 07, 09, 11, 12, 14, 15, 19 and `support/graph.ts`, `support/navigation.ts` converted from structural selectors. No behaviour, text or class change; DOM structure unchanged (attributes only).
+- [ ] Not done (out of scope, see plan section 6): other brittle selectors (shared helpers, remaining table/`label.spn-field` lookups) and a11y `aria-label` additions.

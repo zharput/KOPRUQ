@@ -38,7 +38,7 @@ test('07 Rüzgâr sonucu güncelliğini kaybettiğinde saklama', async ({ page, 
   const ze = page.getByLabel('Reference Height, ze')
   const calculate = page.getByRole('button', { name: 'Calculate Wind' })
   const stale = page.locator('p.spn-hint strong', { hasText: 'STALE' })
-  const transverse = page.locator('tr', { hasText: 'Without Traffic' }).locator('td').nth(1)
+  const transverse = page.getByTestId('wind-transverse-without-traffic')
   const resolveCalls = () => diagnostics.apiCalls({ method: 'POST', url: '/api/wind-loads/resolve' }).length
 
   await test.step('1-3. vb 27, Terrain II, ze 10 -> Calculate Wind', async () => {

@@ -1,0 +1,639 @@
+diff --git a/docs/architecture.md b/docs/architecture.md
+index db55831..09a6b6b 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -3349,6 +3349,8 @@ Plan: `docs/features/playwright-e2e-all/`. Playwright now runs the 19 manual sce
+ - **Findings recorded in the specs (code vs. scenario text, nothing was changed).** The 05 "not connected" error and ERROR label appear only after a Run; 15 starts with importance factor `1`, not empty; 11 has no "Min span / Max span" labels and the 400 body has no `violations` key; 19 steps 3-4 are inconsistent about the unit order; a 200 INVALID wind result is also saved as a snapshot; 17 needs a bridge for the Validation table; a new project also persists an unassigned "Untitled Graph"; navigating to `/bridge-alternatives` drops `?project` for a moment before the session restores it.
+ - **Side effects.** Superseded by `e2e-test-data-cleanup` below: the `projectCleanup` fixture now deletes the projects a run creates.
+ 
++**Stable test ids (feature e2e-testid-stabilization, 2026-10-20).** Plan: `docs/features/e2e-testid-stabilization/`. The specs reach the following elements through inline `data-testid` strings (kebab-case, no constants module, never read by production code or CSS): Materials rows and class selects (`materials-row-<id>`, `materials-concrete-class-<id>`), the Layout/Generate span ranges (`layout-span-length[-min|-max]`, `generate-span[-min|-max]`, via the optional `RangeField.testId`), Self Weight rows and results (`self-weight-row|result-<key>`, via the required `FormulaRow.testKey`), the Wind "Without Traffic" transverse cell, the four Uniform Temperature result cells, the LM1 row/base/effective/unit cells (`lm1-<part>-<section>-<index>`), the graph node root and the Seismic chart. Graph node roots get `graph-node-<id>` through React Flow's `Node.domAttributes` set in `toReactFlowNodes` (group nodes do not pass through the adapter and carry no id). The Seismic id (`seismic-spectrum-chart`) is passed directly to Recharts' `ResponsiveContainer`, which spreads unknown props onto its root `div`. No DOM structure, class, text or style changed; no new `aria-label`.
++
+ ## Project delete and e2e test-data cleanup (feature e2e-test-data-cleanup, 2026-10-16)
+ 
+ Plan: `docs/features/e2e-test-data-cleanup/`. `DELETE /api/projects/{projectId}` (in the existing `ProjectController`, 42 application endpoints) deletes a project and its content.
+diff --git a/docs/e2e/README.md b/docs/e2e/README.md
+index 948dd99..8d7261c 100644
+--- a/docs/e2e/README.md
++++ b/docs/e2e/README.md
+@@ -65,7 +65,7 @@ Vite dev sunucusu 5173'te çalışıyorsa yeniden kullanılır, çalışmıyorsa
+ 
+ **CI.** `.github/workflows/ci.yml` içindeki `e2e` job'ı bu paketi her push ve pull request'te çalıştırır: `docker compose --profile postgres-test up -d --wait postgres-test` ile geçici PostgreSQL (5433, tmpfs) başlatılır; `DB_PASSWORD` o çalıştırma için `openssl rand` ile üretilip maskelenir (secret yok); backend'in `backend` job'ında derlenen jar'ı `DB_URL=jdbc:postgresql://localhost:5433/kopruq_test` ile başlatılır, sağlık adresi `UP` olunca `npm run test:e2e` koşar. Başarısız çalıştırmada `playwright-report`, `playwright-test-results` ve `e2e-logs` (backend ve PostgreSQL logu) artifact'ları 7 gün saklanır.
+ 
+-**Kurallar.** Her spec kendi projesini arayüzden oluşturur ve başka spec'e ya da sıraya bağlı değildir. Yazmalar `PUT /api/projects/<id>/...` yanıtı ve gövdesiyle beklenir (yeşil "Kaydedildi" bildirimi 1,5 sn yaşadığı için yalnız ek kanıttır); spec'lerde sabit bekleme yoktur. Her spec sonunda yakalanmamış `pageerror`, izin verilmemiş `console.error`, izin verilmemiş 4xx/5xx API yanıtı ve beklenmeyen dialog olmadığını denetler. Beklenen hata yanıtları yalnız ilgili testte gerekçeyle izinlidir (03: bulunmayan proje 404, 07: simüle edilen 400, 11: bozuk JSON 400, 18: revizyon çakışması 409) ve test raporunda not olarak görünür.
++**Kurallar.** Her spec kendi projesini arayüzden oluşturur ve başka spec'e ya da sıraya bağlı değildir. Yazmalar `PUT /api/projects/<id>/...` yanıtı ve gövdesiyle beklenir (yeşil "Kaydedildi" bildirimi 1,5 sn yaşadığı için yalnız ek kanıttır); spec'lerde sabit bekleme yoktur. Her spec sonunda yakalanmamış `pageerror`, izin verilmemiş `console.error`, izin verilmemiş 4xx/5xx API yanıtı ve beklenmeyen dialog olmadığını denetler. Beklenen hata yanıtları yalnız ilgili testte gerekçeyle izinlidir (03: bulunmayan proje 404, 07: simüle edilen 400, 11: bozuk JSON 400, 18: revizyon çakışması 409) ve test raporunda not olarak görünür. Seçici kuralı: yapısal CSS sınıfı, `nth()` ya da tablo konumu yerine `src` içinde satır içi (inline) kebab-case `data-testid` (`<özellik>-<eleman>[-<alan anahtarı>]`) kullanılır; sabitler modülü yoktur ve üretim kodu (CSS dahil) bu id'leri okumaz.
+ 
+ ### Senaryo → spec → manuel kalan adımlar
+ 
+diff --git a/docs/roadmap.md b/docs/roadmap.md
+index 7435db3..9e753fb 100644
+--- a/docs/roadmap.md
++++ b/docs/roadmap.md
+@@ -1944,7 +1944,7 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
+ ## playwright-e2e-all (2026-10-16)
+ 
+ - [x] Playwright e2e infrastructure and one spec per manual scenario (`docs/e2e` 01-19 -> `frontend/e2e/NN-*.spec.ts`), Chromium only, against the real backend and PostgreSQL (local/test database only; every run left 19 persistent `E2E-` projects until e2e-test-data-cleanup added the DELETE API). Shared helpers in `frontend/e2e/support/` (diagnostics, write tracking, document values in `scenarioData.ts`), `npm run test:e2e` plus `test:e2e:install`, `:ui`, `:headed`, `:report`. Vitest excludes `e2e/**`; `tsc -b` checks it. Only new dependency: `@playwright/test` (devDependency). Steps that stay manual (05 step 9, 08 step 6 backend restart, 11 step 3 log search) are listed in `docs/e2e/README.md`. No change under `backend/**` or `frontend/src/**`; plan `docs/features/playwright-e2e-all/`.
+-- [ ] Optional follow-up (not part of this feature): `data-testid` / `aria-label` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container). The CI job for the suite is covered by e2e-ci-pipeline (below).
++- [x] Done in e2e-testid-stabilization (below; `aria-label` part deliberately not done): `data-testid` on elements the specs reach structurally (Materials row selects, Layout/Generate range inputs, Self Weight formula rows, Wind/Temperature result cells, LM1 table cells, graph node root, Seismic chart container). The CI job for the suite is covered by e2e-ci-pipeline (below).
+ 
+ ## e2e-test-data-cleanup (2026-10-16)
+ 
+@@ -1964,3 +1964,8 @@ Stored projects with revision-checked writes (details in `docs/architecture.md`,
+ - [x] `.github/workflows/ci.yml`: `backend` (`mvn -B -f backend/pom.xml package`), `frontend` (`npm ci`, lint, test, build) and `e2e` (`npm run test:e2e` against the built jar and a throw-away `postgres-test` PostgreSQL with a generated, masked password) on every push, pull request and manual dispatch. No secrets, no application or dependency change; failure-only artifacts (7 days). Plan `docs/features/e2e-ci-pipeline/`.
+ - [ ] Verify on GitHub (user): one green push run and one green pull request run.
+ - [ ] Not done (out of scope): SHA-pinned actions, Playwright browser cache, retries, backend tests on PostgreSQL, deployment/release.
++
++## e2e-testid-stabilization (2026-10-20)
++
++- [x] `data-testid` added to the elements listed in the follow-up above (Materials rows/selects, Layout/Generate span ranges, Self Weight rows/results, Wind and Temperature result cells, LM1 cells, graph node root via `domAttributes`, Seismic chart); specs 06, 07, 09, 11, 12, 14, 15, 19 and `support/graph.ts`, `support/navigation.ts` converted from structural selectors. No behaviour, text, class or DOM change.
++- [ ] Not done (out of scope, see plan section 6): other brittle selectors (shared helpers, remaining table/`label.spn-field` lookups) and a11y `aria-label` additions.
+diff --git a/frontend/e2e/06-trafik-yukleri.spec.ts b/frontend/e2e/06-trafik-yukleri.spec.ts
+index 5bab5f6..bd04703 100644
+--- a/frontend/e2e/06-trafik-yukleri.spec.ts
++++ b/frontend/e2e/06-trafik-yukleri.spec.ts
+@@ -44,12 +44,11 @@ test('06 Trafik yükleri: LM1 override ve LM2 durumu', async ({ page, diagnostic
+   })
+ 
+   await openTrafficSubTab(page, 'LM1')
+-  const alphaInput = trafficPanel(page).getByRole('textbox', { name: / α$/ }).first()
++  const alphaInput = trafficPanel(page).getByTestId('lm1-row-tandemSystem-0').getByRole('textbox')
+   await expect(alphaInput).toBeVisible()
+   const alphaLabel = (await alphaInput.getAttribute('aria-label')) ?? ''
+   const rowLabel = alphaLabel.replace(/ α$/, '')
+-  const row = trafficPanel(page).locator('tr').filter({ has: page.getByRole('textbox', { name: alphaLabel, exact: true }) })
+-  const effective = row.locator('td').nth(3)
++  const effective = trafficPanel(page).getByTestId('lm1-effective-tandemSystem-0')
+   const resetButton = page.getByRole('button', { name: `Reset ${rowLabel} α to EN default`, exact: true })
+ 
+   await expect(effective).not.toHaveText('—')
+diff --git a/frontend/e2e/07-ruzgar-guncellik.spec.ts b/frontend/e2e/07-ruzgar-guncellik.spec.ts
+index a2965e5..be6726b 100644
+--- a/frontend/e2e/07-ruzgar-guncellik.spec.ts
++++ b/frontend/e2e/07-ruzgar-guncellik.spec.ts
+@@ -38,7 +38,7 @@ test('07 Rüzgâr sonucu güncelliğini kaybettiğinde saklama', async ({ page,
+   const ze = page.getByLabel('Reference Height, ze')
+   const calculate = page.getByRole('button', { name: 'Calculate Wind' })
+   const stale = page.locator('p.spn-hint strong', { hasText: 'STALE' })
+-  const transverse = page.locator('tr', { hasText: 'Without Traffic' }).locator('td').nth(1)
++  const transverse = page.getByTestId('wind-transverse-without-traffic')
+   const resolveCalls = () => diagnostics.apiCalls({ method: 'POST', url: '/api/wind-loads/resolve' }).length
+ 
+   await test.step('1-3. vb 27, Terrain II, ze 10 -> Calculate Wind', async () => {
+diff --git a/frontend/e2e/09-yerlesim-alternatif.spec.ts b/frontend/e2e/09-yerlesim-alternatif.spec.ts
+index 75cbb42..834e97c 100644
+--- a/frontend/e2e/09-yerlesim-alternatif.spec.ts
++++ b/frontend/e2e/09-yerlesim-alternatif.spec.ts
+@@ -62,9 +62,8 @@ test('09 Yerleşim seçimini yapısal alternatiflere aktar', async ({ page, diag
+     await expect(page.getByText(`${chosen.bridgeLengthM} m total, ${chosen.spanLengthM} m spans`)).toBeVisible()
+     const length = page.locator('label.spn-field').filter({ has: page.locator('span', { hasText: /^Bridge Length \(m\)$/ }) }).locator('input')
+     expect(Number(await length.inputValue())).toBeCloseTo(chosen.bridgeLengthM, 6)
+-    const span = page.locator('.spn-range-field').filter({ has: page.locator('.spn-range-label', { hasText: /^Span \(m\)$/ }) }).locator('input')
+-    expect(Number(await span.nth(0).inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
+-    expect(Number(await span.nth(1).inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
++    expect(Number(await page.getByTestId('generate-span-min').inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
++    expect(Number(await page.getByTestId('generate-span-max').inputValue())).toBeCloseTo(chosen.spanLengthM, 6)
+   })
+ 
+   await test.step('5. GENERATE ALTERNATIVES: kernel-state ve alternatives', async () => {
+diff --git a/frontend/e2e/11-api-hata-sozlesmesi.spec.ts b/frontend/e2e/11-api-hata-sozlesmesi.spec.ts
+index 3cb2a07..f6d56e3 100644
+--- a/frontend/e2e/11-api-hata-sozlesmesi.spec.ts
++++ b/frontend/e2e/11-api-hata-sozlesmesi.spec.ts
+@@ -37,8 +37,8 @@ test('11 API hata sözleşmesi ve correlation ID', async ({ page, diagnostics, w
+ 
+   await test.step('4. Layout formu: min span > max span -> alan hatası', async () => {
+     await gotoInProject(page, writes, projectId, '/layout-generator')
+-    const range = page.locator('.spn-range-field').filter({ has: page.locator('.spn-range-label', { hasText: /^Span length \(m\)$/ }) })
+-    const [minInput, maxInput] = [range.locator('input').nth(0), range.locator('input').nth(1)]
++    const range = page.getByTestId('layout-span-length')
++    const [minInput, maxInput] = [page.getByTestId('layout-span-length-min'), page.getByTestId('layout-span-length-max')]
+     const max = Number(await maxInput.inputValue())
+     expect(Number.isFinite(max)).toBe(true)
+     await minInput.fill(String(max + 1))
+diff --git a/frontend/e2e/12-malzeme-katalogu.spec.ts b/frontend/e2e/12-malzeme-katalogu.spec.ts
+index 46f65cf..2d3d7cd 100644
+--- a/frontend/e2e/12-malzeme-katalogu.spec.ts
++++ b/frontend/e2e/12-malzeme-katalogu.spec.ts
+@@ -14,36 +14,40 @@ import type { Page } from '@playwright/test'
+ 
+ type MaterialRow = { id: string; concreteClass: string }
+ 
+-async function readRows(page: Page): Promise<{ element: string; concreteClass: string }[]> {
+-  const rows = page.locator('table.spn-table tbody tr')
++async function readRows(page: Page): Promise<{ id: string; element: string; concreteClass: string }[]> {
++  const rows = page.locator('[data-testid^="materials-row-"]')
+   await expect(rows).toHaveCount(8)
+   return rows.evaluateAll((trs) => trs.map((tr) => ({
++    id: (tr.getAttribute('data-testid') ?? '').replace('materials-row-', ''),
+     element: tr.querySelectorAll('td')[1].textContent ?? '',
+-    concreteClass: (tr.querySelector('select') as HTMLSelectElement).value,
++    concreteClass: (tr.querySelector('[data-testid^="materials-concrete-class-"]') as HTMLSelectElement).value,
+   })))
+ }
+ 
++const byId = <T extends { id: string }>(rows: T[], id: string) => rows.find((r) => r.id === id)
++const exceptDrilledPiles = <T extends { id: string }>(rows: T[]) => rows.filter((r) => r.id !== 'DRILLED_PILES')
++
+ test('12 Malzeme seçimi sunucu projesine kaydediliyor mu', async ({ page, diagnostics, writes, projectApi }) => {
+   const name = uniqueProjectName('12')
+   const { projectId } = await createProjectViaUi(page, name)
+   await gotoInProject(page, writes, projectId, '/materials')
+ 
+   const before = await readRows(page)
+-  expect(before[0].element).toBe('Drilled piles')
+-  expect(before[0].concreteClass).not.toBe(MATERIAL_CHOICE)
++  await expect(page.getByTestId('materials-row-DRILLED_PILES')).toContainText('Drilled piles')
++  expect(byId(before, 'DRILLED_PILES')?.concreteClass).not.toBe(MATERIAL_CHOICE)
+ 
+   await test.step('2-3. Drilled piles -> C35/45 ve PUT families/materials', async () => {
+     const savedBefore = await savedToastCount(page)
+     const put = waitForSectionPut<MaterialRow[]>(page, projectId, 'families/materials', {
+       predicate: (r) => Array.isArray(r.value) && r.value.some((m) => m.id === 'DRILLED_PILES' && m.concreteClass === MATERIAL_CHOICE),
+     })
+-    await page.locator('table.spn-table tbody tr').first().locator('select').selectOption(MATERIAL_CHOICE)
++    await page.getByTestId('materials-concrete-class-DRILLED_PILES').selectOption(MATERIAL_CHOICE)
+     await put
+     await settleWrites(writes)
+     await expect.poll(() => savedToastCount(page)).toBeGreaterThan(savedBefore)
+     const after = await readRows(page)
+-    expect(after[0].concreteClass).toBe(MATERIAL_CHOICE)
+-    expect(after.slice(1), 'Diğer 7 satır değişmez').toEqual(before.slice(1))
++    expect(byId(after, 'DRILLED_PILES')?.concreteClass).toBe(MATERIAL_CHOICE)
++    expect(exceptDrilledPiles(after), 'Diğer 7 satır değişmez').toEqual(exceptDrilledPiles(before))
+     const stored = (await projectApi.getProject(projectId)).families.materials
+     expect(stored.find((m) => m.id === 'DRILLED_PILES')?.concreteClass).toBe(MATERIAL_CHOICE)
+   })
+@@ -54,7 +58,7 @@ test('12 Malzeme seçimi sunucu projesine kaydediliyor mu', async ({ page, diagn
+     await openProjectViaFileMenu(page, name, projectId)
+     await gotoInProject(page, writes, projectId, '/materials')
+     const reopened = await readRows(page)
+-    expect(reopened[0].concreteClass).toBe(MATERIAL_CHOICE)
++    expect(byId(reopened, 'DRILLED_PILES')?.concreteClass).toBe(MATERIAL_CHOICE)
+   })
+ 
+   await test.step('5. Hesap/solver isteği yok', () => {
+diff --git a/frontend/e2e/14-sicaklik-durumu.spec.ts b/frontend/e2e/14-sicaklik-durumu.spec.ts
+index 18f0ed4..bde81c4 100644
+--- a/frontend/e2e/14-sicaklik-durumu.spec.ts
++++ b/frontend/e2e/14-sicaklik-durumu.spec.ts
+@@ -8,7 +8,7 @@
+  */
+ import { jsonOf } from './support/api.ts'
+ import { expect, test } from './support/fixtures.ts'
+-import { openLoadsTab } from './support/navigation.ts'
++import { openLoadsTab, temperatureResultCells } from './support/navigation.ts'
+ import { createProjectViaUi, gotoInProject, reloadSettled, uniqueProjectName } from './support/projects.ts'
+ import { TEMPERATURE } from './support/scenarioData.ts'
+ import { settleWrites, waitForSectionPut } from './support/writes.ts'
+@@ -38,7 +38,7 @@ test('14 Sıcaklık servisinin giriş ve sonuç durumu', async ({ page, diagnost
+   const minInput = page.getByLabel('Effective Minimum Temperature, Te,min')
+   const maxInput = page.getByLabel('Effective Maximum Temperature, Te,max')
+   const t0Input = page.getByLabel('Initial Temperature, T0')
+-  const resultCells = page.locator('table.spn-table tbody tr td:nth-child(2), table.spn-table tbody tr td:nth-child(3)')
++  const resultCells = temperatureResultCells(page)
+   const resolveCalls = () => diagnostics.apiCalls({ method: 'POST', url: '/api/temperature/uniform/resolve' }).length
+ 
+   await test.step('1. Boş alanlar: istek yok, hücreler —', async () => {
+diff --git a/frontend/e2e/15-deprem-durumu.spec.ts b/frontend/e2e/15-deprem-durumu.spec.ts
+index b0c22f3..92c1c10 100644
+--- a/frontend/e2e/15-deprem-durumu.spec.ts
++++ b/frontend/e2e/15-deprem-durumu.spec.ts
+@@ -24,13 +24,15 @@ test('15 Deprem spektrumu giriş durumu', async ({ page, diagnostics, writes, pr
+ 
+   const agR = page.getByLabel('Reference PGA, agR')
+   const gamma = page.getByLabel('Importance Factor, γI')
+-  const curve = page.locator('.recharts-line-curve')
++  const chart = page.getByTestId('seismic-spectrum-chart')
++  const curve = chart.locator('.recharts-line-curve')
+   const spectrumCalls = () => diagnostics.apiCalls({ method: 'POST', url: '/api/seismic/spectrum' }).length
+ 
+   await test.step('1. agR boş: istek ve eğri yok', async () => {
+     await expect(agR).toHaveValue('')
+     await expect(page.getByLabel('Ground Type')).toHaveValue('B')
+     await expect(page.getByLabel('Spectrum Type')).toHaveValue('Type 1')
++    await expect(chart).toBeVisible()
+     await expect(curve).toHaveCount(0)
+     expect(spectrumCalls()).toBe(0)
+   })
+diff --git a/frontend/e2e/19-yuk-birimleri.spec.ts b/frontend/e2e/19-yuk-birimleri.spec.ts
+index 932fcd0..ec2bc98 100644
+--- a/frontend/e2e/19-yuk-birimleri.spec.ts
++++ b/frontend/e2e/19-yuk-birimleri.spec.ts
+@@ -13,7 +13,7 @@ import type { Page } from '@playwright/test'
+ import { jsonOf } from './support/api.ts'
+ import { attachScreenshot } from './support/evidence.ts'
+ import { expect, test } from './support/fixtures.ts'
+-import { openLoadsTab, openTrafficSubTab, rowInputValues, selfWeightRow, setProjectUnit, trafficPanel, type UnitDimension } from './support/navigation.ts'
++import { openLoadsTab, openTrafficSubTab, rowInputValues, selfWeightResult, selfWeightRow, setProjectUnit, temperatureResultCells, trafficPanel, type UnitDimension } from './support/navigation.ts'
+ import { createProjectViaUi, gotoInProject, uniqueProjectName } from './support/projects.ts'
+ import { KN_PER_TONF, SEISMIC, UNITS_DOC } from './support/scenarioData.ts'
+ import { expectNoPutDuring, settleWrites, type WriteTracker } from './support/writes.ts'
+@@ -28,11 +28,12 @@ type TemperatureResult = { status: string; effectiveMinimumC: number | null; eff
+ const signedFixed = (value: number, label: string) => `${value > 0 ? '+' : ''}${(Object.is(value, -0) ? 0 : value).toFixed(2)} ${label}`
+ 
+ async function selfWeightSignature(page: Page) {
+-  await expect(page.locator('.spn-formula-row').first()).toBeVisible()
+-  return page.locator('.spn-formula-row').evaluateAll((rows) => rows.map((row) => ({
+-    label: row.querySelector('.spn-formula-label')?.textContent ?? '',
++  const rows = page.locator('[data-testid^="self-weight-row-"]')
++  await expect(rows.first()).toBeVisible()
++  return rows.evaluateAll((els) => els.map((row) => ({
++    key: (row.getAttribute('data-testid') ?? '').replace('self-weight-row-', ''),
+     inputs: Array.from(row.querySelectorAll('input')).map((input) => (input as HTMLInputElement).value),
+-    result: row.querySelector('.spn-formula-result')?.textContent ?? null,
++    result: row.querySelector('[data-testid^="self-weight-result-"]')?.textContent ?? null,
+   })))
+ }
+ 
+@@ -52,14 +53,14 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
+   const toLoads = () => nav.getByRole('link', { name: 'Loads', exact: true }).click()
+ 
+   await gotoInProject(page, writes, projectId, '/loads')
+-  const guardrail = selfWeightRow(page, 'Guardrail')
+-  const asphalt = selfWeightRow(page, 'Asphalt')
+-  const concrete = selfWeightRow(page, 'Concrete Self Weight')
++  const guardrail = selfWeightRow(page, 'guardrail')
++  const asphalt = selfWeightRow(page, 'asphalt')
++  const concrete = selfWeightRow(page, 'concrete')
+   const card = page.locator('.spn-card').filter({ has: page.getByRole('heading', { name: 'Self Weight & Permanent' }) }).last()
+ 
+   let initialSignature: Awaited<ReturnType<typeof selfWeightSignature>> = []
+   await test.step('1. Varsayılan birimler (kN, m, °C)', async () => {
+-    await expect(guardrail.locator('.spn-formula-result')).toHaveText(UNITS_DOC.defaults.guardrailResult)
++    await expect(selfWeightResult(page, 'guardrail')).toHaveText(UNITS_DOC.defaults.guardrailResult)
+     expect((await rowInputValues(guardrail))[1]).toBe(UNITS_DOC.defaults.guardrailUnitLoad)
+     await expect(card).toContainText('kN/m³')
+     initialSignature = await selfWeightSignature(page)
+@@ -68,7 +69,7 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
+ 
+   await test.step('2. Force = tonf; Mass değişimi Loads değerlerini değiştirmez', async () => {
+     await changeUnit('force', 'tonf')
+-    await expect(guardrail.locator('.spn-formula-result')).toHaveText(UNITS_DOC.tonf.guardrailResult)
++    await expect(selfWeightResult(page, 'guardrail')).toHaveText(UNITS_DOC.tonf.guardrailResult)
+     expect((await rowInputValues(guardrail))[1]).toBe(UNITS_DOC.tonf.guardrailUnitLoad)
+     expect(await rowInputValues(concrete)).toEqual([UNITS_DOC.tonf.concreteUnitWeight])
+     expect((await rowInputValues(asphalt))[2]).toBe(UNITS_DOC.tonf.asphaltUnitWeight)
+@@ -83,7 +84,7 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
+     await changeUnit('length', 'mm')
+     expect((await rowInputValues(asphalt))[0]).toBe(UNITS_DOC.mm.asphaltThickness)
+     expect((await rowInputValues(asphalt))[2], 'Birim ağırlık mm³ biçimi: 4 anlamlı hane').toMatch(/^\d\.\d{3}e-\d+$/)
+-    await expect(guardrail.locator('.spn-formula-result')).toHaveText(UNITS_DOC.mm.guardrailResult)
++    await expect(selfWeightResult(page, 'guardrail')).toHaveText(UNITS_DOC.mm.guardrailResult)
+     await expect(card).toContainText('tonf/mm³')
+     await attachScreenshot(testInfo, page, '19-3-mm')
+     await changeUnit('length', 'cm')
+@@ -116,16 +117,16 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
+     await openLoadsTab(page, 'Traffic')
+     await openTrafficSubTab(page, 'LM1')
+     const panel = trafficPanel(page)
+-    const tandemRow = panel.locator('table').nth(0).locator('tbody tr').first()
+-    const udlRow = panel.locator('table').nth(1).locator('tbody tr').first()
++    const tandemRow = panel.getByTestId('lm1-row-tandemSystem-0')
++    const udlRow = panel.getByTestId('lm1-row-udl-0')
+     const alphas = async () => [await tandemRow.locator('input').inputValue(), await udlRow.locator('input').inputValue()]
+     const alphaBefore = await alphas()
+     const tandem = (defaults.tandemSystem[0].characteristicValue.value / KN_PER_TONF).toFixed(2)
+     const udl = (defaults.udl[0].characteristicValue.value / KN_PER_TONF).toFixed(4)
+-    await expect(tandemRow.locator('td').nth(1)).toHaveText(tandem)
+-    await expect(tandemRow.locator('td').nth(4)).toHaveText('tonf')
+-    await expect(udlRow.locator('td').nth(1)).toHaveText(udl)
+-    await expect(udlRow.locator('td').nth(4)).toHaveText('tonf/m²')
++    await expect(panel.getByTestId('lm1-base-tandemSystem-0')).toHaveText(tandem)
++    await expect(panel.getByTestId('lm1-unit-tandemSystem-0')).toHaveText('tonf')
++    await expect(panel.getByTestId('lm1-base-udl-0')).toHaveText(udl)
++    await expect(panel.getByTestId('lm1-unit-udl-0')).toHaveText('tonf/m²')
+     // Belge değerleri (adım 4): 300 kN -> 30.59 tonf, UDL -> 0.9177 tonf/m²; yukarıdaki türetilmiş değerle de uyumlu olmalı.
+     expect(tandem).toBe(UNITS_DOC.lm1.tandem)
+     expect(udl).toBe(UNITS_DOC.lm1.udl)
+@@ -176,7 +177,7 @@ test('19 Yük birimlerinin proje tercihine göre gösterimi', async ({ page, dia
+     expect(sent.effectiveMaximumTemperatureC).toBeCloseTo(40, 6)
+     expect(sent.initialTemperatureC).toBeCloseTo(10, 6)
+     const body = await jsonOf<TemperatureResult>(response)
+-    const cells = page.locator('table.spn-table tbody tr td:nth-child(2), table.spn-table tbody tr td:nth-child(3)')
++    const cells = temperatureResultCells(page)
+     const expectDeltas = async (factor: number, label: string) => {
+       if (body.status !== 'VALID' || body.contractionC === null || body.expansionC === null) return
+       const c = signedFixed(body.contractionC * factor, label)
+diff --git a/frontend/e2e/support/graph.ts b/frontend/e2e/support/graph.ts
+index a3c51a2..0374b8d 100644
+--- a/frontend/e2e/support/graph.ts
++++ b/frontend/e2e/support/graph.ts
+@@ -6,21 +6,21 @@ export function libraryButton(page: Page, label: string): Locator {
+ }
+ 
+ /** All nodes currently on the canvas. */
+-export const canvasNodes = (page: Page): Locator => page.locator('.react-flow__node:not(.react-flow__node-graphGroup)')
++export const canvasNodes = (page: Page): Locator => page.locator('[data-testid^="graph-node-"]')
+ 
+ /** Adds a node from the library and waits until the canvas shows one more node; returns the new node's React Flow id. */
+ export async function addLibraryNode(page: Page, label: string): Promise<string> {
+-  const before = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id') ?? ''))
++  const before = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => (node.getAttribute('data-testid') ?? '').replace('graph-node-', '')))
+   await libraryButton(page, label).click()
+   await expect(canvasNodes(page)).toHaveCount(before.length + 1)
+-  const after = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-id') ?? ''))
++  const after = await canvasNodes(page).evaluateAll((nodes) => nodes.map((node) => (node.getAttribute('data-testid') ?? '').replace('graph-node-', '')))
+   const added = after.find((id) => !before.includes(id))
+   if (!added) throw new Error(`"${label}" düğmesi yeni bir düğüm eklemedi.`)
+   return added
+ }
+ 
+-/** Node root by React Flow id. */
+-export const nodeById = (page: Page, id: string): Locator => page.locator(`.react-flow__node[data-id="${id}"]`)
++/** Node root by React Flow id (`graph-node-<id>` on the React Flow wrapper, set through `domAttributes`). */
++export const nodeById = (page: Page, id: string): Locator => page.getByTestId(`graph-node-${id}`)
+ 
+ /**
+  * Drags from the source handle to the target handle with real mouse events (React Flow connects on mouseup over a handle).
+diff --git a/frontend/e2e/support/navigation.ts b/frontend/e2e/support/navigation.ts
+index c9bd4ae..f3a145e 100644
+--- a/frontend/e2e/support/navigation.ts
++++ b/frontend/e2e/support/navigation.ts
+@@ -46,9 +46,23 @@ export async function openTrafficSubTab(page: Page, label: TrafficSubTab): Promi
+   await page.locator('.spn-traffic-workspace').getByRole('tab', { name: label, exact: true }).click()
+ }
+ 
+-/** One row of the Self Weight & Permanent formula list (label exactly as shown, e.g. "Guardrail", "TOTAL"). */
+-export function selfWeightRow(page: Page, label: string): Locator {
+-  return page.locator('.spn-formula-row').filter({ has: page.locator('.spn-formula-label', { hasText: new RegExp(`^${label}$`) }) })
++/** The four Uniform Temperature result cells in DOM order: concrete contraction/expansion, steel contraction/expansion. */
++export function temperatureResultCells(page: Page): Locator {
++  return page.locator(
++    '[data-testid="temperature-concrete-contraction"], [data-testid="temperature-concrete-expansion"], [data-testid="temperature-steel-contraction"], [data-testid="temperature-steel-expansion"]',
++  )
++}
++
++export type SelfWeightKey = 'concrete' | 'asphalt' | 'sidewalk' | 'facia' | 'guardrail' | 'pedestrianRailing' | 'protectiveFence' | 'soundPanel' | 'total'
++
++/** One row of the Self Weight & Permanent formula list (stable key, e.g. 'guardrail', 'total'). */
++export function selfWeightRow(page: Page, key: SelfWeightKey): Locator {
++  return page.getByTestId(`self-weight-row-${key}`)
++}
++
++/** Result cell of a Self Weight row (every row except 'concrete' has one). */
++export function selfWeightResult(page: Page, key: Exclude<SelfWeightKey, 'concrete'>): Locator {
++  return page.getByTestId(`self-weight-result-${key}`)
+ }
+ 
+ /** Current values of all `input` elements of a row (display text as shown to the engineer). */
+diff --git a/frontend/src/features/bridge-alternatives/components/GenerateWorkflow.tsx b/frontend/src/features/bridge-alternatives/components/GenerateWorkflow.tsx
+index f9dec7d..d14de58 100644
+--- a/frontend/src/features/bridge-alternatives/components/GenerateWorkflow.tsx
++++ b/frontend/src/features/bridge-alternatives/components/GenerateWorkflow.tsx
+@@ -124,7 +124,7 @@ export default function GenerateWorkflow({
+ 
+       <div className="spn-card">
+         <h2 className="spn-card-title">Design space</h2>
+-        <RangeField label="Span (m)" registerMin={register('minSpanM', { valueAsNumber: true })} registerMax={register('maxSpanM', { valueAsNumber: true })} error={errors.maxSpanM?.message} />
++        <RangeField label="Span (m)" testId="generate-span" registerMin={register('minSpanM', { valueAsNumber: true })} registerMax={register('maxSpanM', { valueAsNumber: true })} error={errors.maxSpanM?.message} />
+         <RangeField label="Girder count" registerMin={register('minGirderCount', { valueAsNumber: true })} registerMax={register('maxGirderCount', { valueAsNumber: true })} error={errors.maxGirderCount?.message} />
+         <RangeField label="Girder depth (m)" registerMin={register('minGirderDepthM', { valueAsNumber: true })} registerMax={register('maxGirderDepthM', { valueAsNumber: true })} error={errors.maxGirderDepthM?.message} />
+       </div>
+@@ -284,20 +284,21 @@ function Field({
+ }
+ 
+ function RangeField({
+-  label, registerMin, registerMax, error,
++  label, registerMin, registerMax, error, testId,
+ }: {
+   label: string
+   registerMin: UseFormRegisterReturn
+   registerMax: UseFormRegisterReturn
+   error?: string
++  testId?: string
+ }) {
+   return (
+-    <div className="spn-range-field">
++    <div className="spn-range-field" data-testid={testId}>
+       <span className="spn-range-label">{label}</span>
+       <div className="spn-range-inputs">
+-        <input type="number" {...registerMin} className="spn-input" />
++        <input type="number" {...registerMin} className="spn-input" data-testid={testId ? `${testId}-min` : undefined} />
+         <span className="spn-range-dash">-</span>
+-        <input type="number" {...registerMax} className="spn-input" />
++        <input type="number" {...registerMax} className="spn-input" data-testid={testId ? `${testId}-max` : undefined} />
+       </div>
+       {error && <span className="spn-error" style={{ fontSize: 11 }}>{error}</span>}
+     </div>
+diff --git a/frontend/src/features/graph/adapters/reactFlowAdapter.ts b/frontend/src/features/graph/adapters/reactFlowAdapter.ts
+index d8472ea..3a0a328 100644
+--- a/frontend/src/features/graph/adapters/reactFlowAdapter.ts
++++ b/frontend/src/features/graph/adapters/reactFlowAdapter.ts
+@@ -113,7 +113,7 @@ export function toReactFlowNodes(graph: KopruqGraph, options: { selectedIds?: st
+     }
+     const previewError=previewErrors.get(node.id)
+     const resultValid = nodeRunValidity(graph, node.id, options.projectUnits)
+-    return { id: node.id, type: 'kopruq', position: { ...node.position }, selected: selectedIds.has(node.id), data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), resultValid, executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewAbutmentCandidates:abutmentPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, projectUnitsKey: options.projectUnitsKey ?? options.projectUnits?.length ?? 'm', isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
++    return { id: node.id, type: 'kopruq', position: { ...node.position }, selected: selectedIds.has(node.id), domAttributes: { 'data-testid': `graph-node-${node.id}` } as NonNullable<FlowGraphNode['domAttributes']>, data: { node, executionState: options.states?.[node.id] ?? (previewError?'error':'idle'), resultValid, executionError: options.errors?.[node.id] ?? previewError, output: outputValue, previewValue, previewCandidateCount, previewFoundationCandidates:foundationPreview, previewBearingCandidates:bearingPreview, previewSuperstructureCandidates:superstructurePreview, previewAbutmentCandidates:abutmentPreview, previewGeneratedCombinations, previewInvalidCombinations, rangePreviewValue, rangePreviewError:previewErrors.get(node.id), outputAvailability, outputs, connectedInputs, projectUnits: options.projectUnits, projectUnitsKey: options.projectUnitsKey ?? options.projectUnits?.length ?? 'm', isDirty: options.isDirty, onParameterChange: options.onParameterChange } }
+   })
+ }
+ 
+diff --git a/frontend/src/features/layout-generator/components/SiteLayoutPanel.tsx b/frontend/src/features/layout-generator/components/SiteLayoutPanel.tsx
+index 28e2be2..dff5df2 100644
+--- a/frontend/src/features/layout-generator/components/SiteLayoutPanel.tsx
++++ b/frontend/src/features/layout-generator/components/SiteLayoutPanel.tsx
+@@ -131,6 +131,7 @@ export default function SiteLayoutPanel({ onUseLayout }: { onUseLayout: (seed: L
+         <h2 className="spn-card-title">Span search space</h2>
+         <RangeField
+           label="Span length (m)"
++          testId="layout-span-length"
+           registerMin={register('minSpanM', { valueAsNumber: true })}
+           registerMax={register('maxSpanM', { valueAsNumber: true })}
+           error={errors.maxSpanM?.message ?? errors.minSpanM?.message}
+@@ -238,20 +239,21 @@ function Field({
+ }
+ 
+ function RangeField({
+-  label, registerMin, registerMax, error,
++  label, registerMin, registerMax, error, testId,
+ }: {
+   label: string
+   registerMin: UseFormRegisterReturn
+   registerMax: UseFormRegisterReturn
+   error?: string
++  testId?: string
+ }) {
+   return (
+-    <div className="spn-range-field">
++    <div className="spn-range-field" data-testid={testId}>
+       <span className="spn-range-label">{label}</span>
+       <div className="spn-range-inputs">
+-        <input type="number" {...registerMin} className="spn-input" />
++        <input type="number" {...registerMin} className="spn-input" data-testid={testId ? `${testId}-min` : undefined} />
+         <span className="spn-range-dash">-</span>
+-        <input type="number" {...registerMax} className="spn-input" />
++        <input type="number" {...registerMax} className="spn-input" data-testid={testId ? `${testId}-max` : undefined} />
+       </div>
+       {error && <span className="spn-error" style={{ fontSize: 11 }}>{error}</span>}
+     </div>
+diff --git a/frontend/src/features/loads/components/SelfWeightPermanent.tsx b/frontend/src/features/loads/components/SelfWeightPermanent.tsx
+index 8c10c89..d6e90f6 100644
+--- a/frontend/src/features/loads/components/SelfWeightPermanent.tsx
++++ b/frontend/src/features/loads/components/SelfWeightPermanent.tsx
+@@ -123,7 +123,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+       </p>
+ 
+       <div className="spn-formula-rows">
+-        <div className="spn-formula-row">
++        <div className="spn-formula-row" data-testid="self-weight-row-concrete">
+           <span className="spn-formula-label">Concrete Self Weight</span>
+           <span className="spn-formula-eq">=</span>
+           <input className="spn-input spn-input-number spn-formula-input spn-input-passive" value={formatLoadValue(25, 'unitWeight', projectUnits)} readOnly />
+@@ -131,6 +131,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         </div>
+ 
+         <FormulaRow
++          testKey="asphalt"
+           label="Asphalt"
+           terms={[
+             { value: inputs.asphaltThicknessM, kind: 'decimal', onChange: (v) => update('asphaltThicknessM', v), quantity: 'length' },
+@@ -142,6 +143,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         />
+ 
+         <FormulaRow
++          testKey="sidewalk"
+           label="Sidewalk"
+           terms={[
+             { value: inputs.sidewalkThicknessM, kind: 'decimal', onChange: (v) => update('sidewalkThicknessM', v), quantity: 'length' },
+@@ -158,6 +160,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         />
+ 
+         <FormulaRow
++          testKey="facia"
+           label="Precast facia"
+           terms={[
+             { value: inputs.faciaCount, kind: 'integer', onChange: (v) => update('faciaCount', v) },
+@@ -170,6 +173,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         />
+ 
+         <FormulaRow
++          testKey="guardrail"
+           label="Guardrail"
+           terms={[
+             { value: inputs.guardrailCount, kind: 'integer', onChange: (v) => update('guardrailCount', v) },
+@@ -180,6 +184,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         />
+ 
+         <FormulaRow
++          testKey="pedestrianRailing"
+           label="Pedestrian railing"
+           terms={[
+             { value: inputs.pedestrianRailingCount, kind: 'integer', onChange: (v) => update('pedestrianRailingCount', v) },
+@@ -195,6 +200,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         />
+ 
+         <FormulaRow
++          testKey="protectiveFence"
+           label="Protective fence"
+           terms={[
+             { value: inputs.protectiveFenceCount, kind: 'integer', onChange: (v) => update('protectiveFenceCount', v) },
+@@ -210,6 +216,7 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+         />
+ 
+         <FormulaRow
++          testKey="soundPanel"
+           label="Sound panel"
+           terms={[
+             { value: inputs.soundPanelCount, kind: 'integer', onChange: (v) => update('soundPanelCount', v) },
+@@ -219,10 +226,10 @@ export default function SelfWeightPermanent({ crossSectionValues, projectUnits }
+           result={soundPanelResult}
+         />
+ 
+-        <div className="spn-formula-row spn-formula-total">
++        <div className="spn-formula-row spn-formula-total" data-testid="self-weight-row-total">
+           <span className="spn-formula-label">TOTAL</span>
+           <span className="spn-formula-eq">=</span>
+-          <span className="spn-formula-result">{formatLoad(total, 'lineLoad', projectUnits)}</span>
++          <span className="spn-formula-result" data-testid="self-weight-result-total">{formatLoad(total, 'lineLoad', projectUnits)}</span>
+         </div>
+       </div>
+     </div>
+@@ -238,9 +245,9 @@ interface Term {
+   display?: string
+ }
+ 
+-function FormulaRow({ label, terms, result, units }: { label: string; terms: Term[]; result: number; units?: ProjectUnits }) {
++function FormulaRow({ testKey, label, terms, result, units }: { testKey: string; label: string; terms: Term[]; result: number; units?: ProjectUnits }) {
+   return (
+-    <div className="spn-formula-row">
++    <div className="spn-formula-row" data-testid={`self-weight-row-${testKey}`}>
+       <span className="spn-formula-label">{label}</span>
+       <span className="spn-formula-eq">=</span>
+       {terms.map((term, i) => (
+@@ -274,7 +281,7 @@ function FormulaRow({ label, terms, result, units }: { label: string; terms: Ter
+         </span>
+       ))}
+       <span className="spn-formula-eq">=</span>
+-      <span className="spn-formula-result">{formatLoad(result, 'lineLoad', units)}</span>
++      <span className="spn-formula-result" data-testid={`self-weight-result-${testKey}`}>{formatLoad(result, 'lineLoad', units)}</span>
+     </div>
+   )
+ }
+diff --git a/frontend/src/features/loads/components/seismic/SeismicPanel.tsx b/frontend/src/features/loads/components/seismic/SeismicPanel.tsx
+index a31663d..691c4cb 100644
+--- a/frontend/src/features/loads/components/seismic/SeismicPanel.tsx
++++ b/frontend/src/features/loads/components/seismic/SeismicPanel.tsx
+@@ -9,4 +9,4 @@ function TooltipContent({ active, payload }: any) { if (!active || !payload?.[0]
+ function Formula() { return <div className="spn-seismic-equations"><div><b>0 ≤ T ≤ T<sub>B</sub></b><code>S<sub>e</sub>(T) = a<sub>g</sub> × S × [1 + (T/T<sub>B</sub>) × (η × 2.5 − 1)]</code></div><div><b>T<sub>B</sub> ≤ T ≤ T<sub>C</sub></b><code>S<sub>e</sub>(T) = a<sub>g</sub> × S × η × 2.5</code></div><div><b>T<sub>C</sub> ≤ T ≤ T<sub>D</sub></b><code>S<sub>e</sub>(T) = a<sub>g</sub> × S × η × 2.5 × (T<sub>C</sub>/T)</code></div><div><b>T<sub>D</sub> ≤ T ≤ 4.0 s</b><code>S<sub>e</sub>(T) = a<sub>g</sub> × S × η × 2.5 × T<sub>C</sub>T<sub>D</sub>/T²</code></div></div> }
+ function Details({ a, g, t, i, r, point }: any) { const acc = (x: number | undefined) => x == null ? '—' : x.toFixed(4); const per = (x: number | undefined) => x == null ? '—' : x.toFixed(3); const rows = [["Initial", 0], ["TB", r?.tb], ["TC", r?.tc], ["TD", r?.td], ["Maximum Period", r?.maxPeriod ?? r?.periodMax ?? 4]]; return <div className="spn-seismic-report"><div className="spn-seismic-report-grid"><section className="spn-seismic-report-card"><h3><span>01</span> INPUT PARAMETERS</h3><div className="spn-seismic-report-rows"><div><span>Reference PGA, agR</span><strong>{a || '—'} g</strong></div><div><span>Importance factor, γI</span><strong>{i}</strong></div><div><span>Ground Type</span><strong>{g}</strong></div><div><span>Spectrum Type</span><strong>{t}</strong></div><div><span>Damping ratio, ξ</span><strong>5.0%</strong></div><div><span>Damping correction, η</span><strong>1.00</strong></div></div></section><section className="spn-seismic-report-card"><h3><span>02</span> SPECTRUM PARAMETERS</h3><div className="spn-seismic-report-rows"><div><span>Soil Factor, S</span><strong>{r?.s ?? '—'}</strong></div><div><span>T<sub>B</sub></span><strong>{per(r?.tb)} s</strong></div><div><span>T<sub>C</sub></span><strong>{per(r?.tc)} s</strong></div><div><span>T<sub>D</sub></span><strong>{per(r?.td)} s</strong></div><div><span>Design acceleration, a<sub>g</sub></span><strong>{r?.ag?.toFixed(3) || '—'} g</strong></div></div></section></div><section className="spn-seismic-report-card"><h3><span>03</span> DESIGN ACCELERATION</h3><div className="spn-seismic-formula-steps"><div><small>GENERAL FORMULA</small><code>a<sub>g</sub> = γ<sub>I</sub> × a<sub>gR</sub></code></div><div><small>SUBSTITUTION</small><code>a<sub>g</sub> = {i} × {a || '—'} g</code></div><div className="result"><small>RESULT</small><code>a<sub>g</sub> = {r?.ag?.toFixed(3) || '—'} g</code></div></div></section><section className="spn-seismic-report-card"><h3><span>04</span> ELASTIC RESPONSE SPECTRUM</h3><p className="spn-seismic-report-subtitle">EN 1998-1 — Horizontal Elastic Response Spectrum</p><Formula /></section><section className="spn-seismic-report-card"><h3><span>05</span> KEY SPECTRUM VALUES</h3><table className="spn-seismic-results-table"><thead><tr><th>CHARACTERISTIC POINT</th><th>PERIOD (s)</th><th>SPECTRAL ACCELERATION (g)</th></tr></thead><tbody>{rows.map(([name, x]: any) => <tr key={name}><td>{name === 'TB' ? <>T<sub>B</sub></> : name === 'TC' ? <>T<sub>C</sub></> : name === 'TD' ? <>T<sub>D</sub></> : name}</td><td>{per(x)}</td><td>{acc(point(x))}</td></tr>)}</tbody></table></section></div> }
+ const SEISMIC_DEFAULT_INPUTS = { a: '', g: 'B', t: 'Type 1', i: '1' }
+-export default function SeismicPanel() { const [saved,setSaved]=useProjectModule(SEISMIC_INPUTS_MODULE,SEISMIC_DEFAULT_INPUTS); const {a,g,t,i}=saved; const setA=(v:string)=>setSaved(p=>({...p,a:v})),setG=(v:string)=>setSaved(p=>({...p,g:v})),setT=(v:string)=>setSaved(p=>({...p,t:v})),setI=(v:string)=>setSaved(p=>({...p,i:v})); const [details,setDetails]=useState(false); const query=useSeismicSpectrum({a,g,t,i}); const invalid=query.data!==undefined&&query.data.status!=='VALID'; const r:any=query.data&&!invalid?query.data:null; const point=(x:number|undefined)=>x==null?undefined:r?.points?.find((p:any)=>Math.abs(p.period-x)<.0001)?.acceleration; return <div className="spn-card"><h2 className="spn-card-title">Horizontal Elastic Response Spectrum</h2><div className="spn-field-grid"><label className="spn-field">Reference PGA, agR<input className="spn-input" value={a} onChange={e=>setA(e.target.value)} /></label><label className="spn-field">Importance Factor, γI<input className="spn-input" value={i} onChange={e=>setI(e.target.value)} /></label><label className="spn-field">Ground Type<select className="spn-input" value={g} onChange={e=>setG(e.target.value)}>{'ABCDE'.split('').map(x=><option key={x}>{x}</option>)}</select></label><label className="spn-field">Spectrum Type<select className="spn-input" value={t} onChange={e=>setT(e.target.value)}><option>Type 1</option><option>Type 2</option></select></label></div>{query.isError&&<p role="alert" className="spn-error">{formatApiError(query.error)}</p>}{invalid&&<p role="alert" className="spn-error">Spectrum result is INVALID for these inputs; no values are shown.</p>}<p className="spn-hint">agR and ag are in g, periods in s - independent of the project units.</p><ResponsiveContainer width="100%" height={280}><LineChart data={r?.points||[]} margin={{top:24,right:12,bottom:20,left:8}}><CartesianGrid stroke="var(--kq-chart-grid)" opacity={.55}/><Legend verticalAlign="top" align="right"/><XAxis dataKey="period" tickCount={8}/><YAxis/><Tooltip content={<TooltipContent/>} cursor={{stroke:'var(--kq-chart-crosshair)',strokeDasharray:'4 4'}}/><ReferenceLine x={r?.tb} strokeDasharray="4 4"/><ReferenceLine x={r?.tc} strokeDasharray="4 4"/><ReferenceLine x={r?.td} strokeDasharray="4 4"/><Line dataKey="acceleration" stroke="#5CA9F5" strokeWidth={2} dot={false} activeDot={{r:5}}/></LineChart></ResponsiveContainer><button className="spn-button-secondary" onClick={()=>setDetails(!details)}>{details?'Hide Calculation Details ▴':'Show Calculation Details ▾'}</button>{details&&<Details a={a} g={g} t={t} i={i} r={r} point={point}/>}</div> }
++export default function SeismicPanel() { const [saved,setSaved]=useProjectModule(SEISMIC_INPUTS_MODULE,SEISMIC_DEFAULT_INPUTS); const {a,g,t,i}=saved; const setA=(v:string)=>setSaved(p=>({...p,a:v})),setG=(v:string)=>setSaved(p=>({...p,g:v})),setT=(v:string)=>setSaved(p=>({...p,t:v})),setI=(v:string)=>setSaved(p=>({...p,i:v})); const [details,setDetails]=useState(false); const query=useSeismicSpectrum({a,g,t,i}); const invalid=query.data!==undefined&&query.data.status!=='VALID'; const r:any=query.data&&!invalid?query.data:null; const point=(x:number|undefined)=>x==null?undefined:r?.points?.find((p:any)=>Math.abs(p.period-x)<.0001)?.acceleration; return <div className="spn-card"><h2 className="spn-card-title">Horizontal Elastic Response Spectrum</h2><div className="spn-field-grid"><label className="spn-field">Reference PGA, agR<input className="spn-input" value={a} onChange={e=>setA(e.target.value)} /></label><label className="spn-field">Importance Factor, γI<input className="spn-input" value={i} onChange={e=>setI(e.target.value)} /></label><label className="spn-field">Ground Type<select className="spn-input" value={g} onChange={e=>setG(e.target.value)}>{'ABCDE'.split('').map(x=><option key={x}>{x}</option>)}</select></label><label className="spn-field">Spectrum Type<select className="spn-input" value={t} onChange={e=>setT(e.target.value)}><option>Type 1</option><option>Type 2</option></select></label></div>{query.isError&&<p role="alert" className="spn-error">{formatApiError(query.error)}</p>}{invalid&&<p role="alert" className="spn-error">Spectrum result is INVALID for these inputs; no values are shown.</p>}<p className="spn-hint">agR and ag are in g, periods in s - independent of the project units.</p><ResponsiveContainer width="100%" height={280} data-testid="seismic-spectrum-chart"><LineChart data={r?.points||[]} margin={{top:24,right:12,bottom:20,left:8}}><CartesianGrid stroke="var(--kq-chart-grid)" opacity={.55}/><Legend verticalAlign="top" align="right"/><XAxis dataKey="period" tickCount={8}/><YAxis/><Tooltip content={<TooltipContent/>} cursor={{stroke:'var(--kq-chart-crosshair)',strokeDasharray:'4 4'}}/><ReferenceLine x={r?.tb} strokeDasharray="4 4"/><ReferenceLine x={r?.tc} strokeDasharray="4 4"/><ReferenceLine x={r?.td} strokeDasharray="4 4"/><Line dataKey="acceleration" stroke="#5CA9F5" strokeWidth={2} dot={false} activeDot={{r:5}}/></LineChart></ResponsiveContainer><button className="spn-button-secondary" onClick={()=>setDetails(!details)}>{details?'Hide Calculation Details ▴':'Show Calculation Details ▾'}</button>{details&&<Details a={a} g={g} t={t} i={i} r={r} point={point}/>}</div> }
+diff --git a/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.tsx b/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.tsx
+index 8a40aaf..16c9cb3 100644
+--- a/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.tsx
++++ b/frontend/src/features/loads/components/temperature/UniformTemperaturePanel.tsx
+@@ -14,4 +14,4 @@ const text=(s:string,units?:ProjectUnits)=>s.trim()===''||!Number.isFinite(Numbe
+ function Rows({ items }: { items:Array<[string,ReactNode]> }) { return <div className="spn-seismic-report-rows">{items.map(([label,value])=><div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div> }
+ function Details({ min,max,t0,result,units }: { min:string;max:string;t0:string;result:UniformTemperatureResult|null;units?:ProjectUnits }) { return <div className="spn-seismic-report"><div className="spn-seismic-report-grid"><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>01</span> INPUT PARAMETERS</h3><Rows items={[[`Minimum Temperature, Te,min`,display(result?.effectiveMinimumC,'temperature',units)],[`Maximum Temperature, Te,max`,display(result?.effectiveMaximumC,'temperature',units)],[`Reference Temperature, T0`,display(result?.initialTemperatureC,'temperature',units)]]}/></section><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>02</span> MATERIAL PROPERTIES</h3><Rows items={[[`Concrete thermal coefficient, αT`,alpha(result?.concreteAlphaTPerC,units)],[`Structural Steel thermal coefficient, αT`,alpha(result?.steelAlphaTPerC,units)]]}/></section></div><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>03</span> TEMPERATURE DIFFERENCES</h3><div className="spn-seismic-formula-steps"><div><small>CONTRACTION</small><code>ΔTcon = Te,min − T0 = {display(result?.contractionC,'temperatureDifference',units)}</code></div><div><small>EXPANSION</small><code>ΔTexp = Te,max − T0 = {display(result?.expansionC,'temperatureDifference',units)}</code></div></div></section><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>04</span> CALCULATION FORMULAS</h3><Rows items={[[`Contraction`, `ΔTcon = ${text(min,units)} − ${text(t0,units)} = ${display(result?.contractionC,'temperatureDifference',units)}`],[`Expansion`, `ΔTexp = ${text(max,units)} − ${text(t0,units)} = ${display(result?.expansionC,'temperatureDifference',units)}`]]}/></section><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>05</span> DESIGN BASIS &amp; STATUS</h3><Rows items={[[`Standard`,'EN 1991-1-5'],[`National Annex`,'Not applied'],[`Temperature Source`,'Project / User Input'],[`Calculation Status`,result?.temperatureActionStatus??'INVALID']]}/></section></div> }
+ const TEMPERATURE_DEFAULT_INPUTS = { min: '', max: '', t0: '' }
+-export default function UniformTemperaturePanel({ projectUnits }: { projectUnits?: ProjectUnits } = {}) { const [saved,setSaved]=useProjectModule(TEMPERATURE_INPUTS_MODULE,TEMPERATURE_DEFAULT_INPUTS); const {min,max,t0}=saved; const setMin=(v:string)=>setSaved(p=>({...p,min:v})),setMax=(v:string)=>setSaved(p=>({...p,max:v})),setT0=(v:string)=>setSaved(p=>({...p,t0:v})); const [details,setDetails]=useState(false); const query=useUniformTemperature({min,max,t0}); const result:UniformTemperatureResult|null=query.data??null; const invalid=result!==null&&result.status!=='VALID'; const actions=invalid?null:result; return <div className="spn-card" style={{maxWidth:620}}><h2 className="spn-card-title">Uniform Temperature</h2><p className="spn-card-subtitle">EN 1991-1-5 · Uniform temperature component</p><div className="spn-field-grid" style={{gridTemplateColumns:'1fr'}}><label className="spn-field">Effective Minimum Temperature, Te,min<UnitTextInput value={min} onChange={setMin} quantity="temperature" units={projectUnits}/></label><label className="spn-field">Effective Maximum Temperature, Te,max<UnitTextInput value={max} onChange={setMax} quantity="temperature" units={projectUnits}/></label><label className="spn-field">Initial Temperature, T0<UnitTextInput value={t0} onChange={setT0} quantity="temperature" units={projectUnits}/></label></div><p className="spn-hint">Temperatures in {loadUnit('temperature', projectUnits).label}.</p>{query.isError&&<p role="alert" className="spn-error">{formatApiError(query.error)}</p>}{invalid&&<div role="alert" className="spn-error"><p>Result is {result?.status}: the following parameters are missing or invalid.</p><ul>{result?.missingParameters.map(item=><li key={item}>{item}</li>)}</ul></div>}<h3 className="spn-card-title" style={{marginTop:20}}>Uniform Temperature Actions</h3><table className="spn-table"><thead><tr><th>Material</th><th>Contraction</th><th>Expansion</th></tr></thead><tbody><tr><td>Concrete<br/><small>αT = {alpha(result?.concreteAlphaTPerC,projectUnits)}</small></td><td>{display(actions?.contractionC,'temperatureDifference',projectUnits)}</td><td>{display(actions?.expansionC,'temperatureDifference',projectUnits)}</td></tr><tr><td>Structural Steel<br/><small>αT = {alpha(result?.steelAlphaTPerC,projectUnits)}</small></td><td>{display(actions?.contractionC,'temperatureDifference',projectUnits)}</td><td>{display(actions?.expansionC,'temperatureDifference',projectUnits)}</td></tr></tbody></table><button className="spn-button-secondary" onClick={()=>setDetails(!details)}>{details?'Hide Details ▴':'Details ▾'}</button>{details&&<Details min={min} max={max} t0={t0} result={actions} units={projectUnits}/>}</div> }
++export default function UniformTemperaturePanel({ projectUnits }: { projectUnits?: ProjectUnits } = {}) { const [saved,setSaved]=useProjectModule(TEMPERATURE_INPUTS_MODULE,TEMPERATURE_DEFAULT_INPUTS); const {min,max,t0}=saved; const setMin=(v:string)=>setSaved(p=>({...p,min:v})),setMax=(v:string)=>setSaved(p=>({...p,max:v})),setT0=(v:string)=>setSaved(p=>({...p,t0:v})); const [details,setDetails]=useState(false); const query=useUniformTemperature({min,max,t0}); const result:UniformTemperatureResult|null=query.data??null; const invalid=result!==null&&result.status!=='VALID'; const actions=invalid?null:result; return <div className="spn-card" style={{maxWidth:620}}><h2 className="spn-card-title">Uniform Temperature</h2><p className="spn-card-subtitle">EN 1991-1-5 · Uniform temperature component</p><div className="spn-field-grid" style={{gridTemplateColumns:'1fr'}}><label className="spn-field">Effective Minimum Temperature, Te,min<UnitTextInput value={min} onChange={setMin} quantity="temperature" units={projectUnits}/></label><label className="spn-field">Effective Maximum Temperature, Te,max<UnitTextInput value={max} onChange={setMax} quantity="temperature" units={projectUnits}/></label><label className="spn-field">Initial Temperature, T0<UnitTextInput value={t0} onChange={setT0} quantity="temperature" units={projectUnits}/></label></div><p className="spn-hint">Temperatures in {loadUnit('temperature', projectUnits).label}.</p>{query.isError&&<p role="alert" className="spn-error">{formatApiError(query.error)}</p>}{invalid&&<div role="alert" className="spn-error"><p>Result is {result?.status}: the following parameters are missing or invalid.</p><ul>{result?.missingParameters.map(item=><li key={item}>{item}</li>)}</ul></div>}<h3 className="spn-card-title" style={{marginTop:20}}>Uniform Temperature Actions</h3><table className="spn-table"><thead><tr><th>Material</th><th>Contraction</th><th>Expansion</th></tr></thead><tbody><tr><td>Concrete<br/><small>αT = {alpha(result?.concreteAlphaTPerC,projectUnits)}</small></td><td data-testid="temperature-concrete-contraction">{display(actions?.contractionC,'temperatureDifference',projectUnits)}</td><td data-testid="temperature-concrete-expansion">{display(actions?.expansionC,'temperatureDifference',projectUnits)}</td></tr><tr><td>Structural Steel<br/><small>αT = {alpha(result?.steelAlphaTPerC,projectUnits)}</small></td><td data-testid="temperature-steel-contraction">{display(actions?.contractionC,'temperatureDifference',projectUnits)}</td><td data-testid="temperature-steel-expansion">{display(actions?.expansionC,'temperatureDifference',projectUnits)}</td></tr></tbody></table><button className="spn-button-secondary" onClick={()=>setDetails(!details)}>{details?'Hide Details ▴':'Details ▾'}</button>{details&&<Details min={min} max={max} t0={t0} result={actions} units={projectUnits}/>}</div> }
+diff --git a/frontend/src/features/loads/components/traffic/Lm1Panel.tsx b/frontend/src/features/loads/components/traffic/Lm1Panel.tsx
+index ecb3d28..87826c4 100644
+--- a/frontend/src/features/loads/components/traffic/Lm1Panel.tsx
++++ b/frontend/src/features/loads/components/traffic/Lm1Panel.tsx
+@@ -46,10 +46,11 @@ export default function Lm1Panel({ lm1, onChange, resolved, defaults, projectUni
+       ? null
+       : entry.resolved.characteristicValue.value * entry.resolved.adjustmentFactor.value
+     const canReset = entry.row.adjustmentFactor.provenance === 'PROJECT_OVERRIDE' && defaultRow(entry.section, entry.i) !== undefined
+-    return <tr key={entry.row.label}><td>{entry.row.label}</td><td>{entry.row.characteristicValue.value == null ? undefined : formatLoadValue(entry.row.characteristicValue.value, entry.quantity, projectUnits)}</td>
++    const rowKey = `${entry.section}-${entry.i}`
++    return <tr key={entry.row.label} data-testid={`lm1-row-${rowKey}`}><td>{entry.row.label}</td><td data-testid={`lm1-base-${rowKey}`}>{entry.row.characteristicValue.value == null ? undefined : formatLoadValue(entry.row.characteristicValue.value, entry.quantity, projectUnits)}</td>
+       <td><AlphaInput key={resetCounts[`${entry.section}:${entry.i}`] ?? 0} value={entry.row.adjustmentFactor.value} label={`${entry.row.label} α`} onCommit={value => edit(entry.section, entry.i, value)} />{' '}
+         <button type="button" className="spn-button-secondary" aria-label={`Reset ${entry.row.label} α to EN default`} disabled={!canReset} onClick={() => reset(entry.section, entry.i)}>EN default</button></td>
+-      <td>{effective == null ? '—' : formatLoadValue(effective, entry.quantity, projectUnits)}</td><td>{loadUnit(entry.quantity, projectUnits).label}</td></tr>
++      <td data-testid={`lm1-effective-${rowKey}`}>{effective == null ? '—' : formatLoadValue(effective, entry.quantity, projectUnits)}</td><td data-testid={`lm1-unit-${rowKey}`}>{loadUnit(entry.quantity, projectUnits).label}</td></tr>
+   }
+   return <div className="spn-card"><h2 className="spn-card-title">LM1 - Tandem System & UDL</h2><p className="spn-card-subtitle">EN 1991-2, LM1, 4.3.2 · EN Base</p>
+     <h3 style={{ margin: '18px 0 8px', fontSize: 13.5 }}>Tandem System</h3><table className="spn-table"><thead><tr><th>Parameter</th><th>EN Base</th><th>α</th><th>Effective</th><th>Unit</th></tr></thead><tbody>{rows(lm1.tandemSystem, resolved?.tandemSystem, 'force', 'tandemSystem').map(cell)}</tbody></table>
+diff --git a/frontend/src/features/loads/components/wind/WindLoadsPanel.tsx b/frontend/src/features/loads/components/wind/WindLoadsPanel.tsx
+index 2524518..d0bfab9 100644
+--- a/frontend/src/features/loads/components/wind/WindLoadsPanel.tsx
++++ b/frontend/src/features/loads/components/wind/WindLoadsPanel.tsx
+@@ -16,7 +16,7 @@ const fmtU = (v: number | null | undefined, q: LoadQuantity, units?: ProjectUnit
+ const SPEED_NOTE = 'vb and vm are in m/s - independent of the project units.'
+ function Rows({ items }: { items: Array<[string, ReactNode]> }) { return <div className="spn-seismic-report-rows">{items.map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}</div> }
+ function Details({ vb, terrain, ze, deckWidthM, drefM, status, missing, result, units }: any) { return <div className="spn-seismic-report"><div className="spn-seismic-report-grid"><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>01</span> INPUT PARAMETERS</h3><Rows items={[['Basic Wind Velocity, vb', `${vb || '—'} m/s`], ['Terrain Category', terrain], ['Reference Height, ze', ze.trim() === '' || !Number.isFinite(Number(ze)) ? '—' : formatLoad(Number(ze), 'length', units)], ['Deck Width, b', formatLoad(deckWidthM, 'length', units)], ['Loaded Deck Height, dref', formatLoad(drefM, 'length', units)]]} /></section><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>02</span> TERRAIN PARAMETERS</h3><Rows items={[['b/dref', fmt(result?.bOverD)], ['z0', fmtU(result?.z0M, 'length', units)], ['zmin', fmtU(result?.zminM, 'length', units)], ['kr', fmt(result?.kr)], ['cr(z)', fmt(result?.cr)]]} /></section></div><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>03</span> WIND VELOCITY &amp; PRESSURE</h3><Rows items={[['vm(z)', fmt(result?.vmMs, 'm/s')], ['Iv(z)', fmt(result?.turbulenceIntensity)], ['qp(z)', fmtU(result?.qpKNm2, 'pressure', units)]]} /><p className="spn-hint">{SPEED_NOTE}</p></section><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>04</span> AERODYNAMIC COEFFICIENTS</h3><Rows items={[['cfx', fmt(result?.cfx)], ['Standard', 'EN 1991-1-4'], ['National Annex', 'Not applied']]} /></section><section className="spn-seismic-report-card"><h3 className="kopruq-seismic-calculation-heading"><span>05</span> WIND ACTION RESULTS</h3><Rows items={[['Transverse wind action', fmtU(result?.transverseKNm, 'lineLoad', units)], ['Geometry Source', 'Project / User Input'], ['Status', status ?? 'INVALID'], ...(missing ? [['Missing', missing] as [string, ReactNode]] : [])]} /></section></div> }
+-function Summary({ result, units }: { result: any; units?: ProjectUnits }) { return <><h3 className="spn-card-title" style={{ marginTop: 20 }}>Wind Actions</h3><table className="spn-table"><thead><tr><th>Case</th><th>Transverse</th><th>Longitudinal</th><th>Vertical</th></tr></thead><tbody><tr><td>Without Traffic</td><td>{fmtU(result?.transverseKNm, 'lineLoad', units)}</td><td>NOT_IMPLEMENTED</td><td>NOT_IMPLEMENTED</td></tr><tr><td>With Traffic</td><td>NOT_IMPLEMENTED</td><td>NOT_IMPLEMENTED</td><td>NOT_IMPLEMENTED</td></tr></tbody></table></> }
++function Summary({ result, units }: { result: any; units?: ProjectUnits }) { return <><h3 className="spn-card-title" style={{ marginTop: 20 }}>Wind Actions</h3><table className="spn-table"><thead><tr><th>Case</th><th>Transverse</th><th>Longitudinal</th><th>Vertical</th></tr></thead><tbody><tr><td>Without Traffic</td><td data-testid="wind-transverse-without-traffic">{fmtU(result?.transverseKNm, 'lineLoad', units)}</td><td>NOT_IMPLEMENTED</td><td>NOT_IMPLEMENTED</td></tr><tr><td>With Traffic</td><td>NOT_IMPLEMENTED</td><td>NOT_IMPLEMENTED</td><td>NOT_IMPLEMENTED</td></tr></tbody></table></> }
+ const WIND_DEFAULT_INPUTS = { vb: '', terrain: 'II', ze: '' }
+ const WIND_DREF_M = 3
+ export default function WindLoadsPanel({ deckWidthM, snapshot, onSnapshot, projectUnits }: { deckWidthM: number; snapshot: WindCalculationSnapshot | null; onSnapshot: (snapshot: WindCalculationSnapshot) => void; projectUnits?: ProjectUnits }) {
+diff --git a/frontend/src/features/materials/components/MaterialsPanel.tsx b/frontend/src/features/materials/components/MaterialsPanel.tsx
+index 5275461..8a48210 100644
+--- a/frontend/src/features/materials/components/MaterialsPanel.tsx
++++ b/frontend/src/features/materials/components/MaterialsPanel.tsx
+@@ -70,11 +70,12 @@ export default function MaterialsPanel() {
+           </thead>
+           <tbody>
+             {materials.map((row) => (
+-              <tr key={row.no}>
++              <tr key={row.no} data-testid={`materials-row-${row.id}`}>
+                 <td>{row.no}</td>
+                 <td>{row.element}</td>
+                 <td>
+                   <select
++                    data-testid={`materials-concrete-class-${row.id}`}
+                     className="spn-input"
+                     value={row.concreteClass}
+                     onChange={(e) => updateClass(row.no, e.target.value)}

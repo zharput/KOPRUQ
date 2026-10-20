@@ -46,10 +46,11 @@ export default function Lm1Panel({ lm1, onChange, resolved, defaults, projectUni
       ? null
       : entry.resolved.characteristicValue.value * entry.resolved.adjustmentFactor.value
     const canReset = entry.row.adjustmentFactor.provenance === 'PROJECT_OVERRIDE' && defaultRow(entry.section, entry.i) !== undefined
-    return <tr key={entry.row.label}><td>{entry.row.label}</td><td>{entry.row.characteristicValue.value == null ? undefined : formatLoadValue(entry.row.characteristicValue.value, entry.quantity, projectUnits)}</td>
+    const rowKey = `${entry.section}-${entry.i}`
+    return <tr key={entry.row.label} data-testid={`lm1-row-${rowKey}`}><td>{entry.row.label}</td><td data-testid={`lm1-base-${rowKey}`}>{entry.row.characteristicValue.value == null ? undefined : formatLoadValue(entry.row.characteristicValue.value, entry.quantity, projectUnits)}</td>
       <td><AlphaInput key={resetCounts[`${entry.section}:${entry.i}`] ?? 0} value={entry.row.adjustmentFactor.value} label={`${entry.row.label} α`} onCommit={value => edit(entry.section, entry.i, value)} />{' '}
         <button type="button" className="spn-button-secondary" aria-label={`Reset ${entry.row.label} α to EN default`} disabled={!canReset} onClick={() => reset(entry.section, entry.i)}>EN default</button></td>
-      <td>{effective == null ? '—' : formatLoadValue(effective, entry.quantity, projectUnits)}</td><td>{loadUnit(entry.quantity, projectUnits).label}</td></tr>
+      <td data-testid={`lm1-effective-${rowKey}`}>{effective == null ? '—' : formatLoadValue(effective, entry.quantity, projectUnits)}</td><td data-testid={`lm1-unit-${rowKey}`}>{loadUnit(entry.quantity, projectUnits).label}</td></tr>
   }
   return <div className="spn-card"><h2 className="spn-card-title">LM1 - Tandem System & UDL</h2><p className="spn-card-subtitle">EN 1991-2, LM1, 4.3.2 · EN Base</p>
     <h3 style={{ margin: '18px 0 8px', fontSize: 13.5 }}>Tandem System</h3><table className="spn-table"><thead><tr><th>Parameter</th><th>EN Base</th><th>α</th><th>Effective</th><th>Unit</th></tr></thead><tbody>{rows(lm1.tandemSystem, resolved?.tandemSystem, 'force', 'tandemSystem').map(cell)}</tbody></table>
